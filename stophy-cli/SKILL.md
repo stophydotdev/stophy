@@ -11,7 +11,7 @@ allowed-tools:
 
 # stophy-cli
 
-Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channels, fetch playlists, and return JSON from the terminal.
+**YouTube Data for AI Agents.** Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channels, fetch playlists, and return JSON from the terminal.
 
 ## Before running commands
 

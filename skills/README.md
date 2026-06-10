@@ -1,4 +1,4 @@
-# YouTube Skills for Stophy CLI
+# Stophy Skills — YouTube Data for AI Agents
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
