@@ -6,7 +6,7 @@ metadata:
   version: "1.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx stophy *)
+  - Bash(npx @stophy/cli *)
 ---
 
 # stophy-cli
@@ -16,7 +16,7 @@ Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channe
 ## Before running commands
 
 1. Prefer `stophy ...` when the CLI is installed.
-2. Use `npx stophy ...` only when `stophy` is not available.
+2. Use `npx @stophy/cli ...` only when `stophy` is not available.
 3. If authentication fails, help the user log in instead of inventing output.
 4. Do not expose API keys in responses. Use `$STOPHY_API_KEY` or `st_xxx` placeholders.
 
@@ -58,13 +58,13 @@ export STOPHY_API_KEY="st_xxx"    # environment variable also works
    - course/playlist research → `stophy-playlist`
 2. Run the narrowest command that answers the question.
 3. Use `--json` when the next step needs machine-readable output or `jq` filtering.
-4. Use `continuationToken` only when the user needs more results.
+4. Use `--continuation-token` only when the user needs more results.
 
 ## Examples
 
 ```bash
 # Search, then inspect one result manually
-stophy search --q "AI coding agents" --type video --sortBy viewCount
+stophy search --q "AI coding agents" --type video --sortBy popularity
 
 # Transcript text for another tool
 stophy video transcript --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --json   | jq '.data.segments[].text' -r

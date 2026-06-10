@@ -6,7 +6,7 @@ metadata:
   version: "1.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx stophy *)
+  - Bash(npx @stophy/cli *)
 ---
 
 # stophy-search
@@ -27,8 +27,8 @@ Use a more specific skill if the user already provided a direct video, channel, 
 # Basic search
 stophy search --q "how to build a SaaS"
 
-# Videos sorted by views
-stophy search --q "Claude Code" --type video --sortBy viewCount
+# Videos sorted by popularity
+stophy search --q "Claude Code" --type video --sortBy popularity
 
 # Recent results
 stophy search --q "AI news" --uploadDate week
@@ -45,17 +45,17 @@ stophy search --q "typescript" --continuation-token <token>
 | Option | Values | Use when |
 |--------|--------|----------|
 | `--q <query>` | any query | Always required |
-| `--type <type>` | video, channel, playlist | Limit result type |
-| `--sortBy <sort>` | relevance, uploadDate, viewCount, rating | Prefer relevance, freshness, popularity, or rating |
-| `--uploadDate <date>` | hour, today, week, month, year | Focus on recent content |
+| `--type <type>` | video, short, channel, playlist, movie | Limit result type |
+| `--sortBy <sort>` | relevance, popularity, date, rating | Prefer relevance, popularity, recency, or rating |
+| `--uploadDate <date>` | today, week, month, year | Focus on recent content |
 | `--duration <duration>` | short, medium, long | Match short-form, mid-length, or long-form content |
 | `--continuation-token <token>` | string | Fetch the next page |
 | `--json` | — | Pipe or parse raw JSON |
 
 ## Decision rules
 
-- Use `--sortBy viewCount` for “top”, “popular”, or “biggest” videos.
-- Use `--sortBy uploadDate` or `--uploadDate week/month` for news and fast-moving topics.
+- Use `--sortBy popularity` for “top”, “popular”, or “biggest” videos.
+- Use `--sortBy date` or `--uploadDate week/month` for news and fast-moving topics.
 - Use `--duration long` for podcasts, lectures, tutorials, and deep dives.
 - Use `--type channel` when the user asks for creators or channels, not individual videos.
 - Keep the query human-readable; do not over-optimize with awkward Boolean syntax unless the user asks.

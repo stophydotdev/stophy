@@ -6,7 +6,7 @@ metadata:
   version: "1.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx stophy *)
+  - Bash(npx @stophy/cli *)
 ---
 
 # stophy-video

@@ -43,7 +43,7 @@ export STOPHY_API_KEY="st_xxx"
 Search YouTube:
 
 ```bash
-stophy search --q "AI coding agents" --type video --sortBy viewCount
+stophy search --q "AI coding agents" --type video --sortBy popularity
 ```
 
 Get a transcript:
