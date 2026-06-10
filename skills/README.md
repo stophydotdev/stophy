@@ -10,13 +10,13 @@ These skills help agents search YouTube, get transcripts, read comments, inspect
 
 | Skill | Use it for |
 |-------|------------|
-| `youtube-cli` | General Stophy CLI setup, authentication, credits, usage, logs, and multi-step workflows. |
-| `youtube-search` | Searching YouTube by keyword and filtering by type, date, duration, or sort order. |
-| `youtube-video` | Getting metadata for a single YouTube video, including title, description, channel, views, likes, publish date, and thumbnails. |
-| `youtube-transcript` | Getting transcript text, timestamps, captions, and spoken content from a YouTube video. |
-| `youtube-comments` | Reading top/latest comments, replies, audience reactions, objections, and viewer language. |
-| `youtube-channel` | Inspecting a channel's videos, Shorts, playlists, about page, catalog, and creator profile. |
-| `youtube-playlist` | Fetching videos and metadata from a YouTube playlist, course, series, or collection. |
+| `stophy-cli` | General Stophy CLI setup, authentication, credits, usage, logs, and multi-step workflows. |
+| `stophy-search` | Searching YouTube by keyword and filtering by type, date, duration, or sort order. |
+| `stophy-video` | Getting metadata for a single YouTube video, including title, description, channel, views, likes, publish date, and thumbnails. |
+| `stophy-transcript` | Getting transcript text, timestamps, captions, and spoken content from a YouTube video. |
+| `stophy-comments` | Reading top/latest comments, replies, audience reactions, objections, and viewer language. |
+| `stophy-channel` | Inspecting a channel's videos, Shorts, playlists, about page, catalog, and creator profile. |
+| `stophy-playlist` | Fetching videos and metadata from a YouTube playlist, course, series, or collection. |
 
 ## Requirements
 
@@ -74,13 +74,13 @@ stophy playlist --url "https://www.youtube.com/playlist?list=PLxxxxxx"
 
 Use the narrowest skill that matches the task:
 
-- Topic discovery → `youtube-search`
-- Video metadata → `youtube-video`
-- Spoken content → `youtube-transcript`
-- Viewer reactions → `youtube-comments`
-- Creator/channel research → `youtube-channel`
-- Playlist/course research → `youtube-playlist`
-- Setup, auth, credits, or combined workflows → `youtube-cli`
+- Topic discovery → `stophy-search`
+- Video metadata → `stophy-video`
+- Spoken content → `stophy-transcript`
+- Viewer reactions → `stophy-comments`
+- Creator/channel research → `stophy-channel`
+- Playlist/course research → `stophy-playlist`
+- Setup, auth, credits, or combined workflows → `stophy-cli`
 
 Do not fabricate YouTube data. Run the Stophy CLI command, inspect the real output, then summarize the result. If a transcript is unavailable or an API call fails, report that directly and suggest the next concrete command.
 
@@ -92,13 +92,13 @@ Current registry skills:
 
 ```json
 [
-  "youtube-cli",
-  "youtube-search",
-  "youtube-video",
-  "youtube-transcript",
-  "youtube-comments",
-  "youtube-channel",
-  "youtube-playlist"
+  "stophy-cli",
+  "stophy-search",
+  "stophy-video",
+  "stophy-transcript",
+  "stophy-comments",
+  "stophy-channel",
+  "stophy-playlist"
 ]
 ```
 

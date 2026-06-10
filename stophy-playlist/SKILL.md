@@ -1,5 +1,5 @@
 ---
-name: youtube-playlist
+name: stophy-playlist
 description: Fetch YouTube playlist videos and metadata with Stophy CLI. Trigger when the user provides a playlist URL or asks what is in a playlist, course, series, collection, queue, or wants to process multiple videos from a curated YouTube playlist.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx stophy *)
 ---
 
-# youtube-playlist
+# stophy-playlist
 
 Fetch videos and metadata from a YouTube playlist.
 
@@ -19,7 +19,7 @@ Fetch videos and metadata from a YouTube playlist.
 - The user asks what videos are in a course, series, collection, or playlist.
 - The user wants a batch of video URLs before fetching transcripts, comments, or details.
 
-Use `youtube-channel` first if the user asks for a channel’s playlists but has not provided a playlist URL.
+Use `stophy-channel` first if the user asks for a channel’s playlists but has not provided a playlist URL.
 
 ## Commands
 
@@ -70,8 +70,8 @@ The playlist response includes playlist-level metadata and video items. Typical 
 
 ## Related skills
 
-- [youtube-video](../youtube-video/SKILL.md) — get metadata for playlist videos
-- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcripts for playlist videos
-- [youtube-comments](../youtube-comments/SKILL.md) — read comments for playlist videos
-- [youtube-channel](../youtube-channel/SKILL.md) — find playlists from a channel
-- [youtube-search](../youtube-search/SKILL.md) — find playlist results by keyword
+- [stophy-video](../stophy-video/SKILL.md) — get metadata for playlist videos
+- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcripts for playlist videos
+- [stophy-comments](../stophy-comments/SKILL.md) — read comments for playlist videos
+- [stophy-channel](../stophy-channel/SKILL.md) — find playlists from a channel
+- [stophy-search](../stophy-search/SKILL.md) — find playlist results by keyword

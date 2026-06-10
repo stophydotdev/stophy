@@ -1,5 +1,5 @@
 ---
-name: youtube-cli
+name: stophy-cli
 description: Use Stophy CLI for YouTube data from the terminal. Trigger when the user wants to install or use the CLI, authenticate, inspect credits or usage, or combine YouTube search, transcripts, comments, channel, playlist, and video metadata commands in one workflow.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx stophy *)
 ---
 
-# youtube-cli
+# stophy-cli
 
 Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channels, fetch playlists, and return JSON from the terminal.
 
@@ -50,12 +50,12 @@ export STOPHY_API_KEY="st_xxx"    # environment variable also works
 ## Recommended workflow
 
 1. Start with the user’s intent:
-   - topic discovery → `youtube-search`
-   - one video’s metadata → `youtube-video`
-   - spoken content → `youtube-transcript`
-   - viewer reactions → `youtube-comments`
-   - creator/channel research → `youtube-channel`
-   - course/playlist research → `youtube-playlist`
+   - topic discovery → `stophy-search`
+   - one video’s metadata → `stophy-video`
+   - spoken content → `stophy-transcript`
+   - viewer reactions → `stophy-comments`
+   - creator/channel research → `stophy-channel`
+   - course/playlist research → `stophy-playlist`
 2. Run the narrowest command that answers the question.
 3. Use `--json` when the next step needs machine-readable output or `jq` filtering.
 4. Use `continuationToken` only when the user needs more results.
@@ -82,9 +82,9 @@ stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy pop
 
 ## Related skills
 
-- [youtube-search](../youtube-search/SKILL.md) — search YouTube by keyword
-- [youtube-video](../youtube-video/SKILL.md) — get video metadata
-- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcript text with timestamps
-- [youtube-comments](../youtube-comments/SKILL.md) — read comments and replies
-- [youtube-channel](../youtube-channel/SKILL.md) — inspect a channel catalog
-- [youtube-playlist](../youtube-playlist/SKILL.md) — fetch playlist videos
+- [stophy-search](../stophy-search/SKILL.md) — search YouTube by keyword
+- [stophy-video](../stophy-video/SKILL.md) — get video metadata
+- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text with timestamps
+- [stophy-comments](../stophy-comments/SKILL.md) — read comments and replies
+- [stophy-channel](../stophy-channel/SKILL.md) — inspect a channel catalog
+- [stophy-playlist](../stophy-playlist/SKILL.md) — fetch playlist videos

@@ -1,5 +1,5 @@
 ---
-name: youtube-transcript
+name: stophy-transcript
 description: Get YouTube transcripts and captions with Stophy CLI. Trigger when the user provides a video URL and asks for the transcript, captions, spoken text, summary input, quotes, timestamps, notes, or wants to send video text into an app, workflow, or AI agent.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx stophy *)
 ---
 
-# youtube-transcript
+# stophy-transcript
 
 Get transcript text with timestamps for a YouTube video.
 
@@ -19,7 +19,7 @@ Get transcript text with timestamps for a YouTube video.
 - The user wants to process a video with an app, workflow, or AI agent.
 - The user needs timestamps for citations, clips, notes, or references.
 
-Use `youtube-video` first only if you need metadata. Use `youtube-comments` if the user asks what viewers said.
+Use `stophy-video` first only if you need metadata. Use `stophy-comments` if the user asks what viewers said.
 
 ## Commands
 
@@ -60,7 +60,7 @@ stophy video transcript --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --js
 
 ## Related skills
 
-- [youtube-video](../youtube-video/SKILL.md) — get video metadata
-- [youtube-comments](../youtube-comments/SKILL.md) — read audience discussion
-- [youtube-search](../youtube-search/SKILL.md) — find candidate videos first
-- [youtube-playlist](../youtube-playlist/SKILL.md) — collect videos from a playlist before fetching transcripts
+- [stophy-video](../stophy-video/SKILL.md) — get video metadata
+- [stophy-comments](../stophy-comments/SKILL.md) — read audience discussion
+- [stophy-search](../stophy-search/SKILL.md) — find candidate videos first
+- [stophy-playlist](../stophy-playlist/SKILL.md) — collect videos from a playlist before fetching transcripts
