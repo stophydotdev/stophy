@@ -69,4 +69,5 @@ Pass `repliesToken` to `stophy video replies` to load the full thread.
 
 - [stophy-video](../stophy-video/SKILL.md) — get video metadata
 - [stophy-transcript](../stophy-transcript/SKILL.md) — get spoken content
+- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
 - [stophy-search](../stophy-search/SKILL.md) — find videos before reading comments

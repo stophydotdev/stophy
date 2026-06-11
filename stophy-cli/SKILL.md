@@ -39,6 +39,7 @@ export STOPHY_API_KEY="st_xxx"    # environment variable also works
 | Transcript | `stophy video transcript --url "<video-url>"` |
 | Comments | `stophy video comments --url "<video-url>" --sortBy top` |
 | Replies | `stophy video replies --continuation-token <repliesToken>` |
+| Live chat | `stophy video livechat --url "<video-url>"` |
 | Channel catalog | `stophy channel --url "<channel-url-or-handle>"` |
 | Channel about page | `stophy channel --url "<channel-url-or-handle>" --tab about` |
 | Playlist videos | `stophy playlist --url "<playlist-url>"` |
@@ -54,6 +55,7 @@ export STOPHY_API_KEY="st_xxx"    # environment variable also works
    - one video’s metadata → `stophy-video`
    - spoken content → `stophy-transcript`
    - viewer reactions → `stophy-comments`
+   - livestream chat → `stophy-livechat`
    - creator/channel research → `stophy-channel`
    - course/playlist research → `stophy-playlist`
 2. Run the narrowest command that answers the question.
@@ -86,5 +88,6 @@ stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy pop
 - [stophy-video](../stophy-video/SKILL.md) — get video metadata
 - [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text with timestamps
 - [stophy-comments](../stophy-comments/SKILL.md) — read comments and replies
+- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
 - [stophy-channel](../stophy-channel/SKILL.md) — inspect a channel catalog
 - [stophy-playlist](../stophy-playlist/SKILL.md) — fetch playlist videos

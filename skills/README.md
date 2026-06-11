@@ -15,6 +15,7 @@ These skills help agents search YouTube, get transcripts, read comments, inspect
 | `stophy-video` | Getting metadata for a single YouTube video, including title, description, channel, views, likes, publish date, and thumbnails. |
 | `stophy-transcript` | Getting transcript text, timestamps, captions, and spoken content from a YouTube video. |
 | `stophy-comments` | Reading top/latest comments, replies, audience reactions, objections, and viewer language. |
+| `stophy-livechat` | Reading livestream chat messages and stream status, including Super Chats and moderator/owner messages. |
 | `stophy-channel` | Inspecting a channel's videos, Shorts, playlists, about page, catalog, and creator profile. |
 | `stophy-playlist` | Fetching videos and metadata from a YouTube playlist, course, series, or collection. |
 
@@ -78,6 +79,7 @@ Use the narrowest skill that matches the task:
 - Video metadata → `stophy-video`
 - Spoken content → `stophy-transcript`
 - Viewer reactions → `stophy-comments`
+- Livestream chat → `stophy-livechat`
 - Creator/channel research → `stophy-channel`
 - Playlist/course research → `stophy-playlist`
 - Setup, auth, credits, or combined workflows → `stophy-cli`
@@ -97,6 +99,7 @@ Current registry skills:
   "stophy-video",
   "stophy-transcript",
   "stophy-comments",
+  "stophy-livechat",
   "stophy-channel",
   "stophy-playlist"
 ]

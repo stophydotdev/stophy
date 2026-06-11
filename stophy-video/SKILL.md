@@ -65,6 +65,7 @@ stophy video details --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --json 
 
 - [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text with timestamps
 - [stophy-comments](../stophy-comments/SKILL.md) — read comments and replies
+- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
 - [stophy-search](../stophy-search/SKILL.md) — find videos before fetching metadata
 - [stophy-channel](../stophy-channel/SKILL.md) — inspect the creator’s channel
 - [stophy-playlist](../stophy-playlist/SKILL.md) — fetch videos from a playlist

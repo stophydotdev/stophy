@@ -10,6 +10,7 @@
         "stophy-video",
         "stophy-transcript",
         "stophy-comments",
+        "stophy-livechat",
         "stophy-channel",
         "stophy-playlist"
       ]
