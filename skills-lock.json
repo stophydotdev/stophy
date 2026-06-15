@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "youtube-channel": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-channel/SKILL.md",
+      "computedHash": "18b51864b3f178d86bccef32303e17a744ce7cfd582232fad6e2d7398bcc43d4"
+    },
+    "youtube-comments": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-comments/SKILL.md",
+      "computedHash": "7b0079401a5582399d5b7383f9290d1d9dd79277e7a85e35cdf01ee2afaed970"
+    },
+    "youtube-for-ai": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-for-ai/SKILL.md",
+      "computedHash": "1ccb388b8b8265167da0e8349b6212c9204f71aea060006b18ff59105760b836"
+    },
+    "youtube-livechat": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-livechat/SKILL.md",
+      "computedHash": "bead799d0dec1319879ea7431d51e694e888b38e8772b8f476781027ea89dad0"
+    },
+    "youtube-playlist": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-playlist/SKILL.md",
+      "computedHash": "8175401b020769fcc5e0d09650c1de6f905962f0ff70e0cf440ac65746f4a340"
+    },
+    "youtube-search": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-search/SKILL.md",
+      "computedHash": "013ccb250006f13aa944eacec8e32a1d9d7a4434822608306606e7fc465c36bb"
+    },
+    "youtube-transcript": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-transcript/SKILL.md",
+      "computedHash": "730732a0b6109987074e565a69c27854902ddda0586d92b07e4bdc4de94099d3"
+    },
+    "youtube-video": {
+      "source": "stophydotdev/skills",
+      "sourceType": "github",
+      "skillPath": "youtube-video/SKILL.md",
+      "computedHash": "0f009e4a3e33178fb135640297a606a142b19342f5f1626bea2edee2b72452b1"
+    }
+  }
+}
