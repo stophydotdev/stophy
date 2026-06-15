@@ -3,16 +3,16 @@
   "groupings": [
     {
       "title": "YouTube",
-      "description": "Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channels, and fetch playlists.",
+      "description": "YouTube data for AI agents. Search YouTube, get transcripts, read comments and live chat, inspect channels, and fetch playlists \u2014 via Stophy CLI.",
       "skills": [
-        "stophy-cli",
-        "stophy-search",
-        "stophy-video",
-        "stophy-transcript",
-        "stophy-comments",
-        "stophy-livechat",
-        "stophy-channel",
-        "stophy-playlist"
+        "youtube-for-ai",
+        "youtube-search",
+        "youtube-video",
+        "youtube-transcript",
+        "youtube-comments",
+        "youtube-livechat",
+        "youtube-channel",
+        "youtube-playlist"
       ]
     }
   ]

@@ -1,107 +1,74 @@
-# Stophy Skills — YouTube Data for AI Agents
+# YouTube Data for AI Agents
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
-Agent skills for working with YouTube through the Stophy CLI.
+Agent skills for getting YouTube transcripts, comments, search results, channels, and playlists as structured data. Uses [Stophy CLI](https://www.npmjs.com/package/@stophy/cli) under the hood.
 
-These skills help agents search YouTube, get transcripts, read comments, inspect channels, fetch playlists, and return structured data from terminal commands.
-
-## What is included
+## Included skills
 
 | Skill | Use it for |
 |-------|------------|
-| `stophy-cli` | General Stophy CLI setup, authentication, credits, usage, logs, and multi-step workflows. |
-| `stophy-search` | Searching YouTube by keyword and filtering by type, date, duration, or sort order. |
-| `stophy-video` | Getting metadata for a single YouTube video, including title, description, channel, views, likes, publish date, and thumbnails. |
-| `stophy-transcript` | Getting transcript text, timestamps, captions, and spoken content from a YouTube video. |
-| `stophy-comments` | Reading top/latest comments, replies, audience reactions, objections, and viewer language. |
-| `stophy-livechat` | Reading livestream chat messages and stream status, including Super Chats and moderator/owner messages. |
-| `stophy-channel` | Inspecting a channel's videos, Shorts, playlists, about page, catalog, and creator profile. |
-| `stophy-playlist` | Fetching videos and metadata from a YouTube playlist, course, series, or collection. |
+| `youtube-for-ai` | Setup, auth, credits, usage, and combined workflows |
+| `youtube-search` | Search YouTube by keyword with filters |
+| `youtube-video` | Video metadata: title, description, channel, views, likes |
+| `youtube-transcript` | Full transcript with timestamps |
+| `youtube-comments` | Comments and threaded replies, sorted top or latest |
+| `youtube-livechat` | Livestream chat messages and stream status |
+| `youtube-channel` | Channel videos, Shorts, playlists, about page |
+| `youtube-playlist` | All videos in a playlist with metadata |
 
 ## Requirements
 
-Install the Stophy CLI:
-
 ```bash
 npm install -g @stophy/cli
-```
-
-Authenticate once:
-
-```bash
 stophy login
 ```
 
-Or use an API key through the environment:
+Or use an API key:
 
 ```bash
-export STOPHY_API_KEY="st_xxx"
+export STOPHY_API_KEY=***
 ```
 
 ## Example commands
 
-Search YouTube:
-
 ```bash
 stophy search --q "AI coding agents" --type video --sortBy popularity
-```
-
-Get a transcript:
-
-```bash
 stophy video transcript --url "https://www.youtube.com/watch?v=h6ukrWyqOm4"
-```
-
-Read comments:
-
-```bash
 stophy video comments --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --sortBy top
-```
-
-Inspect a channel:
-
-```bash
 stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy popular
-```
-
-Fetch playlist videos:
-
-```bash
 stophy playlist --url "https://www.youtube.com/playlist?list=PLxxxxxx"
 ```
 
 ## For agents
 
-Use the narrowest skill that matches the task:
+Use the narrowest skill for the task:
 
-- Topic discovery → `stophy-search`
-- Video metadata → `stophy-video`
-- Spoken content → `stophy-transcript`
-- Viewer reactions → `stophy-comments`
-- Livestream chat → `stophy-livechat`
-- Creator/channel research → `stophy-channel`
-- Playlist/course research → `stophy-playlist`
-- Setup, auth, credits, or combined workflows → `stophy-cli`
+- Topic discovery → `youtube-search`
+- Video metadata → `youtube-video`
+- Spoken content → `youtube-transcript`
+- Viewer reactions → `youtube-comments`
+- Livestream chat → `youtube-livechat`
+- Creator/channel research → `youtube-channel`
+- Playlist/course research → `youtube-playlist`
+- Setup, auth, credits, or combined → `youtube-for-ai`
 
-Do not fabricate YouTube data. Run the Stophy CLI command, inspect the real output, then summarize the result. If a transcript is unavailable or an API call fails, report that directly and suggest the next concrete command.
+Do not fabricate YouTube data. Run the command, inspect the output, then summarize.
 
 ## Registry
 
-The `skills.sh.json` file groups these skills under YouTube for skills.sh-style discovery.
-
-Current registry skills:
+skills.sh manifest at `skills.sh.json`.
 
 ```json
 [
-  "stophy-cli",
-  "stophy-search",
-  "stophy-video",
-  "stophy-transcript",
-  "stophy-comments",
-  "stophy-livechat",
-  "stophy-channel",
-  "stophy-playlist"
+  "youtube-for-ai",
+  "youtube-search",
+  "youtube-video",
+  "youtube-transcript",
+  "youtube-comments",
+  "youtube-livechat",
+  "youtube-channel",
+  "youtube-playlist"
 ]
 ```
 

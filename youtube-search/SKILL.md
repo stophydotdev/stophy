@@ -1,5 +1,5 @@
 ---
-name: stophy-search
+name: youtube-search
 description: Search YouTube by keyword with Stophy CLI. Trigger when the user asks to find videos, Shorts, channels, or playlists; asks for top/recent content on a topic; needs YouTube search results before fetching transcripts, comments, channels, or playlist data.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-search
+# youtube-search
 
 Search YouTube by keyword and filter results by type, date, duration, and sort order.
 
@@ -68,8 +68,8 @@ stophy search --q "typescript" --continuation-token <token>
 
 ## Follow-up paths
 
-- [stophy-video](../stophy-video/SKILL.md) — get metadata for one selected result
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text after selecting a video
-- [stophy-comments](../stophy-comments/SKILL.md) — read comments after selecting a video
-- [stophy-channel](../stophy-channel/SKILL.md) — inspect a channel from search results
-- [stophy-playlist](../stophy-playlist/SKILL.md) — fetch playlist videos from a playlist result
+- [youtube-video](../youtube-video/SKILL.md) — get metadata for one selected result
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcript text after selecting a video
+- [youtube-comments](../youtube-comments/SKILL.md) — read comments after selecting a video
+- [youtube-channel](../youtube-channel/SKILL.md) — inspect a channel from search results
+- [youtube-playlist](../youtube-playlist/SKILL.md) — fetch playlist videos from a playlist result

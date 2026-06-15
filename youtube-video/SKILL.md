@@ -1,5 +1,5 @@
 ---
-name: stophy-video
+name: youtube-video
 description: Get YouTube video metadata with Stophy CLI. Trigger when the user provides a video URL or ID and needs title, description, channel, publish date, duration, views, likes, thumbnails, or general structured details about a single video.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-video
+# youtube-video
 
 Get structured metadata for a single YouTube video.
 
@@ -19,7 +19,7 @@ Get structured metadata for a single YouTube video.
 - You need title/channel/date/view data before deciding whether to fetch transcript or comments.
 - The task is about the video object itself, not the spoken content or audience discussion.
 
-Use `stophy-transcript` for spoken text and `stophy-comments` for viewer discussion.
+Use `youtube-transcript` for spoken text and `youtube-comments` for viewer discussion.
 
 ## Commands
 
@@ -63,9 +63,9 @@ stophy video details --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --json 
 
 ## Related skills
 
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text with timestamps
-- [stophy-comments](../stophy-comments/SKILL.md) — read comments and replies
-- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
-- [stophy-search](../stophy-search/SKILL.md) — find videos before fetching metadata
-- [stophy-channel](../stophy-channel/SKILL.md) — inspect the creator’s channel
-- [stophy-playlist](../stophy-playlist/SKILL.md) — fetch videos from a playlist
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcript text with timestamps
+- [youtube-comments](../youtube-comments/SKILL.md) — read comments and replies
+- [youtube-livechat](../youtube-livechat/SKILL.md) — read livestream chat
+- [youtube-search](../youtube-search/SKILL.md) — find videos before fetching metadata
+- [youtube-channel](../youtube-channel/SKILL.md) — inspect the creator’s channel
+- [youtube-playlist](../youtube-playlist/SKILL.md) — fetch videos from a playlist

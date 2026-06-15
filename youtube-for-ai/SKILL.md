@@ -1,6 +1,6 @@
 ---
-name: stophy-cli
-description: Use Stophy CLI for YouTube data from the terminal. Trigger when the user wants to install or use the CLI, authenticate, inspect credits or usage, or combine YouTube search, transcripts, comments, channel, playlist, and video metadata commands in one workflow.
+name: youtube-for-ai
+description: YouTube data for AI agents. Get transcripts, comments, search results, channels, and playlists via Stophy CLI. Trigger when the user wants any YouTube content, provides a YouTube URL, or needs structured YouTube data from the terminal or MCP.
 metadata:
   author: stophy
   version: "1.0.0"
@@ -9,9 +9,9 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-cli
+# youtube-for-ai
 
-**YouTube Data for AI Agents.** Use Stophy CLI to search YouTube, get transcripts, read comments, inspect channels, fetch playlists, and return JSON from the terminal.
+**YouTube data for AI agents.** Search, transcripts, comments, channels, playlists — all as structured JSON via Stophy CLI.
 
 ## Before running commands
 
@@ -51,13 +51,13 @@ export STOPHY_API_KEY="st_xxx"    # environment variable also works
 ## Recommended workflow
 
 1. Start with the user’s intent:
-   - topic discovery → `stophy-search`
-   - one video’s metadata → `stophy-video`
-   - spoken content → `stophy-transcript`
-   - viewer reactions → `stophy-comments`
-   - livestream chat → `stophy-livechat`
-   - creator/channel research → `stophy-channel`
-   - course/playlist research → `stophy-playlist`
+   - topic discovery → `youtube-search`
+   - one video’s metadata → `youtube-video`
+   - spoken content → `youtube-transcript`
+   - viewer reactions → `youtube-comments`
+   - livestream chat → `youtube-livechat`
+   - creator/channel research → `youtube-channel`
+   - course/playlist research → `youtube-playlist`
 2. Run the narrowest command that answers the question.
 3. Use `--json` when the next step needs machine-readable output or `jq` filtering.
 4. Use `--continuation-token` only when the user needs more results.
@@ -84,10 +84,10 @@ stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy pop
 
 ## Related skills
 
-- [stophy-search](../stophy-search/SKILL.md) — search YouTube by keyword
-- [stophy-video](../stophy-video/SKILL.md) — get video metadata
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text with timestamps
-- [stophy-comments](../stophy-comments/SKILL.md) — read comments and replies
-- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
-- [stophy-channel](../stophy-channel/SKILL.md) — inspect a channel catalog
-- [stophy-playlist](../stophy-playlist/SKILL.md) — fetch playlist videos
+- [youtube-search](../youtube-search/SKILL.md) — search YouTube by keyword
+- [youtube-video](../youtube-video/SKILL.md) — get video metadata
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcript text with timestamps
+- [youtube-comments](../youtube-comments/SKILL.md) — read comments and replies
+- [youtube-livechat](../youtube-livechat/SKILL.md) — read livestream chat
+- [youtube-channel](../youtube-channel/SKILL.md) — inspect a channel catalog
+- [youtube-playlist](../youtube-playlist/SKILL.md) — fetch playlist videos

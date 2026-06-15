@@ -1,5 +1,5 @@
 ---
-name: stophy-livechat
+name: youtube-livechat
 description: Read YouTube live-stream chat with Stophy CLI. Trigger when the user provides a livestream URL and wants live chat messages, to follow chat over time, Super Chats, moderator/owner messages, or to check whether a video is live, upcoming, or a past stream.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-livechat
+# youtube-livechat
 
 Read live chat messages and stream status for a YouTube livestream.
 
@@ -19,7 +19,7 @@ Read live chat messages and stream status for a YouTube livestream.
 - The user wants to follow live chat over time, or capture Super Chats and moderator/owner messages.
 - The user needs to know whether a video is live, upcoming, a past stream, or has chat disabled.
 
-Use `stophy-comments` for posted comments on a normal video. Use `stophy-transcript` for spoken content. Use `stophy-video` for metadata.
+Use `youtube-comments` for posted comments on a normal video. Use `youtube-transcript` for spoken content. Use `youtube-video` for metadata.
 
 ## Commands
 
@@ -63,7 +63,7 @@ stophy video livechat --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --cont
 
 ## Related skills
 
-- [stophy-video](../stophy-video/SKILL.md) — get video metadata
-- [stophy-comments](../stophy-comments/SKILL.md) — read posted comments and replies
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get spoken content
-- [stophy-search](../stophy-search/SKILL.md) — find videos or livestreams
+- [youtube-video](../youtube-video/SKILL.md) — get video metadata
+- [youtube-comments](../youtube-comments/SKILL.md) — read posted comments and replies
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get spoken content
+- [youtube-search](../youtube-search/SKILL.md) — find videos or livestreams

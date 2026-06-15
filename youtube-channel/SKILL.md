@@ -1,5 +1,5 @@
 ---
-name: stophy-channel
+name: youtube-channel
 description: Inspect YouTube channel data with Stophy CLI. Trigger when the user provides a channel URL or @handle and asks for a creator's videos, Shorts, playlists, about page, most popular uploads, recent uploads, catalog, subscriber info, channel links, or creator research.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-channel
+# youtube-channel
 
 Inspect a YouTube channel’s videos, Shorts, playlists, or about page.
 
@@ -19,7 +19,7 @@ Inspect a YouTube channel’s videos, Shorts, playlists, or about page.
 - The user asks what a creator has uploaded recently or what their most popular videos are.
 - The user needs channel-level research: catalog, playlists, about page, links, subscriber info, or positioning.
 
-Use `stophy-search` when the user has only a topic, not a specific channel.
+Use `youtube-search` when the user has only a topic, not a specific channel.
 
 ## Commands
 
@@ -58,7 +58,7 @@ stophy channel --url "https://www.youtube.com/@t3dotgg" --continuation-token <to
 - Use `--tab about` for descriptions, links, and channel-level facts.
 - Use `--tab video --sortBy popular` for the creator’s strongest historical content.
 - Use `--tab video --sortBy latest` for recent uploads.
-- Use `--tab playlist` before `stophy-playlist` when the user asks for a channel’s courses or series.
+- Use `--tab playlist` before `youtube-playlist` when the user asks for a channel’s courses or series.
 - Do not use `--sortBy` with `short`, `playlist`, or `about`; it only applies to videos.
 
 ## Output guidance
@@ -69,8 +69,8 @@ stophy channel --url "https://www.youtube.com/@t3dotgg" --continuation-token <to
 
 ## Related skills
 
-- [stophy-video](../stophy-video/SKILL.md) — get metadata for a specific video
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get transcript text for a video
-- [stophy-comments](../stophy-comments/SKILL.md) — read comments for a video
-- [stophy-playlist](../stophy-playlist/SKILL.md) — fetch a playlist found on a channel
-- [stophy-search](../stophy-search/SKILL.md) — discover channels by topic
+- [youtube-video](../youtube-video/SKILL.md) — get metadata for a specific video
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get transcript text for a video
+- [youtube-comments](../youtube-comments/SKILL.md) — read comments for a video
+- [youtube-playlist](../youtube-playlist/SKILL.md) — fetch a playlist found on a channel
+- [youtube-search](../youtube-search/SKILL.md) — discover channels by topic

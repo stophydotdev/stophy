@@ -1,5 +1,5 @@
 ---
-name: stophy-comments
+name: youtube-comments
 description: Read YouTube video comments and replies with Stophy CLI. Trigger when the user provides a video URL and asks what viewers are saying, wants top or latest comments, audience reactions, sentiment evidence, customer language, objections, or replies from a comment thread.
 metadata:
   author: stophy
@@ -9,7 +9,7 @@ allowed-tools:
   - Bash(npx @stophy/cli *)
 ---
 
-# stophy-comments
+# youtube-comments
 
 Read comments and replies for a YouTube video.
 
@@ -19,7 +19,7 @@ Read comments and replies for a YouTube video.
 - The user wants reactions, objections, praise, complaints, or customer language from comments.
 - The user needs top comments, latest comments, or replies in a thread.
 
-Use `stophy-transcript` for spoken content. Use `stophy-video` for metadata.
+Use `youtube-transcript` for spoken content. Use `youtube-video` for metadata.
 
 ## Commands
 
@@ -67,7 +67,7 @@ Pass `repliesToken` to `stophy video replies` to load the full thread.
 
 ## Related skills
 
-- [stophy-video](../stophy-video/SKILL.md) — get video metadata
-- [stophy-transcript](../stophy-transcript/SKILL.md) — get spoken content
-- [stophy-livechat](../stophy-livechat/SKILL.md) — read livestream chat
-- [stophy-search](../stophy-search/SKILL.md) — find videos before reading comments
+- [youtube-video](../youtube-video/SKILL.md) — get video metadata
+- [youtube-transcript](../youtube-transcript/SKILL.md) — get spoken content
+- [youtube-livechat](../youtube-livechat/SKILL.md) — read livestream chat
+- [youtube-search](../youtube-search/SKILL.md) — find videos before reading comments
