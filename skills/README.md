@@ -17,6 +17,14 @@ Agent skills for getting YouTube transcripts, comments, search results, channels
 | `youtube-channel` | Channel videos, Shorts, playlists, about page |
 | `youtube-playlist` | All videos in a playlist with metadata |
 
+## Install
+
+```bash
+npx skills add stophydotdev/skills
+```
+
+This installs the skills to your current project. For a global install add `-g`, but PromptScript only supports project-local installs.
+
 ## Requirements
 
 ```bash
