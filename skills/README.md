@@ -18,10 +18,8 @@ Agent skills for getting structured YouTube context search, query suggestions, v
 ## Install
 
 ```bash
-npx skills add stophydotdev/skills
+npx skills add https://github.com/stophydotdev/skills --skill --all
 ```
-
-This installs the skills to your current project. For a global install add `-g`, but PromptScript only supports project-local installs.
 
 ## Requirements
 
