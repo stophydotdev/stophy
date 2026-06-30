@@ -1,0 +1,11 @@
+{
+  "name": "stophy-skills",
+  "skills": [
+    "./stophy-cli",
+    "./stophy-search",
+    "./stophy-suggest",
+    "./stophy-video",
+    "./stophy-channel",
+    "./stophy-playlist"
+  ]
+}

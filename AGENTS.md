@@ -1,0 +1,111 @@
+# Stophy skills
+
+A collection of agent skills for working with the Stophy CLI — YouTube context API for AI agents. Each skill teaches an agent how to use a specific CLI command or workflow. The repo is consumed via `npx skills add stophydotdev/skills` and indexed at https://skills.sh/stophydotdev/skills.
+
+## Layout
+
+```
+stophy-<name>/
+  SKILL.md             # required: YAML frontmatter + body
+.claude-plugin/
+  plugin.json          # plugin index (skills.sh reads this too)
+scripts/
+  link-skills.sh       # dev-only helper, symlinks skills into local agent dirs
+package.json           # name, version, repo URL — no runtime code
+README.md              # human-facing install + skill list
+skills.sh.json         # groups skills on the skills.sh repo page
+skills-lock.json       # lockfile for `npx skills` (auto-managed)
+CONTEXT.md             # domain vocabulary used across skills
+.out-of-scope/         # decisions we explicitly rejected, with reasons
+AGENTS.md              # this file
+CLAUDE.md              # @AGENTS.md (cross-agent include)
+```
+
+## Conventions
+
+Each `SKILL.md` is either user-invoked (`disable-model-invocation: true`, reachable only when the human types its slash command) or model-invoked (model- or user-reachable, rich `description:` so the model can reach for it). See `.out-of-scope/disable-model-invocation-notes.md` for the rationale and when to pick which.
+
+Each `SKILL.md` body follows the same shape (taken from the existing 6 skills):
+
+- `# stophy-<name>` heading
+- **Choose this skill when** — the user signals that trigger this skill
+- **Safety** — quoting, secret handling, anything an agent must not skip
+- **Commands** — one bash block per command, the canonical invocation first
+- **Options** — table of flags, values, when to use them
+- **Decision rules** — the rules an agent applies to pick a command/flag
+- **Output guidance** — how to summarize without dumping
+- **Related skills** — links to the other skills it pairs with
+
+Frontmatter shape:
+
+```yaml
+---
+name: stophy-<name>
+description: <one paragraph; rich trigger phrasing so the model can reach for it>
+metadata:
+  author: stophy
+  version: "<x.y.z>"
+allowed-tools:
+  - Bash(stophy *)
+  - Bash(npx @stophy/cli *)
+---
+```
+
+The `description:` is the only place that drives automatic invocation. It must include both *what the skill does* and the *user signals* that should reach it. See any existing skill for the form.
+
+The directory name and the `name:` field must match exactly.
+
+## Adding a skill
+
+1. Create `stophy-<slug>/SKILL.md` using the conventions above.
+2. Add the slug to the `skills` array in `skills.sh.json` so it appears under the "Stophy — YouTube context API for AI agents" group on skills.sh.
+3. Add the slug to the `skills` array in `.claude-plugin/plugin.json` so agent harnesses that read plugin manifests pick it up.
+4. Add the slug to the "Included skills" table in `README.md` with a one-line description.
+5. Decide `disable-model-invocation` based on whether the skill is a workflow orchestrator (user-invoked) or a domain helper (model-invoked).
+6. Bump the skill's `metadata.version` if you're changing the skill's behavior. The skill repo's own `package.json` version bumps only on cross-skill changes.
+7. Do not touch `skills-lock.json` — the CLI regenerates it on `npx skills add` / `npx skills update`.
+
+## Editing a skill
+
+Edit `stophy-<name>/SKILL.md` in place. Keep the directory name and the `name:` field in sync. If you change a slug, treat it as a rename (see "Renaming a skill" below).
+
+## Removing a skill
+
+Three things, in order, or the skill will keep showing up on skills.sh:
+
+1. Delete the `stophy-<name>/` directory. Remove the slug from `skills.sh.json` and from `.claude-plugin/plugin.json`. Remove the row from the "Included skills" table in `README.md`.
+2. Run `npx skills update -y` to refresh `skills-lock.json`. If you can't run the CLI, hand-edit the lockfile to drop the matching entry.
+3. File a listing change request on skills.sh — the indexer does not auto-clean when a skill is removed. Open an issue at https://github.com/vercel-labs/skills/issues/new requesting that the slug be hidden. See `.out-of-scope/skills-sh-overrides.md` for why we don't use the override PR route.
+
+## Renaming a skill
+
+A rename is "remove the old slug, add the new slug" plus the skills.sh listing change above. `git mv` is the easy part. Getting the old slug off skills.sh requires a maintainer action on the vercel-labs/skills side.
+
+## skills.sh.json
+
+The single group "Stophy — YouTube context API for AI agents" lists all current slugs. Keep this list in sync with the actual directories and with `.claude-plugin/plugin.json`.
+
+## .claude-plugin/plugin.json
+
+The same `skills` array, indexed for the Claude Code plugin marketplace. Both files must list the same set of slugs in the same order. If you add a skill to one, add it to the other.
+
+## skills-lock.json
+
+Regenerated by `npx skills add` / `npx skills update`. Hand-edit only when you need to remove a stale entry and you are not in a position to run the CLI.
+
+## package.json
+
+The repo is not an npm package — there is no runtime code. `package.json` exists so that npm-aware tooling can read the `name`, `version`, and `repository` fields. Do not add a `main` or `exports` field. Do not introduce build steps.
+
+Bump `version` only when the change spans multiple skills (e.g. a rebrand, a new CLI auth method). Per-skill changes are tracked in the skill's own `metadata.version` in `SKILL.md`.
+
+## scripts/link-skills.sh
+
+Dev-only helper. Symlinks every skill in the repo into `~/.claude/skills` and `~/.agents/skills` so the local agent picks up changes without reinstalling. Re-run after adding, removing, or renaming a skill. Not a supported installer — see the script header.
+
+## Related
+
+- `CONTEXT.md` — vocabulary this repo uses
+- `.out-of-scope/` — decisions explicitly rejected
+- `.claude-plugin/plugin.json` — plugin manifest index
+- `scripts/link-skills.sh` — local dev link script
