@@ -1,21 +1,19 @@
-# YouTube Data for AI Agents
+# Stophy — YouTube context API for AI agents
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
-Agent skills for getting YouTube transcripts, comments, search results, channels, and playlists as structured data. Uses [Stophy CLI](https://www.npmjs.com/package/@stophy/cli) under the hood.
+Agent skills for getting structured YouTube context — search, query suggestions, video details, transcripts, comments, live chat, channels, and playlists — as clean JSON. Uses [Stophy CLI](https://www.npmjs.com/package/@stophy/cli) under the hood.
 
 ## Included skills
 
 | Skill | Use it for |
 |-------|------------|
-| `youtube-for-ai` | Setup, auth, credits, usage, and combined workflows |
-| `youtube-search` | Search YouTube by keyword with filters |
-| `youtube-video` | Video metadata: title, description, channel, views, likes |
-| `youtube-transcript` | Full transcript with timestamps |
-| `youtube-comments` | Comments and threaded replies, sorted top or latest |
-| `youtube-livechat` | Livestream chat messages and stream status |
-| `youtube-channel` | Channel videos, Shorts, playlists, about page |
-| `youtube-playlist` | All videos in a playlist with metadata |
+| `stophy-cli` | Setup, auth, credits, usage, and the full command map |
+| `stophy-search` | Search YouTube by keyword with filters |
+| `stophy-suggest` | Autocomplete / query suggestions for keyword research |
+| `stophy-video` | One video: details, transcript, comments, replies, live chat |
+| `stophy-channel` | Channel videos, Shorts, playlists, about page |
+| `stophy-playlist` | All videos in a playlist with metadata |
 
 ## Install
 
@@ -42,6 +40,7 @@ export STOPHY_API_KEY=***
 
 ```bash
 stophy search --q "AI coding agents" --type video --sortBy popularity
+stophy suggest --q "how to learn"
 stophy video transcript --url "https://www.youtube.com/watch?v=h6ukrWyqOm4"
 stophy video comments --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --sortBy top
 stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy popular
@@ -52,14 +51,12 @@ stophy playlist --url "https://www.youtube.com/playlist?list=PLxxxxxx"
 
 Use the narrowest skill for the task:
 
-- Topic discovery → `youtube-search`
-- Video metadata → `youtube-video`
-- Spoken content → `youtube-transcript`
-- Viewer reactions → `youtube-comments`
-- Livestream chat → `youtube-livechat`
-- Creator/channel research → `youtube-channel`
-- Playlist/course research → `youtube-playlist`
-- Setup, auth, credits, or combined → `youtube-for-ai`
+- Topic discovery → `stophy-search`
+- Keyword/autocomplete research → `stophy-suggest`
+- Anything about one video (metadata, transcript, comments, live chat) → `stophy-video`
+- Creator/channel research → `stophy-channel`
+- Playlist/course research → `stophy-playlist`
+- Setup, auth, credits, or the command map → `stophy-cli`
 
 Do not fabricate YouTube data. Run the command, inspect the output, then summarize.
 
@@ -69,14 +66,12 @@ skills.sh manifest at `skills.sh.json`.
 
 ```json
 [
-  "youtube-for-ai",
-  "youtube-search",
-  "youtube-video",
-  "youtube-transcript",
-  "youtube-comments",
-  "youtube-livechat",
-  "youtube-channel",
-  "youtube-playlist"
+  "stophy-cli",
+  "stophy-search",
+  "stophy-suggest",
+  "stophy-video",
+  "stophy-channel",
+  "stophy-playlist"
 ]
 ```
 
