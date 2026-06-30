@@ -2,7 +2,7 @@
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
-Agent skills for getting structured YouTube context — search, query suggestions, video details, transcripts, comments, live chat, channels, and playlists — as clean JSON. Uses [Stophy CLI](https://www.npmjs.com/package/@stophy/cli) under the hood.
+Agent skills for getting structured YouTube context search, query suggestions, video details, transcripts, comments, live chat, channels, and playlists as clean JSON. Uses [Stophy CLI](https://www.npmjs.com/package/@stophy/cli) under the hood.
 
 ## Included skills
 
