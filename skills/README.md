@@ -1,4 +1,4 @@
-# Stophy — YouTube context API for AI agents
+# Stophy | YouTube context API for AI agents
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
