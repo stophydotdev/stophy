@@ -2,10 +2,10 @@
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 
-Stophy is a YouTube data API and CLI built for AI agents and developers. It returns clean, structured JSON for search, query suggestions, video details, transcripts, comments, replies, live chat, channels, and playlists. This repository is a curated set of agent skills that teach coding agents how to use [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
+Stophy is a YouTube context API for AI agents. It returns clean, structured JSON for search, query suggestions, video details, transcripts, comments, replies, live chat, channels, and playlists. This repository is a curated set of agent skills that teach coding agents how to use [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
 
 <p align="center">
-  <video src="https://a5r8ewqvdq.ufs.sh/f/2ffjTXebsrMBd0pancBjeqi2mOIXnTrZjpHMkFBxgCyY60L8" width="100%" controls muted></video>
+  <img src="assets/stophy-cli.gif" alt="Stophy CLI demo — install package, add skills, login, search" width="100%" />
 </p>
 
 ## Install
