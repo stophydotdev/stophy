@@ -1,0 +1,14 @@
+{
+  "name": "stophy",
+  "description": "Stophy: live web data for AI agents.",
+  "owner": { "name": "Stophy", "url": "https://stophy.dev" },
+  "plugins": [
+    {
+      "name": "stophy",
+      "source": "./",
+      "description": "Live data from the sites people use every day: search the web and news, read YouTube transcripts, pull Reddit and X posts, find places on Google Maps, compare products, browse jobs and homes, and check stocks and crypto. Includes the Stophy MCP server and 11 skills.",
+      "category": "data",
+      "tags": ["web-data", "search", "social", "maps", "shopping", "jobs", "finance"]
+    }
+  ]
+}

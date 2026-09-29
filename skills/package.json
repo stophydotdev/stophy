@@ -2,7 +2,7 @@
   "name": "stophy-skills",
   "version": "0.1.0",
   "private": true,
-  "description": "Agent skills for working with YouTube through the Stophy CLI.",
+  "description": "Agent skills for live public web data via the Stophy CLI.",
   "repository": {
     "type": "git",
     "url": "https://github.com/stophydotdev/skills"

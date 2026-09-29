@@ -1,96 +1,87 @@
-# Stophy — YouTube context API for AI agents
+# Stophy skills
 
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
+[![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Stophy is a YouTube context API for AI agents. It returns clean, structured JSON for search, query suggestions, video details, transcripts, comments, replies, live chat, channels, and playlists. This repository is a curated set of agent skills that teach coding agents how to use [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
+Live public web data for your AI agent: search, video, social, places, shopping, apps, jobs, real estate, ad libraries, and finance. This repo is a plugin with two parts:
 
-<p align="center">
-  <img src="assets/stophy-cli.gif" alt="Stophy CLI demo — install package, add skills, login, search" width="100%" />
-</p>
+- The hosted Stophy MCP server, `https://api.stophy.dev/mcp-oauth`. It signs you in with your browser.
+- Eleven agent skills that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
 
 ## Install
 
-```bash
-npx skills add https://github.com/stophydotdev/skills --skill --all
+### Claude Code
+
+```
+/plugin marketplace add stophydotdev/skills
+/plugin install stophy@stophy
 ```
 
-Or pick specific skills:
+### Cursor
+
+Install the Stophy plugin from the [Cursor Marketplace](https://cursor.com/marketplace). Sign in when Cursor opens the browser.
+
+### Gemini CLI
 
 ```bash
-npx skills add https://github.com/stophydotdev/skills --skill stophy-search --skill stophy-video
+gemini extensions install https://github.com/stophydotdev/skills
 ```
+
+### Skills only
+
+Works with any agent that supports the Agent Skills format.
+
+```bash
+npx skills add stophydotdev/skills
+npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
+```
+
+### MCP server only
+
+```bash
+claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
+```
+
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only the free tools work.
 
 ## Requirements
 
 - Node.js ≥18
-- `@stophy/cli` installed globally: `npm install -g @stophy/cli`
-- An API key from [stophy.dev](https://stophy.dev/dashboard)
+- The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
+- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search, YouTube search, and YouTube transcripts
 
 ## Authentication
 
 ```bash
-stophy login --browser           # opens browser
-stophy login --api-key st_xxx    # paste a key directly
+stophy login --browser           # opens the browser
 export STOPHY_API_KEY=st_xxx     # env var also works
 ```
 
-**Safety:** treat the API key as a secret. Do not commit it, print it in agent output, or paste it into shared logs. The `STOPHY_API_KEY` value stays in your shell environment.
+Treat the API key as a secret. Do not commit it, print it, or paste it into a shared log.
 
 ## Included skills
 
-| Skill | Use it for |
-|-------|------------|
-| `stophy-cli` | Setup, auth, credits, usage, and the full command map |
-| `stophy-search` | Search YouTube by keyword with filters |
-| `stophy-suggest` | Autocomplete / query suggestions for keyword research |
-| `stophy-video` | One video: details, transcript, comments, replies, live chat |
-| `stophy-channel` | Channel videos, Shorts, playlists, about page |
-| `stophy-playlist` | All videos in a playlist with metadata |
-
-## Example commands
-
-```bash
-stophy search --q "AI coding agents" --type video --sortBy popularity --uploadDate week
-stophy suggest --q "how to learn rust"
-stophy video transcript --url "https://www.youtube.com/watch?v=h6ukrWyqOm4"
-stophy video comments --url "https://www.youtube.com/watch?v=h6ukrWyqOm4" --sortBy top
-stophy channel --url "https://www.youtube.com/@t3dotgg" --tab video --sortBy popular
-stophy playlist --url "https://www.youtube.com/playlist?list=PLxxxxxx"
-```
+| Skill | Covers |
+|-------|--------|
+| [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site maps and SEO, domain and email lookups, Google Trends |
+| [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube, TikTok, and Kick: videos, transcripts, comments, channels |
+| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, X, Threads, Bluesky, Mastodon, Telegram, LinkedIn, Pinterest, Tumblr, Snapchat, Quora |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
+| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Walmart, AliExpress, Shopify stores |
+| [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play listings and reviews |
+| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Indeed, LinkedIn, and Upwork job postings |
+| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Redfin, Realtor.com, Rightmove, ImmoScout24 |
+| [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, Microsoft, and Snapchat ad libraries |
+| [`stophy-finance`](./skills/stophy-finance/SKILL.md) | Stock quotes and history, crypto prices, DEX pairs, wallets |
 
 ## For agents
 
-Pick the narrowest skill for the task. Don't fabricate YouTube data — run the command, inspect the output, then summarize.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data.
 
-| Task | Skill |
-|------|-------|
-| Topic discovery by keyword | `stophy-search` |
-| Keyword or autocomplete research | `stophy-suggest` |
-| Anything about one video (metadata, transcript, comments, replies, live chat) | `stophy-video` |
-| Creator or channel research (catalog, playlists, about page) | `stophy-channel` |
-| Playlist or course research | `stophy-playlist` |
-| Setup, auth, credits, or the full command map | `stophy-cli` |
+## Docs
 
-## Registry
-
-`skills.sh` reads the skill list from `skills.sh.json`:
-
-```json
-[
-  "stophy-cli",
-  "stophy-search",
-  "stophy-suggest",
-  "stophy-video",
-  "stophy-channel",
-  "stophy-playlist"
-]
-```
-
-## Contributing
-
-Layout, conventions, and workflow live in [`AGENTS.md`](./AGENTS.md). Domain vocabulary used across skills is in [`CONTEXT.md`](./CONTEXT.md). Decisions the maintainers have explicitly rejected (and why) live in [`.out-of-scope/`](./.out-of-scope). The Claude Code plugin index is in [`.claude-plugin/plugin.json`](./.claude-plugin/plugin.json).
-
-Every change goes on a fresh branch off `main`. Commit messages follow Conventional Commits (`feat(scope): subject`, `fix(scope): subject`, `docs(scope): subject`, etc.). Push the branch and open a PR.
+Full command reference: [docs.stophy.dev](https://docs.stophy.dev)
 
 ## License
 

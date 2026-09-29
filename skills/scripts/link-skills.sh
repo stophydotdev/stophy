@@ -21,7 +21,7 @@ while IFS= read -r -d '' skill_md; do
   src="$(dirname "$skill_md")"
   names+=("$(basename "$src")")
   srcs+=("$src")
-done < <(find "$REPO" -maxdepth 2 -name SKILL.md -not -path '*/node_modules/*' -print0)
+done < <(find "$REPO/skills" -maxdepth 2 -name SKILL.md -not -path '*/node_modules/*' -print0)
 
 for DEST in "${DESTS[@]}"; do
   if [ -L "$DEST" ]; then

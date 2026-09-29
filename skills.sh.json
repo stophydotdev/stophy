@@ -2,15 +2,20 @@
   "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
   "groupings": [
     {
-      "title": "Stophy — YouTube context API for AI agents",
-      "description": "Structured YouTube context for AI agents. Search, query suggestions, video details, transcripts, comments, replies, live chat, channels, and playlists — via the Stophy CLI.",
+      "title": "Stophy: live public web data for AI agents",
+      "description": "Live public web data for AI agents via the Stophy CLI: web and news search, video, social, places, shopping, apps, jobs, real estate, ad libraries, and finance.",
       "skills": [
-        "stophy-cli",
-        "stophy-search",
-        "stophy-suggest",
+        "stophy",
+        "stophy-web",
         "stophy-video",
-        "stophy-channel",
-        "stophy-playlist"
+        "stophy-social",
+        "stophy-places",
+        "stophy-shopping",
+        "stophy-apps",
+        "stophy-jobs",
+        "stophy-real-estate",
+        "stophy-ads",
+        "stophy-finance"
       ]
     }
   ]
