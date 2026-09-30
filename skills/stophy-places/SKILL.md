@@ -26,7 +26,7 @@ stophy maps search --query coffee --location "Austin, TX" --limit 20 --json -o .
 stophy maps place "ChIJrTLr-GyuEmsRBfy61i59si0" --json
 stophy maps reviews "ChIJrTLr-GyuEmsRBfy61i59si0" --sort newest --limit 20 --json -o .stophy/reviews.json
 
-# hotels, restaurants, or attractions
+# hotels, restaurants, or attractions (--type hotels, restaurants, attractions or geos)
 stophy tripadvisor search "Eiffel Tower" --type attractions --json -o .stophy/tripadvisor.json
 
 # stays for a date range
@@ -45,6 +45,8 @@ Run `stophy <source> --help` for every command. The sources here are `maps`, `tr
 - `maps search` needs both `--query` and `--location`. `maps place` and `maps reviews` take the `placeId` from a search result, not the name.
 - `tripadvisor place` and `tripadvisor reviews` take the link or ID from a search result.
 - Run `airbnb calendar` on a listing to see which dates are open, then search with `--checkIn` and `--checkOut`.
+- `airbnb search` returns `nights` and `pricePerNight`. `price` is the whole stay including fees, while `--minPrice` and `--maxPrice` are nightly rates before fees.
+- `googletravel flights` takes `--cabin`, `--adults` and an optional `--returnDate`. Results show `cabin` and `tripType`. `price` is the total for all adults, both directions.
 
 ## See also
 

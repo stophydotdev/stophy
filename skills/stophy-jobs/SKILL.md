@@ -23,7 +23,7 @@ Search and read job postings on Indeed, LinkedIn, and Upwork.
 stophy indeed search "data analyst" --location "Chicago, IL" --remote --json -o .stophy/indeed.json
 
 # the same on LinkedIn, with workplace and experience filters
-stophy linkedin jobs search "product manager" --location "New York" --workplaces remote --experiences midSenior --json -o .stophy/linkedin-jobs.json
+stophy linkedin jobs search "product manager" --location "New York" --json -o .stophy/linkedin-jobs.json
 
 # freelance work by rate type and experience
 stophy upwork search "react developer" --jobType hourly --experience intermediate --json -o .stophy/upwork.json

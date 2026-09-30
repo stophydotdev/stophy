@@ -64,7 +64,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | Skill | Covers |
 |-------|--------|
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site contacts and SEO, email lookups, search suggestions, Google Trends |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site SEO, email verification and lookup, search suggestions, Google Trends |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
 | [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, X, Threads, Bluesky, Telegram, LinkedIn, Pinterest |
 | [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |

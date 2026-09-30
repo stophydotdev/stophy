@@ -1,7 +1,7 @@
 ---
 name: stophy-web
 description: |
-  Search the web and news, and look up a site's contacts and SEO, email deliverability, search suggestions, and Google Trends. Use for "search the web for", "find recent news about", "find the contact details on this site", "is this email address real", "what do people search for", "what's trending on Google". Web search works without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
+  Search the web and news, and check a site's SEO, verify and find email addresses, search suggestions, and Google Trends. Use for "search the web for", "find recent news about", "find the email for this person", "find the emails at this company", "is this email address real", "what do people search for", "what's trending on Google". Web search works without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
   version: "4.0.0"
@@ -25,15 +25,17 @@ stophy web search "postgres 18 release notes" --limit 10 --json -o .stophy/searc
 # recent coverage of a topic
 stophy web news "openai" --within week --json -o .stophy/news.json
 
-# contact details published on a site
-stophy web contacts "https://www.franklinbbq.com" --json -o .stophy/contacts.json
-
 # a page's titles, tags, headings, and links
 stophy site seo "https://www.allbirds.com" --json -o .stophy/seo.json
 
-# is an address real, and who is the likely contact
-stophy email check --emails "patrick@stripe.com,info@example.com" --json
+# can this address receive mail
+stophy email verify patrick@stripe.com --json
+
+# a person's work email from a company domain or name
 stophy email find stripe.com --name "Patrick Collison" --json
+
+# the emails published on a company's site, each one checked
+stophy email find the305agency.com --json -o .stophy/emails.json
 
 # keyword research: autocomplete suggestions from Google, YouTube or Amazon
 stophy suggest "best running shoes" --source google --json -o .stophy/suggest.json
@@ -51,7 +53,9 @@ Run `stophy <source> --help` for every command. The sources here are `web`, `sit
 
 - `suggest` needs `--source google`, `youtube` or `amazon`. `google trends` needs `--by time` or `--by region`, and up to five `--queries`.
 - `google trends related` and `google trends trending` take a bare keyword or a country, not a URL.
-- `web contacts` costs 2 credits. `web search`, `web news` and `site seo` cost 1.
+- `email verify` and `email find` cost 1 credit, and only when a valid email comes back. `email verify` returns `status` (`valid`, `risky` or `invalid`) plus `isRole`, `isDisposable` and `isFree` flags. A role address like info@ is judged by its mail server, so `isRole` is a flag, not a verdict.
+- `email find` with `--name` returns one email. Without a name it returns `results`, each with `status` and `type` (`personal` or `generic`). `domain` can also be a company name.
+- `web search`, `web news` and `site seo` cost 1.
 
 ## See also
 

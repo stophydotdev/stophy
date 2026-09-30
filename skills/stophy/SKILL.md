@@ -48,7 +48,7 @@ stophy suggest "how to" --source youtube
 stophy ads search nike --network meta
 ```
 
-One call returns one page for one flat price: 1 credit, or 2 for Reddit, ad libraries, transcripts, `web contacts`, and Upwork, Walmart and AliExpress search. `--limit <n>` keeps at most `n` results from the page and costs the same.
+One call returns one page for one flat price: 1 credit, or 2 for Reddit, ad libraries, transcripts, and Upwork, Walmart and AliExpress search. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
 
 By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. When there are more results, the output ends with a cursor. For the next page, run the same command with `--cursor <cursor>`.
 
