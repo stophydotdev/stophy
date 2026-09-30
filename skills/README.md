@@ -42,13 +42,13 @@ npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
 claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
 ```
 
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only the free tools work.
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only web search, YouTube search, and transcripts work.
 
 ## Requirements
 
 - Node.js ≥18
 - The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
-- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search, YouTube search, and YouTube transcripts
+- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search, YouTube search, and transcripts
 
 ## Authentication
 
@@ -64,20 +64,20 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | Skill | Covers |
 |-------|--------|
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site maps and SEO, domain and email lookups, Google Trends |
-| [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube, TikTok, and Kick: videos, transcripts, comments, channels |
-| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, X, Threads, Bluesky, Mastodon, Telegram, LinkedIn, Pinterest, Tumblr, Snapchat, Quora |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site contacts and SEO, email lookups, search suggestions, Google Trends |
+| [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
+| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, X, Threads, Bluesky, Telegram, LinkedIn, Pinterest |
 | [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
 | [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Walmart, AliExpress, Shopify stores |
 | [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play listings and reviews |
 | [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Indeed, LinkedIn, and Upwork job postings |
-| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Redfin, Realtor.com, Rightmove, ImmoScout24 |
-| [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, Microsoft, and Snapchat ad libraries |
-| [`stophy-finance`](./skills/stophy-finance/SKILL.md) | Stock quotes and history, crypto prices, DEX pairs, wallets |
+| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Rightmove, ImmoScout24 |
+| [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, and Microsoft ad libraries |
+| [`stophy-finance`](./skills/stophy-finance/SKILL.md) | Stock quotes, history and profiles, crypto prices, DEX pairs, wallets |
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page for one flat price, and `--limit` keeps fewer results at the same price.
 
 ## Docs
 

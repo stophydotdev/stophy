@@ -1,10 +1,10 @@
 ---
 name: stophy-ads
 description: |
-  Search the public ad libraries of Meta (Facebook and Instagram), Google, TikTok, LinkedIn, Pinterest, Microsoft, and Snapchat. Use for "what ads is this brand running", "find ads for this competitor", "what is this company advertising on Facebook", "get this ad's details", "find advertisers in this ad library". For a brand's organic posts, not ads, use stophy-social or stophy-video.
+  Search the public ad libraries of Meta (Facebook and Instagram), Google, TikTok, LinkedIn, Microsoft, and Pinterest. Use for "what ads is this brand running", "find ads for this competitor", "what is this company advertising on Facebook", "get this ad's details", "find advertisers in this ad library". For a brand's organic posts, not ads, use stophy-social or stophy-video.
 metadata:
   author: stophy
-  version: "3.0.0"
+  version: "4.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,38 +12,45 @@ allowed-tools:
 
 # stophy ads
 
-Search the public ad libraries of seven ad platforms and read one ad in full.
+Search the public ad libraries of six ad platforms and read one ad in full.
 
 **Prerequisite:** every command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# a brand's active Facebook and Instagram ads
-stophy meta ads search nike --limit 20 -o .stophy/meta-ads.md
+# a brand's ads on Meta (Facebook and Instagram)
+stophy ads search nike --network meta --limit 20 --json -o .stophy/meta-ads.json
 
 # a domain's Google ads
-stophy google ads search --domain nike.com --limit 25 -o .stophy/google-ads.md
+stophy ads search --network google --domain nike.com --limit 25 --json -o .stophy/google-ads.json
 
-# TikTok and LinkedIn ads by keyword or brand
-stophy tiktok ads search --query adidas --limit 12 -o .stophy/tiktok-ads.md
-stophy linkedin ads search --query software -o .stophy/linkedin-ads.md
+# TikTok and LinkedIn ads by keyword or advertiser
+stophy ads search adidas --network tiktok --limit 12 --json -o .stophy/tiktok-ads.json
+stophy ads search software --network linkedin --json -o .stophy/linkedin-ads.json
 
-# one country's Pinterest ads
-stophy pinterest ads search DE --limit 24 -o .stophy/pinterest-ads.md
+# Pinterest ads by country and advertiser
+stophy ads search --network pinterest --country de --advertiser nike --json -o .stophy/pinterest-ads.json
 
 # one ad in full, by ID from a search result
-stophy meta ads ad "123456789012345" -o .stophy/ad.md
+stophy ads ad "123456789012345" --network meta --json -o .stophy/ad.json
+
+# find an advertiser by name in the Google or Microsoft library
+stophy ads advertisers nike --network google --json
+
+# every ad a Facebook page runs
+stophy meta ads page "https://www.facebook.com/nike" --json -o .stophy/page-ads.json
 ```
 
-Run `stophy <source> ads --help` for every command. The sources here are `meta`, `google`, `tiktok`, `linkedin`, `pinterest`, `microsoft`, and `snapchat`.
+Run `stophy ads --help` for every command. `--network` is one of `meta`, `google`, `tiktok`, `linkedin`, `microsoft`, or `pinterest`.
 
 **Done when:** you name the specific advertiser, ad copy, and platform, with the ad's ID or link.
 
 ## Tips
 
-- To list every ad from one advertiser, use `meta ads page`, `google ads advertisers`, or `microsoft ads advertisers`.
-- `pinterest ads search` and `snapchat ads search` take a country code or advertiser name, not a free-text query. Check `--help` for which.
+- Every `ads` command costs 2 credits per call, and so does `meta ads page`.
+- The network decides what a search accepts. Meta needs a keyword. Google takes `--advertiser` or `--domain`. TikTok, LinkedIn and Microsoft take a keyword, an advertiser, or both. Pinterest needs `--country` and takes `--advertiser`.
+- `ads advertisers` covers `google` and `microsoft` only.
 
 ## See also
 

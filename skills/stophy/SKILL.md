@@ -4,7 +4,7 @@ description: |
   Get live data from a specific site or platform with the Stophy CLI: web and news search, YouTube, TikTok, Reddit, Instagram, X, LinkedIn, Google Maps, Amazon, app stores, job posts, homes for sale, ad libraries, stocks, and crypto. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-shopping, stophy-apps, stophy-jobs, stophy-real-estate, stophy-ads, or stophy-finance.
 metadata:
   author: stophy
-  version: "3.0.0"
+  version: "4.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,7 +12,7 @@ allowed-tools:
 
 # Stophy
 
-Stophy returns public web data as clean JSON or markdown. For one kind of data, use the matching `stophy-*` skill, which lists the best commands.
+Stophy returns public web data as flat JSON. For one kind of data, use the matching `stophy-*` skill, which lists the best commands.
 
 ## Rules
 
@@ -22,7 +22,7 @@ Stophy returns public web data as clean JSON or markdown. For one kind of data, 
 
 ## Set up
 
-Web search, YouTube search, and YouTube transcripts work without a key. Every other command needs one. Check `stophy status`, then log in:
+Web search, YouTube search, and transcripts work without a key. Every other command needs one. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser
@@ -35,18 +35,22 @@ Ask the user to confirm that the code shown on stophy.dev matches the code in th
 ```bash
 stophy --help                     # every source
 stophy youtube --help             # a source's commands
-stophy youtube transcript --help  # a command's options and example
+stophy youtube search --help      # a command's options and example
 ```
 
-Put the main input first and the options after it:
+Put the main input first and the options after it. When a command needs a choice such as `--network`, `--source` or `--by`, give it as an option:
 
 ```bash
 stophy web search "postgres 18 release notes" --limit 5
 stophy reddit search "bun vs node" --sort top --within month
-stophy maps search "coffee" --near "Berlin"
+stophy transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+stophy suggest "how to" --source youtube
+stophy ads search nike --network meta
 ```
 
-Output is markdown. Add `--json` for exact fields and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. For the next page, pass the `--cursor <cursor>` value printed at the end of the output.
+One call returns one page for one flat price: 1 credit, or 2 for Reddit, ad libraries, transcripts, `web contacts`, and Upwork, Walmart and AliExpress search. `--limit <n>` keeps at most `n` results from the page and costs the same.
+
+By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. When there are more results, the output ends with a cursor. For the next page, run the same command with `--cursor <cursor>`.
 
 **Done when:** you ran the command, read its output, and every fact you report comes from that output.
 
@@ -56,19 +60,12 @@ Output is markdown. Add `--json` for exact fields and `-o file` to save the outp
 - **Out of credits:** send the user to https://stophy.dev/billing.
 - **Rate limited or source failed:** wait for any delay the message gives, then retry once. Do not loop.
 - **Invalid input:** read the command's `--help`.
+- **Not found:** the message is the source's own, such as "YouTube says: This video is unavailable". Check the link or ID. Do not retry.
 
-## Report a problem
-
-If a result is wrong or a command acts differently from its help, report it once. Rerun the same command with `--raw` to see the `requestId`, then send:
-
-```bash
-curl -X POST https://api.stophy.dev/v1/feedback -H "Authorization: Bearer $STOPHY_API_KEY" -H "content-type: application/json" -d '{"category":"wrong_data","requestId":"<requestId>","note":"..."}'
-```
-
-Over MCP, call `stophy_feedback`. Reports are free. Never put a key or personal data in the note.
+Failed calls cost nothing. To report a problem to support, include the `requestId` from `--raw` or from the error message.
 
 ## Without the CLI
 
-- **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://api.stophy.dev/mcp-oauth`.
-- **HTTP:** `POST https://api.stophy.dev/v1/<source>/<endpoint>` with a JSON body. `GET /v1/endpoints` lists every endpoint.
+- **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://api.stophy.dev/mcp-oauth`. Endpoint ids are camelCase, such as `redditSearch`.
+- **HTTP:** `POST https://api.stophy.dev/v1/<endpoint>` with a JSON body, where `web.search` is `/v1/web/search` and `transcript` is `/v1/transcript`. The response is `{ success, data, creditsUsed, requestId }`, and lists are in `data.results`. `GET /v1/endpoints` lists every endpoint.
 - **Code:** `npm install stophy` or `pip install stophy`.

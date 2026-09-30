@@ -1,10 +1,10 @@
 ---
 name: stophy-video
 description: |
-  Get YouTube, TikTok, and Kick data: search videos and read transcripts, comments, channels, playlists, and past streams or clips. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel", "past streams from this creator". YouTube search and transcripts work without an API key. For posts on Reddit, X, or Instagram use stophy-social. For TikTok ads use stophy-ads.
+  Get YouTube and TikTok data: search videos and read transcripts, comments, channels, playlists, and profiles. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel". YouTube search and transcripts work without an API key. For posts on Reddit, X, or Instagram use stophy-social. For TikTok ads use stophy-ads.
 metadata:
   author: stophy
-  version: "3.0.0"
+  version: "4.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,40 +12,43 @@ allowed-tools:
 
 # stophy video
 
-Search and read videos, transcripts, comments, channels, playlists, and streams on YouTube, TikTok, and Kick.
+Search and read videos, transcripts, comments, channels, and playlists on YouTube and TikTok.
 
-**Prerequisite:** `stophy youtube search` and `stophy youtube transcript` work without a key. Every other command needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `stophy youtube search` and `stophy transcript` work without a key. Every other command needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
 # no login needed: find videos on a topic
-stophy youtube search "rust tutorial" --limit 10 -o .stophy/search.md
+stophy youtube search "rust tutorial" --limit 10 --json -o .stophy/search.json
 
-# no login needed: read what a video says
-stophy youtube transcript dQw4w9WgXcQ -o .stophy/transcript.md
+# no login needed: read what a video says, from a YouTube, TikTok or Instagram link
+stophy transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -o .stophy/transcript.txt
+
+# one video's title, channel, and views
+stophy youtube video dQw4w9WgXcQ --json
 
 # what viewers say
-stophy youtube comments dQw4w9WgXcQ --sort top --limit 50 -o .stophy/comments.md
+stophy youtube comments dQw4w9WgXcQ --sort top --limit 50 --json -o .stophy/comments.json
 
 # a creator's recent uploads
-stophy youtube channel @mkbhd --tab videos --limit 30 -o .stophy/channel.md
+stophy youtube channel @mkbhd --tab videos --limit 30 --json -o .stophy/channel.json
 
 # the same on TikTok
-stophy tiktok posts khaby.lame --limit 30 -o .stophy/tiktok-posts.md
-
-# a streamer's past broadcasts
-stophy kick videos xqc --limit 25 -o .stophy/kick-videos.md
+stophy tiktok profile khaby.lame --json -o .stophy/tiktok-profile.json
+stophy tiktok search "street food" --json
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `youtube`, `tiktok`, and `kick`.
+Run `stophy <source> --help` for every command. The sources here are `youtube`, `tiktok`, and `transcript`.
 
 **Done when:** you quote the transcript, comment, or listing text that answers the question, with the video or channel URL.
 
 ## Tips
 
-- `video`, `transcript`, and `comments` accept a bare video ID (`dQw4w9WgXcQ`) or a full URL.
-- Search first to get an ID. `youtube comments replies` and `tiktok comments replies` need a comment ID from the `comments` output.
+- `transcript` takes a YouTube, TikTok, or Instagram link, or a bare YouTube video ID. It costs 2 credits, or nothing without a key. Add `--includeTimestamps` for each line with its time. TikTok videos over 3 minutes are refused, and a refused call is free.
+- `youtube video` and `youtube comments` accept a bare video ID (`dQw4w9WgXcQ`) or a full URL.
+- Replies: each comment has a `repliesCursor`. Pass it as `--comment` to `youtube comments` or `tiktok comments` to get that comment's replies.
+- A TikTok profile returns a page of its videos. Use `--cursor` for the next page.
 
 ## See also
 

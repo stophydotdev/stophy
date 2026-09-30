@@ -4,7 +4,7 @@ description: |
   Get places, hotels, attractions, stays, and flights: Google Maps search and reviews, Tripadvisor ratings, Airbnb listings and calendars, and Google Flights prices. Use for "find coffee shops near", "what do reviews say about this restaurant", "find a place to stay in", "is this Airbnb available", "flights from JFK to LAX". For homes for sale or rent use stophy-real-estate. For product prices use stophy-shopping.
 metadata:
   author: stophy
-  version: "3.0.0"
+  version: "4.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -20,19 +20,20 @@ Search places on Google Maps and Tripadvisor, stays on Airbnb, and flights on Go
 
 ```bash
 # places by keyword and location
-stophy maps search coffee --near "Austin, TX" --limit 20 -o .stophy/maps.md
+stophy maps search --query coffee --location "Austin, TX" --limit 20 --json -o .stophy/maps.json
 
-# reviews for one place
-stophy maps reviews "ChIJrTLr-GyuEmsRBfy61i59si0" --sort newest --limit 20 -o .stophy/reviews.md
+# one place's details, and its reviews
+stophy maps place "ChIJrTLr-GyuEmsRBfy61i59si0" --json
+stophy maps reviews "ChIJrTLr-GyuEmsRBfy61i59si0" --sort newest --limit 20 --json -o .stophy/reviews.json
 
 # hotels, restaurants, or attractions
-stophy tripadvisor search "Eiffel Tower" --type attractions -o .stophy/tripadvisor.md
+stophy tripadvisor search "Eiffel Tower" --type attractions --json -o .stophy/tripadvisor.json
 
 # stays for a date range
-stophy airbnb search "Lisbon, Portugal" --checkIn 2026-11-10 --checkOut 2026-11-15 -o .stophy/airbnb.md
+stophy airbnb search "Lisbon, Portugal" --checkIn 2026-11-10 --checkOut 2026-11-15 --json -o .stophy/airbnb.json
 
 # flight prices and times
-stophy googletravel flights --origin JFK --destination LAX --departDate 2026-11-01 -o .stophy/flights.md
+stophy googletravel flights --origin JFK --destination LAX --departDate 2026-11-01 --json -o .stophy/flights.json
 ```
 
 Run `stophy <source> --help` for every command. The sources here are `maps`, `tripadvisor`, `airbnb`, and `googletravel`.
@@ -41,8 +42,9 @@ Run `stophy <source> --help` for every command. The sources here are `maps`, `tr
 
 ## Tips
 
-- `maps search` takes a plain place name. `maps place`, `maps reviews`, `tripadvisor place`, and `tripadvisor reviews` take the ID from a search result, not the name.
-- Run `airbnb calendar` first to see which dates are open, then search with `--checkIn` and `--checkOut`.
+- `maps search` needs both `--query` and `--location`. `maps place` and `maps reviews` take the `placeId` from a search result, not the name.
+- `tripadvisor place` and `tripadvisor reviews` take the link or ID from a search result.
+- Run `airbnb calendar` on a listing to see which dates are open, then search with `--checkIn` and `--checkOut`.
 
 ## See also
 
