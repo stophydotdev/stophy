@@ -1,7 +1,7 @@
 ---
 name: stophy
 description: |
-  Get live data from a specific site or platform with the Stophy CLI: web and news search, YouTube, TikTok, Reddit, Instagram, X, LinkedIn, Google Maps, Amazon, app stores, job posts, homes for sale, ad libraries, stocks, and crypto. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-shopping, stophy-apps, stophy-jobs, stophy-real-estate, stophy-ads, or stophy-finance.
+  Get live data from a specific site or platform with the Stophy CLI: web search, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Airbnb, flights, job posts, homes for sale, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-real-estate, or stophy-ads.
 metadata:
   author: stophy
   version: "4.0.0"
@@ -22,7 +22,7 @@ Stophy returns public web data as flat JSON. For one kind of data, use the match
 
 ## Set up
 
-Web search, YouTube search, and transcripts work without a key. Every other command needs one. Check `stophy status`, then log in:
+Web search works without a key. Every other command needs one. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser
@@ -38,17 +38,17 @@ stophy youtube --help             # a source's commands
 stophy youtube search --help      # a command's options and example
 ```
 
-Put the main input first and the options after it. When a command needs a choice such as `--network`, `--source` or `--by`, give it as an option:
+Put the main input first and the options after it. When a command needs a choice such as `--network`, give it as an option:
 
 ```bash
 stophy web search "postgres 18 release notes" --limit 5
 stophy reddit search "bun vs node" --sort top --within month
 stophy transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-stophy suggest "how to" --source youtube
+stophy ads advertisers nike --network google
 stophy ads search nike --network meta
 ```
 
-One call returns one page for one flat price: 1 credit, or 2 for Reddit, ad libraries, transcripts, and Upwork, Walmart and AliExpress search. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
+One call returns one page for one flat price: 1 to 5 credits, depending on the command. Run `stophy endpoints` to see each price. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
 
 By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. When there are more results, the output ends with a cursor. For the next page, run the same command with `--cursor <cursor>`.
 

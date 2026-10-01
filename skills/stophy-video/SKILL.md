@@ -1,7 +1,7 @@
 ---
 name: stophy-video
 description: |
-  Get YouTube and TikTok data: search videos and read transcripts, comments, channels, playlists, and profiles. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel". YouTube search and transcripts work without an API key. For posts on Reddit, X, or Instagram use stophy-social. For TikTok ads use stophy-ads.
+  Get YouTube and TikTok data: search videos and read transcripts, comments, channels, playlists, and profiles. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel". For posts on Reddit or Instagram use stophy-social. For TikTok ads use stophy-ads.
 metadata:
   author: stophy
   version: "4.0.0"
@@ -14,15 +14,15 @@ allowed-tools:
 
 Search and read videos, transcripts, comments, channels, and playlists on YouTube and TikTok.
 
-**Prerequisite:** `stophy youtube search` and `stophy transcript` work without a key. Every other command needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** every command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# no login needed: find videos on a topic
+# find videos on a topic
 stophy youtube search "rust tutorial" --limit 10 --json -o .stophy/search.json
 
-# no login needed: read what a video says, from a YouTube, TikTok or Instagram link
+# read what a video says, from a YouTube, TikTok or Instagram link
 stophy transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -o .stophy/transcript.txt
 
 # one video's title, channel, and views
@@ -45,12 +45,13 @@ Run `stophy <source> --help` for every command. The sources here are `youtube`, 
 
 ## Tips
 
-- `transcript` takes a YouTube, TikTok, or Instagram link, or a bare YouTube video ID. It costs 2 credits, or nothing without a key. Add `--includeTimestamps` for each line with its time. TikTok videos over 3 minutes are refused, and a refused call is free.
+- `transcript` takes a YouTube, TikTok, or Instagram link, or a bare YouTube video ID. It costs 2 credits. Every other video command costs 1. Add `--includeTimestamps` for each line with its time. TikTok videos over 3 minutes are refused, and a refused call is free.
 - `youtube video` and `youtube comments` accept a bare video ID (`dQw4w9WgXcQ`) or a full URL.
 - Replies: each comment has a `repliesCursor`. Pass it as `--comment` to `youtube comments` or `tiktok comments` to get that comment's replies.
-- A TikTok profile returns a page of its videos. Use `--cursor` for the next page.
+- A TikTok profile returns its videos in `results`, a page at a time. Use `--limit` and `--cursor` for the next page.
+- A YouTube channel's `--cursor` expires after 6 hours. Start again from the first page when it does.
 
 ## See also
 
-- [stophy-social](../stophy-social/SKILL.md): posts on Reddit, X, Instagram, and other platforms
+- [stophy-social](../stophy-social/SKILL.md): posts on Reddit, Instagram, and other platforms
 - [stophy-ads](../stophy-ads/SKILL.md): TikTok's ad library

@@ -3,10 +3,10 @@
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Live public web data for your AI agent: search, video, social, places, shopping, apps, jobs, real estate, ad libraries, and finance. This repo is a plugin with two parts:
+Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back. This repo is a plugin with two parts:
 
 - The hosted Stophy MCP server, `https://api.stophy.dev/mcp-oauth`. It signs you in with your browser.
-- Eleven agent skills that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
+- Agent skills for each kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
 
 ## Install
 
@@ -42,13 +42,13 @@ npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
 claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
 ```
 
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only web search, YouTube search, and transcripts work.
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only web search works.
 
 ## Requirements
 
 - Node.js ≥18
 - The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
-- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search, YouTube search, and transcripts
+- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search
 
 ## Authentication
 
@@ -64,16 +64,13 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | Skill | Covers |
 |-------|--------|
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web and news search, site SEO, email verification and lookup, search suggestions, Google Trends |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web search |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
-| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, X, Threads, Bluesky, Telegram, LinkedIn, Pinterest |
-| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
-| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Walmart, AliExpress, Shopify stores |
-| [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play listings and reviews |
-| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Indeed, LinkedIn, and Upwork job postings |
+| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Airbnb, Google Flights |
+| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | LinkedIn and Upwork job postings |
 | [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Rightmove, ImmoScout24 |
 | [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, and Microsoft ad libraries |
-| [`stophy-finance`](./skills/stophy-finance/SKILL.md) | Stock quotes, history and profiles, crypto prices, DEX pairs, wallets |
 
 ## For agents
 

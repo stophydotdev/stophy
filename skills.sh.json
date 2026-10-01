@@ -3,19 +3,16 @@
   "groupings": [
     {
       "title": "Stophy: live public web data for AI agents",
-      "description": "Live public web data for AI agents via the Stophy CLI: web and news search, video, social, places, shopping, apps, jobs, real estate, ad libraries, and finance.",
+      "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back.",
       "skills": [
         "stophy",
         "stophy-web",
         "stophy-video",
         "stophy-social",
         "stophy-places",
-        "stophy-shopping",
-        "stophy-apps",
         "stophy-jobs",
         "stophy-real-estate",
-        "stophy-ads",
-        "stophy-finance"
+        "stophy-ads"
       ]
     }
   ]

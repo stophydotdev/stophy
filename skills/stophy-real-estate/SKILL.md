@@ -37,6 +37,7 @@ Run `stophy <source> --help` for every command. The sources here are `zillow`, `
 ## Tips
 
 - Search first to get a property link or ID, then run `property` or `listing` on it for the full details.
+- Every `search` costs 3 credits per call. `zillow property` costs 2, and `rightmove property` and `immoscout listing` cost 1.
 - The values for `--status` and `--type` differ by site. Check `--help` before you filter.
 
 ## See also

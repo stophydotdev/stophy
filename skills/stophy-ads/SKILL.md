@@ -25,6 +25,9 @@ stophy ads search nike --network meta --limit 20 --json -o .stophy/meta-ads.json
 # a domain's Google ads
 stophy ads search --network google --domain nike.com --limit 25 --json -o .stophy/google-ads.json
 
+# Meta ads that are video only
+stophy ads search nike --network meta --mediaType video --json -o .stophy/meta-video.json
+
 # TikTok and LinkedIn ads by keyword or advertiser
 stophy ads search adidas --network tiktok --limit 12 --json -o .stophy/tiktok-ads.json
 stophy ads search software --network linkedin --json -o .stophy/linkedin-ads.json
@@ -48,8 +51,8 @@ Run `stophy ads --help` for every command. `--network` is one of `meta`, `google
 
 ## Tips
 
-- Every `ads` command costs 2 credits per call, and so does `meta ads page`.
-- The network decides what a search accepts. Meta needs a keyword. Google takes `--advertiser` or `--domain`. TikTok, LinkedIn and Microsoft take a keyword, an advertiser, or both. Pinterest needs `--country` and takes `--advertiser`.
+- `ads advertisers` costs 1 credit per call. `ads search`, `ads ad` and `meta ads page` cost 5.
+- The network decides what a search accepts. Meta needs a keyword, and `--mediaType` keeps `image`, `video` or `text` ads. Google takes `--advertiser` or `--domain`, and a keyword only when it is a domain. To search Google by name, find the advertiser with `ads advertisers` first. TikTok, LinkedIn and Microsoft take a keyword, an advertiser, or both. LinkedIn honours `--within`. Pinterest needs `--country` and `--advertiser`, and takes no keyword.
 - `ads advertisers` covers `google` and `microsoft` only.
 
 ## See also

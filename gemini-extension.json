@@ -1,7 +1,7 @@
 {
   "name": "stophy",
   "version": "1.0.0",
-  "description": "Live data from the sites people use every day: search the web and news, read YouTube transcripts, pull Reddit and X posts, find places on Google Maps, compare products, browse jobs and homes, and check stocks and crypto. Includes the Stophy MCP server and 11 skills.",
+  "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back.",
   "mcpServers": {
     "stophy": { "httpUrl": "https://api.stophy.dev/mcp-oauth" }
   }
