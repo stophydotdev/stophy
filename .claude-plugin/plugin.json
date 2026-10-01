@@ -1,11 +1,11 @@
 {
   "name": "stophy",
   "displayName": "Stophy",
-  "version": "1.0.0",
-  "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back.",
+  "version": "1.0.1",
+  "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
   "author": { "name": "Stophy", "url": "https://stophy.dev" },
   "homepage": "https://docs.stophy.dev",
   "repository": "https://github.com/stophydotdev/skills",
   "license": "MIT",
-  "keywords": ["web-data", "search", "youtube", "reddit", "maps", "jobs", "real-estate", "ads", "mcp"]
+  "keywords": ["web-data", "search", "youtube", "reddit", "maps", "jobs", "shopping", "apps", "real-estate", "ads", "mcp"]
 }

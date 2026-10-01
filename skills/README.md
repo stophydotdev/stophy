@@ -3,7 +3,7 @@
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back. This repo is a plugin with two parts:
+Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back. This repo is a plugin with two parts:
 
 - The hosted Stophy MCP server, `https://api.stophy.dev/mcp-oauth`. It signs you in with your browser.
 - Agent skills for each kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
@@ -67,14 +67,16 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | [`stophy-web`](./skills/stophy-web/SKILL.md) | Web search |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
 | [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest |
-| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Airbnb, Google Flights |
-| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | LinkedIn and Upwork job postings |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
+| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | LinkedIn, Indeed and Upwork job postings |
+| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Walmart products and prices |
+| [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
 | [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Rightmove, ImmoScout24 |
 | [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, and Microsoft ad libraries |
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page for one flat price, and `--limit` keeps fewer results at the same price.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page for a fixed price, and `--limit` keeps fewer results at the same price. `transcript` starts at 2 credits and costs more when a video has no captions.
 
 ## Docs
 

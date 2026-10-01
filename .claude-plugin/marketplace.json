@@ -6,9 +6,9 @@
     {
       "name": "stophy",
       "source": "./",
-      "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, property and ads behind one key, with a flat price per call. You pay only for answers that come back.",
+      "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
       "category": "data",
-      "tags": ["web-data", "search", "social", "maps", "jobs", "real-estate", "ads"]
+      "tags": ["web-data", "search", "social", "maps", "jobs", "shopping", "apps", "real-estate", "ads"]
     }
   ]
 }

@@ -4,7 +4,7 @@ description: |
   Search the public ad libraries of Meta (Facebook and Instagram), Google, TikTok, LinkedIn, Microsoft, and Pinterest. Use for "what ads is this brand running", "find ads for this competitor", "what is this company advertising on Facebook", "get this ad's details", "find advertisers in this ad library". For a brand's organic posts, not ads, use stophy-social or stophy-video.
 metadata:
   author: stophy
-  version: "4.0.0"
+  version: "4.0.1"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -36,7 +36,7 @@ stophy ads search software --network linkedin --json -o .stophy/linkedin-ads.jso
 stophy ads search --network pinterest --country de --advertiser nike --json -o .stophy/pinterest-ads.json
 
 # one ad in full, by ID from a search result
-stophy ads ad "123456789012345" --network meta --json -o .stophy/ad.json
+stophy ads ad 925321173274919 --network meta --json -o .stophy/ad.json
 
 # find an advertiser by name in the Google or Microsoft library
 stophy ads advertisers nike --network google --json

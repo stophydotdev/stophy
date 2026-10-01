@@ -1,10 +1,10 @@
 ---
 name: stophy
 description: |
-  Get live data from a specific site or platform with the Stophy CLI: web search, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Airbnb, flights, job posts, homes for sale, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-real-estate, or stophy-ads.
+  Get live data from a specific site or platform with the Stophy CLI: web search, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Tripadvisor, Airbnb, flights, job posts on LinkedIn, Indeed and Upwork, Walmart products, App Store and Google Play apps, homes for sale, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.0"
+  version: "4.0.1"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -48,7 +48,7 @@ stophy ads advertisers nike --network google
 stophy ads search nike --network meta
 ```
 
-One call returns one page for one flat price: 1 to 5 credits, depending on the command. Run `stophy endpoints` to see each price. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
+One call returns one page for a fixed price: 1 to 5 credits, depending on the command. `transcript` starts at 2 and costs more when the video has no captions. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
 
 By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. When there are more results, the output ends with a cursor. For the next page, run the same command with `--cursor <cursor>`.
 
