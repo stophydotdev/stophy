@@ -1,6 +1,6 @@
 {
   "name": "stophy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
   "mcpServers": {
     "stophy": { "httpUrl": "https://api.stophy.dev/mcp-oauth" }

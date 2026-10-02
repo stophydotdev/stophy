@@ -51,7 +51,7 @@ Run `stophy ads --help` for every command. `--network` is one of `meta`, `google
 
 ## Tips
 
-- `ads advertisers` costs 1 credit per call. `ads search`, `ads ad` and `meta ads page` cost 5.
+- Every command here costs 1 credit per call, including `ads search`, `ads ad` and `meta ads page`.
 - The network decides what a search accepts. Meta needs a keyword, and `--mediaType` keeps `image`, `video` or `text` ads. Google takes `--advertiser` or `--domain`, and a keyword only when it is a domain. To search Google by name, find the advertiser with `ads advertisers` first. TikTok, LinkedIn and Microsoft take a keyword, an advertiser, or both. LinkedIn honours `--within`. Pinterest needs `--country` and `--advertiser`, and takes no keyword.
 - `ads advertisers` covers `google` and `microsoft` only.
 

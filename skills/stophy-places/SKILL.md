@@ -45,7 +45,7 @@ Run `stophy <source> --help` for every command. The sources here are `maps`, `tr
 ## Tips
 
 - `maps search` needs both `--query` and `--location`. `maps place` and `maps reviews` take the `placeId` from a search result, not the name.
-- `googletravel flights` costs 5 credits per call. `maps search` and `airbnb search` cost 3. Every other command here costs 1, including all of Tripadvisor.
+- Every command here costs 1 credit per call, including `googletravel flights`, `maps search`, `airbnb search` and all of Tripadvisor.
 - `tripadvisor search` takes `--type` (`all`, `hotels`, `restaurants`, `attractions` or `geos`). `tripadvisor place` and `tripadvisor reviews` take the `placeId` or the link from a search result. `tripadvisor reviews` takes `--language` and `--ratings` (a list such as `1,2`), and `--cursor` for the next page.
 - Run `airbnb calendar` on a listing to see which dates are open, then search with `--checkIn` and `--checkOut`.
 - `airbnb search` returns up to about 110 listings, 18 to a page. Use `--cursor` for the next page. It returns `nights` and `pricePerNight`. `price` is the whole stay including fees, while `--minPrice` and `--maxPrice` are nightly rates before fees.

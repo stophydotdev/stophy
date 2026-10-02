@@ -40,7 +40,7 @@ Run `stophy <source> --help` for every command. The sources here are `linkedin`,
 ## Tips
 
 - Search first to get a job ID or link, then run `job` on it for the full description and requirements.
-- `upwork search` and `linkedin jobs search` cost 3 credits per call. Every Indeed command costs 1, and so do `upwork job` and `linkedin jobs job`.
+- Every command here costs 1 credit per call, including `upwork search`, `linkedin jobs search` and all of Indeed.
 - `indeed search` takes `--location`, `--country`, `--remote` and `--within` (`day`, `week` or `month`). A `--location` returns jobs within about 5 miles. Use `--cursor` for the next page.
 - LinkedIn jobs live under `linkedin jobs`. `linkedin posts` and `linkedin profile` cover people and companies, and belong to stophy-social.
 

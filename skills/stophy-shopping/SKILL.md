@@ -35,10 +35,10 @@ Run `stophy walmart --help` for every command.
 
 ## Tips
 
-- `walmart search` costs 5 credits per call. `walmart product` costs 3. Run a search only when you need the list, and use `--limit` to keep the output short, not to save credits.
+- `walmart search` costs 4 credits per call. `walmart product` costs 3. Run a search only when you need the list, and use `--limit` to keep the output short, not to save credits.
 - `--sort` takes `relevance`, `priceLow`, `priceHigh`, `bestSelling`, `highest` or `newest`. `--minPrice` and `--maxPrice` keep results inside a range.
 - Search first to get a product ID or link, then run `product` on it for the full details.
-- Search lists page. Run the same command with `--cursor <cursor>` for the next page, and keep the other options the same. Each page costs 5 credits again.
+- Search lists page. Run the same command with `--cursor <cursor>` for the next page, and keep the other options the same. Each page costs 4 credits again.
 
 ## See also
 
