@@ -42,13 +42,13 @@ npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
 claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
 ```
 
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only web search works.
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only Google search, Google News, YouTube search, YouTube video details and YouTube transcripts work.
 
 ## Requirements
 
 - Node.js ≥18
 - The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
-- An API key from [stophy.dev](https://stophy.dev/signup) for every command except web search
+- An API key from [stophy.dev](https://stophy.dev/signup) for every command except Google search, Google News, YouTube search, YouTube video details and YouTube transcripts
 
 ## Authentication
 
@@ -64,7 +64,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | Skill | Covers |
 |-------|--------|
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Web search |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Google search |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
 | [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest |
 | [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
@@ -76,7 +76,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page for a fixed price, and `--limit` keeps fewer results at the same price. `transcript` starts at 2 credits and costs more when a video has no captions.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. `transcript` starts at 2 credits and costs more when a video has no captions.
 
 ## Docs
 

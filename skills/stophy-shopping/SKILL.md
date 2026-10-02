@@ -4,7 +4,7 @@ description: |
   Get Walmart product data: search products by keyword, sort and price range, and read one product's price and details. Use for "find the cheapest", "how much does this cost at Walmart", "best selling air fryers", "compare prices for", "what is this product's rating". For homes use stophy-real-estate. For web results about a product use stophy-web.
 metadata:
   author: stophy
-  version: "4.0.0"
+  version: "4.0.1"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -20,7 +20,7 @@ Search products and read prices and details on Walmart.
 
 ```bash
 # products by keyword
-stophy walmart search "air fryer" --limit 20 --json -o .stophy/walmart.json
+stophy walmart search "air fryer" --json -o .stophy/walmart.json
 
 # the cheapest first, inside a price range
 stophy walmart search "air fryer" --sort priceLow --minPrice 30 --maxPrice 100 --json -o .stophy/cheap.json
@@ -35,10 +35,10 @@ Run `stophy walmart --help` for every command.
 
 ## Tips
 
-- `walmart search` costs 4 credits per call. `walmart product` costs 3. Run a search only when you need the list, and use `--limit` to keep the output short, not to save credits.
+- `walmart search` costs 4 credits per call. `walmart product` costs 3. Run a search only when you need the list.
 - `--sort` takes `relevance`, `priceLow`, `priceHigh`, `bestSelling`, `highest` or `newest`. `--minPrice` and `--maxPrice` keep results inside a range.
 - Search first to get a product ID or link, then run `product` on it for the full details.
-- Search lists page. Run the same command with `--cursor <cursor>` for the next page, and keep the other options the same. Each page costs 4 credits again.
+- Search returns one page. While `hasMore` is true, run the same command with `--page 2`, `--page 3` and so on, and keep the other options the same. Each page costs 4 credits again.
 
 ## See also
 

@@ -1,10 +1,10 @@
 ---
 name: stophy
 description: |
-  Get live data from a specific site or platform with the Stophy CLI: web search, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Tripadvisor, Airbnb, flights, job posts on LinkedIn, Indeed and Upwork, Walmart products, App Store and Google Play apps, homes for sale, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
+  Get live data from a specific site or platform with the Stophy CLI: Google search, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Tripadvisor, Airbnb, flights, job posts on LinkedIn, Indeed and Upwork, Walmart products, App Store and Google Play apps, homes for sale, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.1"
+  version: "4.0.2"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -22,7 +22,7 @@ Stophy returns public web data as flat JSON. For one kind of data, use the match
 
 ## Set up
 
-Web search works without a key. Every other command needs one. Check `stophy status`, then log in:
+`google search`, `google news`, `youtube search`, `youtube video` and `transcript` for YouTube videos work without a key, within a free limit. Every other command needs one. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser
@@ -41,16 +41,16 @@ stophy youtube search --help      # a command's options and example
 Put the main input first and the options after it. When a command needs a choice such as `--network`, give it as an option:
 
 ```bash
-stophy web search "postgres 18 release notes" --limit 5
+stophy google search "postgres 18 release notes"
 stophy reddit search "bun vs node" --sort top --within month
 stophy transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 stophy ads advertisers nike --network google
 stophy ads search nike --network meta
 ```
 
-One call returns one page for a fixed price: 1 to 5 credits, depending on the command. `transcript` starts at 2 and costs more when the video has no captions. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. `--limit <n>` returns at most `n` results (1 to 100) at the same price. Errors and empty results cost nothing, and `--cursor` continues with no gaps.
+One call returns one page for a fixed price: 1 to 5 credits, depending on the command. `transcript` starts at 2 and costs more when the video has no captions. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. Errors and empty results cost nothing.
 
-By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. When there are more results, the output ends with a cursor. For the next page, run the same command with `--cursor <cursor>`.
+By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. Each call returns one page, as the site shows it. Some commands take a page number: the output shows `page` and `hasMore`, and you run the same command with `--page 2` for the next page. Others end with a `cursor` when there is more: run the same command with `--cursor <cursor>`, and keep the other options the same.
 
 **Done when:** you ran the command, read its output, and every fact you report comes from that output.
 
@@ -67,5 +67,5 @@ Failed calls cost nothing. To report a problem to support, include the `requestI
 ## Without the CLI
 
 - **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://api.stophy.dev/mcp-oauth`. Endpoint ids are camelCase, such as `redditSearch`.
-- **HTTP:** `POST https://api.stophy.dev/v1/<endpoint>` with a JSON body, where `web.search` is `/v1/web/search` and `transcript` is `/v1/transcript`. The response is `{ success, data, creditsUsed, requestId }`, and lists are in `data.results`. `GET /v1/endpoints` lists every endpoint.
+- **HTTP:** `POST https://api.stophy.dev/v1/<endpoint>` with a JSON body, where `google.search` is `/v1/google/search` and `transcript` is `/v1/transcript`. The response is `{ success, data, creditsUsed, requestId }`, and lists are in `data.results`. `GET /v1/endpoints` lists every endpoint.
 - **Code:** `npm install stophy` or `pip install stophy`.

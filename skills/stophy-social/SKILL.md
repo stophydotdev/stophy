@@ -4,7 +4,7 @@ description: |
   Get posts, profiles, and threads from Reddit, Instagram, LinkedIn, and Pinterest. Use for "search Reddit for", "what does this profile post about", "read this thread's replies", "what is this company posting on LinkedIn", "find pins about". For YouTube or TikTok videos use stophy-video. For ad libraries use stophy-ads. For LinkedIn job posts use stophy-jobs.
 metadata:
   author: stophy
-  version: "4.0.0"
+  version: "4.0.1"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -28,10 +28,10 @@ stophy instagram profile natgeo --json -o .stophy/profile.json
 
 # a company's LinkedIn profile and posts
 stophy linkedin company openai --json
-stophy linkedin posts --company openai --limit 10 --json -o .stophy/li-posts.json
+stophy linkedin posts --company openai --json -o .stophy/li-posts.json
 
 # pins on a topic
-stophy pinterest search "kitchen ideas" --limit 25 --json -o .stophy/pins.json
+stophy pinterest search "kitchen ideas" --json -o .stophy/pins.json
 ```
 
 Run `stophy <source> --help` for every command. The sources are `reddit`, `instagram`, `linkedin`, and `pinterest`.
@@ -40,9 +40,9 @@ Run `stophy <source> --help` for every command. The sources are `reddit`, `insta
 
 ## Tips
 
-- Use `profile` or `search` to find a person or topic, and `post` for one item with its replies. An Instagram profile returns its recent posts in `results`, and `posts` is its post count. Use `--limit` and `--cursor` for the next page.
+- Use `profile` or `search` to find a person or topic, and `post` for one item with its replies. An Instagram profile returns its recent posts in `results`, and `posts` is its post count. When the output ends with a `cursor`, run the same command with `--cursor <cursor>` for the next page.
 - `instagram profile` costs 2 credits per call. Every other command here costs 1, including Reddit.
-- `linkedin posts` takes `--profile <p>` for a person or `--company <c>` for a company. It returns only the few posts LinkedIn shows publicly.
+- `linkedin posts` takes `--profile <p>` for a person or `--company <c>` for a company. It returns only the few posts LinkedIn shows publicly, with no next page.
 - `reddit search --type users` returns one page and no cursor.
 - For replies to an Instagram comment, pass the comment's `repliesCursor` as `--comment` to `instagram comments`.
 
