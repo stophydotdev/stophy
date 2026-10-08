@@ -42,13 +42,13 @@ npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
 claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
 ```
 
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only Google search, Google News, YouTube search, YouTube video details and YouTube transcripts work.
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only Google search, Google News, Google Maps search, Reddit search, YouTube search, YouTube video details and YouTube transcripts work.
 
 ## Requirements
 
 - Node.js ≥18
 - The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
-- An API key from [stophy.dev](https://stophy.dev/signup) for every command except Google search, Google News, YouTube search, YouTube video details and YouTube transcripts
+- An API key from [stophy.dev](https://stophy.dev/signup) for every command except Google search, Google News, Google Maps search, Reddit search, YouTube search, YouTube video details and YouTube transcripts
 
 ## Authentication
 
@@ -64,19 +64,19 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | Skill | Covers |
 |-------|--------|
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Google search |
-| [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube and TikTok: videos, transcripts (YouTube, TikTok, Instagram), comments, channels |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Google search, news, scholar, patents, AI answers and trends |
+| [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube, TikTok and Instagram: videos, transcripts, comments, channels |
 | [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest |
-| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Airbnb, Google Flights |
-| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | LinkedIn, Indeed and Upwork job postings |
-| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Walmart products and prices |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Google Hotels, Google Flights |
+| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Google Jobs, LinkedIn, Indeed and Upwork job postings |
+| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Google Shopping and TikTok Shop products and prices |
 | [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
-| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow, Rightmove, ImmoScout24 |
+| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow homes for sale, for rent and sold |
 | [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, and Microsoft ad libraries |
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. `transcript` starts at 2 credits and costs more when a video has no captions.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results. Instagram and TikTok transcripts cost 1 credit when the video has captions, and otherwise 2 credits plus 1 per 10 seconds of audio.
 
 ## Docs
 
