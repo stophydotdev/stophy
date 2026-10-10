@@ -1,12 +1,12 @@
 {
   "name": "stophy",
-  "description": "Stophy: live web data for AI agents.",
+  "description": "Stophy is a web scraping API for AI agents.",
   "owner": { "name": "Stophy", "url": "https://stophy.dev" },
   "plugins": [
     {
       "name": "stophy",
       "source": "./",
-      "description": "Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
+      "description": "Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
       "category": "data",
       "tags": ["web-data", "search", "social", "maps", "jobs", "shopping", "apps", "real-estate", "ads"]
     }

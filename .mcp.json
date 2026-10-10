@@ -2,7 +2,7 @@
   "mcpServers": {
     "stophy": {
       "type": "http",
-      "url": "https://api.stophy.dev/mcp-oauth"
+      "url": "https://mcp.stophy.dev/mcp"
     }
   }
 }

@@ -2,7 +2,7 @@
   "name": "stophy-skills",
   "version": "0.1.0",
   "private": true,
-  "description": "One API for live, structured web data. REST, MCP, SDK and CLI.",
+  "description": "Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
   "repository": {
     "type": "git",
     "url": "https://github.com/stophydotdev/skills"

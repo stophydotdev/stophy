@@ -4,7 +4,7 @@ description: |
   Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, AI answers, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.2"
+  version: "4.0.3"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -40,7 +40,7 @@ stophy google trends trending --country us --json
 stophy google trends related bitcoin --json
 ```
 
-Narrow a search with `--time`, `--country`, `--language` and `--fileType`. Run `stophy google search --help` for every option. Run `stophy google --help` for every Google command.
+Narrow a search with `--time`, `--country` and `--language`. Run `stophy google search --help` for every option. Run `stophy google --help` for every Google command.
 
 **Done when:** you report each result with its source URL or domain, and every claim matches the saved output.
 
@@ -51,7 +51,7 @@ Narrow a search with `--time`, `--country`, `--language` and `--fileType`. Run `
 - One call returns one page of results. Run the same command with the next `--page`, until a page has no results.
 - `google news` takes `--topic` to read headlines by topic, and `--sort relevance` or `--sort newest`.
 - `google scholar` takes `--sort relevance` or `--sort newest`, `--yearFrom` and `--yearTo`. Each result has a `citesId` you can pass back as `--citesId`.
-- `google patents` takes `--inventor`, `--assignee`, `--status` and `--sort`. `google videos` finds videos on any site.
+- `google patents` takes `--inventor`, `--assignee`, `--status` and `--sort`.
 - `google suggest` returns autocomplete phrases for a query.
 
 ## See also

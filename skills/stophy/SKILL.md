@@ -1,10 +1,10 @@
 ---
 name: stophy
 description: |
-  Get live data from a specific site or platform with the Stophy CLI: Google search, news, scholar and trends, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Google Maps, Tripadvisor, flights and hotels, job posts on Google, LinkedIn, Indeed and Upwork, Amazon products, App Store and Google Play apps, Zillow homes, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
+  Get live data from a specific site or platform with the Stophy CLI: Google search, news, scholar and trends, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads, Google Maps, Tripadvisor, flights, hotels, Airbnb and Booking.com, job posts on Google, LinkedIn, Indeed, Upwork and careers pages, Amazon, eBay and Facebook Marketplace products, Trustpilot reviews, App Store and Google Play apps, Zillow homes, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "4.0.4"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -49,7 +49,7 @@ stophy google ads advertisers nike
 stophy meta ads search nike
 ```
 
-One call returns one page for a fixed price. Most commands cost 1 credit. Amazon search, product and bestsellers, `zillow search`, `zillow property`, `instagram profile`, `linkedin profile`, `google aiMode` and `google shopping` cost 2. A few long lists cost 1 credit per 10 results: `google images`, `youtube charts`, `appstore search`, `appstore top` and `google play search`. Instagram and TikTok transcripts cost 1 credit when the video has captions, and otherwise 2 credits plus 1 per 10 seconds of audio. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. Errors and empty results cost nothing.
+One call returns one page for a fixed price. Most commands cost 1 credit. Amazon search, product and bestsellers, `zillow search`, `zillow property`, `instagram profile`, `linkedin profile`, `google aiMode` and `google shopping` cost 2. A few long lists cost 1 credit per 10 results: `google images`, `appstore search`, `appstore top` and `google play search`. TikTok transcripts cost 1 credit when the video has captions. Instagram transcripts, and TikTok videos without captions, cost 2 credits plus 1 per 10 seconds of audio. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. Errors and empty results cost nothing.
 
 By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. Each call returns one page, as the site shows it. Some commands take a page number: the output shows `page`, and you run the same command with `--page 2` for the next page, until a page has no results. Others end with a `cursor` when there is more: run the same command with `--cursor <cursor>`, and keep the other options the same.
 
@@ -67,6 +67,6 @@ Failed calls cost nothing. To report a problem to support, include the `requestI
 
 ## Without the CLI
 
-- **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://api.stophy.dev/mcp-oauth`. Endpoint ids are camelCase, such as `redditSearch`.
+- **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://mcp.stophy.dev/mcp`. Endpoint ids are camelCase, such as `redditSearch`.
 - **HTTP:** `POST https://api.stophy.dev/v1/<endpoint>` with a JSON body, where `google.search` is `/v1/google/search` and `youtube.transcript` is `/v1/youtube/transcript`. The response is `{ success, data, creditsUsed, requestId }`, and lists are in `data.results`. `GET /v1/endpoints` lists every endpoint.
 - **Code:** `npm install stophy` or `pip install stophy`.

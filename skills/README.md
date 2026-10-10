@@ -3,9 +3,9 @@
 [![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Live web data as typed JSON for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back. This repo is a plugin with two parts:
+Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back. This repo is a plugin with two parts:
 
-- The hosted Stophy MCP server, `https://api.stophy.dev/mcp-oauth`. It signs you in with your browser.
+- The hosted Stophy MCP server, `https://mcp.stophy.dev/mcp`. It signs you in with your browser.
 - Agent skills for each kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
 
 ## Install
@@ -39,10 +39,10 @@ npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
 ### MCP server only
 
 ```bash
-claude mcp add --transport http stophy https://api.stophy.dev/mcp-oauth
+claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
 ```
 
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, only Google search, Google News, Google Maps search, Reddit search, YouTube search, YouTube video details and YouTube transcripts work.
+Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, the endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints) work, within a free allowance.
 
 ## Requirements
 
@@ -66,17 +66,17 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | [`stophy`](./skills/stophy/SKILL.md) | Setup, login, running any command, and errors |
 | [`stophy-web`](./skills/stophy-web/SKILL.md) | Google search, news, scholar, patents, AI answers and trends |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube, TikTok and Instagram: videos, transcripts, comments, channels |
-| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest |
-| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Google Hotels, Google Flights |
-| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Google Jobs, LinkedIn, Indeed and Upwork job postings |
-| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Google Shopping and TikTok Shop products and prices |
+| [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Google Hotels, Airbnb, Booking.com, Google Flights |
+| [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | Google Jobs, LinkedIn, Indeed, Upwork and company careers pages |
+| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, Google Shopping, TikTok Shop, eBay and Facebook Marketplace products and prices, and Trustpilot reviews |
 | [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
 | [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow homes for sale, for rent and sold |
-| [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, LinkedIn, Pinterest, and Microsoft ad libraries |
+| [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, and LinkedIn ad libraries |
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results. Instagram and TikTok transcripts cost 1 credit when the video has captions, and otherwise 2 credits plus 1 per 10 seconds of audio.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results. TikTok transcripts cost 1 credit when the video has captions. Instagram transcripts, and TikTok videos without captions, cost 2 credits plus 1 per 10 seconds of audio.
 
 ## Docs
 
