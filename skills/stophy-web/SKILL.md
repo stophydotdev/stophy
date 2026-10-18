@@ -1,10 +1,10 @@
 ---
 name: stophy-web
 description: |
-  Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, AI answers, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
+  Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "4.0.4"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -32,9 +32,6 @@ stophy google news "nvidia" --sort newest --json -o .stophy/news.json
 stophy google scholar "malaria vaccine efficacy" --sort newest --json -o .stophy/scholar.json
 stophy google scholar --citesId 12345678901234567 --json
 
-# Google's AI answer with the pages it cites
-stophy google aiMode "What is the best CRM for a small business?" --json
-
 # what people search for
 stophy google trends trending --country us --json
 stophy google trends related bitcoin --json
@@ -47,7 +44,7 @@ Narrow a search with `--time`, `--country` and `--language`. Run `stophy google 
 ## Tips
 
 - Search first, then open the pages that matter. Quote the result's `url`.
-- `google search` and `google news` cost 1 credit and work without a key within a free limit. `google aiMode` costs 2 credits. `google images` costs 1 credit per 10 images, and `--limit` returns fewer. Every other command here costs 1 credit.
+- `google search` and `google news` cost 1 credit and work without a key within a free limit. `google images` costs 1 credit per 10 images, and `--limit` returns fewer. Every other command here costs 1 credit.
 - One call returns one page of results. Run the same command with the next `--page`, until a page has no results.
 - `google news` takes `--topic` to read headlines by topic, and `--sort relevance` or `--sort newest`.
 - `google scholar` takes `--sort relevance` or `--sort newest`, `--yearFrom` and `--yearTo`. Each result has a `citesId` you can pass back as `--citesId`.

@@ -1,10 +1,10 @@
 ---
 name: stophy-places
 description: |
-  Get places, hotels, and flights: Google Maps and Tripadvisor search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, and Google Flights prices. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX". Google Maps search works without an API key. For homes for sale or rent use stophy-real-estate.
+  Get places, hotels, and flights: Google Maps, Tripadvisor and Yelp search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, and Google Flights prices. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX". Google Maps search works without an API key. For homes for sale or rent use stophy-real-estate.
 metadata:
   author: stophy
-  version: "4.0.4"
+  version: "4.0.5"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,7 +12,7 @@ allowed-tools:
 
 # stophy places
 
-Search places on Google Maps and Tripadvisor, stays on Google Hotels, Airbnb and Booking.com, and flights on Google Flights.
+Search places on Google Maps, Tripadvisor and Yelp, stays on Google Hotels, Airbnb and Booking.com, and flights on Google Flights.
 
 **Prerequisite:** `stophy google maps search` works without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
@@ -46,7 +46,7 @@ stophy booking search Lisbon --checkIn 2026-11-20 --checkOut 2026-11-23 --json -
 stophy booking hotel reviews 15781550 --json
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `google` (Maps, Hotels and Flights), `tripadvisor`, `airbnb`, and `booking`.
+Run `stophy <source> --help` for every command. The sources here are `google` (Maps, Hotels and Flights), `tripadvisor`, `yelp`, `airbnb`, and `booking`.
 
 **Done when:** you name the specific place, rating, price, or flight, with its source. A generic "there are several options" is not enough.
 

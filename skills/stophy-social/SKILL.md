@@ -4,7 +4,7 @@ description: |
   Get posts, profiles, and threads from Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, and Threads. Use for "search Reddit for", "what does this profile post about", "read this thread's replies", "what is this company posting on LinkedIn", "find pins about", "what is this page posting on Facebook", "how many views did this X post get". Reddit search and X work without an API key. For YouTube or TikTok videos use stophy-video. For ad libraries use stophy-ads. For LinkedIn job posts use stophy-jobs.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "4.0.4"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -61,7 +61,7 @@ Run `stophy <source> --help` for every command. The sources are `reddit`, `insta
 - `instagram profile` and `linkedin profile` cost 2 credits per call. Every other command here costs 1, including Reddit.
 - `linkedin posts` takes one of `--profileUrl`, `--profileId`, `--companyUrl` or `--companyId`. A person's posts come as one page. A company's posts page with `--cursor`.
 - `reddit search` takes `--type` (`posts`, `subreddits` or `users`) and `--subreddit` to search inside one community. Page it with `--cursor`.
-- For the replies to one Reddit comment, pass its id or link as `--comment` to `reddit post`. For replies to an Instagram comment, pass the comment's `commentId` as `--comment` to `instagram comments`.
+- For the replies to one Reddit comment, pass its id or link as `--comment` to `reddit post`.
 - `reddit discussions` shows where else on Reddit one post's link was shared.
 - `facebook page` and `facebook page posts` take a page's link or name, `--pageUrl` or `--username`. Posts come three to a page, newest first. `facebook post` and `facebook post comments` take a post, reel or video by `--postUrl` or `--postId`.
 - `x post` returns exact `likes`, `views`, `reposts` and `replies`. `x profile` returns exact `followers` and `posts`.

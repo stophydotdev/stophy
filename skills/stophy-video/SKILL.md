@@ -4,7 +4,7 @@ description: |
   Get YouTube, TikTok and Instagram video data: search videos and read transcripts, comments, channels, playlists, profiles, hashtags, sounds and charts. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel", "what is trending on YouTube". For posts on Reddit or Instagram use stophy-social. For TikTok ads use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.4"
+  version: "4.0.5"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -51,7 +51,7 @@ Run `stophy <source> --help` for every command. The sources here are `youtube`, 
 - A YouTube transcript costs 1 credit and comes from the video's captions. Add `--includeTimestamps` for each line with its time, and `--language` to pick one.
 - `tiktok transcript` costs 1 credit when the video has captions. Without captions, and always for `instagram transcript`, the audio is transcribed for 2 credits plus 1 credit per 10 seconds, and the result has `transcribedSeconds`. TikTok audio stops at 3 minutes and Instagram audio at 30 minutes (182 credits at most). A refused call is free.
 - Every other command here costs 1 credit.
-- Replies: for `youtube comments`, pass a comment's `repliesCursor` as `--comment`. For `tiktok comments` and `instagram comments`, pass a comment's `commentId` as `--comment`.
+- Replies: for `youtube comments`, pass a comment's `repliesCursor` as `--comment`. For `tiktok comments`, pass a comment's `commentId` as `--comment`.
 - A TikTok or Instagram profile returns its videos in `results`, a page at a time. When the output ends with a `cursor`, run the same command with `--cursor <cursor>` for the next page. YouTube search, comments, channels and playlists page the same way.
 - A cursor comes from the site and can expire. Start again from the first page when it does.
 - `youtube post` reads a community post with its comments. `tiktok sound` lists videos that use a sound, by `--audioId`. `instagram profile reels` lists a profile's reels.

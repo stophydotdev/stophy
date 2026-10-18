@@ -1,10 +1,10 @@
 ---
 name: stophy-jobs
 description: |
-  Get job postings from Google Jobs, LinkedIn, Indeed, Upwork, and company careers pages: search by keyword, location, or rate, and read one posting in full. Use for "find jobs for", "who is hiring for this role", "find freelance work for", "what does this job pay", "remote jobs in this field", "what roles is this company hiring for". For a company's LinkedIn profile or posts, not its job listings, use stophy-social.
+  Get job postings from LinkedIn, Indeed, Upwork, and company careers pages, and Glassdoor company reviews and salaries: search by keyword, location, or rate, and read one posting in full. Use for "find jobs for", "who is hiring for this role", "find freelance work for", "what does this job pay", "remote jobs in this field", "what roles is this company hiring for". For a company's LinkedIn profile or posts, not its job listings, use stophy-social.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "4.0.4"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,16 +12,13 @@ allowed-tools:
 
 # stophy jobs
 
-Search and read job postings on Google Jobs, LinkedIn, Indeed, Upwork, and company careers pages.
+Search and read job postings on LinkedIn, Indeed, Upwork, and company careers pages, and read Glassdoor company reviews and salaries.
 
 **Prerequisite:** every command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# openings from many job sites at once
-stophy google jobs "software engineer" --location "Austin, TX" --json -o .stophy/google-jobs.json
-
 # roles by keyword and location on LinkedIn
 stophy linkedin jobs search "product manager" --location "New York" --json -o .stophy/linkedin-jobs.json
 
@@ -40,16 +37,15 @@ stophy careers jobs https://boards.greenhouse.io/figma --json -o .stophy/careers
 stophy careers job https://boards.greenhouse.io/figma/jobs/5813967004 --json
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `google`, `linkedin`, `indeed`, `upwork`, and `careers`.
+Run `stophy <source> --help` for every command. The sources here are `linkedin`, `indeed`, `upwork`, `careers`, and `glassdoor`.
 
 **Done when:** you name the specific role, company, pay, and posting link. A generic summary of "several openings" is not enough.
 
 ## Tips
 
 - Search first to get a job ID or link, then run `job` on it for the full description and requirements. To point at one posting, give its link or its id, never both: `--jobUrl` or `--jobId`.
-- Every command here costs 1 credit per call, including `upwork search`, `linkedin jobs search`, `google jobs` and all of Indeed and careers.
+- Every command here costs 1 credit per call, including `upwork search`, `linkedin jobs search` and all of Indeed, careers and Glassdoor.
 - `indeed search` takes `--location`, `--country`, `--remote` (`remote` or `hybrid`) and `--datePosted` (`last24Hours`, `last3Days`, `last7Days` or `last14Days`). Use `--cursor` for the next page.
-- `google jobs` takes `--datePosted`, `--jobType` and `--remote`, and `--cursor` for the next page. Each result has its apply links.
 - `upwork search` takes `--sort` (`newest` or `relevance`), `--experienceLevel`, `--minHourlyRate` and `--maxHourlyRate`, and `--page 2` for the next page.
 - `linkedin jobs search` takes `--company` to keep jobs at up to five companies, and `--page 2` for the next page.
 - LinkedIn jobs live under `linkedin jobs`. `linkedin posts` and `linkedin profile` cover people and companies, and belong to stophy-social.
