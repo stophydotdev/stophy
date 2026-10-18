@@ -4,7 +4,7 @@ description: |
   Get app store data: search the App Store and Google Play, read an app's details and reviews, and see the App Store top charts. Use for "find apps for", "what do users say about this app", "what is the rating of", "top free apps right now", "how do people review this app on Google Play". For videos about an app use stophy-video.
 metadata:
   author: stophy
-  version: "4.0.2"
+  version: "4.0.3"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -14,7 +14,7 @@ allowed-tools:
 
 Search apps and read their details and reviews on the App Store and Google Play.
 
-**Prerequisite:** every command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `appstore reviews` and `google play reviews` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

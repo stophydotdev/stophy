@@ -4,7 +4,7 @@ description: |
   Get YouTube, TikTok and Instagram video data: search videos and read transcripts, comments, channels, playlists, profiles, hashtags, sounds and charts. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel", "what is trending on YouTube". For posts on Reddit or Instagram use stophy-social. For TikTok ads use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "4.0.6"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -14,7 +14,7 @@ allowed-tools:
 
 Search and read videos, transcripts, comments, channels, and playlists on YouTube, TikTok and Instagram.
 
-**Prerequisite:** `youtube search`, `youtube video` and `youtube transcript` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `youtube search`, `youtube transcript`, `youtube video`, `youtube comments`, `youtube channel` and `tiktok transcript` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

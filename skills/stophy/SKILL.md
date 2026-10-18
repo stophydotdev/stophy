@@ -4,7 +4,7 @@ description: |
   Get live data from a specific site or platform with the Stophy CLI: Google search, news, scholar and trends, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads, Google Maps, Tripadvisor, Yelp, flights, hotels, Airbnb and Booking.com, job posts on LinkedIn, Indeed, Upwork and careers pages, Glassdoor company reviews and salaries, Amazon, eBay and Facebook Marketplace products, Trustpilot reviews, App Store and Google Play apps, Zillow homes, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "4.0.6"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -22,7 +22,7 @@ Stophy returns public web data as flat JSON. For one kind of data, use the match
 
 ## Set up
 
-`google search`, `google news`, `google maps search`, `reddit search`, `youtube search`, `youtube video` and `youtube transcript` work without a key, within a free limit. Every other command needs one. Check `stophy status`, then log in:
+`google search`, `web search`, `web news`, `web images`, `web scrape`, `web parse`, `web map`, `google news`, `google images`, `google suggest`, `google ads search`, `google patents`, `youtube search`, `youtube transcript`, `youtube video`, `youtube comments`, `youtube channel`, `reddit search`, `google maps search`, `google maps reviews`, `tiktok profile`, `tiktok transcript`, `appstore reviews`, `google play reviews`, `pinterest pin`, `x profile` and `x post` work without a key, within a free limit. Every other command needs one. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser

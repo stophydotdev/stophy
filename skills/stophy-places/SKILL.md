@@ -4,7 +4,7 @@ description: |
   Get places, hotels, and flights: Google Maps, Tripadvisor and Yelp search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, and Google Flights prices. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX". Google Maps search works without an API key. For homes for sale or rent use stophy-real-estate.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "4.0.6"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -14,7 +14,7 @@ allowed-tools:
 
 Search places on Google Maps, Tripadvisor and Yelp, stays on Google Hotels, Airbnb and Booking.com, and flights on Google Flights.
 
-**Prerequisite:** `stophy google maps search` works without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `google maps search` and `google maps reviews` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

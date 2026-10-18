@@ -4,7 +4,7 @@ description: |
   Get posts, profiles, and threads from Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, and Threads. Use for "search Reddit for", "what does this profile post about", "read this thread's replies", "what is this company posting on LinkedIn", "find pins about", "what is this page posting on Facebook", "how many views did this X post get". Reddit search and X work without an API key. For YouTube or TikTok videos use stophy-video. For ad libraries use stophy-ads. For LinkedIn job posts use stophy-jobs.
 metadata:
   author: stophy
-  version: "4.0.4"
+  version: "4.0.5"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -14,7 +14,7 @@ allowed-tools:
 
 Search and read posts, profiles, and threads on seven social platforms.
 
-**Prerequisite:** `stophy reddit search`, `stophy x profile` and `stophy x post` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `reddit search`, `pinterest pin`, `x profile` and `x post` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

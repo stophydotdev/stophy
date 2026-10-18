@@ -4,7 +4,7 @@ description: |
   Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.4"
+  version: "4.0.5"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -14,7 +14,7 @@ allowed-tools:
 
 Search the web for pages, news, papers and trends on a topic.
 
-**Prerequisite:** `stophy google search` and `stophy google news` work without a key. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `google search`, `web search`, `web news`, `web images`, `web scrape`, `web parse`, `web map`, `google news`, `google images`, `google suggest` and `google patents` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
