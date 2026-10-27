@@ -2,7 +2,7 @@ import { version } from "../package.json";
 import { StophyError } from "./errors";
 
 const DEFAULT_BASE_URL = "https://api.stophy.dev";
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 70_000;
 const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const USER_AGENT = `stophy-typescript/${version}`;

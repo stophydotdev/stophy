@@ -19,7 +19,7 @@ class AsyncStophy(AsyncSurface):
         *,
         base_url: str | None = None,
         headers: Mapping[str, str] | None = None,
-        timeout: float = 30.0,
+        timeout: float = 70.0,
         max_retries: int = 2,
         retry_initial_delay: float = 0.5,
         transport: httpx.AsyncBaseTransport | None = None,

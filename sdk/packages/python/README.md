@@ -107,7 +107,7 @@ The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504
 | `api_key` | `STOPHY_API_KEY` | Your API key |
 | `base_url` | `STOPHY_BASE_URL`, or the Stophy API | The server to call |
 | `max_retries` | `2` | Retries per request. `0` turns retries off. |
-| `timeout` | `30.0` | Time limit in seconds for each attempt |
+| `timeout` | `70.0` | Time limit in seconds for each attempt |
 
 ## Check your account
 

@@ -16,7 +16,7 @@ export interface StophyOptions {
 	headers?: Record<string, string>;
 	maxRetries?: number;
 	retryInitialDelayMs?: number;
-	/** Per-attempt timeout. Defaults to 30000. */
+	/** Per-attempt timeout. Defaults to 70000. */
 	timeoutMs?: number;
 }
 
