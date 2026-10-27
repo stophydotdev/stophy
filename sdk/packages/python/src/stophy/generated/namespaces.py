@@ -32,6 +32,7 @@ from .models import (
     BookingSearchSort,
     CareersJobResponse,
     CareersJobsResponse,
+    ChatgptSearchResponse,
     EbayItemResponse,
     EbaySearchCondition,
     EbaySearchResponse,
@@ -43,6 +44,7 @@ from .models import (
     FacebookPageResponse,
     FacebookPostCommentsResponse,
     FacebookPostResponse,
+    GeminiSearchResponse,
     GlassdoorCompanyResponse,
     GlassdoorCompanyReviewsResponse,
     GlassdoorCompanySalariesResponse,
@@ -201,6 +203,8 @@ from .models import (
     WebScrapeActionsItemOption5,
     WebScrapeFormatsItemOption0,
     WebScrapeFormatsItemOption1,
+    WebScrapeFormatsItemOption2,
+    WebScrapeLinkStyle,
     WebScrapeLocation,
     WebScrapeResponse,
     WebSearchResponse,
@@ -970,9 +974,12 @@ class SyncWebSearch:
         *,
         query: str,
         country: str | None = None,
+        language: str | None = None,
         include_domains: list[str] | None = None,
         exclude_domains: list[str] | None = None,
         time: WebSearchTime | None = None,
+        after: str | None = None,
+        before: str | None = None,
         safe_search: bool | None = None,
         limit: int | None = None,
         scrape_results: bool | None = None,
@@ -982,9 +989,12 @@ class SyncWebSearch:
             {
                 "query": query,
                 "country": country,
+                "language": language,
                 "includeDomains": include_domains,
                 "excludeDomains": exclude_domains,
                 "time": time,
+                "after": after,
+                "before": before,
                 "safeSearch": safe_search,
                 "limit": limit,
                 "scrapeResults": scrape_results,
@@ -1045,8 +1055,12 @@ class SyncWebScrape:
     def __call__(
         self,
         *,
-        url: str,
-        formats: list[WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1] | None = None,
+        url: str | None = None,
+        urls: list[str] | None = None,
+        formats: list[
+            WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1 | WebScrapeFormatsItemOption2
+        ]
+        | None = None,
         only_main_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
@@ -1063,11 +1077,13 @@ class SyncWebScrape:
             | WebScrapeActionsItemOption5
         ]
         | None = None,
+        link_style: WebScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> WebScrapeResponse:
         body = _omit_none(
             {
                 "url": url,
+                "urls": urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
                 "includeTags": include_tags,
@@ -1077,6 +1093,7 @@ class SyncWebScrape:
                 "maxAge": max_age,
                 "location": location,
                 "actions": actions,
+                "linkStyle": link_style,
                 "maxChars": max_chars,
             }
         )
@@ -1307,7 +1324,10 @@ class SyncWebBatch:
         *,
         urls: list[str],
         webhook: str | None = None,
-        formats: list[WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1] | None = None,
+        formats: list[
+            WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1 | WebScrapeFormatsItemOption2
+        ]
+        | None = None,
         only_main_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
@@ -1324,6 +1344,7 @@ class SyncWebBatch:
             | WebScrapeActionsItemOption5
         ]
         | None = None,
+        link_style: WebScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> WebCrawlStartResponse:
         body = _omit_none(
@@ -1339,6 +1360,7 @@ class SyncWebBatch:
                 "maxAge": max_age,
                 "location": location,
                 "actions": actions,
+                "linkStyle": link_style,
                 "maxChars": max_chars,
             }
         )
@@ -3918,6 +3940,56 @@ class SyncFacebook:
         self.marketplace = SyncFacebookMarketplace(call)
 
 
+class SyncChatgptSearch:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        query: str,
+    ) -> ChatgptSearchResponse:
+        body = _omit_none(
+            {
+                "query": query,
+            }
+        )
+        return self._call("POST", "/v1/chatgpt/search", body)
+
+
+class SyncChatgpt:
+    search: SyncChatgptSearch
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.search = SyncChatgptSearch(call)
+
+
+class SyncGeminiSearch:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        query: str,
+    ) -> GeminiSearchResponse:
+        body = _omit_none(
+            {
+                "query": query,
+            }
+        )
+        return self._call("POST", "/v1/gemini/search", body)
+
+
+class SyncGemini:
+    search: SyncGeminiSearch
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.search = SyncGeminiSearch(call)
+
+
 class SyncSurface:
     endpoints: SyncEndpoints
     google: SyncGoogle
@@ -3945,6 +4017,8 @@ class SyncSurface:
     ebay: SyncEbay
     airbnb: SyncAirbnb
     facebook: SyncFacebook
+    chatgpt: SyncChatgpt
+    gemini: SyncGemini
 
     def __init__(self, call: SyncCall) -> None:
         self.endpoints = SyncEndpoints(call)
@@ -3973,6 +4047,8 @@ class SyncSurface:
         self.ebay = SyncEbay(call)
         self.airbnb = SyncAirbnb(call)
         self.facebook = SyncFacebook(call)
+        self.chatgpt = SyncChatgpt(call)
+        self.gemini = SyncGemini(call)
 
 
 class AsyncEndpoints:
@@ -4686,9 +4762,12 @@ class AsyncWebSearch:
         *,
         query: str,
         country: str | None = None,
+        language: str | None = None,
         include_domains: list[str] | None = None,
         exclude_domains: list[str] | None = None,
         time: WebSearchTime | None = None,
+        after: str | None = None,
+        before: str | None = None,
         safe_search: bool | None = None,
         limit: int | None = None,
         scrape_results: bool | None = None,
@@ -4698,9 +4777,12 @@ class AsyncWebSearch:
             {
                 "query": query,
                 "country": country,
+                "language": language,
                 "includeDomains": include_domains,
                 "excludeDomains": exclude_domains,
                 "time": time,
+                "after": after,
+                "before": before,
                 "safeSearch": safe_search,
                 "limit": limit,
                 "scrapeResults": scrape_results,
@@ -4761,8 +4843,12 @@ class AsyncWebScrape:
     async def __call__(
         self,
         *,
-        url: str,
-        formats: list[WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1] | None = None,
+        url: str | None = None,
+        urls: list[str] | None = None,
+        formats: list[
+            WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1 | WebScrapeFormatsItemOption2
+        ]
+        | None = None,
         only_main_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
@@ -4779,11 +4865,13 @@ class AsyncWebScrape:
             | WebScrapeActionsItemOption5
         ]
         | None = None,
+        link_style: WebScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> WebScrapeResponse:
         body = _omit_none(
             {
                 "url": url,
+                "urls": urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
                 "includeTags": include_tags,
@@ -4793,6 +4881,7 @@ class AsyncWebScrape:
                 "maxAge": max_age,
                 "location": location,
                 "actions": actions,
+                "linkStyle": link_style,
                 "maxChars": max_chars,
             }
         )
@@ -5023,7 +5112,10 @@ class AsyncWebBatch:
         *,
         urls: list[str],
         webhook: str | None = None,
-        formats: list[WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1] | None = None,
+        formats: list[
+            WebScrapeFormatsItemOption0 | WebScrapeFormatsItemOption1 | WebScrapeFormatsItemOption2
+        ]
+        | None = None,
         only_main_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
@@ -5040,6 +5132,7 @@ class AsyncWebBatch:
             | WebScrapeActionsItemOption5
         ]
         | None = None,
+        link_style: WebScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> WebCrawlStartResponse:
         body = _omit_none(
@@ -5055,6 +5148,7 @@ class AsyncWebBatch:
                 "maxAge": max_age,
                 "location": location,
                 "actions": actions,
+                "linkStyle": link_style,
                 "maxChars": max_chars,
             }
         )
@@ -7634,6 +7728,56 @@ class AsyncFacebook:
         self.marketplace = AsyncFacebookMarketplace(call)
 
 
+class AsyncChatgptSearch:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        query: str,
+    ) -> ChatgptSearchResponse:
+        body = _omit_none(
+            {
+                "query": query,
+            }
+        )
+        return await self._call("POST", "/v1/chatgpt/search", body)
+
+
+class AsyncChatgpt:
+    search: AsyncChatgptSearch
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.search = AsyncChatgptSearch(call)
+
+
+class AsyncGeminiSearch:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        query: str,
+    ) -> GeminiSearchResponse:
+        body = _omit_none(
+            {
+                "query": query,
+            }
+        )
+        return await self._call("POST", "/v1/gemini/search", body)
+
+
+class AsyncGemini:
+    search: AsyncGeminiSearch
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.search = AsyncGeminiSearch(call)
+
+
 class AsyncSurface:
     endpoints: AsyncEndpoints
     google: AsyncGoogle
@@ -7661,6 +7805,8 @@ class AsyncSurface:
     ebay: AsyncEbay
     airbnb: AsyncAirbnb
     facebook: AsyncFacebook
+    chatgpt: AsyncChatgpt
+    gemini: AsyncGemini
 
     def __init__(self, call: AsyncCall) -> None:
         self.endpoints = AsyncEndpoints(call)
@@ -7689,3 +7835,5 @@ class AsyncSurface:
         self.ebay = AsyncEbay(call)
         self.airbnb = AsyncAirbnb(call)
         self.facebook = AsyncFacebook(call)
+        self.chatgpt = AsyncChatgpt(call)
+        self.gemini = AsyncGemini(call)

@@ -23,7 +23,6 @@ export type _Error = {
       | "sourceRefused"
       | "sourceTimeout"
       | "sourceUnavailable"
-      | "tooManyInFlight"
       | "unauthorized"
       | "unsupportedMediaType";
     message: string;
@@ -68,6 +67,10 @@ export type EndpointCatalog = {
      * What one call costs, or the lowest it can cost when pricing is set.
      */
     credits: number;
+    /**
+     * The most one call can cost. The same as credits when pricing is null.
+     */
+    maxCredits: number;
     /**
      * How the price changes with the answer. Null when every call costs the same.
      */
@@ -290,6 +293,33 @@ export type GoogleSearchResponses = {
             publishedAt?: string;
             position: number;
           }
+        | {
+            type: "place";
+            /**
+             * A Google Maps search for this place.
+             */
+            url: string;
+            title: string;
+            rating?: number;
+            reviews?: number;
+            /**
+             * Price range Google shows, like $10–20.
+             */
+            priceRange?: string;
+            /**
+             * Kind of place, like Pizza.
+             */
+            category?: string;
+            /**
+             * Area Google shows, like New York, NY.
+             */
+            location?: string;
+            /**
+             * Open or closed now, with the next change when Google shows it.
+             */
+            status?: string;
+            position: number;
+          }
       >;
       peopleAlsoAsk?: Array<{
         question: string;
@@ -315,12 +345,24 @@ export type WebSearchData = {
      * ISO 3166-1 alpha-2 country code, e.g. us. Any case is accepted.
      */
     country?: string;
+    /**
+     * Only pages written in this language. Two-letter code like en or fr. Any case is accepted.
+     */
+    language?: string;
     includeDomains?: Array<string>;
     excludeDomains?: Array<string>;
     /**
-     * Only pages from the past week, month or year. Leave out for any time.
+     * Only pages from the past week, month or year. Leave out for any time. Not with after or before.
      */
     time?: "pastWeek" | "pastMonth" | "pastYear";
+    /**
+     * Only pages published on or after this day, as YYYY-MM-DD.
+     */
+    after?: string;
+    /**
+     * Only pages published on or before this day, as YYYY-MM-DD.
+     */
+    before?: string;
     /**
      * Hide explicit results.
      */
@@ -527,20 +569,43 @@ export type WebImagesResponse = WebImagesResponses[keyof WebImagesResponses];
 export type WebScrapeData = {
   body: {
     /**
-     * The page or PDF to read, such as https://bun.com/docs.
+     * The page or PDF to read, such as https://bun.com/docs. Send this or urls.
      */
-    url: string;
+    url?: string;
     /**
-     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page) and screenshot (a JPEG of the visible page, as base64). Send { "type": "screenshot", "fullPage": true } for the whole page. A screenshot costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
+     * Two to 10 pages or PDFs to read together, such as ["https://bun.com/docs", "https://react.dev/learn"]. Send this or url. Every other option applies to all of them. An address sent twice is read once and answered once. results has one entry per address in the order sent, each with the page or its own error. Each page costs what it would cost alone, and a page that cannot be read costs nothing.
+     */
+    urls?: Array<string>;
+    /**
+     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
      */
     formats?: Array<
-      | ("markdown" | "html" | "rawHtml" | "links" | "screenshot")
+      | (
+          | "markdown"
+          | "html"
+          | "rawHtml"
+          | "links"
+          | "screenshot"
+          | "changes"
+          | "network"
+        )
       | {
           type: "screenshot";
           /**
            * Capture the whole page from top to bottom instead of the visible part.
            */
           fullPage?: boolean;
+        }
+      | {
+          type: "highlights";
+          /**
+           * What you are looking for on the page, such as refund policy.
+           */
+          query: string;
+          /**
+           * How many passages to return, best match first.
+           */
+          count?: number;
         }
     >;
     /**
@@ -606,6 +671,10 @@ export type WebScrapeData = {
         }
     >;
     /**
+     * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
+     */
+    linkStyle?: "inline" | "numbered" | "none";
+    /**
      * Cut the markdown at this many characters; isTruncated says when that happened.
      */
     maxChars?: number;
@@ -639,26 +708,118 @@ export type WebScrapeResponses = {
    */
   200: {
     success: true;
-    data: {
-      markdown?: string;
-      html?: string;
-      rawHtml?: string;
-      links?: Array<string>;
-      screenshot?: string;
-      isTruncated: boolean;
-      metadata: {
-        title?: string;
-        description?: string;
-        language?: string;
-        ogImage?: string;
-        sourceURL?: string;
-        statusCode: number;
-        contentType?: string;
-        cacheState: "hit" | "miss";
-        cachedAt?: string;
-        numPages?: number;
-      };
-    };
+    data:
+      | {
+          markdown?: string;
+          html?: string;
+          rawHtml?: string;
+          links?: Array<string>;
+          /**
+           * A link to a JPEG of the page. The link works for 7 days.
+           */
+          screenshot?: string;
+          /**
+           * The passages that best match the highlights query, best first.
+           */
+          highlights?: Array<{
+            section?: string;
+            text?: string;
+          }>;
+          /**
+           * The JSON responses the page loaded while it rendered, with their bodies.
+           */
+          network?: Array<{
+            url?: string;
+            method?: string;
+            status: number;
+            contentType?: string;
+            body?: string;
+          }>;
+          /**
+           * new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.
+           */
+          changes?: {
+            status: "new" | "same" | "changed";
+            previousAt?: string;
+            diff?: string;
+          };
+          isTruncated: boolean;
+          metadata: {
+            title?: string;
+            description?: string;
+            language?: string;
+            ogImage?: string;
+            sourceURL?: string;
+            statusCode: number;
+            contentType?: string;
+            cacheState: "hit" | "miss";
+            cachedAt?: string;
+            numPages?: number;
+          };
+        }
+      | {
+          /**
+           * One entry per address in the order sent: the page with its url, or the url with an error that has the code and message a single call would give.
+           */
+          results?: Array<
+            | {
+                markdown?: string;
+                html?: string;
+                rawHtml?: string;
+                links?: Array<string>;
+                /**
+                 * A link to a JPEG of the page. The link works for 7 days.
+                 */
+                screenshot?: string;
+                /**
+                 * The passages that best match the highlights query, best first.
+                 */
+                highlights?: Array<{
+                  section?: string;
+                  text?: string;
+                }>;
+                /**
+                 * The JSON responses the page loaded while it rendered, with their bodies.
+                 */
+                network?: Array<{
+                  url?: string;
+                  method?: string;
+                  status: number;
+                  contentType?: string;
+                  body?: string;
+                }>;
+                /**
+                 * new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.
+                 */
+                changes?: {
+                  status: "new" | "same" | "changed";
+                  previousAt?: string;
+                  diff?: string;
+                };
+                isTruncated: boolean;
+                metadata: {
+                  title?: string;
+                  description?: string;
+                  language?: string;
+                  ogImage?: string;
+                  sourceURL?: string;
+                  statusCode: number;
+                  contentType?: string;
+                  cacheState: "hit" | "miss";
+                  cachedAt?: string;
+                  numPages?: number;
+                };
+                url?: string;
+              }
+            | {
+                url?: string;
+                error?: {
+                  code?: string;
+                  message?: string;
+                };
+              }
+          >;
+        };
     creditsUsed: number;
     requestId: string;
   };
@@ -1018,7 +1179,7 @@ export type WebCrawlStartData = {
      */
     onlyMainContent?: boolean;
     /**
-     * A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends.
+     * A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
      */
     webhook?: string;
   };
@@ -1195,20 +1356,39 @@ export type WebBatchData = {
      */
     urls: Array<string>;
     /**
-     * A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends.
+     * A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
      */
     webhook?: string;
     /**
-     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page) and screenshot (a JPEG of the visible page, as base64). Send { "type": "screenshot", "fullPage": true } for the whole page. A screenshot costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
+     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
      */
     formats?: Array<
-      | ("markdown" | "html" | "rawHtml" | "links" | "screenshot")
+      | (
+          | "markdown"
+          | "html"
+          | "rawHtml"
+          | "links"
+          | "screenshot"
+          | "changes"
+          | "network"
+        )
       | {
           type: "screenshot";
           /**
            * Capture the whole page from top to bottom instead of the visible part.
            */
           fullPage?: boolean;
+        }
+      | {
+          type: "highlights";
+          /**
+           * What you are looking for on the page, such as refund policy.
+           */
+          query: string;
+          /**
+           * How many passages to return, best match first.
+           */
+          count?: number;
         }
     >;
     /**
@@ -1273,6 +1453,10 @@ export type WebBatchData = {
           direction: "up" | "down";
         }
     >;
+    /**
+     * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
+     */
+    linkStyle?: "inline" | "numbered" | "none";
     /**
      * Cut the markdown at this many characters; isTruncated says when that happened.
      */
@@ -1378,7 +1562,35 @@ export type WebBatchStatusResponses = {
         html?: string;
         rawHtml?: string;
         links?: Array<string>;
+        /**
+         * A link to a JPEG of the page. The link works for 7 days.
+         */
         screenshot?: string;
+        /**
+         * The passages that best match the highlights query, best first.
+         */
+        highlights?: Array<{
+          section?: string;
+          text?: string;
+        }>;
+        /**
+         * The JSON responses the page loaded while it rendered, with their bodies.
+         */
+        network?: Array<{
+          url?: string;
+          method?: string;
+          status: number;
+          contentType?: string;
+          body?: string;
+        }>;
+        /**
+         * new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.
+         */
+        changes?: {
+          status: "new" | "same" | "changed";
+          previousAt?: string;
+          diff?: string;
+        };
         isTruncated: boolean;
         metadata: {
           title?: string;
@@ -3365,7 +3577,6 @@ export type RedditUserResponses = {
       commentKarma?: number;
       createdAt?: string;
       avatarUrl?: string;
-      isVerified?: boolean;
       results: Array<
         | {
             type: "post";
@@ -4044,10 +4255,7 @@ export type InstagramProfileResponses = {
       avatarUrl?: string;
       postsAnalyzed?: number;
       averageLikes?: number;
-      averageComments?: number;
       engagementRate?: number;
-      postsPerWeek?: number;
-      lastPostAt?: string;
       results: Array<{
         postId?: string;
         postCode?: string;
@@ -4056,28 +4264,12 @@ export type InstagramProfileResponses = {
         text?: string;
         hashtags?: Array<string>;
         mentions?: Array<string>;
-        publishedAt?: string;
         likes?: number;
-        comments?: number;
         views?: number;
-        thumbnailUrl?: string;
-        imageUrls?: Array<string>;
-        videoUrls?: Array<string>;
+        imageUrl?: string;
         imageDescription?: string;
-        isPinned: boolean;
         authorId?: string;
         authorUsername?: string;
-        authorName?: string;
-        authorUrl?: string;
-        authorAvatarUrl?: string;
-        authorIsVerified: boolean;
-        taggedUsers?: Array<string>;
-        coauthors?: Array<string>;
-        audioTitle?: string;
-        audioArtist?: string;
-        audioIsOriginal?: boolean;
-        isPaidPartnership: boolean;
-        sponsors?: Array<string>;
       }>;
       cursor?: string;
     };
@@ -8413,7 +8605,7 @@ export type AmazonProductResponses = {
         value?: string;
       }>;
       /**
-       * Up to 13 reviews Amazon shows on the product page. Amazon shows them on some visits only, so this can be empty when the product has reviews.
+       * Up to 13 reviews from the product page. Empty for US products, since Amazon US shows reviews only after sign-in.
        */
       topReviews: Array<{
         reviewId?: string;
@@ -9240,7 +9432,7 @@ export type PinterestSearchResponses = {
     data: {
       results: Array<{
         pinId?: string;
-        pinUrl: string;
+        pinUrl?: string;
         title?: string;
         text?: string;
         altText?: string;
@@ -9317,7 +9509,7 @@ export type PinterestPinResponses = {
     success: true;
     data: {
       pinId?: string;
-      pinUrl: string;
+      pinUrl?: string;
       title?: string;
       text?: string;
       altText?: string;
@@ -9412,7 +9604,7 @@ export type PinterestBoardResponses = {
       authorIsVerified?: boolean;
       results: Array<{
         pinId?: string;
-        pinUrl: string;
+        pinUrl?: string;
         title?: string;
         text?: string;
         altText?: string;
@@ -9511,7 +9703,7 @@ export type PinterestProfileResponses = {
       createdAt?: string;
       results: Array<{
         pinId?: string;
-        pinUrl: string;
+        pinUrl?: string;
         title?: string;
         text?: string;
         altText?: string;
@@ -11846,6 +12038,113 @@ export type FacebookMarketplaceSearchResponses = {
 
 export type FacebookMarketplaceSearchResponse =
   FacebookMarketplaceSearchResponses[keyof FacebookMarketplaceSearchResponses];
+
+export type ChatgptSearchData = {
+  body: {
+    /**
+     * The question to ask, worded the way a person would ask it.
+     */
+    query: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/chatgpt/search";
+};
+
+export type ChatgptSearchErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type ChatgptSearchError = ChatgptSearchErrors[keyof ChatgptSearchErrors];
+
+export type ChatgptSearchResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      query?: string;
+      answer: string;
+      sources: Array<{
+        url: string;
+        title?: string;
+        domain: string;
+      }>;
+      searchQueries: Array<string>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type ChatgptSearchResponse =
+  ChatgptSearchResponses[keyof ChatgptSearchResponses];
+
+export type GeminiSearchData = {
+  body: {
+    /**
+     * The question to ask, worded the way a person would ask it.
+     */
+    query: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/gemini/search";
+};
+
+export type GeminiSearchErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type GeminiSearchError = GeminiSearchErrors[keyof GeminiSearchErrors];
+
+export type GeminiSearchResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      query?: string;
+      answer: string;
+      sources: Array<{
+        url: string;
+        title?: string;
+        domain: string;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type GeminiSearchResponse =
+  GeminiSearchResponses[keyof GeminiSearchResponses];
 
 export type ClientOptions = {
   baseUrl: "https://api.stophy.dev" | (string & {});

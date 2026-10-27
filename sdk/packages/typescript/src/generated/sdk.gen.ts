@@ -395,6 +395,12 @@ import type {
   FacebookMarketplaceSearchData,
   FacebookMarketplaceSearchResponse,
   FacebookMarketplaceSearchError,
+  ChatgptSearchData,
+  ChatgptSearchResponse,
+  ChatgptSearchError,
+  GeminiSearchData,
+  GeminiSearchResponse,
+  GeminiSearchError,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -540,8 +546,8 @@ export const webImages = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Scrape any public web page as markdown, HTML, links or a screenshot
- * Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. creditsUsed shows what the call cost. Works without an API key, within free limits.
+ * Scrape any public web page, or up to 10 at once, as markdown, HTML, links or a screenshot
+ * Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost. Works without an API key, within free limits.
  */
 export const webScrape = <ThrowOnError extends boolean = false>(
   options: Options<WebScrapeData, ThrowOnError>
@@ -3906,6 +3912,60 @@ export const facebookMarketplaceSearch = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/v1/facebook/marketplace/search",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape ChatGPT's answer and the pages it cites
+ * Costs 1 credit per call.
+ */
+export const chatgptSearch = <ThrowOnError extends boolean = false>(
+  options: Options<ChatgptSearchData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ChatgptSearchResponse,
+    ChatgptSearchError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/chatgpt/search",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape Gemini's answer and the pages it cites
+ * Costs 1 credit per call.
+ */
+export const geminiSearch = <ThrowOnError extends boolean = false>(
+  options: Options<GeminiSearchData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    GeminiSearchResponse,
+    GeminiSearchError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/gemini/search",
     ...options,
     headers: {
       "Content-Type": "application/json",

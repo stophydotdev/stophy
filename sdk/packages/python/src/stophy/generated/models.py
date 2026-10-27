@@ -26,6 +26,8 @@ WebScrapeFormatsItemOption0 = Literal[
     "rawHtml",
     "links",
     "screenshot",
+    "changes",
+    "network",
 ]
 
 WebScrapeActionsItemOption5Direction = Literal[
@@ -33,7 +35,19 @@ WebScrapeActionsItemOption5Direction = Literal[
     "down",
 ]
 
-WebScrapeResponseDataMetadataCacheState = Literal[
+WebScrapeLinkStyle = Literal[
+    "inline",
+    "numbered",
+    "none",
+]
+
+WebScrapeResponseDataOption0ChangesStatus = Literal[
+    "new",
+    "same",
+    "changed",
+]
+
+WebScrapeResponseDataOption0MetadataCacheState = Literal[
     "hit",
     "miss",
 ]
@@ -1112,6 +1126,7 @@ class EndpointCatalogEndpointsItem(TypedDict):
     method: Literal["POST"]
     path: str
     credits: int
+    maxCredits: int
     pricing: NotRequired[str | None]
     keyless: bool
     cacheTtlSeconds: int
@@ -1200,6 +1215,19 @@ class GoogleSearchResponseDataResultsItemOption3(TypedDict):
     position: int
 
 
+class GoogleSearchResponseDataResultsItemOption4(TypedDict):
+    type: Literal["place"]
+    url: str
+    title: str
+    rating: NotRequired[float]
+    reviews: NotRequired[int]
+    priceRange: NotRequired[str]
+    category: NotRequired[str]
+    location: NotRequired[str]
+    status: NotRequired[str]
+    position: int
+
+
 class GoogleSearchResponseDataPeopleAlsoAskItem(TypedDict):
     question: str
     answer: NotRequired[str]
@@ -1215,6 +1243,7 @@ class GoogleSearchResponseData(TypedDict):
         | GoogleSearchResponseDataResultsItemOption1
         | GoogleSearchResponseDataResultsItemOption2
         | GoogleSearchResponseDataResultsItemOption3
+        | GoogleSearchResponseDataResultsItemOption4
     ]
     peopleAlsoAsk: NotRequired[list[GoogleSearchResponseDataPeopleAlsoAskItem]]
     relatedSearches: NotRequired[list[str]]
@@ -1295,6 +1324,12 @@ class WebScrapeFormatsItemOption1(TypedDict):
     fullPage: NotRequired[bool]
 
 
+class WebScrapeFormatsItemOption2(TypedDict):
+    type: Literal["highlights"]
+    query: str
+    count: NotRequired[int]
+
+
 class WebScrapeLocation(TypedDict):
     country: str
 
@@ -1329,7 +1364,26 @@ class WebScrapeActionsItemOption5(TypedDict):
     direction: WebScrapeActionsItemOption5Direction
 
 
-class WebScrapeResponseDataMetadata(TypedDict):
+class WebScrapeResponseDataOption0HighlightsItem(TypedDict):
+    section: NotRequired[str]
+    text: NotRequired[str]
+
+
+class WebScrapeResponseDataOption0NetworkItem(TypedDict):
+    url: NotRequired[str]
+    method: NotRequired[str]
+    status: int
+    contentType: NotRequired[str]
+    body: NotRequired[str]
+
+
+class WebScrapeResponseDataOption0Changes(TypedDict):
+    status: WebScrapeResponseDataOption0ChangesStatus
+    previousAt: NotRequired[str]
+    diff: NotRequired[str]
+
+
+class WebScrapeResponseDataOption0Metadata(TypedDict):
     title: NotRequired[str]
     description: NotRequired[str]
     language: NotRequired[str]
@@ -1337,24 +1391,60 @@ class WebScrapeResponseDataMetadata(TypedDict):
     sourceURL: NotRequired[str]
     statusCode: int
     contentType: NotRequired[str]
-    cacheState: WebScrapeResponseDataMetadataCacheState
+    cacheState: WebScrapeResponseDataOption0MetadataCacheState
     cachedAt: NotRequired[str]
     numPages: NotRequired[int]
 
 
-class WebScrapeResponseData(TypedDict):
+class WebScrapeResponseDataOption0(TypedDict):
     markdown: NotRequired[str]
     html: NotRequired[str]
     rawHtml: NotRequired[str]
     links: NotRequired[list[str]]
     screenshot: NotRequired[str]
+    highlights: NotRequired[list[WebScrapeResponseDataOption0HighlightsItem]]
+    network: NotRequired[list[WebScrapeResponseDataOption0NetworkItem]]
+    changes: NotRequired[WebScrapeResponseDataOption0Changes]
     isTruncated: bool
-    metadata: WebScrapeResponseDataMetadata
+    metadata: WebScrapeResponseDataOption0Metadata
+
+
+class WebScrapeResponseDataOption1ResultsItemOption0(TypedDict):
+    markdown: NotRequired[str]
+    html: NotRequired[str]
+    rawHtml: NotRequired[str]
+    links: NotRequired[list[str]]
+    screenshot: NotRequired[str]
+    highlights: NotRequired[list[WebScrapeResponseDataOption0HighlightsItem]]
+    network: NotRequired[list[WebScrapeResponseDataOption0NetworkItem]]
+    changes: NotRequired[WebScrapeResponseDataOption0Changes]
+    isTruncated: bool
+    metadata: WebScrapeResponseDataOption0Metadata
+    url: NotRequired[str]
+
+
+class WebScrapeResponseDataOption1ResultsItemOption1Error(TypedDict):
+    code: NotRequired[str]
+    message: NotRequired[str]
+
+
+class WebScrapeResponseDataOption1ResultsItemOption1(TypedDict):
+    url: NotRequired[str]
+    error: NotRequired[WebScrapeResponseDataOption1ResultsItemOption1Error]
+
+
+class WebScrapeResponseDataOption1(TypedDict):
+    results: NotRequired[
+        list[
+            WebScrapeResponseDataOption1ResultsItemOption0
+            | WebScrapeResponseDataOption1ResultsItemOption1
+        ]
+    ]
 
 
 class WebScrapeResponse(TypedDict):
     success: Literal[True]
-    data: WebScrapeResponseData
+    data: WebScrapeResponseDataOption0 | WebScrapeResponseDataOption1
     creditsUsed: int
     requestId: str
 
@@ -1503,17 +1593,6 @@ class WebCrawlCancelResponse(TypedDict):
     requestId: str
 
 
-class WebBatchStatusResponseDataResultsItem(TypedDict):
-    markdown: NotRequired[str]
-    html: NotRequired[str]
-    rawHtml: NotRequired[str]
-    links: NotRequired[list[str]]
-    screenshot: NotRequired[str]
-    isTruncated: bool
-    metadata: WebScrapeResponseDataMetadata
-    url: NotRequired[str]
-
-
 class WebBatchStatusResponseData(TypedDict):
     id: NotRequired[str]
     status: WebCrawlStartResponseDataStatus
@@ -1523,7 +1602,7 @@ class WebBatchStatusResponseData(TypedDict):
     creditsUsed: int
     message: NotRequired[str]
     errors: list[WebCrawlStatusResponseDataErrorsItem]
-    results: list[WebBatchStatusResponseDataResultsItem]
+    results: list[WebScrapeResponseDataOption1ResultsItemOption0]
     cursor: NotRequired[str]
 
 
@@ -2162,7 +2241,6 @@ class RedditUserResponseData(TypedDict):
     commentKarma: NotRequired[int]
     createdAt: NotRequired[str]
     avatarUrl: NotRequired[str]
-    isVerified: NotRequired[bool]
     results: list[
         RedditSearchResponseDataResultsItemOption0 | RedditUserResponseDataResultsItemOption1
     ]
@@ -2383,28 +2461,12 @@ class InstagramProfileResponseDataResultsItem(TypedDict):
     text: NotRequired[str]
     hashtags: NotRequired[list[str]]
     mentions: NotRequired[list[str]]
-    publishedAt: NotRequired[str]
     likes: NotRequired[int]
-    comments: NotRequired[int]
     views: NotRequired[int]
-    thumbnailUrl: NotRequired[str]
-    imageUrls: NotRequired[list[str]]
-    videoUrls: NotRequired[list[str]]
+    imageUrl: NotRequired[str]
     imageDescription: NotRequired[str]
-    isPinned: bool
     authorId: NotRequired[str]
     authorUsername: NotRequired[str]
-    authorName: NotRequired[str]
-    authorUrl: NotRequired[str]
-    authorAvatarUrl: NotRequired[str]
-    authorIsVerified: bool
-    taggedUsers: NotRequired[list[str]]
-    coauthors: NotRequired[list[str]]
-    audioTitle: NotRequired[str]
-    audioArtist: NotRequired[str]
-    audioIsOriginal: NotRequired[bool]
-    isPaidPartnership: bool
-    sponsors: NotRequired[list[str]]
 
 
 class InstagramProfileResponseData(TypedDict):
@@ -2422,10 +2484,7 @@ class InstagramProfileResponseData(TypedDict):
     avatarUrl: NotRequired[str]
     postsAnalyzed: NotRequired[int]
     averageLikes: NotRequired[float]
-    averageComments: NotRequired[float]
     engagementRate: NotRequired[float]
-    postsPerWeek: NotRequired[float]
-    lastPostAt: NotRequired[str]
     results: list[InstagramProfileResponseDataResultsItem]
     cursor: NotRequired[str]
 
@@ -4271,7 +4330,7 @@ class GooglePlayReviewsResponse(TypedDict):
 
 class PinterestSearchResponseDataResultsItem(TypedDict):
     pinId: NotRequired[str]
-    pinUrl: str
+    pinUrl: NotRequired[str]
     title: NotRequired[str]
     text: NotRequired[str]
     altText: NotRequired[str]
@@ -4311,7 +4370,7 @@ class PinterestSearchResponse(TypedDict):
 
 class PinterestPinResponseData(TypedDict):
     pinId: NotRequired[str]
-    pinUrl: str
+    pinUrl: NotRequired[str]
     title: NotRequired[str]
     text: NotRequired[str]
     altText: NotRequired[str]
@@ -4349,7 +4408,7 @@ class PinterestPinResponse(TypedDict):
 
 class PinterestBoardResponseDataResultsItem(TypedDict):
     pinId: NotRequired[str]
-    pinUrl: str
+    pinUrl: NotRequired[str]
     title: NotRequired[str]
     text: NotRequired[str]
     altText: NotRequired[str]
@@ -4406,7 +4465,7 @@ class PinterestBoardResponse(TypedDict):
 
 class PinterestProfileResponseDataResultsItem(TypedDict):
     pinId: NotRequired[str]
-    pinUrl: str
+    pinUrl: NotRequired[str]
     title: NotRequired[str]
     text: NotRequired[str]
     altText: NotRequired[str]
@@ -5272,5 +5331,38 @@ class FacebookMarketplaceSearchResponseData(TypedDict):
 class FacebookMarketplaceSearchResponse(TypedDict):
     success: Literal[True]
     data: FacebookMarketplaceSearchResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class ChatgptSearchResponseDataSourcesItem(TypedDict):
+    url: str
+    title: NotRequired[str]
+    domain: str
+
+
+class ChatgptSearchResponseData(TypedDict):
+    query: NotRequired[str]
+    answer: str
+    sources: list[ChatgptSearchResponseDataSourcesItem]
+    searchQueries: list[str]
+
+
+class ChatgptSearchResponse(TypedDict):
+    success: Literal[True]
+    data: ChatgptSearchResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class GeminiSearchResponseData(TypedDict):
+    query: NotRequired[str]
+    answer: str
+    sources: list[ChatgptSearchResponseDataSourcesItem]
+
+
+class GeminiSearchResponse(TypedDict):
+    success: Literal[True]
+    data: GeminiSearchResponseData
     creditsUsed: int
     requestId: str

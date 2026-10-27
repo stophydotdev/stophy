@@ -36,6 +36,8 @@ import type {
 	CareersJobResponse,
 	CareersJobsData,
 	CareersJobsResponse,
+	ChatgptSearchData,
+	ChatgptSearchResponse,
 	EbayItemData,
 	EbayItemResponse,
 	EbaySearchData,
@@ -50,6 +52,8 @@ import type {
 	FacebookPostCommentsResponse,
 	FacebookPostData,
 	FacebookPostResponse,
+	GeminiSearchData,
+	GeminiSearchResponse,
 	GlassdoorCompanyData,
 	GlassdoorCompanyResponse,
 	GlassdoorCompanyReviewsData,
@@ -302,7 +306,7 @@ export function bindSurface(call: Caller) {
 			search: post<WebSearchData["body"], WebSearchResponse>("/v1/web/search", call),
 			news: post<WebNewsData["body"], WebNewsResponse>("/v1/web/news", call),
 			images: post<WebImagesData["body"], WebImagesResponse>("/v1/web/images", call),
-			scrape: post<WebScrapeData["body"], WebScrapeResponse>("/v1/web/scrape", call),
+			scrape: postOptional<WebScrapeData["body"], WebScrapeResponse>("/v1/web/scrape", call),
 			parse: post<WebParseData["body"], WebParseResponse>("/v1/web/parse", call),
 			map: post<WebMapData["body"], WebMapResponse>("/v1/web/map", call),
 			contacts: post<WebContactsData["body"], WebContactsResponse>("/v1/web/contacts", call),
@@ -476,6 +480,12 @@ export function bindSurface(call: Caller) {
 			marketplace: {
 				search: post<FacebookMarketplaceSearchData["body"], FacebookMarketplaceSearchResponse>("/v1/facebook/marketplace/search", call),
 			},
+		},
+		chatgpt: {
+			search: post<ChatgptSearchData["body"], ChatgptSearchResponse>("/v1/chatgpt/search", call),
+		},
+		gemini: {
+			search: post<GeminiSearchData["body"], GeminiSearchResponse>("/v1/gemini/search", call),
 		},
 	};
 }
