@@ -4,7 +4,7 @@ description: |
   Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "4.0.6"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -35,6 +35,12 @@ stophy google scholar --citesId 12345678901234567 --json
 # what people search for
 stophy google trends trending --country us --json
 stophy google trends related bitcoin --json
+
+# pages in one language, published in a date range
+stophy web search "postgres 18" --language en --after 2026-01-01 --before 2026-10-27 --json -o .stophy/dated.json
+
+# read several pages in one call
+stophy web scrape --urls https://example.com,https://example.org --json -o .stophy/pages.json
 ```
 
 Narrow a search with `--time`, `--country` and `--language`. Run `stophy google search --help` for every option. Run `stophy google --help` for every Google command.
@@ -50,6 +56,8 @@ Narrow a search with `--time`, `--country` and `--language`. Run `stophy google 
 - `google scholar` takes `--sort relevance` or `--sort newest`, `--yearFrom` and `--yearTo`. Each result has a `citesId` you can pass back as `--citesId`.
 - `google patents` takes `--inventor`, `--assignee`, `--status` and `--sort`.
 - `google suggest` returns autocomplete phrases for a query.
+- `web search` takes `--language`, and `--after` and `--before` as `YYYY-MM-DD`. `--time` cannot be sent with `--after` or `--before`, and `--after` cannot be later than `--before`.
+- `web scrape --url` reads one page. `--urls` takes 2 to 10 addresses separated by commas, and needs a key. `results` holds one entry per address, in the order you sent them: the page with its `url`, or the `url` with an `error`. A repeated address is read once, each page costs what it costs alone, and a page that cannot be read is free.
 
 ## See also
 
