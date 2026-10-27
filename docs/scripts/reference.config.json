@@ -24,6 +24,8 @@
     "trustpilot": "Trustpilot",
     "careers": "Company careers",
     "web": "Web",
+    "chatgpt": "ChatGPT",
+    "gemini": "Gemini",
     "glassdoor": "Glassdoor",
     "yelp": "Yelp"
   },
@@ -149,6 +151,8 @@
     "web.batch": "Web Batch",
     "web.batch.status": "Web Batch Status",
     "web.batch.cancel": "Web Batch Cancel",
+    "chatgpt.search": "ChatGPT Search",
+    "gemini.search": "Gemini Search",
     "glassdoor.company": "Glassdoor Company",
     "glassdoor.company.reviews": "Glassdoor Company Reviews",
     "glassdoor.company.salaries": "Glassdoor Company Salaries",
@@ -187,7 +191,9 @@
         "web.crawl.cancel",
         "web.batch",
         "web.batch.status",
-        "web.batch.cancel"
+        "web.batch.cancel",
+        "chatgpt.search",
+        "gemini.search"
       ]
     },
     {
@@ -353,6 +359,8 @@
     }
   ],
   "notes": {
+    "web.scrape": "`urls` takes 2 to 10 public addresses and needs an API key. An address you repeat is read once. Each page costs what it costs alone, and a page that cannot be read is free.",
+    "web.search": "Use `after` and `before` together or alone. `time` cannot be sent with either, and `after` cannot be later than `before`. Both fail with `invalidRequest`.",
     "tiktok.transcript": "Videos longer than 3 minutes are rejected with `invalidRequest`. Rejected requests are not billed.",
     "google.ads.search": "The Google ad library does not support keyword search. To search by advertiser name, first resolve the advertiser ID with google.ads.advertisers."
   },
@@ -467,7 +475,7 @@
     "web.search": "`data.results` lists the pages, each with its title and description, and its text when `scrapeResults` is on.",
     "web.news": "`data.results` lists the articles, each with its source, description and time.",
     "web.images": "`data.results` lists the images, each with its size, thumbnail and the page it is on.",
-    "web.scrape": "`data` has the page in the formats you asked for, as markdown by default, with its metadata.",
+    "web.scrape": "`data` has the page in the formats you asked for, as markdown by default, with its metadata. With `urls`, `data.results` has one entry per address, in the order you sent them. Each entry is that page with its `url`, or the `url` with an `error` that has a `code` and a `message`.",
     "web.parse": "`data` has the file's text as markdown, with its metadata.",
     "web.map": "`data.results` lists the site's pages, each with its address and title.",
     "web.contacts": "`data` has the emails, phone numbers and social profiles the site publishes.",
@@ -478,6 +486,8 @@
     "web.batch": "`data` has the batch's id and status, to follow with `web.batch.status`.",
     "web.batch.status": "`data` has the batch's progress and credits used, and `results` lists the pages read so far.",
     "web.batch.cancel": "`data` has the batch's progress and credits used when it stopped.",
+    "chatgpt.search": "`data` has the answer, the pages it cites in `sources` and the searches it ran in `searchQueries`.",
+    "gemini.search": "`data` has the answer and the pages it cites in `sources`.",
     "glassdoor.company": "`data` has the company's ratings, size, industry and headquarters.",
     "glassdoor.company.reviews": "`data.results` lists the reviews, each with its rating, pros, cons and the reviewer's job title.",
     "glassdoor.company.salaries": "`data.results` lists pay by job title, with the low, median and high total and base pay.",
@@ -984,6 +994,7 @@
     ]
   },
   "optionRewrites": {
+    "How links appear in the markdown. inline keeps [text](address). numbered writes Pricing\u27e83\u27e9 and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.": "How links appear in the markdown. inline keeps `[text](address)`. numbered writes Pricing\u27e83\u27e9 and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.",
     "Reddit's own time filter. Leave out for Reddit's default.": "Only posts from this period. Leave it out for Reddit's default.",
     "Reddit's own sort.": "How to order the results.",
     "Reddit's own comment sort.": "How to order the comments.",

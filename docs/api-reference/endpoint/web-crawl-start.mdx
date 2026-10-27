@@ -66,7 +66,7 @@ For every field, see the response schema on this page.
 | `entireSite` | boolean | Read the whole site, not only pages under the start page's path. If unset, defaults to `false`. |
 | `includeSubdomains` | boolean | Also read pages on subdomains, such as docs.bun.com for bun.com. If unset, defaults to `false`. |
 | `onlyMainContent` | boolean | Keep only each page's main content, without menus, headers and footers. If unset, defaults to `true`. |
-| `webhook` | string | A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. |
+| `webhook` | string | A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call. |
 
 ## Billing
 

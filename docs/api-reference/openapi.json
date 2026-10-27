@@ -64,7 +64,6 @@
                   "sourceRefused",
                   "sourceTimeout",
                   "sourceUnavailable",
-                  "tooManyInFlight",
                   "unauthorized",
                   "unsupportedMediaType"
                 ]
@@ -138,6 +137,7 @@
                 "method",
                 "path",
                 "credits",
+                "maxCredits",
                 "keyless",
                 "cacheTtlSeconds",
                 "example"
@@ -170,6 +170,10 @@
                 "credits": {
                   "type": "integer",
                   "description": "What one call costs, or the lowest it can cost when pricing is set."
+                },
+                "maxCredits": {
+                  "type": "integer",
+                  "description": "The most one call can cost. The same as credits when pricing is null."
                 },
                 "pricing": {
                   "type": [
@@ -760,6 +764,62 @@
                                   "text",
                                   "position"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "place"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "description": "A Google Maps search for this place."
+                                  },
+                                  "title": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "rating": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 5
+                                  },
+                                  "reviews": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "priceRange": {
+                                    "description": "Price range Google shows, like $10–20.",
+                                    "type": "string"
+                                  },
+                                  "category": {
+                                    "description": "Kind of place, like Pizza.",
+                                    "type": "string"
+                                  },
+                                  "location": {
+                                    "description": "Area Google shows, like New York, NY.",
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "description": "Open or closed now, with the next change when Google shows it.",
+                                    "type": "string"
+                                  },
+                                  "position": {
+                                    "type": "integer",
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "url",
+                                  "title",
+                                  "position"
+                                ]
                               }
                             ]
                           }
@@ -860,6 +920,11 @@
                     "pattern": "^[A-Za-z]{2}$",
                     "description": "ISO 3166-1 alpha-2 country code, e.g. us. Any case is accepted."
                   },
+                  "language": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z]{2}$",
+                    "description": "Only pages written in this language. Two-letter code like en or fr. Any case is accepted."
+                  },
                   "includeDomains": {
                     "maxItems": 10,
                     "type": "array",
@@ -875,13 +940,25 @@
                     }
                   },
                   "time": {
-                    "description": "Only pages from the past week, month or year. Leave out for any time.",
+                    "description": "Only pages from the past week, month or year. Leave out for any time. Not with after or before.",
                     "type": "string",
                     "enum": [
                       "pastWeek",
                       "pastMonth",
                       "pastYear"
                     ]
+                  },
+                  "after": {
+                    "description": "Only pages published on or after this day, as YYYY-MM-DD.",
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "before": {
+                    "description": "Only pages published on or before this day, as YYYY-MM-DD.",
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
                   },
                   "safeSearch": {
                     "default": false,
@@ -1377,15 +1454,15 @@
     "/v1/web/scrape": {
       "post": {
         "operationId": "webScrape",
-        "summary": "Scrape any public web page as markdown, HTML, links or a screenshot",
-        "description": "Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. creditsUsed shows what the call cost.",
+        "summary": "Scrape any public web page, or up to 10 at once, as markdown, HTML, links or a screenshot",
+        "description": "Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost.",
         "security": [
           {
             "apiKey": []
           }
         ],
         "x-credits": 1,
-        "x-credits-max": 15,
+        "x-credits-max": 150,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -1399,16 +1476,25 @@
                 "type": "object",
                 "properties": {
                   "url": {
-                    "description": "The page or PDF to read, such as https://bun.com/docs.",
+                    "description": "The page or PDF to read, such as https://bun.com/docs. Send this or urls.",
                     "type": "string"
                   },
+                  "urls": {
+                    "description": "Two to 10 pages or PDFs to read together, such as [\"https://bun.com/docs\", \"https://react.dev/learn\"]. Send this or url. Every other option applies to all of them. An address sent twice is read once and answered once. results has one entry per address in the order sent, each with the page or its own error. Each page costs what it would cost alone, and a page that cannot be read costs nothing.",
+                    "minItems": 2,
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page) and screenshot (a JPEG of the visible page, as base64). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. A screenshot costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
+                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
                     "default": [
                       "markdown"
                     ],
                     "minItems": 1,
-                    "maxItems": 5,
+                    "maxItems": 8,
                     "type": "array",
                     "items": {
                       "anyOf": [
@@ -1419,7 +1505,9 @@
                             "html",
                             "rawHtml",
                             "links",
-                            "screenshot"
+                            "screenshot",
+                            "changes",
+                            "network"
                           ]
                         },
                         {
@@ -1437,6 +1525,33 @@
                           },
                           "required": [
                             "type"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "highlights"
+                            },
+                            "query": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300,
+                              "description": "What you are looking for on the page, such as refund policy."
+                            },
+                            "count": {
+                              "default": 5,
+                              "description": "How many passages to return, best match first.",
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 20
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "query"
                           ],
                           "additionalProperties": false
                         }
@@ -1630,6 +1745,16 @@
                       ]
                     }
                   },
+                  "linkStyle": {
+                    "default": "inline",
+                    "description": "How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.",
+                    "type": "string",
+                    "enum": [
+                      "inline",
+                      "numbered",
+                      "none"
+                    ]
+                  },
                   "maxChars": {
                     "description": "Cut the markdown at this many characters; isTruncated says when that happened.",
                     "type": "integer",
@@ -1637,8 +1762,9 @@
                     "maximum": 1000000
                   }
                 },
-                "required": [
-                  "url"
+                "sendOne": [
+                  "url",
+                  "urls"
                 ],
                 "additionalProperties": false
               },
@@ -1689,84 +1815,360 @@
                       "const": true
                     },
                     "data": {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "properties": {
-                        "markdown": {
-                          "type": "string"
-                        },
-                        "html": {
-                          "type": "string"
-                        },
-                        "rawHtml": {
-                          "type": "string"
-                        },
-                        "links": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "screenshot": {
-                          "type": "string"
-                        },
-                        "isTruncated": {
-                          "type": "boolean"
-                        },
-                        "metadata": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "additionalProperties": false,
                           "properties": {
-                            "title": {
+                            "markdown": {
                               "type": "string"
                             },
-                            "description": {
+                            "html": {
                               "type": "string"
                             },
-                            "language": {
+                            "rawHtml": {
                               "type": "string"
                             },
-                            "ogImage": {
-                              "type": "string"
+                            "links": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
                             },
-                            "sourceURL": {
-                              "type": "string"
-                            },
-                            "statusCode": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
-                            "contentType": {
-                              "type": "string"
-                            },
-                            "cacheState": {
+                            "screenshot": {
+                              "description": "A link to a JPEG of the page. The link works for 7 days.",
                               "type": "string",
-                              "enum": [
-                                "hit",
-                                "miss"
+                              "format": "uri"
+                            },
+                            "highlights": {
+                              "description": "The passages that best match the highlights query, best first.",
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "section": {
+                                    "type": "string"
+                                  },
+                                  "text": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": []
+                              }
+                            },
+                            "network": {
+                              "description": "The JSON responses the page loaded while it rendered, with their bodies.",
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "url": {
+                                    "type": "string"
+                                  },
+                                  "method": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "contentType": {
+                                    "type": "string"
+                                  },
+                                  "body": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "status"
+                                ]
+                              }
+                            },
+                            "changes": {
+                              "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "new",
+                                    "same",
+                                    "changed"
+                                  ]
+                                },
+                                "previousAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                                },
+                                "diff": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
                               ]
                             },
-                            "cachedAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                            "isTruncated": {
+                              "type": "boolean"
                             },
-                            "numPages": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "title": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "language": {
+                                  "type": "string"
+                                },
+                                "ogImage": {
+                                  "type": "string"
+                                },
+                                "sourceURL": {
+                                  "type": "string"
+                                },
+                                "statusCode": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "contentType": {
+                                  "type": "string"
+                                },
+                                "cacheState": {
+                                  "type": "string",
+                                  "enum": [
+                                    "hit",
+                                    "miss"
+                                  ]
+                                },
+                                "cachedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                                },
+                                "numPages": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "statusCode",
+                                "cacheState"
+                              ]
                             }
                           },
                           "required": [
-                            "statusCode",
-                            "cacheState"
+                            "isTruncated",
+                            "metadata"
                           ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "results": {
+                              "type": "array",
+                              "items": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "markdown": {
+                                        "type": "string"
+                                      },
+                                      "html": {
+                                        "type": "string"
+                                      },
+                                      "rawHtml": {
+                                        "type": "string"
+                                      },
+                                      "links": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "screenshot": {
+                                        "description": "A link to a JPEG of the page. The link works for 7 days.",
+                                        "type": "string",
+                                        "format": "uri"
+                                      },
+                                      "highlights": {
+                                        "description": "The passages that best match the highlights query, best first.",
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "properties": {
+                                            "section": {
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": []
+                                        }
+                                      },
+                                      "network": {
+                                        "description": "The JSON responses the page loaded while it rendered, with their bodies.",
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "properties": {
+                                            "url": {
+                                              "type": "string"
+                                            },
+                                            "method": {
+                                              "type": "string"
+                                            },
+                                            "status": {
+                                              "type": "integer",
+                                              "minimum": -9007199254740991,
+                                              "maximum": 9007199254740991
+                                            },
+                                            "contentType": {
+                                              "type": "string"
+                                            },
+                                            "body": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "status"
+                                          ]
+                                        }
+                                      },
+                                      "changes": {
+                                        "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "new",
+                                              "same",
+                                              "changed"
+                                            ]
+                                          },
+                                          "previousAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                                          },
+                                          "diff": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "status"
+                                        ]
+                                      },
+                                      "isTruncated": {
+                                        "type": "boolean"
+                                      },
+                                      "metadata": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "title": {
+                                            "type": "string"
+                                          },
+                                          "description": {
+                                            "type": "string"
+                                          },
+                                          "language": {
+                                            "type": "string"
+                                          },
+                                          "ogImage": {
+                                            "type": "string"
+                                          },
+                                          "sourceURL": {
+                                            "type": "string"
+                                          },
+                                          "statusCode": {
+                                            "type": "integer",
+                                            "minimum": -9007199254740991,
+                                            "maximum": 9007199254740991
+                                          },
+                                          "contentType": {
+                                            "type": "string"
+                                          },
+                                          "cacheState": {
+                                            "type": "string",
+                                            "enum": [
+                                              "hit",
+                                              "miss"
+                                            ]
+                                          },
+                                          "cachedAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                                          },
+                                          "numPages": {
+                                            "type": "integer",
+                                            "minimum": -9007199254740991,
+                                            "maximum": 9007199254740991
+                                          }
+                                        },
+                                        "required": [
+                                          "statusCode",
+                                          "cacheState"
+                                        ]
+                                      },
+                                      "url": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "isTruncated",
+                                      "metadata"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "url": {
+                                        "type": "string"
+                                      },
+                                      "error": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "code": {
+                                            "type": "string"
+                                          },
+                                          "message": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": []
+                                      }
+                                    },
+                                    "required": []
+                                  }
+                                ]
+                              },
+                              "description": "One entry per address in the order sent: the page with its url, or the url with an error that has the code and message a single call would give."
+                            }
+                          },
+                          "required": []
                         }
-                      },
-                      "required": [
-                        "isTruncated",
-                        "metadata"
                       ]
                     },
                     "creditsUsed": {
@@ -2570,7 +2972,7 @@
                     "type": "boolean"
                   },
                   "webhook": {
-                    "description": "A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends.",
+                    "description": "A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
                     "type": "string"
                   }
                 },
@@ -3036,16 +3438,16 @@
                     "description": "The pages or PDFs to read, up to 100. An address sent twice is read once."
                   },
                   "webhook": {
-                    "description": "A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends.",
+                    "description": "A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
                     "type": "string"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page) and screenshot (a JPEG of the visible page, as base64). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. A screenshot costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
+                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
                     "default": [
                       "markdown"
                     ],
                     "minItems": 1,
-                    "maxItems": 5,
+                    "maxItems": 8,
                     "type": "array",
                     "items": {
                       "anyOf": [
@@ -3056,7 +3458,9 @@
                             "html",
                             "rawHtml",
                             "links",
-                            "screenshot"
+                            "screenshot",
+                            "changes",
+                            "network"
                           ]
                         },
                         {
@@ -3074,6 +3478,33 @@
                           },
                           "required": [
                             "type"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "highlights"
+                            },
+                            "query": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300,
+                              "description": "What you are looking for on the page, such as refund policy."
+                            },
+                            "count": {
+                              "default": 5,
+                              "description": "How many passages to return, best match first.",
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 20
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "query"
                           ],
                           "additionalProperties": false
                         }
@@ -3266,6 +3697,16 @@
                         }
                       ]
                     }
+                  },
+                  "linkStyle": {
+                    "default": "inline",
+                    "description": "How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.",
+                    "type": "string",
+                    "enum": [
+                      "inline",
+                      "numbered",
+                      "none"
+                    ]
                   },
                   "maxChars": {
                     "description": "Cut the markdown at this many characters; isTruncated says when that happened.",
@@ -3528,7 +3969,82 @@
                                 }
                               },
                               "screenshot": {
-                                "type": "string"
+                                "description": "A link to a JPEG of the page. The link works for 7 days.",
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "highlights": {
+                                "description": "The passages that best match the highlights query, best first.",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "section": {
+                                      "type": "string"
+                                    },
+                                    "text": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": []
+                                }
+                              },
+                              "network": {
+                                "description": "The JSON responses the page loaded while it rendered, with their bodies.",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "url": {
+                                      "type": "string"
+                                    },
+                                    "method": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "contentType": {
+                                      "type": "string"
+                                    },
+                                    "body": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "status"
+                                  ]
+                                }
+                              },
+                              "changes": {
+                                "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "new",
+                                      "same",
+                                      "changed"
+                                    ]
+                                  },
+                                  "previousAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                                  },
+                                  "diff": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "status"
+                                ]
                               },
                               "isTruncated": {
                                 "type": "boolean"
@@ -8697,9 +9213,6 @@
                           "type": "string",
                           "format": "uri"
                         },
-                        "isVerified": {
-                          "type": "boolean"
-                        },
                         "results": {
                           "type": "array",
                           "items": {
@@ -9877,6 +10390,9 @@
                   "placeId"
                 ],
                 "additionalProperties": false
+              },
+              "example": {
+                "placeId": "0x8644cc752bbe37bf:0x4a9e56f256689bb2"
               }
             }
           }
@@ -10649,19 +11165,8 @@
                         "averageLikes": {
                           "type": "number"
                         },
-                        "averageComments": {
-                          "type": "number"
-                        },
                         "engagementRate": {
                           "type": "number"
-                        },
-                        "postsPerWeek": {
-                          "type": "number"
-                        },
-                        "lastPostAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                         },
                         "results": {
                           "type": "array",
@@ -10703,17 +11208,7 @@
                                   "type": "string"
                                 }
                               },
-                              "publishedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                              },
                               "likes": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "comments": {
                                 "type": "integer",
                                 "minimum": -9007199254740991,
                                 "maximum": 9007199254740991
@@ -10723,87 +11218,23 @@
                                 "minimum": -9007199254740991,
                                 "maximum": 9007199254740991
                               },
-                              "thumbnailUrl": {
+                              "imageUrl": {
                                 "type": "string",
                                 "format": "uri"
                               },
-                              "imageUrls": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "format": "uri"
-                                }
-                              },
-                              "videoUrls": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "format": "uri"
-                                }
-                              },
                               "imageDescription": {
                                 "type": "string"
-                              },
-                              "isPinned": {
-                                "type": "boolean"
                               },
                               "authorId": {
                                 "type": "string"
                               },
                               "authorUsername": {
                                 "type": "string"
-                              },
-                              "authorName": {
-                                "type": "string"
-                              },
-                              "authorUrl": {
-                                "type": "string",
-                                "format": "uri"
-                              },
-                              "authorAvatarUrl": {
-                                "type": "string",
-                                "format": "uri"
-                              },
-                              "authorIsVerified": {
-                                "type": "boolean"
-                              },
-                              "taggedUsers": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "coauthors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "audioTitle": {
-                                "type": "string"
-                              },
-                              "audioArtist": {
-                                "type": "string"
-                              },
-                              "audioIsOriginal": {
-                                "type": "boolean"
-                              },
-                              "isPaidPartnership": {
-                                "type": "boolean"
-                              },
-                              "sponsors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               }
                             },
                             "required": [
                               "postUrl",
-                              "type",
-                              "isPinned",
-                              "authorIsVerified",
-                              "isPaidPartnership"
+                              "type"
                             ]
                           }
                         },
@@ -11007,7 +11438,7 @@
         "operationId": "instagramTranscript",
         "summary": "Scrape an Instagram video's transcript",
         "description": "Costs 2 credits plus 1 credit for every 10 seconds of audio, up to 30 minutes.",
-        "x-credits": 1,
+        "x-credits": 3,
         "x-credits-max": 182,
         "parameters": [
           {
@@ -20198,7 +20629,7 @@
               "example": {
                 "origin": "JFK",
                 "destination": "LAX",
-                "departDate": "2026-12-02"
+                "departDate": "2026-12-11"
               }
             }
           }
@@ -20598,7 +21029,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-02"
+                "checkIn": "2026-12-11"
               }
             }
           }
@@ -20842,7 +21273,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-02"
+                "checkIn": "2026-12-11"
               }
             }
           }
@@ -21971,7 +22402,7 @@
                               "isVerified"
                             ]
                           },
-                          "description": "Up to 13 reviews Amazon shows on the product page. Amazon shows them on some visits only, so this can be empty when the product has reviews."
+                          "description": "Up to 13 reviews from the product page. Empty for US products, since Amazon US shows reviews only after sign-in."
                         }
                       },
                       "required": [
@@ -24148,7 +24579,6 @@
                               }
                             },
                             "required": [
-                              "pinUrl",
                               "isPromoted"
                             ]
                           }
@@ -24373,7 +24803,6 @@
                         }
                       },
                       "required": [
-                        "pinUrl",
                         "isPromoted"
                       ]
                     },
@@ -24640,7 +25069,6 @@
                               }
                             },
                             "required": [
-                              "pinUrl",
                               "isPromoted"
                             ]
                           }
@@ -24920,7 +25348,6 @@
                               }
                             },
                             "required": [
-                              "pinUrl",
                               "isPromoted"
                             ]
                           }
@@ -29374,8 +29801,8 @@
               },
               "example": {
                 "location": "Lisbon, Portugal",
-                "checkIn": "2026-11-29",
-                "checkOut": "2026-12-02",
+                "checkIn": "2026-12-08",
+                "checkOut": "2026-12-11",
                 "guests": 2,
                 "maxPrice": 200,
                 "roomType": "entireHome"
@@ -31004,6 +31431,287 @@
                         "latitude",
                         "longitude",
                         "results"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/chatgpt/search": {
+      "post": {
+        "operationId": "chatgptSearch",
+        "summary": "Scrape ChatGPT's answer and the pages it cites",
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "The question to ask, worded the way a person would ask it."
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "query": "What is the best CRM for a small business?"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "query": {
+                          "type": "string"
+                        },
+                        "answer": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sources": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "url": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "domain": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "domain"
+                            ]
+                          }
+                        },
+                        "searchQueries": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "answer",
+                        "sources",
+                        "searchQueries"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/gemini/search": {
+      "post": {
+        "operationId": "geminiSearch",
+        "summary": "Scrape Gemini's answer and the pages it cites",
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "The question to ask, worded the way a person would ask it."
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "query": "What is the best CRM for a small business?"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "query": {
+                          "type": "string"
+                        },
+                        "answer": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sources": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "url": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "domain": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "domain"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "answer",
+                        "sources"
                       ]
                     },
                     "creditsUsed": {

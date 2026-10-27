@@ -58,8 +58,8 @@ For every field, see the response schema on this page.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `webhook` | string | A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. |
-| `formats` | object[] | What to return: markdown (clean page text), html (the cleaned page), `rawHtml` (the page as sent), links (every link on the page) and screenshot (a JPEG of the visible page, as base64). Send `{ "type": "screenshot", "fullPage": true }` for the whole page. A screenshot costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only. Accepts up to 5 values. |
+| `webhook` | string | A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call. |
+| `formats` | object[] | What to return: markdown (clean page text), html (the cleaned page), `rawHtml` (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send `{ "type": "screenshot", "fullPage": true }` for the whole page. Send `{ "type": "highlights", "query": "refund policy" }` for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only. Accepts up to 8 values. |
 | `onlyMainContent` | boolean | Keep only the page's main content, without menus, headers, footers and ads. If unset, defaults to `true`. |
 | `includeTags` | string[] | Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, `onlyMainContent` is not applied. Accepts up to 20 values. |
 | `excludeTags` | string[] | Remove the parts of the page that match these CSS selectors, such as .comments. Accepts up to 20 values. |
@@ -68,6 +68,7 @@ For every field, see the response schema on this page.
 | `maxAge` | integer | Accept a stored answer up to this many milliseconds old. 0 always reads the page live. metadata.`cacheState` says which one you got. Must be between 0 and 172800000. If unset, defaults to `3600000`. |
 | `location` | object | Where to read the page from. The default is the United States. |
 | `actions` | object[] | Steps to run on the page, in order, before reading it: `{ "type": "wait", "milliseconds": 500 }`, `{ "type": "wait", "selector": ".results" }`, `{ "type": "click", "selector": "button.more" }`, `{ "type": "write", "text": "tides" }`, `{ "type": "press", "key": "Enter" }` or `{ "type": "scroll", "direction": "down" }`. A read with actions costs 3 credits, or 15 on the hardest pages to reach. Accepts up to 20 values. |
+| `linkStyle` | string | How links appear in the markdown. inline keeps `[text](address)`. numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses. Acceptable values are `inline`, `numbered` and `none`. If unset, defaults to `inline`. |
 | `maxChars` | integer | Cut the markdown at this many characters; `isTruncated` says when that happened. Must be between 500 and 1000000. |
 
 ## Billing

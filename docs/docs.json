@@ -168,6 +168,18 @@
                   "api-reference/endpoint/web-batch-status",
                   "api-reference/endpoint/web-batch-cancel"
                 ]
+              },
+              {
+                "group": "ChatGPT",
+                "pages": [
+                  "api-reference/endpoint/chatgpt-search"
+                ]
+              },
+              {
+                "group": "Gemini",
+                "pages": [
+                  "api-reference/endpoint/gemini-search"
+                ]
               }
             ]
           },

@@ -109,6 +109,7 @@ function whenToUse(op: CatalogEndpoint): string {
     const form = suffix === undefined ? field : (kinds[suffix] ?? field);
     if (!forms.includes(form)) forms.push(form);
   }
+  if (things.join() === forms.join()) return "";
   return `The ${list(things, "or")} is identified by its ${list(forms, "or")}.`;
 }
 

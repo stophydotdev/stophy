@@ -37,7 +37,7 @@ const AREAS: Area[] = [
     icon: "magnifying-glass",
     description:
       "Search Google, News, Images, Scholar and Patents, and read what people search for. You get results and cited sources.",
-    endpoints: ["google.search", "google.news", "google.images", "google.scholar", "google.patents", "google.suggest", "google.trends.related", "google.trends.trending", "google.trends.interest", "google.trends.regions", "web.search", "web.news", "web.images", "web.scrape", "web.parse", "web.map", "web.contacts", "web.crawl", "web.crawl.start", "web.crawl.status", "web.crawl.cancel", "web.batch", "web.batch.status", "web.batch.cancel"],
+    endpoints: ["google.search", "google.news", "google.images", "google.scholar", "google.patents", "google.suggest", "google.trends.related", "google.trends.trending", "google.trends.interest", "google.trends.regions", "web.search", "web.news", "web.images", "web.scrape", "web.parse", "web.map", "web.contacts", "web.crawl", "web.crawl.start", "web.crawl.status", "web.crawl.cancel", "web.batch", "web.batch.status", "web.batch.cancel", "chatgpt.search", "gemini.search"],
     example: "google.search",
     variations: ["google.news", "google.scholar"],
     tip: "Google search, News, suggestions and Patents work without a key, for the first page only. Google Images costs 1 credit per 10 images. Turn on `scrapeResults` in Google search to read the top pages in the same call. Every other endpoint costs 1 credit.",

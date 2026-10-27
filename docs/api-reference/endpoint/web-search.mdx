@@ -66,13 +66,18 @@ For every field, see the response schema on this page.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
+| `language` | string | Restricts results to pages written in this language. Two-letter code like en or fr. |
 | `includeDomains` | string[] | Restricts results to results from these domains. Accepts up to 10 values. |
 | `excludeDomains` | string[] | Leave out results from these domains. Accepts up to 10 values. |
-| `time` | string | Restricts results to pages from the past week, month or year. Leave out for any time. Acceptable values are `pastWeek`, `pastMonth` and `pastYear`. |
+| `time` | string | Restricts results to pages from the past week, month or year. Leave out for any time. Not with after or before. Acceptable values are `pastWeek`, `pastMonth` and `pastYear`. |
+| `after` | string (date) | Restricts results to pages published on or after this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
+| `before` | string (date) | Restricts results to pages published on or before this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
 | `safeSearch` | boolean | Hide explicit results. If unset, defaults to `false`. |
 | `limit` | integer | The maximum number of results to return. Billed at 1 credit per 10 returned. Must be between 1 and 100. If unset, defaults to `10`. |
 | `scrapeResults` | boolean | Also read the top results and add each page's text as markdown. Costs 1 more credit for each result that comes back with its text. If unset, defaults to `false`. |
 | `scrapeLimit` | integer | The number of of the top results to read when `scrapeResults` is on. Must be between 1 and 5. If unset, defaults to `3`. |
+
+<Note>Use `after` and `before` together or alone. `time` cannot be sent with either, and `after` cannot be later than `before`. Both fail with `invalidRequest`.</Note>
 
 ## Billing
 
