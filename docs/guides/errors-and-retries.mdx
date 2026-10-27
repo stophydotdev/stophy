@@ -103,4 +103,4 @@ def call(endpoint_id, payload, attempts=3):
 
 ## Timeouts
 
-Every call answers or fails within 25 seconds. Set your client timeout a little above that, such as 30 seconds.
+Every call answers or fails within 25 seconds, or up to 62 seconds when it reads a site you pick or asks ChatGPT or Gemini. Set your client timeout a little above that, such as 30 seconds, or 70 seconds for those calls.
