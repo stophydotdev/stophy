@@ -134,7 +134,7 @@ await stophy.google.search({ query: "bun runtime" }, { signal: controller.signal
 | --- | --- | --- |
 | `apiKey` | `STOPHY_API_KEY` | Your API key |
 | `baseUrl` | `STOPHY_BASE_URL` or `https://api.stophy.dev` | Where requests go |
-| `timeoutMs` | `30000` | Time limit for each attempt. A timed-out attempt is not retried. |
+| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
 | `maxRetries` | `2` | Retries per request. `0` turns them off. |
 | `retryInitialDelayMs` | `500` | Base delay before a retry. Each retry waits longer. |
 | `headers` | none | Extra headers on every request |
