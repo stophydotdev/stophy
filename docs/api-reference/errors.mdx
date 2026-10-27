@@ -46,7 +46,6 @@ The status is `400`. Every error has this shape, and a failed call costs nothing
 | `insufficientCredits` | 402 | No | Your balance is too low for this call. The error adds `requiredCredits`, `availableCredits` and `billingUrl`. [Add credits](/billing). |
 | `notFound` | 404 | No | The endpoint, or the thing you asked for, does not exist. |
 | `rateLimited` | 429 | Yes | Too many requests. Wait for `Retry-After`. |
-| `tooManyInFlight` | 429 | Yes | Too many of your calls are running at once. Wait for one to finish. |
 | `internalError` | 500, 503 | Yes | Something went wrong on our side. Try again shortly. |
 | `sourceChanged` | 502 | No | The site answered in a shape we could not read. Retrying will not help yet. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering right now. Try again in a few seconds. |

@@ -97,7 +97,7 @@ def call(endpoint_id, payload, attempts=3):
 
 - **`401 unauthorized`** means the key is missing or wrong. Send `Authorization: Bearer <key>`.
 - **`402 insufficientCredits`** means your balance is too low. The error says how many credits the call needs and how many you have. [Add credits](/billing) and try again.
-- **`429 rateLimited` or `tooManyInFlight`** means you are over your [rate limits](/rate-limits). Wait, then retry.
+- **`429 rateLimited`** means you are over your [rate limits](/rate-limits). Wait, then retry.
 - **`400 invalidRequest`** means the input is not valid. The message names the field. Check the endpoint's input in the [API reference](/api-reference/introduction).
 - **`404 notFound`** means the thing you asked for does not exist. Don't retry.
 

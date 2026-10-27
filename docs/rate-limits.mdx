@@ -1,14 +1,13 @@
 ---
 title: "Rate limits"
-description: "Stophy allows 600 requests a minute and 10 running at once per account, lower free limits without a key, and a clear way to handle a 429."
+description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
 og:title: "Rate limits | Stophy"
-og:description: "Stophy allows 600 requests a minute and 10 running at once per account, lower free limits without a key, and a clear way to handle a 429."
+og:description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
 ---
 
 | | Limit |
 | --- | --- |
 | Requests | 600 a minute per account |
-| Running at once | 10 per account |
 
 Every call answers or fails within 25 seconds.
 
@@ -27,6 +26,5 @@ Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 | Code | Status | What to do |
 | --- | --- | --- |
 | `rateLimited` | `429` | Wait for the `Retry-After` header, which is also `retryAfterSeconds` in the body, then retry. |
-| `tooManyInFlight` | `429` | Wait for one of your running calls to finish, then retry. |
 
-Both are marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.
+It is marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.
