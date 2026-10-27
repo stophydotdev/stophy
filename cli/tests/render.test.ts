@@ -26,3 +26,22 @@ test("flat objects print as key value lines and empty lists say so", () => {
 	);
 	expect(renderData({ results: [] })).toBe("No results.");
 });
+
+test("pages from a urls call keep their text, and a failed page shows its error", () => {
+	const text = renderData({
+		results: [
+			{ url: "https://a.test/", markdown: "Hello", isTruncated: false, metadata: { statusCode: 200 } },
+			{ url: "https://b.test/", error: { code: "notFound", message: "No such page" } },
+		],
+	});
+	expect(text).toBe(
+		[
+			"1. https://a.test/",
+			"markdown: Hello",
+			"isTruncated: false",
+			'metadata: {"statusCode":200}',
+			"2. https://b.test/",
+			'error: {"code":"notFound","message":"No such page"}',
+		].join("\n"),
+	);
+});

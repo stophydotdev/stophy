@@ -60,10 +60,20 @@ function scalar(value: unknown): string {
 	return String(value);
 }
 
-/** One list item as a numbered title line, plus its link, for people skimming a terminal. */
+function isPage(row: Row): row is Row & { url: string } {
+	return (
+		typeof row.url === "string" && (isRow(row.error) || isRow(row.metadata))
+	);
+}
+
+/** One list item as a numbered title line, plus its link, for people skimming a terminal. A page read by a `urls` call keeps its text, or its error, under the link. */
 function renderRow(item: unknown, index: number): string {
 	const prefix = `${index + 1}. `;
 	if (!isRow(item)) return `${prefix}${oneLine(scalar(item))}`;
+	if (isPage(item)) {
+		const { url, ...page } = item;
+		return [`${prefix}${url}`, renderData(page)].join("\n");
+	}
 	const title = firstString(item, TITLE_KEYS);
 	const owner = firstString(item, OWNER_KEYS);
 	const url = urlOf(item);
