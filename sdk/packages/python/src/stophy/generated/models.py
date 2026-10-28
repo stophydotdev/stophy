@@ -6,6 +6,11 @@ from typing import Any, Literal
 
 from typing_extensions import NotRequired, TypedDict
 
+EndpointCatalogSourcesItemKind = Literal[
+    "site",
+    "aiAnswers",
+]
+
 GoogleSearchTime = Literal[
     "pastHour",
     "past24Hours",
@@ -1116,6 +1121,7 @@ class EndpointCatalogSourcesItem(TypedDict):
     id: str
     name: str
     summary: str
+    kind: EndpointCatalogSourcesItemKind
 
 
 class EndpointCatalogEndpointsItem(TypedDict):
@@ -3780,7 +3786,7 @@ class GoogleFlightsResponseDataResultsItemLayoversItem(TypedDict):
 class GoogleFlightsResponseDataResultsItem(TypedDict):
     isBest: bool
     price: NotRequired[float]
-    priceCurrency: NotRequired[Literal["USD"]]
+    priceCurrency: NotRequired[str]
     airlines: NotRequired[list[str]]
     stops: int
     durationSeconds: NotRequired[int]
@@ -3796,6 +3802,7 @@ class GoogleFlightsResponseData(TypedDict):
     cabin: GoogleFlightsCabin
     tripType: GoogleFlightsResponseDataTripType
     adults: int
+    url: str
     results: list[GoogleFlightsResponseDataResultsItem]
 
 

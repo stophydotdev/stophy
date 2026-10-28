@@ -46,6 +46,10 @@ export type EndpointCatalog = {
      * What you can get from this source.
      */
     summary: string;
+    /**
+     * aiAnswers when the source returns another AI's answer, site otherwise.
+     */
+    kind: "site" | "aiAnswers";
   }>;
   endpoints: Array<{
     id: string;
@@ -7848,6 +7852,10 @@ export type GoogleFlightsData = {
     adults?: number;
     cabin?: "economy" | "premiumEconomy" | "business" | "first";
     /**
+     * ISO 4217 currency code, e.g. USD.
+     */
+    currency?: string;
+    /**
      * Google Flights' Stops filter.
      */
     stops?: "any" | "nonstop" | "oneStopOrFewer" | "twoStopsOrFewer";
@@ -7864,7 +7872,7 @@ export type GoogleFlightsData = {
      */
     checkedBags?: number;
     /**
-     * Google Flights' Price filter, in USD for all adults.
+     * Google Flights' Price filter, in currency for all adults.
      */
     maxPrice?: number;
     /**
@@ -7920,15 +7928,22 @@ export type GoogleFlightsResponses = {
       tripType: "oneWay" | "roundTrip";
       adults: number;
       /**
+       * The Google Flights page for this search.
+       */
+      url: string;
+      /**
        * Outbound flight options. With returnDate, each price is the round-trip total for that outbound choice.
        */
       results: Array<{
         isBest: boolean;
         /**
-         * Total fare in USD for all adults together. For a round trip it covers both directions.
+         * Total fare in priceCurrency for all adults together. For a round trip it covers both directions.
          */
         price?: number;
-        priceCurrency?: "USD";
+        /**
+         * ISO 4217 currency code, e.g. USD.
+         */
+        priceCurrency?: string;
         airlines?: Array<string>;
         stops: number;
         durationSeconds?: number;
