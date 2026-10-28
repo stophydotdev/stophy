@@ -1,5 +1,15 @@
 # stophy
 
+## 3.1.0
+
+### Minor Changes
+
+- adad79e: `web.scrape` takes `urls`, 2 to 10 pages in one call, and returns `results` in order. `web.search` takes `language`, `after` and `before`. The client also gains `chatgpt.search`, `gemini.search` and the scrape `linkStyle` option.
+
+### Patch Changes
+
+- ca656ba: `google.flights` takes `currency` and returns `url`, the Google Flights page for the search, and `priceCurrency` follows the currency. Each catalog source has `kind`: `aiAnswers` or `site`.
+
 ## 3.0.1
 
 ### Patch Changes
