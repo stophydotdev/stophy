@@ -108,7 +108,8 @@
               "required": [
                 "id",
                 "name",
-                "summary"
+                "summary",
+                "kind"
               ],
               "properties": {
                 "id": {
@@ -121,6 +122,14 @@
                 "summary": {
                   "type": "string",
                   "description": "What you can get from this source."
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "site",
+                    "aiAnswers"
+                  ],
+                  "description": "aiAnswers when the source returns another AI's answer, site otherwise."
                 }
               }
             }
@@ -20535,6 +20544,12 @@
                       "first"
                     ]
                   },
+                  "currency": {
+                    "default": "USD",
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$",
+                    "description": "ISO 4217 currency code, e.g. USD."
+                  },
                   "stops": {
                     "default": "any",
                     "description": "Google Flights' Stops filter.",
@@ -20571,7 +20586,7 @@
                     "maximum": 2
                   },
                   "maxPrice": {
-                    "description": "Google Flights' Price filter, in USD for all adults.",
+                    "description": "Google Flights' Price filter, in currency for all adults.",
                     "type": "integer",
                     "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
@@ -20629,7 +20644,7 @@
               "example": {
                 "origin": "JFK",
                 "destination": "LAX",
-                "departDate": "2026-12-11"
+                "departDate": "2026-12-12"
               }
             }
           }
@@ -20699,6 +20714,11 @@
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
                         },
+                        "url": {
+                          "type": "string",
+                          "format": "uri",
+                          "description": "The Google Flights page for this search."
+                        },
                         "results": {
                           "type": "array",
                           "items": {
@@ -20709,12 +20729,13 @@
                                 "type": "boolean"
                               },
                               "price": {
-                                "description": "Total fare in USD for all adults together. For a round trip it covers both directions.",
+                                "description": "Total fare in priceCurrency for all adults together. For a round trip it covers both directions.",
                                 "type": "number"
                               },
                               "priceCurrency": {
                                 "type": "string",
-                                "const": "USD"
+                                "pattern": "^[A-Z]{3}$",
+                                "description": "ISO 4217 currency code, e.g. USD."
                               },
                               "airlines": {
                                 "type": "array",
@@ -20835,6 +20856,7 @@
                         "cabin",
                         "tripType",
                         "adults",
+                        "url",
                         "results"
                       ]
                     },
@@ -21029,7 +21051,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-11"
+                "checkIn": "2026-12-12"
               }
             }
           }
@@ -21273,7 +21295,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-11"
+                "checkIn": "2026-12-12"
               }
             }
           }
@@ -29801,8 +29823,8 @@
               },
               "example": {
                 "location": "Lisbon, Portugal",
-                "checkIn": "2026-12-08",
-                "checkOut": "2026-12-11",
+                "checkIn": "2026-12-09",
+                "checkOut": "2026-12-12",
                 "guests": 2,
                 "maxPrice": 200,
                 "roomType": "entireHome"

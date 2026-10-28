@@ -5,43 +5,36 @@
     "cabin": "economy",
     "tripType": "oneWay",
     "adults": 1,
+    "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjYtMTItMTJqBRIDSkZLcgUSA0xBWEABSAGYAQI%3D&tfu=EgQIABABIgA&hl=…",
     "results": [
       {
         "isBest": true,
-        "price": 139,
+        "price": 179,
         "priceCurrency": "USD",
         "airlines": [
           "JetBlue"
         ],
-        "stops": 1,
-        "durationSeconds": 40440,
-        "departureLocalTime": "2026-11-19T15:45",
-        "arrivalLocalTime": "2026-11-19T23:59",
+        "stops": 0,
+        "durationSeconds": 22620,
+        "departureLocalTime": "2026-12-12T12:00",
+        "arrivalLocalTime": "2026-12-12T15:17",
         "legs": [
           {
-            "flightNumber": "B6 618",
+            "flightNumber": "B6 723",
             "airline": "JetBlue",
             "originCode": "JFK",
             "originName": "John F. Kennedy International Airport",
-            "destinationCode": "BOS",
-            "destinationName": "Boston Logan International Airport",
-            "departureLocalTime": "2026-11-19T15:45",
-            "arrivalLocalTime": "2026-11-19T17:03",
-            "durationSeconds": 4680,
-            "aircraft": "Airbus A220-300 Passenger",
-            "legroom": "32 inches"
+            "destinationCode": "LAX",
+            "destinationName": "Los Angeles International Airport",
+            "departureLocalTime": "2026-12-12T12:00",
+            "arrivalLocalTime": "2026-12-12T15:17",
+            "durationSeconds": 22620,
+            "aircraft": "Airbus A320",
+            "legroom": "33 inches"
           }
         ],
-        "layovers": [
-          {
-            "airport": "BOS",
-            "name": "Boston Logan International Airport",
-            "city": "Boston",
-            "durationSeconds": 12360
-          }
-        ],
-        "emissionsGrams": 478000,
-        "typicalEmissionsGrams": 320000
+        "emissionsGrams": 426000,
+        "typicalEmissionsGrams": 345000
       }
     ]
   }

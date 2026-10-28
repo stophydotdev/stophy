@@ -1063,7 +1063,7 @@
     "Google Flights' Times filter for the outbound departure.": "Limit the outbound departure to these hours of the day.",
     "Google Flights' Times filter for the outbound arrival.": "Limit the outbound arrival to these hours of the day.",
     "Google Flights' Stops filter.": "How many stops to allow.",
-    "Google Flights' Price filter, in USD for all adults.": "Highest price, in USD, for all adults.",
+    "Google Flights' Price filter, in currency for all adults.": "Highest price, in `currency`, for all adults.",
     "Google Flights' Duration filter.": "Longest trip, in hours.",
     "Google Flights' Bags filter: prices include this many checked bags.": "Include this many checked bags in the price.",
     "Google Flights' Bags filter: prices include this many carry-on bags.": "Include this many carry-on bags in the price.",
