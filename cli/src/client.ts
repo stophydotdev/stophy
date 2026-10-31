@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { resolveRuntimeConfig } from "./config.js";
-import { CliError } from "./errors.js";
+import { CliError, type ErrorDetails } from "./errors.js";
+import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
 
 const errorObject = z.object({
   code: z.string(),
@@ -10,13 +11,20 @@ const errorObject = z.object({
   requestId: z.string().optional(),
 });
 
-const failureSchema = z.union([z.object({ error: z.string() }), z.object({ error: errorObject })]);
+const failureSchema = z.union([
+  z.object({ error: z.string() }).transform(({ error }) => ({
+    message: error,
+    requestId: undefined,
+    retryAfterSeconds: undefined,
+  })),
+  z.object({ error: errorObject }).transform(({ error }) => error),
+]);
 
 export interface RequestOptions {
   readonly method: "GET" | "POST" | "DELETE";
   readonly apiKey?: string;
   readonly path: string;
-  readonly body?: Record<string, unknown>;
+  readonly body?: JsonRecord;
   readonly params?: Record<string, string | undefined>;
   readonly accept: "application/json";
 }
@@ -24,7 +32,7 @@ export interface RequestOptions {
 export interface HttpResponse {
   readonly status: number;
   readonly text: string;
-  readonly json: unknown;
+  readonly json: JsonValue | undefined;
   readonly retryAfter: string | null;
   readonly creditsUsed: string | null;
   readonly rateLimit: {
@@ -43,18 +51,16 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
     if (value) url.searchParams.set(key, value);
   }
 
+  const headers = new Headers({ Accept: options.accept });
+  if (apiKey) headers.set("Authorization", `Bearer ${apiKey}`);
+  if (sessionCookie) headers.set("Cookie", sessionCookie);
+  if (options.method === "POST") headers.set("Content-Type", "application/json");
+  const init: RequestInit = { method: options.method, headers };
+  if (options.method === "POST") init.body = JSON.stringify(options.body ?? {});
+
   let response: Response;
   try {
-    response = await fetch(url, {
-      method: options.method,
-      headers: {
-        Accept: options.accept,
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        ...(sessionCookie ? { Cookie: sessionCookie } : {}),
-        ...(options.method === "POST" ? { "Content-Type": "application/json" } : {}),
-      },
-      ...(options.method === "POST" ? { body: JSON.stringify(options.body ?? {}) } : {}),
-    });
+    response = await fetch(url, init);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "network error";
     throw new CliError(`Network request failed for ${url.toString()}: ${reason}`);
@@ -66,10 +72,10 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   if (!response.ok) {
     const requestId = response.headers.get("X-Request-ID") ?? requestIdFrom(json);
     const message = failureMessage(json, response.status, retryAfter);
-    throw new CliError(withRequestId(message, requestId), 1, {
-      status: response.status,
-      ...(retryAfter ? { retryAfter } : {}),
-    });
+    const details: ErrorDetails = retryAfter
+      ? { status: response.status, retryAfter }
+      : { status: response.status };
+    throw new CliError(withRequestId(message, requestId), 1, details);
   }
 
   return {
@@ -86,7 +92,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   };
 }
 
-function parseJsonBody(text: string, contentType: string | null): unknown {
+function parseJsonBody(text: string, contentType: string | null): JsonValue | undefined {
   const trimmed = text.trim();
   const looksJson =
     (contentType ?? "").includes("json") || trimmed.startsWith("{") || trimmed.startsWith("[");
@@ -98,31 +104,23 @@ function parseJsonBody(text: string, contentType: string | null): unknown {
   }
 }
 
-function parseJson(text: string): unknown {
-  return JSON.parse(text);
-}
-
-function requestIdFrom(body: unknown): string | null {
+function requestIdFrom(body: JsonValue | undefined): string | null {
   const parsed = failureSchema.safeParse(body);
-  if (!parsed.success || typeof parsed.data.error === "string") return null;
-  return parsed.data.error.requestId ?? null;
+  return parsed.success ? (parsed.data.requestId ?? null) : null;
 }
 
 export function withRequestId(message: string, requestId: string | null): string {
   return requestId === null ? message : `${message}\nRequest id: ${requestId}`;
 }
 
-function failureMessage(body: unknown, status: number, retryAfter: string | null): string {
+function failureMessage(
+  body: JsonValue | undefined,
+  status: number,
+  retryAfter: string | null,
+): string {
   const parsed = failureSchema.safeParse(body);
-  const retryFromBody =
-    parsed.success && typeof parsed.data.error !== "string"
-      ? parsed.data.error.retryAfterSeconds
-      : undefined;
+  const retryFromBody = parsed.success ? parsed.data.retryAfterSeconds : undefined;
   const retry = retryAfter ?? (retryFromBody === undefined ? null : String(retryFromBody));
-  const message = parsed.success
-    ? typeof parsed.data.error === "string"
-      ? parsed.data.error
-      : parsed.data.error.message
-    : `Request failed with status ${status}.`;
+  const message = parsed.success ? parsed.data.message : `Request failed with status ${status}.`;
   return retry === null ? message : `${message} Retry after ${retry}s.`;
 }

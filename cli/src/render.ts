@@ -1,3 +1,11 @@
+import {
+  type JsonRecord,
+  type JsonValue,
+  isJsonRecord,
+  readPrimitive,
+  readString,
+} from "./json.js";
+
 const TITLE_KEYS = ["title", "name", "headline", "keyword", "phrase", "query", "text", "username"];
 const OWNER_KEYS = [
   "channelName",
@@ -10,16 +18,12 @@ const OWNER_KEYS = [
 const URL_KEYS = ["url", "videoUrl", "postUrl", "placeUrl", "link"];
 const SKIPPED_URL = /thumbnail|avatar|image|photo|icon|logo/iu;
 
-type Row = Record<string, unknown>;
-
-function isRow(value: unknown): value is Row {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+type Row = JsonRecord;
 
 function firstString(row: Row, keys: readonly string[]): string | undefined {
   for (const key of keys) {
-    const value = row[key];
-    if (typeof value === "string" && value.length > 0) return value;
+    const value = readString(row[key]);
+    if (value) return value;
   }
   return undefined;
 }
@@ -28,14 +32,8 @@ function urlOf(row: Row): string | undefined {
   const named = firstString(row, URL_KEYS);
   if (named) return named;
   for (const [key, value] of Object.entries(row)) {
-    if (
-      key.endsWith("Url") &&
-      !SKIPPED_URL.test(key) &&
-      typeof value === "string" &&
-      value.length > 0
-    ) {
-      return value;
-    }
+    const text = readString(value);
+    if (key.endsWith("Url") && !SKIPPED_URL.test(key) && text) return text;
   }
   return undefined;
 }
@@ -45,19 +43,21 @@ function oneLine(text: string, max = 140): string {
   return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat;
 }
 
-function scalar(value: unknown): string {
+function scalar(value: JsonValue | undefined): string {
   if (Array.isArray(value)) return value.map(scalar).join(", ");
-  if (typeof value === "object" && value !== null) return JSON.stringify(value);
+  if (isJsonRecord(value)) return JSON.stringify(value);
   return String(value);
 }
 
 function isPage(row: Row): row is Row & { url: string } {
-  return typeof row.url === "string" && (isRow(row.error) || isRow(row.metadata));
+  return (
+    readString(row.url) !== undefined && (isJsonRecord(row.error) || isJsonRecord(row.metadata))
+  );
 }
 
-function renderRow(item: unknown, index: number): string {
+function renderRow(item: JsonValue, index: number): string {
   const prefix = `${index + 1}. `;
-  if (!isRow(item)) return `${prefix}${oneLine(scalar(item))}`;
+  if (!isJsonRecord(item)) return `${prefix}${oneLine(scalar(item))}`;
   if (isPage(item)) {
     const { url, ...page } = item;
     return [`${prefix}${url}`, renderData(page)].join("\n");
@@ -72,13 +72,13 @@ function renderRow(item: unknown, index: number): string {
   return [`${prefix}${head}`, ...(title && url ? [`   ${url}`] : [])].join("\n");
 }
 
-export function renderData(data: unknown): string {
-  if (!isRow(data)) return data === undefined ? "" : scalar(data);
+export function renderData(data: JsonValue | undefined): string {
+  if (!isJsonRecord(data)) return data === undefined ? "" : scalar(data);
   const lines: string[] = [];
   for (const [key, value] of Object.entries(data)) {
     if (value === null || value === undefined) continue;
     if (Array.isArray(value) && value.length === 0) continue;
-    if (Array.isArray(value) && value.some((item) => typeof item === "object")) {
+    if (Array.isArray(value) && value.some((item) => readPrimitive(item) === undefined)) {
       if (key !== "results") lines.push(`${key}:`);
       lines.push(...value.map(renderRow));
       continue;

@@ -1,5 +1,6 @@
 import open from "open";
 import prompts from "prompts";
+import { z } from "zod";
 import packageJson from "../package.json" with { type: "json" };
 import { startBrowserLogin } from "./browser-login.js";
 import { green } from "./color.js";
@@ -13,6 +14,8 @@ import {
 } from "./config.js";
 import { loginCode } from "./login-code.js";
 
+const answerSchema = z.string();
+
 const err = (msg: string) => process.stderr.write(`${msg}\n`);
 
 export async function prompt(question: string): Promise<string> {
@@ -21,7 +24,7 @@ export async function prompt(question: string): Promise<string> {
     name: "value",
     message: question,
   });
-  return typeof value === "string" ? value.trim() : "";
+  return (answerSchema.safeParse(value).data ?? "").trim();
 }
 
 async function tryOpenBrowser(url: string): Promise<boolean> {

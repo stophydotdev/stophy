@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, spyOn, test } from "bun:test";
 import { request, withRequestId } from "../src/client.ts";
 import {
   type InitDependencies,
@@ -29,15 +29,14 @@ function fake(overrides: Partial<InitDependencies> = {}) {
 
 async function capture(run: () => Promise<void>) {
   const lines: string[] = [];
-  const original = process.stderr.write;
-  process.stderr.write = ((chunk: string | Uint8Array) => {
+  const write = spyOn(process.stderr, "write").mockImplementation((chunk) => {
     lines.push(String(chunk));
     return true;
-  }) as typeof process.stderr.write;
+  });
   try {
     await run();
   } finally {
-    process.stderr.write = original;
+    write.mockRestore();
   }
   return lines.join("");
 }
@@ -168,7 +167,6 @@ test("withRequestId appends the id, or leaves the message alone", () => {
 });
 
 test("an API error carries the request id from the header, then from the body", async () => {
-  const original = globalThis.fetch;
   const reply = (headers: Record<string, string>, requestId?: string) => async () =>
     new Response(
       JSON.stringify({
@@ -176,7 +174,7 @@ test("an API error carries the request id from the header, then from the body", 
           code: "bad_request",
           retryable: false,
           message: "Nope.",
-          ...(requestId ? { requestId } : {}),
+          requestId,
         },
       }),
       {
@@ -184,16 +182,17 @@ test("an API error carries the request id from the header, then from the body", 
         headers: { "content-type": "application/json", ...headers },
       },
     );
+  const fetchSpy = spyOn(globalThis, "fetch");
   try {
-    globalThis.fetch = reply({ "X-Request-ID": "from-header" }, "from-body") as typeof fetch;
+    fetchSpy.mockImplementation(reply({ "X-Request-ID": "from-header" }, "from-body"));
     await expect(
       request({ method: "GET", path: "/v1/x", accept: "application/json" }),
     ).rejects.toThrow("Request id: from-header");
-    globalThis.fetch = reply({}, "from-body") as typeof fetch;
+    fetchSpy.mockImplementation(reply({}, "from-body"));
     await expect(
       request({ method: "GET", path: "/v1/x", accept: "application/json" }),
     ).rejects.toThrow("Request id: from-body");
   } finally {
-    globalThis.fetch = original;
+    fetchSpy.mockRestore();
   }
 });

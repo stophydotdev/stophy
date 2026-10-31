@@ -4,6 +4,7 @@ import { z } from "zod";
 import { request } from "./client.js";
 import { getConfigPath } from "./config.js";
 import { CliError } from "./errors.js";
+import { type JsonValue, jsonRecord, parseJson } from "./json.js";
 
 const CATALOG_TTL_MS = 5 * 60 * 1000;
 
@@ -16,8 +17,8 @@ export const endpointSchema = z.object({
   credits: z.number().nonnegative().optional().catch(undefined),
   pricing: z.string().min(1).nullish().catch(undefined),
   keyless: z.boolean().catch(false),
-  input: z.record(z.string(), z.unknown()),
-  example: z.record(z.string(), z.unknown()).nullish().catch(undefined),
+  input: jsonRecord,
+  example: jsonRecord.nullish().catch(undefined),
 });
 
 export type CatalogEndpoint = z.infer<typeof endpointSchema>;
@@ -38,7 +39,7 @@ const usable = <T extends z.ZodType>(schema: T) =>
   z.array(z.unknown()).transform((items) =>
     items.flatMap((item) => {
       const parsed = schema.safeParse(item);
-      return parsed.success ? [parsed.data as z.infer<T>] : [];
+      return parsed.success ? [parsed.data] : [];
     }),
   );
 
@@ -116,7 +117,7 @@ export async function fetchCatalog(): Promise<Catalog> {
   return parseCatalog(response.json);
 }
 
-export function parseCatalog(json: unknown): Catalog {
+export function parseCatalog(json: JsonValue | undefined): Catalog {
   const parsed = catalogResponseSchema.safeParse(json);
   if (!parsed.success) throw new CliError("Server returned an unexpected endpoint catalog.");
   assertCatalog(parsed.data.endpoints);
@@ -126,8 +127,8 @@ export function parseCatalog(json: unknown): Catalog {
   };
 }
 
-function staleWarning(error: unknown, fetchedAt: number): string {
-  const reason = error instanceof Error ? error.message : "network error";
+function staleWarning(cause: unknown, fetchedAt: number): string {
+  const reason = cause instanceof Error ? cause.message : "network error";
   return `Could not refresh the endpoint catalog (${reason}). Using the cached catalog from ${new Date(fetchedAt).toISOString()}.`;
 }
 
@@ -151,7 +152,7 @@ async function readStored(file: string): Promise<StoredCatalog | undefined> {
   } catch {
     return undefined;
   }
-  let json: unknown;
+  let json: JsonValue;
   try {
     json = parseJson(text);
   } catch {
@@ -179,8 +180,4 @@ async function writeStored(file: string, catalog: Catalog): Promise<void> {
   const temporary = `${file}.${process.pid}.tmp`;
   await writeFile(temporary, payload, "utf8");
   await rename(temporary, file);
-}
-
-function parseJson(text: string): unknown {
-  return JSON.parse(text);
 }

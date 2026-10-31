@@ -1,3 +1,7 @@
+import { z } from "zod";
+
+const registrySchema = z.object({ version: z.string() });
+
 const REGISTRY_URL = "https://registry.npmjs.org";
 
 export interface LatestVersionResult {
@@ -26,11 +30,11 @@ export async function getLatestVersion(
       return { unreachable: true, error: `HTTP ${response.status}` };
     }
 
-    const data = (await response.json()) as { version?: string };
-    if (typeof data.version !== "string") {
+    const data = registrySchema.safeParse(await response.json());
+    if (!data.success) {
       return { unreachable: true, error: "Invalid registry response" };
     }
-    return { version: data.version, unreachable: false };
+    return { version: data.data.version, unreachable: false };
   } catch (error) {
     return {
       unreachable: true,

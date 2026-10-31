@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
+import { z } from "zod";
 import { green } from "../color.js";
 import { setStoredApiKey, validateApiKey } from "../config.js";
 import { CliError } from "../errors.js";
@@ -42,10 +43,10 @@ async function resolveLoginMode(options: {
 }
 
 async function handleApiKeyLogin(apiKeyOption?: boolean | string) {
-  const apiKey =
-    typeof apiKeyOption === "string"
-      ? validateApiKey(apiKeyOption)
-      : validateApiKey(await prompt("Paste your Stophy API key: "));
+  const given = z.string().safeParse(apiKeyOption);
+  const apiKey = given.success
+    ? validateApiKey(given.data)
+    : validateApiKey(await prompt("Paste your Stophy API key: "));
   await setStoredApiKey(apiKey);
   err(green("✓ Login successful!"));
 }

@@ -1,6 +1,14 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { z } from "zod";
 import { CliError } from "./errors.js";
 import { deviceName } from "./login-code.js";
+
+const initFailureSchema = z.object({ error: z.string().optional() });
+
+const statusSchema = z.object({
+  apiKey: z.string().optional(),
+  status: z.string().optional(),
+});
 
 export interface BrowserLoginResult {
   apiKey: string;
@@ -24,11 +32,11 @@ export async function startBrowserLogin(
     fetch(new URL("/api/cli/init", `${baseUrl}/`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        code_challenge: codeChallenge,
-        ...(device === undefined ? {} : { device_name: device }),
-      }),
+      body: JSON.stringify(
+        device === undefined
+          ? { session_id: sessionId, code_challenge: codeChallenge }
+          : { session_id: sessionId, code_challenge: codeChallenge, device_name: device },
+      ),
     }).catch((err: Error) => {
       throw new CliError(`Could not reach Stophy API: ${err.message}`);
     });
@@ -38,10 +46,10 @@ export async function startBrowserLogin(
   if (initRes.status === 400 && device !== undefined) initRes = await start(undefined);
 
   if (!initRes.ok) {
-    const body = (await initRes.json().catch(() => ({}))) as {
-      error?: string;
-    };
-    throw new CliError(body.error ?? "Failed to start browser login.");
+    const failure = initFailureSchema.safeParse(await initRes.json().catch(() => ({})));
+    throw new CliError(
+      (failure.success ? failure.data.error : undefined) ?? "Failed to start browser login.",
+    );
   }
 
   const result = new Promise<BrowserLoginResult>((resolve, reject) => {
@@ -62,11 +70,7 @@ export async function startBrowserLogin(
             code_verifier: codeVerifier,
           }),
         });
-        const data = (await res.json()) as {
-          apiKey?: string;
-          error?: string;
-          status?: string;
-        };
+        const data = statusSchema.parse(await res.json());
 
         if (data.status === "complete") {
           if (!data.apiKey) {

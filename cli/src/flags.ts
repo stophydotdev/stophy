@@ -1,5 +1,17 @@
 import type { CatalogEndpoint } from "./catalog.js";
 import { CliError } from "./errors.js";
+import {
+  type JsonRecord,
+  type JsonValue,
+  isJsonRecord,
+  parseJson,
+  readBoolean,
+  readNumber,
+  readNumberList,
+  readPrimitive,
+  readString,
+  readStringList,
+} from "./json.js";
 
 interface StringSchema {
   readonly type: "string";
@@ -106,7 +118,7 @@ type ArraySlot = SlotBase & {
 type Slot = ScalarSlot | ArraySlot | JsonSlot;
 
 export interface ParsedCall {
-  readonly body: Record<string, unknown>;
+  readonly body: JsonRecord;
   readonly format: "text" | "json" | "raw";
   readonly outputFile?: string;
 }
@@ -115,47 +127,11 @@ export type ParseResult =
   | { readonly ok: true; readonly call: ParsedCall }
   | { readonly ok: false; readonly message: string };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+function isNullSchema(value: JsonValue): boolean {
+  return isJsonRecord(value) && value.type === "null";
 }
 
-function readString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
-function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
-
-function readStringList(value: unknown): readonly string[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const items: string[] = [];
-  for (const item of value) {
-    if (typeof item !== "string") return undefined;
-    items.push(item);
-  }
-  return items;
-}
-
-function readNumberList(value: unknown): readonly number[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const items: number[] = [];
-  for (const item of value) {
-    const number = readNumber(item);
-    if (number === undefined) return undefined;
-    items.push(number);
-  }
-  return items;
-}
-
-function isNullSchema(value: unknown): boolean {
-  return isRecord(value) && value.type === "null";
-}
-
-function readStringSchema(
-  value: Record<string, unknown>,
-  description: string | undefined,
-): StringSchema {
+function readStringSchema(value: JsonRecord, description: string | undefined): StringSchema {
   const constant = readString(value.const);
   const pattern = readString(value.pattern);
   const fallback = readString(value.default);
@@ -172,7 +148,7 @@ function readStringSchema(
 }
 
 function readNumberSchema(
-  value: Record<string, unknown>,
+  value: JsonRecord,
   integer: boolean,
   description: string | undefined,
 ): NumberSchema {
@@ -191,20 +167,20 @@ function readNumberSchema(
   };
 }
 
-function readSchema(value: unknown): ValueSchema | undefined {
-  if (!isRecord(value)) return undefined;
+function readSchema(value: JsonValue | undefined): ValueSchema | undefined {
+  if (!isJsonRecord(value)) return undefined;
   const description = readString(value.description);
   if (Array.isArray(value.anyOf)) return readUnion(value.anyOf, description);
-  if (value.type === "object" && isRecord(value.properties)) {
+  if (value.type === "object" && isJsonRecord(value.properties)) {
     return readObject(value, description);
   }
   if (value.type === "array") return readArray(value, description);
   if (value.type === "boolean") {
-    const fallback = value.default;
+    const fallback = readBoolean(value.default);
     return {
       type: "boolean",
       description,
-      defaultLabel: typeof fallback === "boolean" ? String(fallback) : undefined,
+      defaultLabel: fallback === undefined ? undefined : String(fallback),
     };
   }
   if (value.type === "integer") return readNumberSchema(value, true, description);
@@ -214,11 +190,11 @@ function readSchema(value: unknown): ValueSchema | undefined {
   return undefined;
 }
 
-function readObject(value: Record<string, unknown>, description: string | undefined): ObjectSchema {
+function readObject(value: JsonRecord, description: string | undefined): ObjectSchema {
   const properties = value.properties;
   const required = new Set(readStringList(value.required) ?? []);
   const fields: ObjectField[] = [];
-  if (isRecord(properties)) {
+  if (isJsonRecord(properties)) {
     for (const [name, property] of Object.entries(properties)) {
       fields.push({
         name,
@@ -233,7 +209,7 @@ function readObject(value: Record<string, unknown>, description: string | undefi
   return { type: "object", fields, description };
 }
 
-function readArray(value: Record<string, unknown>, description: string | undefined): ValueSchema {
+function readArray(value: JsonRecord, description: string | undefined): ValueSchema {
   const item = readSchema(value.items);
   if (
     item === undefined ||
@@ -252,7 +228,7 @@ function readArray(value: Record<string, unknown>, description: string | undefin
   };
 }
 
-function readUnion(branches: readonly unknown[], description: string | undefined): ValueSchema {
+function readUnion(branches: readonly JsonValue[], description: string | undefined): ValueSchema {
   const parsed: ValueSchema[] = [];
   for (const branch of branches) {
     if (isNullSchema(branch)) continue;
@@ -304,7 +280,7 @@ function mergeDescription(schema: ValueSchema, description: string | undefined):
   return { ...schema, description };
 }
 
-export function slotsFromInput(input: unknown): Slot[] {
+export function slotsFromInput(input: JsonRecord): Slot[] {
   const schema = readSchema(input);
   if (schema === undefined || schema.type !== "object") {
     throw new CliError("Endpoint input schema is not an object.");
@@ -315,11 +291,11 @@ export function slotsFromInput(input: unknown): Slot[] {
     .map((slot) => (group.has(slot.flag) ? { ...slot, sendOne: true } : slot));
 }
 
-function sendOneOf(input: unknown): readonly string[] {
-  return isRecord(input) ? (readStringList(input.sendOne) ?? []) : [];
+function sendOneOf(input: JsonRecord): readonly string[] {
+  return readStringList(input.sendOne) ?? [];
 }
 
-function linkOrId(input: unknown): readonly [string, string] | undefined {
+function linkOrId(input: JsonRecord): readonly [string, string] | undefined {
   const [link, id, ...rest] = sendOneOf(input);
   if (link === undefined || id === undefined || rest.length > 0) return undefined;
   return link.endsWith("Url") ? [link, id] : undefined;
@@ -411,10 +387,12 @@ function scalarSlot(schema: StringSchema | NumberSchema | BooleanSchema, flag: s
   return slot;
 }
 
-function fail(message: string): {
+interface Failure {
   readonly ok: false;
   readonly message: string;
-} {
+}
+
+function fail(message: string): Failure {
   return { ok: false, message };
 }
 
@@ -422,12 +400,12 @@ function knownFlags(slots: readonly Slot[]): string {
   return [...slots.map((slot) => `--${slot.flag}`), "--json", "--raw", "--output"].join(", ");
 }
 
-export function parseCall(tokens: readonly string[], input: unknown): ParseResult {
+export function parseCall(tokens: readonly string[], input: JsonRecord): ParseResult {
   const slots = slotsFromInput(input);
   const byFlag = new Map(slots.map((slot) => [slot.flag, slot]));
   const positional = positionalSlot(slots);
   const pair = positional === undefined ? linkOrId(input) : undefined;
-  const body: Record<string, unknown> = {};
+  const body: JsonRecord = {};
   const setFlags = new Set<string>();
   let format: ParsedCall["format"] = "text";
   let outputFile: string | undefined;
@@ -509,14 +487,8 @@ export function parseCall(tokens: readonly string[], input: unknown): ParseResul
   if (sendOne) return fail(sendOne);
   const bounds = boundsMessage(slots, body);
   if (bounds) return fail(bounds);
-  return {
-    ok: true,
-    call: {
-      body,
-      format,
-      ...(outputFile === undefined ? {} : { outputFile }),
-    },
-  };
+  if (outputFile === undefined) return { ok: true, call: { body, format } };
+  return { ok: true, call: { body, format, outputFile } };
 }
 
 function takeOutput(
@@ -577,7 +549,7 @@ function matchFlag(
 
 interface ReadFlag {
   readonly ok: true;
-  readonly value: unknown;
+  readonly value: JsonValue;
   readonly consumed: boolean;
 }
 
@@ -597,7 +569,7 @@ function readFlag(
   if (slot.kind === "array") {
     const parts = splitList(raw);
     if (parts.length === 0) return fail(`--${slot.flag} has an empty item.`);
-    const values: unknown[] = [];
+    const values: JsonValue[] = [];
     for (const part of parts) {
       const item = readScalar(slot.item, part);
       if (!item.ok) return item;
@@ -636,7 +608,7 @@ function readJson(
   raw: string,
   flag: string,
 ):
-  | { readonly ok: true; readonly value: unknown }
+  | { readonly ok: true; readonly value: JsonValue }
   | { readonly ok: false; readonly message: string } {
   try {
     return { ok: true, value: parseJson(raw) };
@@ -645,15 +617,11 @@ function readJson(
   }
 }
 
-function parseJson(text: string): unknown {
-  return JSON.parse(text);
-}
-
 function readScalar(
   slot: ScalarSlot,
   raw: string,
 ):
-  | { readonly ok: true; readonly value: unknown }
+  | { readonly ok: true; readonly value: JsonValue }
   | { readonly ok: false; readonly message: string } {
   if (slot.kind === "boolean") {
     if (raw !== "true" && raw !== "false") {
@@ -737,7 +705,7 @@ function readNumberValue(
   return { ok: true, value };
 }
 
-function setValue(root: Record<string, unknown>, flag: string, value: unknown): void {
+function setValue(root: JsonRecord, flag: string, value: JsonValue): void {
   const path = flag.split(".");
   const leaf = path[path.length - 1];
   if (leaf === undefined) return;
@@ -745,7 +713,7 @@ function setValue(root: Record<string, unknown>, flag: string, value: unknown): 
   parent[leaf] = value;
 }
 
-function appendValue(root: Record<string, unknown>, flag: string, value: unknown): void {
+function appendValue(root: JsonRecord, flag: string, value: JsonValue): void {
   const path = flag.split(".");
   const leaf = path[path.length - 1];
   if (leaf === undefined) return;
@@ -758,18 +726,15 @@ function appendValue(root: Record<string, unknown>, flag: string, value: unknown
   parent[leaf] = [value];
 }
 
-function container(
-  root: Record<string, unknown>,
-  path: readonly string[],
-): Record<string, unknown> {
+function container(root: JsonRecord, path: readonly string[]): JsonRecord {
   let current = root;
   for (const key of path) {
     const next = current[key];
-    if (isRecord(next)) {
+    if (isJsonRecord(next)) {
       current = next;
       continue;
     }
-    const created: Record<string, unknown> = {};
+    const created: JsonRecord = {};
     current[key] = created;
     current = created;
   }
@@ -803,7 +768,7 @@ function missingMessage(flags: readonly string[]): string {
   return `Missing required flags ${rendered.slice(0, -1).join(", ")} and ${last}.`;
 }
 
-function boundsMessage(slots: readonly Slot[], body: Record<string, unknown>): string | undefined {
+function boundsMessage(slots: readonly Slot[], body: JsonRecord): string | undefined {
   for (const slot of slots) {
     if (slot.kind !== "array") continue;
     const value = valueAt(body, slot.flag);
@@ -818,10 +783,10 @@ function boundsMessage(slots: readonly Slot[], body: Record<string, unknown>): s
   return undefined;
 }
 
-function valueAt(root: Record<string, unknown>, flag: string): unknown {
-  let current: unknown = root;
+function valueAt(root: JsonRecord, flag: string): JsonValue | undefined {
+  let current: JsonValue | undefined = root;
   for (const key of flag.split(".")) {
-    if (!isRecord(current)) return undefined;
+    if (!isJsonRecord(current)) return undefined;
     current = current[key];
   }
   return current;
@@ -919,11 +884,11 @@ export function formatDescribe(endpoint: CatalogEndpoint): string {
   ].join("\n");
 }
 
-const KNOWN_TEXT: Readonly<Record<string, string>> = {
-  cursor: "Get the next page, from a previous result",
-  country: "Country code, e.g. us, de",
-  language: "Language code, e.g. en, pt-BR",
-};
+const KNOWN_TEXT = new Map([
+  ["cursor", "Get the next page, from a previous result"],
+  ["country", "Country code, e.g. us, de"],
+  ["language", "Language code, e.g. en, pt-BR"],
+]);
 
 function alignRows(rows: readonly (readonly [string, string])[]): string[] {
   const width = Math.max(...rows.map(([name]) => name.length)) + 2;
@@ -959,7 +924,7 @@ function optionText(slot: Slot): string {
 
 function mainText(slot: Slot): string {
   const last = slot.flag.split(".").at(-1) ?? slot.flag;
-  const known = KNOWN_TEXT[slot.flag];
+  const known = KNOWN_TEXT.get(slot.flag);
   if (known) return known;
   if (slot.kind === "array") {
     const values = enumOf(slot.item);
@@ -1003,7 +968,7 @@ function cleanDescription(description: string | undefined): string | undefined {
   if (!description) return undefined;
   const first = description
     .split(/(?<=\.)\s+/u)
-    .filter((part) => !/any case is accepted/iu.test(part))[0];
+    .find((part) => !/any case is accepted/iu.test(part));
   const text = first?.replace(/\.+$/u, "").trim();
   if (!text) return undefined;
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -1023,13 +988,12 @@ function exampleLine(
   positional: StringSlot | undefined,
 ): string {
   const words = endpoint.id.split(".").join(" ");
-  const sample = isRecord(endpoint.example) ? endpoint.example : undefined;
+  const sample = endpoint.example ?? undefined;
   const pieces: string[] = [`stophy ${words}`];
   const pair = positional ? undefined : linkOrId(endpoint.input);
-  const given = pair?.find((flag) => typeof sample?.[flag] === "string");
+  const given = pair?.find((flag) => readString(sample?.[flag]) !== undefined);
   if (positional) {
-    const value = sample?.[positional.flag];
-    pieces.push(quoteArg(typeof value === "string" ? value : "..."));
+    pieces.push(quoteArg(readString(sample?.[positional.flag]) ?? "..."));
   } else if (given) {
     pieces.push(quoteArg(String(sample?.[given])));
   }
@@ -1039,7 +1003,7 @@ function exampleLine(
           key !== positional?.flag &&
           key !== given &&
           key !== "cursor" &&
-          (typeof value === "string" || typeof value === "number" || typeof value === "boolean"),
+          readPrimitive(value) !== undefined,
       )
     : [];
   for (const [key, value] of extras.slice(0, 2)) {

@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { jsonValue } from "../json.js";
 
 export const successEnvelope = z.object({
   success: z.literal(true),
-  data: z.unknown(),
+  data: jsonValue.optional(),
   creditsUsed: z.number().int().nonnegative(),
   requestId: z.string(),
 });

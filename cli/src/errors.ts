@@ -1,8 +1,13 @@
+export interface ErrorDetails {
+  readonly status: number;
+  readonly retryAfter?: string;
+}
+
 export class CliError extends Error {
-  readonly details?: unknown;
+  readonly details?: ErrorDetails;
   readonly exitCode: number;
 
-  constructor(message: string, exitCode = 1, details?: unknown) {
+  constructor(message: string, exitCode = 1, details?: ErrorDetails) {
     super(message);
     this.exitCode = exitCode;
     this.details = details;
@@ -11,19 +16,16 @@ export class CliError extends Error {
 }
 
 export function statusFrom(error: CliError): number | undefined {
-  const details = error.details;
-  if (typeof details !== "object" || details === null || !("status" in details)) return undefined;
-  const status = details.status;
-  return typeof status === "number" ? status : undefined;
+  return error.details?.status;
 }
 
-export function toCliError(error: unknown): CliError {
-  if (error instanceof CliError) {
-    return error;
+export function toCliError(cause: unknown): CliError {
+  if (cause instanceof CliError) {
+    return cause;
   }
 
-  if (error instanceof Error) {
-    return new CliError(error.message);
+  if (cause instanceof Error) {
+    return new CliError(cause.message);
   }
 
   return new CliError("An unexpected error occurred.");
