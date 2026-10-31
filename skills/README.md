@@ -67,11 +67,11 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | [`stophy-web`](./skills/stophy-web/SKILL.md) | Google search, news, scholar, patents and trends |
 | [`stophy-video`](./skills/stophy-video/SKILL.md) | YouTube, TikTok and Instagram: videos, transcripts, comments, channels |
 | [`stophy-social`](./skills/stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads |
-| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Yelp, Google Hotels, Airbnb, Booking.com, Google Flights |
+| [`stophy-places`](./skills/stophy-places/SKILL.md) | Google Maps, Tripadvisor, Yelp, Google Hotels, Airbnb, Booking.com, Expedia, Google Flights, Luma events |
 | [`stophy-jobs`](./skills/stophy-jobs/SKILL.md) | LinkedIn, Indeed, Upwork, company careers pages and Glassdoor |
-| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, TikTok Shop, eBay and Facebook Marketplace products and prices, and Trustpilot reviews |
+| [`stophy-shopping`](./skills/stophy-shopping/SKILL.md) | Amazon, TikTok Shop, eBay, Facebook Marketplace and Craigslist products and prices, and Trustpilot reviews |
 | [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
-| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow homes for sale, for rent and sold |
+| [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow and Realtor.com homes for sale, for rent and sold |
 | [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, and LinkedIn ad libraries |
 
 ## For agents

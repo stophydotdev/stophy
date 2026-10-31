@@ -4,7 +4,7 @@ description: |
   Get posts, profiles, and threads from Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, and Threads. Use for "search Reddit for", "what does this profile post about", "read this thread's replies", "what is this company posting on LinkedIn", "find pins about", "what is this page posting on Facebook", "how many views did this X post get". Reddit search and X work without an API key. For YouTube or TikTok videos use stophy-video. For ad libraries use stophy-ads. For LinkedIn job posts use stophy-jobs.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "4.0.6"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -58,7 +58,7 @@ Run `stophy <source> --help` for every command. The sources are `reddit`, `insta
 
 - To point at one thing, give its link or its id, never both. Posts take `--postUrl` or `--postId` (Instagram: `--postCode`), people take `--userUrl` or `--username`, and LinkedIn takes `--profileUrl` or `--profileId`, or `--companyUrl` or `--companyId`.
 - Use `profile` or `search` to find a person or topic, and `post` for one item with its replies. `reddit post` and `instagram post` return the replies in `results`. An Instagram profile returns its recent posts in `results`, and `posts` is its post count. When the output ends with a `cursor`, run the same command with `--cursor <cursor>` for the next page.
-- `instagram profile` and `linkedin profile` cost 2 credits per call. Every other command here costs 1, including Reddit.
+- Every command here costs 1 credit per call, including Reddit.
 - `linkedin posts` takes one of `--profileUrl`, `--profileId`, `--companyUrl` or `--companyId`. A person's posts come as one page. A company's posts page with `--cursor`.
 - `reddit search` takes `--type` (`posts`, `subreddits` or `users`) and `--subreddit` to search inside one community. Page it with `--cursor`.
 - For the replies to one Reddit comment, pass its id or link as `--comment` to `reddit post`.
