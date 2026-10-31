@@ -40,7 +40,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node --minify && chmod +x ./dist/index.js",
+    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node --minify --banner '#!/usr/bin/env node' && chmod +x ./dist/index.js",
     "prepare": "bun run build",
     "start": "node ./dist/index.js",
     "dev": "bun run ./src/index.ts",

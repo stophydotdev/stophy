@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -45,7 +44,9 @@ const main = async (): Promise<void> => {
     const hint = /401|unauthorized/iu.test(reason)
       ? " Check STOPHY_API_KEY, or unset it to use the free endpoints only."
       : "";
-    throw new Error(`Could not connect to Stophy at ${url.origin}: ${reason}.${hint}`);
+    throw new Error(`Could not connect to Stophy at ${url.origin}: ${reason}.${hint}`, {
+      cause: error,
+    });
   }
 
   const local = new Server(
@@ -68,7 +69,7 @@ const main = async (): Promise<void> => {
   await local.connect(new StdioServerTransport());
 };
 
-main().catch((error: unknown) => {
+main().catch((error) => {
   process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
   process.exit(1);
 });
