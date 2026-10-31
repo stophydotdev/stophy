@@ -1,0 +1,89 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "ignorePatterns": [
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
+    "tools/oxlint/**",
+    "**/dist/**",
+    "sdk/packages/typescript/src/generated/**"
+  ],
+  "jsPlugins": [
+    {
+      "name": "anti-slop",
+      "specifier": "./tools/oxlint/anti-slop/index.ts"
+    },
+    {
+      "name": "comments",
+      "specifier": "./tools/oxlint/comments/index.ts"
+    },
+    {
+      "name": "stophy",
+      "specifier": "./tools/oxlint/stophy/index.ts"
+    }
+  ],
+  "rules": {
+    "typescript/consistent-type-assertions": [
+      "error",
+      {
+        "assertionStyle": "never"
+      }
+    ],
+    "comments/no-comments": "error",
+    "comments/require-reason": "error",
+    "stophy/no-test-in-loop": "error",
+    "stophy/no-test-timeouts-or-skips": "error",
+    "stophy/no-waits-in-tests": "error",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": [
+          "**/*.css"
+        ]
+      }
+    ],
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "error",
+    "anti-slop/no-shape-in-symbol-names": "error",
+    "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "error",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error",
+    "eslint/no-await-in-loop": "off",
+    "eslint/no-shadow": "off",
+    "oxc/no-map-spread": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "eslint/no-underscore-dangle": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/require-post-message-target-origin": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "unicorn/require-module-specifiers": "off"
+  }
+}
