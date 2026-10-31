@@ -1,0 +1,42 @@
+{
+  "name": "stophy-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.",
+  "homepage": "https://stophy.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stophydotdev/sdk.git"
+  },
+  "workspaces": [
+    "packages/typescript"
+  ],
+  "scripts": {
+    "build": "bun run build:ts && bun run build:py",
+    "build:ts": "bun run --cwd packages/typescript build",
+    "build:py": "uv build --project packages/python",
+    "sync": "bun scripts/sync-openapi.ts",
+    "generate:ts": "bun run --cwd packages/typescript generate",
+    "generate:py": "uv run --project packages/python python scripts/gen_python.py && uv run --project packages/python ruff format packages/python/src/stophy/generated",
+    "generate": "bun run generate:ts && bun run generate:py",
+    "generate:check": "bun run generate:ts && git diff --exit-code -- packages/typescript/src/generated",
+    "type-check": "bun run --cwd packages/typescript check-types",
+    "check:ts": "biome check packages/typescript/src/*.ts test/typescript scripts/*.ts",
+    "check:py": "uv run --project packages/python ruff check packages/python/src test/python && uv run --project packages/python ruff format --check packages/python/src test/python",
+    "check": "bun run check:ts && bun run type-check && bun run check:py && bun run type-check:py",
+    "format:ts": "biome check --write packages/typescript/src/*.ts test/typescript scripts/*.ts",
+    "format:py": "uv run --project packages/python ruff check --fix packages/python/src test/python && uv run --project packages/python ruff format packages/python/src test/python",
+    "format": "bun run format:ts && bun run format:py",
+    "test:ts": "bun run --cwd packages/typescript test",
+    "test:py": "uv --project packages/python run pytest",
+    "test": "bun run test:ts && bun run test:py",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "type-check:py": "uv run --directory packages/python pyright"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.16",
+    "@changesets/cli": "2.31.0"
+  },
+  "license": "MIT"
+}

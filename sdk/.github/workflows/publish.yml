@@ -1,0 +1,93 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to publish
+        required: true
+        type: choice
+        options:
+          - typescript
+          - python
+          - both
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-typescript:
+    name: npm
+    if: inputs.package == 'typescript' || inputs.package == 'both'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/typescript
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        working-directory: ${{ github.workspace }}
+
+      - name: Check published version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "stophy@${VERSION}" version > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.version.outputs.exists == 'false'
+        run: npm publish --access public --tag latest
+
+  publish-python:
+    name: PyPI
+    if: inputs.package == 'python' || inputs.package == 'both'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+
+      - name: Check published version
+        id: version
+        run: |
+          VERSION=$(uv version --project packages/python --short)
+          STATUS=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" \
+            "https://pypi.org/pypi/stophy/${VERSION}/json")
+          case "$STATUS" in
+            200) echo "exists=true" >> "$GITHUB_OUTPUT" ;;
+            404) echo "exists=false" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "PyPI version check failed with HTTP $STATUS" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Build
+        if: steps.version.outputs.exists == 'false'
+        run: uv build --project packages/python
+
+      - name: Publish to PyPI
+        if: steps.version.outputs.exists == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/python/dist/

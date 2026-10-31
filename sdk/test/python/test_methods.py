@@ -1,0 +1,158 @@
+import json
+import pytest
+from pathlib import Path
+
+from helpers import body_of, make_client, query_of
+
+ENVELOPE = {
+    "success": True,
+    "data": {
+        "results": [
+            {
+                "type": "video",
+                "videoId": "abc",
+                "videoUrl": "https://youtu.be/abc",
+                "channelName": "Bun",
+            }
+        ]
+    },
+    "creditsUsed": 1,
+    "requestId": "req_1",
+}
+
+
+def test_posts_input_to_the_spec_path():
+    client, calls = make_client({"json": ENVELOPE})
+    result = client.youtube.search(query="bun runtime", cursor="next")
+    assert result["data"]["results"][0]["videoUrl"] == "https://youtu.be/abc"
+    assert calls[0].method == "POST"
+    assert calls[0].url.path == "/v1/youtube/search"
+    assert body_of(calls[0]) == {"query": "bun runtime", "cursor": "next"}
+    assert calls[0].headers["accept"] == "application/json"
+
+
+def test_single_segment_operations_and_keyword_argument():
+    client, calls = make_client({"json": ENVELOPE})
+    client.youtube.transcript(video_url="https://youtu.be/abc", include_timestamps=True)
+    assert calls[0].url.path == "/v1/youtube/transcript"
+    assert body_of(calls[0]) == {
+        "videoUrl": "https://youtu.be/abc",
+        "includeTimestamps": True,
+    }
+
+
+def test_app_jobs_places_and_shopping_operations():
+    client, calls = make_client({"json": ENVELOPE})
+    client.appstore.search(query="notes")
+    client.google.play.reviews(app_id="com.example.app", cursor="c1")
+    client.indeed.search(query="designer")
+    client.tripadvisor.place(place_id="d1234")
+    client.amazon.search(query="tv", sort="priceLow")
+    assert [call.url.path for call in calls] == [
+        "/v1/appstore/search",
+        "/v1/google/play/reviews",
+        "/v1/indeed/search",
+        "/v1/tripadvisor/place",
+        "/v1/amazon/search",
+    ]
+    assert body_of(calls[1]) == {"appId": "com.example.app", "cursor": "c1"}
+
+
+def test_ads_operations_of_each_network():
+    client, calls = make_client({"json": ENVELOPE})
+    client.meta.ads.search(query="shoes")
+    client.google.ads.search(domain="example.com")
+    assert calls[0].url.path == "/v1/meta/ads/search"
+    assert calls[1].url.path == "/v1/google/ads/search"
+    assert body_of(calls[1]) == {"domain": "example.com"}
+
+
+def test_empty_optional_body_and_endpoint_catalog():
+    client, calls = make_client(
+        [{"json": ENVELOPE}, {"json": {"endpoints": []}}],
+    )
+    client.upwork.search()
+    catalog = client.endpoints()
+    assert body_of(calls[0]) == {}
+    assert calls[0].url.path == "/v1/upwork/search"
+    assert catalog["endpoints"] == []
+    assert calls[1].method == "GET"
+
+
+def test_usage_and_logs():
+    client, calls = make_client(
+        [
+            {"json": {"balanceMicros": 1000, "creditsUsed": 2, "requestCount": 1}},
+            {
+                "json": {
+                    "endpoints": ["youtube.search"],
+                    "logs": [
+                        {
+                            "apiKeyId": None,
+                            "apiKeyName": None,
+                            "createdAt": "2026-09-28T00:00:00.000Z",
+                            "credits": 1,
+                            "durationMs": None,
+                            "endpoint": "youtube.search",
+                            "id": "log_1",
+                            "method": "POST",
+                            "response": "success",
+                            "status": 200,
+                        }
+                    ],
+                    "page": 0,
+                    "pageSize": 50,
+                    "total": 1,
+                    "totalPages": 1,
+                }
+            },
+        ]
+    )
+    assert client.usage()["creditsUsed"] == 2
+    logs = client.logs(days=7, page=0, endpoint="youtube.search", api_key_id="key_1")
+    assert logs["logs"][0]["endpoint"] == "youtube.search"
+    assert query_of(calls[1]) == {
+        "days": "7",
+        "page": "0",
+        "endpoint": "youtube.search",
+        "apiKeyId": "key_1",
+    }
+
+
+def test_every_spec_operation_is_callable():
+    spec = json.loads(Path("openapi.json").read_text())
+    client, _calls = make_client({"json": ENVELOPE})
+    assert "/v1/google/search" in spec["paths"]
+    assert "/v1/amazon/product" in spec["paths"]
+    assert "/v1/walmart/product" not in spec["paths"]
+    for path in spec["paths"]:
+        node = client
+        for part in [item for item in path.split("/") if item and item != "v1"]:
+            node = getattr(node, part)
+        assert callable(node)
+    client.close()
+
+
+def test_web_search_and_web_news_still_work_after_the_rename():
+    client, calls = make_client({"json": ENVELOPE})
+    assert callable(client.web.search)
+    assert callable(client.web.news)
+    client.web.search(query="bun runtime")
+    assert calls[-1].url.path == "/v1/web/search"
+    client.close()
+
+
+def test_page_numbers_and_advertiser_are_sent():
+    client, calls = make_client({"json": ENVELOPE})
+    client.google.search(query="bun", page=2)
+    client.meta.ads.page(advertiser="nike")
+    assert body_of(calls[0]) == {"query": "bun", "page": 2}
+    assert calls[1].url.path == "/v1/meta/ads/page"
+    assert body_of(calls[1]) == {"advertiser": "nike"}
+
+
+def test_limit_is_not_accepted():
+    client, calls = make_client({"json": ENVELOPE})
+    with pytest.raises(TypeError):
+        client.youtube.search(query="bun", limit=2)  # type: ignore[call-arg]
+    assert calls == []
