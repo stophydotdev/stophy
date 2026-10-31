@@ -1,12 +1,16 @@
-// Builds the namespaced client surface from openapi.json and the hey-api types.
-// Usage: bun scripts/gen-surface.ts
+import {
+  isRecord,
+  isString,
+  type JsonObject,
+  type JsonValue,
+} from "../packages/typescript/src/json";
 
 const root = new URL("..", import.meta.url);
 const specUrl = new URL("openapi.json", root);
 const typesUrl = new URL("packages/typescript/src/generated/types.gen.ts", root);
 const outUrl = new URL("packages/typescript/src/generated/surface.gen.ts", root);
 
-const spec: unknown = JSON.parse(await Bun.file(specUrl).text());
+const spec: JsonValue = JSON.parse(await Bun.file(specUrl).text());
 const types = await Bun.file(typesUrl).text();
 const operations = operationsFrom(spec);
 
@@ -63,7 +67,7 @@ interface Node {
   operation?: Operation;
 }
 
-function operationsFrom(value: unknown): Operation[] {
+function operationsFrom(value: JsonValue): Operation[] {
   if (!isRecord(value) || !isRecord(value.paths)) {
     throw new Error("OpenAPI document has no paths.");
   }
@@ -80,12 +84,8 @@ function segmentsOf(path: string): string[] {
   return path.split("/").filter((segment) => segment.length > 0 && segment !== "v1");
 }
 
-function operationFrom(
-  path: string,
-  method: "get" | "post",
-  operation: Record<string, unknown>,
-): Operation {
-  if (typeof operation.operationId !== "string") {
+function operationFrom(path: string, method: "get" | "post", operation: JsonObject): Operation {
+  if (!isString(operation.operationId)) {
     throw new Error(`${method.toUpperCase()} ${path} is missing operationId.`);
   }
   const segments = segmentsOf(path);
@@ -99,7 +99,7 @@ function operationFrom(
   };
 }
 
-function requiredFields(operation: Record<string, unknown>): string[] {
+function requiredFields(operation: JsonObject): string[] {
   const body = operation.requestBody;
   if (!isRecord(body) || !isRecord(body.content)) return [];
   const json = body.content["application/json"];
@@ -107,12 +107,12 @@ function requiredFields(operation: Record<string, unknown>): string[] {
   return requiredIn(json.schema);
 }
 
-function requiredIn(schema: unknown): string[] {
+function requiredIn(schema: JsonValue | undefined): string[] {
   if (!isRecord(schema)) return [];
   const branches = schema.oneOf ?? schema.anyOf;
   if (Array.isArray(branches)) return branches.flatMap(requiredIn);
   if (!Array.isArray(schema.required)) return [];
-  return schema.required.filter((item): item is string => typeof item === "string");
+  return schema.required.filter(isString);
 }
 
 function buildTree(operations: Operation[]): Node {
@@ -158,8 +158,4 @@ function emitCall(operation: Operation): string {
 
 function pascal(operationId: string): string {
   return operationId.charAt(0).toUpperCase() + operationId.slice(1);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -149,8 +149,8 @@ describe("namespaced operations", () => {
 
   test("keeps web.search and web.news working after the rename", () => {
     const { client } = makeClient({ json: envelope });
-    expect(typeof endpointAt(client, "/v1/web/search")).toBe("function");
-    expect(typeof endpointAt(client, "/v1/web/news")).toBe("function");
+    expect(endpointAt(client, "/v1/web/search")).toBeFunction();
+    expect(endpointAt(client, "/v1/web/news")).toBeFunction();
   });
 
   test("exposes every operation in the spec", async () => {
@@ -160,7 +160,7 @@ describe("namespaced operations", () => {
     expect(paths).toContain("/v1/amazon/product");
     expect(paths).not.toContain("/v1/walmart/product");
     for (const path of paths) {
-      expect(typeof endpointAt(client, path)).toBe("function");
+      expect(endpointAt(client, path)).toBeFunction();
     }
   });
 });

@@ -61,7 +61,7 @@ describe("Stophy client construction", () => {
 
   test("accepts an API key string", () => {
     const client = new Stophy("st_test");
-    expect(typeof client.youtube.search).toBe("function");
+    expect(client.youtube.search).toBeFunction();
   });
 
   test("reads API key and base URL from the environment", async () => {

@@ -1,3 +1,4 @@
+import { type JsonValue, isRecord } from "../../packages/typescript/src/json";
 import { Stophy, type StophyOptions } from "../../packages/typescript/src/index";
 
 export interface CapturedRequest {
@@ -75,28 +76,21 @@ export function queryOf(url: string): Record<string, string> {
   return Object.fromEntries(new URL(url).searchParams.entries());
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 export async function specPaths(): Promise<string[]> {
   const text = await Bun.file(new URL("../../openapi.json", import.meta.url)).text();
-  const document: unknown = JSON.parse(text);
+  const document: JsonValue = JSON.parse(text);
   if (!isRecord(document) || !isRecord(document.paths)) {
     throw new Error("openapi.json has no paths");
   }
   return Object.keys(document.paths);
 }
 
-export function endpointAt(root: object, path: string): unknown {
+export function endpointAt(root: Stophy, path: string): object | undefined {
   const parts = path.split("/").filter((part) => part.length > 0 && part !== "v1");
   let node: object = root;
-  for (const [index, part] of parts.entries()) {
+  for (const part of parts) {
     const value = Object.getOwnPropertyDescriptor(node, part)?.value;
-    if (index === parts.length - 1) return value;
-    if (typeof value !== "function" && !isRecord(value)) {
-      throw new Error(`${path} is missing ${part}`);
-    }
+    if (!(value instanceof Object)) return undefined;
     node = value;
   }
   return node;

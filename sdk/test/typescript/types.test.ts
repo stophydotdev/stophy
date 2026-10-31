@@ -51,9 +51,9 @@ export async function typedCalls(): Promise<void> {
   // @ts-expect-error the sort is named sort
   await client.amazon.search({ query: "tv", sortBy: "priceLow" });
   // @ts-expect-error the video list is results
-  profile.data.posts;
+  void profile.data.posts;
   // @ts-expect-error the post count is posts
-  instagram.data.postCount;
+  void instagram.data.postCount;
   // @ts-expect-error retired endpoints are not in the client
   await client.walmart.search({ query: "tv" });
   // @ts-expect-error format is gone
