@@ -121,7 +121,7 @@ const AREAS: Area[] = [
   },
 ];
 
-const KEYLESS_LIVE_RESPONSES: Record<string, JsonObject> = {
+const KEYLESS_LIVE_RESPONSES = new Map(Object.entries<JsonObject>({
   "google.search": {
     "success": true,
     "data": {
@@ -198,7 +198,7 @@ const KEYLESS_LIVE_RESPONSES: Record<string, JsonObject> = {
     "creditsUsed": 1,
     "requestId": "b61dc157-0de6-43fd-97ae-564b39d62bdf"
   }
-};
+}));
 
 function stringSample(key: string, format: string | undefined, enumValues: readonly Json[] | undefined): string {
   if (Array.isArray(enumValues) && typeof enumValues[0] === "string") return enumValues[0];
@@ -265,7 +265,7 @@ function dataSchema(op: CatalogEndpoint, spec: JsonObject): Json | undefined {
 }
 
 function responseSample(op: CatalogEndpoint, spec: JsonObject): JsonObject {
-  const live = KEYLESS_LIVE_RESPONSES[op.id];
+  const live = KEYLESS_LIVE_RESPONSES.get(op.id);
   if (live !== undefined) return live;
   const data = sampleFor(dataSchema(op, spec), "data");
   return { success: true, data, creditsUsed: op.credits ?? 1, requestId: crypto.randomUUID() };

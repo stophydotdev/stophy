@@ -5,7 +5,7 @@ const root = new URL("..", import.meta.url);
 const file = (path: string) => new URL(path, root);
 const SNIPPETS_DIR = "snippets/examples";
 
-const FALLBACK_EXAMPLES: Record<string, JsonObject> = {
+const FALLBACK_EXAMPLES = new Map(Object.entries<JsonObject>({
   "reddit.post": { postUrl: "https://www.reddit.com/r/programming/comments/1abc2de/example_post/" },
   "reddit.discussions": { postUrl: "https://www.reddit.com/r/programming/comments/1abc2de/example_post/" },
   "google.maps.place": { placeId: "ChIJN1t_tDeuEmsRUsoyG83frY4" },
@@ -48,7 +48,7 @@ const FALLBACK_EXAMPLES: Record<string, JsonObject> = {
   "amazon.reviews": { productUrl: "https://www.amazon.com/dp/B0CX23V2ZK" },
   "realtor.property": { propertyUrl: "https://www.realtor.com/realestateandhomes-detail/6700-Tulloch-Way_Austin_TX_78754_M83959-32351" },
   "luma.event": { event: "https://luma.com/d8y4gf2p" },
-};
+}));
 
 const toSnakeCase = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
 const pythonKey = (name: string) => (name === "from" ? "from_" : toSnakeCase(name));
@@ -132,15 +132,15 @@ function dataProperties(op: CatalogEndpoint, spec: JsonObject): string[] {
   return isObject(first) ? Object.keys((first.properties as JsonObject | undefined) ?? {}).filter((field) => field !== "cursor") : [];
 }
 
-const PRIMARY_FIELD_OVERRIDES: Record<string, string> = {
+const PRIMARY_FIELD_OVERRIDES = new Map(Object.entries({
   "youtube.transcript": "text",
   "tiktok.transcript": "text",
   "instagram.transcript": "text",
   "youtube.video": "title",
-};
+}));
 
 function primaryField(op: CatalogEndpoint, spec: JsonObject): string | undefined {
-  const override = PRIMARY_FIELD_OVERRIDES[op.id];
+  const override = PRIMARY_FIELD_OVERRIDES.get(op.id);
   if (override !== undefined) return override;
   return dataProperties(op, spec).includes("results") ? "results" : undefined;
 }
@@ -212,14 +212,14 @@ function cliSnippet(op: CatalogEndpoint): string {
 const rawCatalog = await fetchCatalog();
 const spec = (await Bun.file(file("api-reference/openapi.json")).json()) as JsonObject;
 
-const EXAMPLE_OVERRIDES: Record<string, JsonObject> = {
+const EXAMPLE_OVERRIDES = new Map(Object.entries<JsonObject>({
   "youtube.transcript": { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-};
+}));
 
 const catalog: CatalogEndpoint[] = rawCatalog.endpoints.map((op) => {
-  const override = EXAMPLE_OVERRIDES[op.id];
+  const override = EXAMPLE_OVERRIDES.get(op.id);
   if (override !== undefined) return { ...op, example: override };
-  return isObject(op.example) ? op : { ...op, example: FALLBACK_EXAMPLES[op.id] };
+  return isObject(op.example) ? op : { ...op, example: FALLBACK_EXAMPLES.get(op.id) };
 });
 
 const missingExample = catalog.filter((op) => !isObject(op.example));

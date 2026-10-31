@@ -201,7 +201,7 @@ function endpointPage(op: Operation): string {
   return [...header, ...example.imports, "", GENERATED, "", ...text, ""].join("\n");
 }
 
-function exampleSection(op: Operation): { imports: string[]; body: string[]; length: number } {
+function exampleSection(op: Operation) {
   const dir = `/snippets/examples/${op.id}`;
   const langs: { file: string; component: string }[] = [
     { file: "ts", component: "TsExample" },

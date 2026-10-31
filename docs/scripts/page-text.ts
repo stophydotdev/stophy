@@ -61,7 +61,7 @@ function linkIds(text: string, input: PageInput): string {
   return text.replace(pattern, (id) => `[${input.label(id)}](/api-reference/endpoint/${input.slug(id)})`);
 }
 
-const THIRD_PERSON: Record<string, string> = {
+const THIRD_PERSON = new Map(Object.entries({
   Get: "Returns",
   Search: "Searches",
   Find: "Finds",
@@ -71,12 +71,12 @@ const THIRD_PERSON: Record<string, string> = {
   See: "Returns",
   List: "Lists",
   Pull: "Extracts",
-};
+}));
 
 function thirdPerson(summary: string): string {
   const text = summary.replace(/\.$/, "");
   const [first = "", ...rest] = text.split(" ");
-  const verb = THIRD_PERSON[first];
+  const verb = THIRD_PERSON.get(first);
   const likened = (line: string) => line.replace(/ and get /g, " and returns ").replace(/, and get /g, ", and returns ").replace(/ and open /g, " and opens ").replace(/ and see /g, " and returns ").replace(/ and read /g, " and reads ").replace(/ and list /g, " and lists ").replace(/, or read /g, ", or returns ").replace(/\. Get /g, ". Returns ").replace(/\. Read /g, ". Returns ").replace(/, like (its|the|Reddit's) /, ", equivalent to $1 ").replace(/, like /, ", such as ");
   if (verb !== undefined) return likened([verb, ...rest].join(" ")).replace(/^Sends a question to Google AI Mode a question and get/, "Sends a question to Google AI Mode and returns");
   if (/^(A|An|The) /.test(text)) return `Returns ${lowerFirst(text)}`;
@@ -90,14 +90,14 @@ function whatYouGet(summary: string): string {
 function whenToUse(op: CatalogEndpoint): string {
   const one = sendOne(op);
   if (one.length === 0) return "";
-  const kinds: Record<string, string> = { Url: "URL", Id: "ID", Code: "code" };
+  const kinds = new Map(Object.entries({ Url: "URL", Id: "ID", Code: "code" }));
   const things: string[] = [];
   const forms: string[] = [];
   for (const field of one) {
     const suffix = field.match(/(Url|Id|Code)$/)?.[1];
     const thing = suffix === undefined ? field.replace(/name$/, "") : field.slice(0, -suffix.length);
     if (!things.includes(thing)) things.push(thing);
-    const form = suffix === undefined ? field : (kinds[suffix] ?? field);
+    const form = suffix === undefined ? field : (kinds.get(suffix) ?? field);
     if (!forms.includes(form)) forms.push(form);
   }
   if (things.join() === forms.join()) return "";
@@ -110,7 +110,7 @@ function bestWhenNotes(op: CatalogEndpoint, config: TextConfig): string[] {
   const sentences = (op.bestWhen ?? "").split(/(?<=\.)\s/).filter(Boolean);
   const advice = /^(Best for|Best when|When )/.test(sentences[0] ?? "");
   const rest = advice ? sentences.slice(1) : sentences;
-  return rest.filter((text) => !/^Costs /.test(text));
+  return rest.filter((text) => !text.startsWith("Costs "));
 }
 
 function requestLine(op: CatalogEndpoint, config: TextConfig): string {
@@ -156,7 +156,7 @@ function* walk(schema: Json | undefined): Generator<[string, JsonObject]> {
   }
 }
 
-function schemaNotes(schema: JsonObject | undefined): Record<string, string> {
+function schemaNotes(schema: JsonObject | undefined) {
   const notes: Record<string, string> = {};
   for (const [name, child] of walk(schema)) {
     if (typeof child.description === "string" && notes[name] === undefined) notes[name] = child.description;
@@ -340,8 +340,8 @@ const NEUTRAL: [RegExp, string][] = [
 
 function formal(text: string): string {
   const rule = FORMAL.find(([pattern]) => pattern.test(text));
-  const shaped = rule === undefined ? text : text.replace(rule[0], rule[1]);
-  return NEUTRAL.reduce((line, [pattern, to]) => line.replace(pattern, to), shaped);
+  const rewritten = rule === undefined ? text : text.replace(rule[0], rule[1]);
+  return NEUTRAL.reduce((line, [pattern, to]) => line.replace(pattern, to), rewritten);
 }
 
 const GENERIC_TEXT: [RegExp, string][] = [
@@ -404,7 +404,6 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
   if (schema.type === "number") return `${range(schema.minimum, schema.maximum, "")}${defaultText}`.trim();
   if (schema.type === "array") {
     const items = isObject(schema.items) ? schema.items : {};
-    const most = typeof schema.maxItems === "number" ? `, up to ${schema.maxItems}` : "";
     const cap = typeof schema.maxItems === "number" ? ` Accepts up to ${schema.maxItems} values.` : "";
     if (Array.isArray(items.enum)) return `${choices(items.enum)}${cap}`;
     return cap.trim();
@@ -474,13 +473,13 @@ function costSection(input: PageInput): string[] {
   ];
 }
 
-const ALIASES: Record<string, string[]> = {
+const ALIASES = new Map(Object.entries({
   username: ["username", "authorUsername"],
   userUrl: ["userUrl", "authorUrl"],
   subreddit: ["subreddit", "subredditName"],
-};
+}));
 
-const identityInput = (name: string) => /(Url|Id|Code)$/.test(name) || name in ALIASES;
+const identityInput = (name: string) => /(Url|Id|Code)$/.test(name) || ALIASES.has(name);
 
 interface Link {
   id: string;
@@ -498,7 +497,7 @@ function derivedLinks(input: PageInput): Link[] {
     if (other.id === endpoint.id || other.id.split(".")[0] !== family) continue;
     if (narrowFamily && other.id.split(".").slice(0, 2).join(".") !== pair) continue;
     const identities = [...new Set([...sendOne(other), ...required(other)])].filter(identityInput);
-    const sends = identities.filter((name) => (ALIASES[name] ?? [name]).some((alias) => returned.has(alias)));
+    const sends = identities.filter((name) => (ALIASES.get(name) ?? [name]).some((alias) => returned.has(alias)));
     if (sends.length === 0) continue;
     const exact = sends.filter((name) => returned.has(name));
     const score = (exact.length > 0 ? 2 : 1) + (other.id.startsWith(endpoint.id.split(".").slice(0, 2).join(".")) ? 1 : 0);
