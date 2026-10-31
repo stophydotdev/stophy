@@ -1,5 +1,11 @@
 # @stophy/cli
 
+## 1.2.0
+
+### Patch Changes
+
+- `stophy web scrape --urls` prints each page's text, or its error, under its link. Before, it printed only the links.
+
 ## 2.0.9
 
 ### Patch Changes
