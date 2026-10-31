@@ -421,10 +421,7 @@ RedditUserSort = Literal[
     "controversial",
 ]
 
-RedditSubredditsSort = Literal[
-    "popular",
-    "newest",
-]
+RedditSubredditsSort = Literal["popular",]
 
 GoogleMapsSearchMinRating = Literal[
     2,
@@ -551,6 +548,39 @@ ZillowSearchResponseDataResultsItemStatus = Literal[
     "forRent",
     "sold",
     "other",
+]
+
+RealtorSearchSort = Literal[
+    "relevance",
+    "newest",
+    "priceLow",
+    "priceHigh",
+]
+
+CraigslistSearchCategory = Literal[
+    "forSale",
+    "carsAndTrucks",
+    "apartments",
+    "housing",
+    "jobs",
+    "gigs",
+    "services",
+    "free",
+]
+
+LumaEventsCategory = Literal[
+    "ai",
+    "arts",
+    "books",
+    "climate",
+    "crypto",
+    "family",
+    "fitness",
+    "food",
+    "games",
+    "running",
+    "tech",
+    "wellness",
 ]
 
 UpworkSearchSort = Literal[
@@ -907,6 +937,12 @@ BookingHotelReviewsSort = Literal[
     "newest",
     "mostRelevant",
     "lowestScore",
+]
+
+ExpediaHotelsSort = Literal[
+    "relevance",
+    "priceLow",
+    "rating",
 ]
 
 AmazonSearchSort = Literal[
@@ -2124,11 +2160,9 @@ class RedditSearchResponseDataResultsItemOption2(TypedDict):
     userId: NotRequired[str]
     username: NotRequired[str]
     userUrl: str
-    postKarma: NotRequired[int]
-    commentKarma: NotRequired[int]
+    karma: NotRequired[int]
     createdAt: NotRequired[str]
     avatarUrl: NotRequired[str]
-    isVerified: bool
 
 
 class RedditSearchResponseData(TypedDict):
@@ -2243,8 +2277,7 @@ class RedditUserResponseData(TypedDict):
     userId: NotRequired[str]
     username: NotRequired[str]
     userUrl: NotRequired[str]
-    postKarma: NotRequired[int]
-    commentKarma: NotRequired[int]
+    karma: NotRequired[int]
     createdAt: NotRequired[str]
     avatarUrl: NotRequired[str]
     results: list[
@@ -2262,7 +2295,6 @@ class RedditUserResponse(TypedDict):
 
 class RedditDiscussionsResponseData(TypedDict):
     results: list[RedditSearchResponseDataResultsItemOption0]
-    cursor: NotRequired[str]
 
 
 class RedditDiscussionsResponse(TypedDict):
@@ -3182,6 +3214,220 @@ class ZillowPropertyResponse(TypedDict):
     requestId: str
 
 
+class RealtorSearchResponseDataResultsItem(TypedDict):
+    propertyId: NotRequired[str]
+    propertyUrl: str
+    status: ZillowSearchResponseDataResultsItemStatus
+    isPending: bool
+    price: NotRequired[float]
+    priceMax: NotRequired[float]
+    priceCurrency: Literal["USD"]
+    addressFull: NotRequired[str]
+    addressStreet: NotRequired[str]
+    addressCity: NotRequired[str]
+    addressRegion: NotRequired[str]
+    addressPostalCode: NotRequired[str]
+    latitude: NotRequired[float]
+    longitude: NotRequired[float]
+    bedrooms: NotRequired[float]
+    bedroomsMax: NotRequired[float]
+    bathrooms: NotRequired[float]
+    sqft: NotRequired[float]
+    lotSqft: NotRequired[float]
+    yearBuilt: NotRequired[int]
+    homeType: NotRequired[str]
+    monthlyHoa: NotRequired[float]
+    listedOn: NotRequired[str]
+    lastSoldOn: NotRequired[str]
+    lastSoldPrice: NotRequired[float]
+    imageUrl: NotRequired[str]
+
+
+class RealtorSearchResponseData(TypedDict):
+    totalResults: int
+    results: list[RealtorSearchResponseDataResultsItem]
+
+
+class RealtorSearchResponse(TypedDict):
+    success: Literal[True]
+    data: RealtorSearchResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class RealtorPropertyResponseDataPriceHistoryItem(TypedDict):
+    date: str
+    event: NotRequired[str]
+    price: NotRequired[float]
+
+
+class RealtorPropertyResponseDataTaxHistoryItem(TypedDict):
+    year: int
+    tax: NotRequired[float]
+    assessedValue: NotRequired[float]
+
+
+class RealtorPropertyResponseDataSchoolsItem(TypedDict):
+    name: NotRequired[str]
+    rating: NotRequired[float]
+    levels: NotRequired[list[str]]
+    fundingType: NotRequired[str]
+    distanceMiles: NotRequired[float]
+
+
+class RealtorPropertyResponseData(TypedDict):
+    propertyId: NotRequired[str]
+    propertyUrl: str
+    status: ZillowSearchResponseDataResultsItemStatus
+    isPending: bool
+    price: NotRequired[float]
+    priceMax: NotRequired[float]
+    priceCurrency: Literal["USD"]
+    addressFull: NotRequired[str]
+    addressStreet: NotRequired[str]
+    addressCity: NotRequired[str]
+    addressRegion: NotRequired[str]
+    addressPostalCode: NotRequired[str]
+    latitude: NotRequired[float]
+    longitude: NotRequired[float]
+    bedrooms: NotRequired[float]
+    bedroomsMax: NotRequired[float]
+    bathrooms: NotRequired[float]
+    sqft: NotRequired[float]
+    lotSqft: NotRequired[float]
+    yearBuilt: NotRequired[int]
+    homeType: NotRequired[str]
+    monthlyHoa: NotRequired[float]
+    listedOn: NotRequired[str]
+    lastSoldOn: NotRequired[str]
+    lastSoldPrice: NotRequired[float]
+    imageUrl: NotRequired[str]
+    description: NotRequired[str]
+    garageSpaces: NotRequired[float]
+    stories: NotRequired[float]
+    imageUrls: list[str]
+    agentName: NotRequired[str]
+    agentEmail: NotRequired[str]
+    agentPhone: NotRequired[str]
+    brokerName: NotRequired[str]
+    priceHistory: list[RealtorPropertyResponseDataPriceHistoryItem]
+    taxHistory: list[RealtorPropertyResponseDataTaxHistoryItem]
+    schools: list[RealtorPropertyResponseDataSchoolsItem]
+
+
+class RealtorPropertyResponse(TypedDict):
+    success: Literal[True]
+    data: RealtorPropertyResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class CraigslistSearchResponseDataResultsItem(TypedDict):
+    listingId: NotRequired[str]
+    listingUrl: str
+    title: NotRequired[str]
+    price: NotRequired[float]
+    location: NotRequired[str]
+    latitude: NotRequired[float]
+    longitude: NotRequired[float]
+    bedrooms: NotRequired[int]
+    sqft: NotRequired[int]
+    imageUrl: NotRequired[str]
+    publishedAt: str
+
+
+class CraigslistSearchResponseData(TypedDict):
+    totalResults: int
+    results: list[CraigslistSearchResponseDataResultsItem]
+
+
+class CraigslistSearchResponse(TypedDict):
+    success: Literal[True]
+    data: CraigslistSearchResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class LumaEventsResponseDataResultsItem(TypedDict):
+    eventId: NotRequired[str]
+    eventUrl: str
+    name: NotRequired[str]
+    startsAt: str
+    endsAt: NotRequired[str]
+    timezone: NotRequired[str]
+    isOnline: bool
+    city: NotRequired[str]
+    address: NotRequired[str]
+    latitude: NotRequired[float]
+    longitude: NotRequired[float]
+    calendarName: NotRequired[str]
+    hosts: NotRequired[list[str]]
+    guestCount: int
+    isFree: bool
+    price: NotRequired[float]
+    currency: NotRequired[str]
+    isSoldOut: bool
+    spotsRemaining: NotRequired[int]
+    needsApproval: bool
+    hasWaitlist: bool
+    imageUrl: NotRequired[str]
+
+
+class LumaEventsResponseData(TypedDict):
+    city: NotRequired[str]
+    results: list[LumaEventsResponseDataResultsItem]
+    cursor: NotRequired[str]
+
+
+class LumaEventsResponse(TypedDict):
+    success: Literal[True]
+    data: LumaEventsResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class LumaEventResponseDataTicketTypesItem(TypedDict):
+    name: NotRequired[str]
+    price: NotRequired[float]
+    currency: NotRequired[str]
+    needsApproval: bool
+
+
+class LumaEventResponseData(TypedDict):
+    eventId: NotRequired[str]
+    eventUrl: str
+    name: NotRequired[str]
+    startsAt: str
+    endsAt: NotRequired[str]
+    timezone: NotRequired[str]
+    isOnline: bool
+    city: NotRequired[str]
+    address: NotRequired[str]
+    latitude: NotRequired[float]
+    longitude: NotRequired[float]
+    calendarName: NotRequired[str]
+    hosts: list[str]
+    guestCount: int
+    isFree: bool
+    price: NotRequired[float]
+    currency: NotRequired[str]
+    isSoldOut: bool
+    spotsRemaining: NotRequired[int]
+    needsApproval: bool
+    hasWaitlist: bool
+    imageUrl: NotRequired[str]
+    description: NotRequired[str]
+    categories: list[str]
+    ticketTypes: list[LumaEventResponseDataTicketTypesItem]
+
+
+class LumaEventResponse(TypedDict):
+    success: Literal[True]
+    data: LumaEventResponseData
+    creditsUsed: int
+    requestId: str
+
+
 class UpworkSearchResponseDataResultsItem(TypedDict):
     jobId: NotRequired[str]
     jobUrl: str
@@ -3956,6 +4202,33 @@ class BookingHotelReviewsResponseData(TypedDict):
 class BookingHotelReviewsResponse(TypedDict):
     success: Literal[True]
     data: BookingHotelReviewsResponseData
+    creditsUsed: int
+    requestId: str
+
+
+class ExpediaHotelsResponseDataResultsItem(TypedDict):
+    hotelId: NotRequired[str]
+    hotelUrl: str
+    name: NotRequired[str]
+    neighborhood: NotRequired[str]
+    rating: NotRequired[float]
+    ratingText: NotRequired[str]
+    reviewCount: NotRequired[int]
+    nightlyPrice: NotRequired[float]
+    totalPrice: NotRequired[float]
+    totalPriceBefore: NotRequired[float]
+    currency: Literal["USD"]
+    imageUrl: NotRequired[str]
+
+
+class ExpediaHotelsResponseData(TypedDict):
+    totalResults: NotRequired[int]
+    results: list[ExpediaHotelsResponseDataResultsItem]
+
+
+class ExpediaHotelsResponse(TypedDict):
+    success: Literal[True]
+    data: ExpediaHotelsResponseData
     creditsUsed: int
     requestId: str
 

@@ -33,11 +33,15 @@ from .models import (
     CareersJobResponse,
     CareersJobsResponse,
     ChatgptSearchResponse,
+    CraigslistSearchCategory,
+    CraigslistSearchResponse,
     EbayItemResponse,
     EbaySearchCondition,
     EbaySearchResponse,
     EbaySearchSort,
     EndpointCatalog,
+    ExpediaHotelsResponse,
+    ExpediaHotelsSort,
     FacebookMarketplaceSearchResponse,
     FacebookMarketplaceSearchSort,
     FacebookPagePostsResponse,
@@ -125,6 +129,9 @@ from .models import (
     LinkedinJobsSearchResponse,
     LinkedinPostsResponse,
     LinkedinProfileResponse,
+    LumaEventResponse,
+    LumaEventsCategory,
+    LumaEventsResponse,
     MetaAdsAdResponse,
     MetaAdsPageMediaType,
     MetaAdsPagePlatformsItem,
@@ -135,6 +142,9 @@ from .models import (
     PinterestProfileResponse,
     PinterestSearchResponse,
     PinterestSearchType,
+    RealtorPropertyResponse,
+    RealtorSearchResponse,
+    RealtorSearchSort,
     RedditDiscussionsResponse,
     RedditPostResponse,
     RedditPostSort,
@@ -1712,13 +1722,11 @@ class SyncRedditDiscussions:
         *,
         post_url: str | None = None,
         post_id: str | None = None,
-        cursor: str | None = None,
     ) -> RedditDiscussionsResponse:
         body = _omit_none(
             {
                 "postUrl": post_url,
                 "postId": post_id,
-                "cursor": cursor,
             }
         )
         return self._call("POST", "/v1/reddit/discussions", body)
@@ -2598,6 +2606,159 @@ class SyncZillow:
         self.property = SyncZillowProperty(call)
 
 
+class SyncRealtorSearch:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        location: str,
+        status: ZillowSearchStatus | None = None,
+        min_price: int | None = None,
+        max_price: int | None = None,
+        min_bedrooms: int | None = None,
+        max_bedrooms: int | None = None,
+        min_bathrooms: float | None = None,
+        min_sqft: int | None = None,
+        max_sqft: int | None = None,
+        home_types: list[ZillowSearchHomeTypesItem] | None = None,
+        sort: RealtorSearchSort | None = None,
+        page: int | None = None,
+    ) -> RealtorSearchResponse:
+        body = _omit_none(
+            {
+                "location": location,
+                "status": status,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "minBedrooms": min_bedrooms,
+                "maxBedrooms": max_bedrooms,
+                "minBathrooms": min_bathrooms,
+                "minSqft": min_sqft,
+                "maxSqft": max_sqft,
+                "homeTypes": home_types,
+                "sort": sort,
+                "page": page,
+            }
+        )
+        return self._call("POST", "/v1/realtor/search", body)
+
+
+class SyncRealtorProperty:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        property_url: str | None = None,
+        property_id: str | None = None,
+    ) -> RealtorPropertyResponse:
+        body = _omit_none(
+            {
+                "propertyUrl": property_url,
+                "propertyId": property_id,
+            }
+        )
+        return self._call("POST", "/v1/realtor/property", body)
+
+
+class SyncRealtor:
+    search: SyncRealtorSearch
+    property: SyncRealtorProperty
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.search = SyncRealtorSearch(call)
+        self.property = SyncRealtorProperty(call)
+
+
+class SyncCraigslistSearch:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        zip_code: str,
+        query: str | None = None,
+        radius: int | None = None,
+        category: CraigslistSearchCategory | None = None,
+        min_price: int | None = None,
+        max_price: int | None = None,
+        limit: int | None = None,
+    ) -> CraigslistSearchResponse:
+        body = _omit_none(
+            {
+                "zipCode": zip_code,
+                "query": query,
+                "radius": radius,
+                "category": category,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "limit": limit,
+            }
+        )
+        return self._call("POST", "/v1/craigslist/search", body)
+
+
+class SyncCraigslist:
+    search: SyncCraigslistSearch
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.search = SyncCraigslistSearch(call)
+
+
+class SyncLumaEvents:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        city: str,
+        category: LumaEventsCategory | None = None,
+        cursor: str | None = None,
+    ) -> LumaEventsResponse:
+        body = _omit_none(
+            {
+                "city": city,
+                "category": category,
+                "cursor": cursor,
+            }
+        )
+        return self._call("POST", "/v1/luma/events", body)
+
+
+class SyncLumaEvent:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        event: str,
+    ) -> LumaEventResponse:
+        body = _omit_none(
+            {
+                "event": event,
+            }
+        )
+        return self._call("POST", "/v1/luma/event", body)
+
+
+class SyncLuma:
+    events: SyncLumaEvents
+    event: SyncLumaEvent
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.events = SyncLumaEvents(call)
+        self.event = SyncLumaEvent(call)
+
+
 class SyncUpworkSearch:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
@@ -3093,6 +3254,41 @@ class SyncBooking:
         self._call = call
         self.search = SyncBookingSearch(call)
         self.hotel = SyncBookingHotel(call)
+
+
+class SyncExpediaHotels:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        location: str,
+        check_in: str | None = None,
+        check_out: str | None = None,
+        adults: int | None = None,
+        sort: ExpediaHotelsSort | None = None,
+        page: int | None = None,
+    ) -> ExpediaHotelsResponse:
+        body = _omit_none(
+            {
+                "location": location,
+                "checkIn": check_in,
+                "checkOut": check_out,
+                "adults": adults,
+                "sort": sort,
+                "page": page,
+            }
+        )
+        return self._call("POST", "/v1/expedia/hotels", body)
+
+
+class SyncExpedia:
+    hotels: SyncExpediaHotels
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.hotels = SyncExpediaHotels(call)
 
 
 class SyncAmazonSearch:
@@ -4003,6 +4199,9 @@ class SyncSurface:
     meta: SyncMeta
     linkedin: SyncLinkedin
     zillow: SyncZillow
+    realtor: SyncRealtor
+    craigslist: SyncCraigslist
+    luma: SyncLuma
     upwork: SyncUpwork
     indeed: SyncIndeed
     careers: SyncCareers
@@ -4010,6 +4209,7 @@ class SyncSurface:
     tripadvisor: SyncTripadvisor
     yelp: SyncYelp
     booking: SyncBooking
+    expedia: SyncExpedia
     amazon: SyncAmazon
     appstore: SyncAppstore
     pinterest: SyncPinterest
@@ -4033,6 +4233,9 @@ class SyncSurface:
         self.meta = SyncMeta(call)
         self.linkedin = SyncLinkedin(call)
         self.zillow = SyncZillow(call)
+        self.realtor = SyncRealtor(call)
+        self.craigslist = SyncCraigslist(call)
+        self.luma = SyncLuma(call)
         self.upwork = SyncUpwork(call)
         self.indeed = SyncIndeed(call)
         self.careers = SyncCareers(call)
@@ -4040,6 +4243,7 @@ class SyncSurface:
         self.tripadvisor = SyncTripadvisor(call)
         self.yelp = SyncYelp(call)
         self.booking = SyncBooking(call)
+        self.expedia = SyncExpedia(call)
         self.amazon = SyncAmazon(call)
         self.appstore = SyncAppstore(call)
         self.pinterest = SyncPinterest(call)
@@ -5502,13 +5706,11 @@ class AsyncRedditDiscussions:
         *,
         post_url: str | None = None,
         post_id: str | None = None,
-        cursor: str | None = None,
     ) -> RedditDiscussionsResponse:
         body = _omit_none(
             {
                 "postUrl": post_url,
                 "postId": post_id,
-                "cursor": cursor,
             }
         )
         return await self._call("POST", "/v1/reddit/discussions", body)
@@ -6388,6 +6590,159 @@ class AsyncZillow:
         self.property = AsyncZillowProperty(call)
 
 
+class AsyncRealtorSearch:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        location: str,
+        status: ZillowSearchStatus | None = None,
+        min_price: int | None = None,
+        max_price: int | None = None,
+        min_bedrooms: int | None = None,
+        max_bedrooms: int | None = None,
+        min_bathrooms: float | None = None,
+        min_sqft: int | None = None,
+        max_sqft: int | None = None,
+        home_types: list[ZillowSearchHomeTypesItem] | None = None,
+        sort: RealtorSearchSort | None = None,
+        page: int | None = None,
+    ) -> RealtorSearchResponse:
+        body = _omit_none(
+            {
+                "location": location,
+                "status": status,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "minBedrooms": min_bedrooms,
+                "maxBedrooms": max_bedrooms,
+                "minBathrooms": min_bathrooms,
+                "minSqft": min_sqft,
+                "maxSqft": max_sqft,
+                "homeTypes": home_types,
+                "sort": sort,
+                "page": page,
+            }
+        )
+        return await self._call("POST", "/v1/realtor/search", body)
+
+
+class AsyncRealtorProperty:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        property_url: str | None = None,
+        property_id: str | None = None,
+    ) -> RealtorPropertyResponse:
+        body = _omit_none(
+            {
+                "propertyUrl": property_url,
+                "propertyId": property_id,
+            }
+        )
+        return await self._call("POST", "/v1/realtor/property", body)
+
+
+class AsyncRealtor:
+    search: AsyncRealtorSearch
+    property: AsyncRealtorProperty
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.search = AsyncRealtorSearch(call)
+        self.property = AsyncRealtorProperty(call)
+
+
+class AsyncCraigslistSearch:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        zip_code: str,
+        query: str | None = None,
+        radius: int | None = None,
+        category: CraigslistSearchCategory | None = None,
+        min_price: int | None = None,
+        max_price: int | None = None,
+        limit: int | None = None,
+    ) -> CraigslistSearchResponse:
+        body = _omit_none(
+            {
+                "zipCode": zip_code,
+                "query": query,
+                "radius": radius,
+                "category": category,
+                "minPrice": min_price,
+                "maxPrice": max_price,
+                "limit": limit,
+            }
+        )
+        return await self._call("POST", "/v1/craigslist/search", body)
+
+
+class AsyncCraigslist:
+    search: AsyncCraigslistSearch
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.search = AsyncCraigslistSearch(call)
+
+
+class AsyncLumaEvents:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        city: str,
+        category: LumaEventsCategory | None = None,
+        cursor: str | None = None,
+    ) -> LumaEventsResponse:
+        body = _omit_none(
+            {
+                "city": city,
+                "category": category,
+                "cursor": cursor,
+            }
+        )
+        return await self._call("POST", "/v1/luma/events", body)
+
+
+class AsyncLumaEvent:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        event: str,
+    ) -> LumaEventResponse:
+        body = _omit_none(
+            {
+                "event": event,
+            }
+        )
+        return await self._call("POST", "/v1/luma/event", body)
+
+
+class AsyncLuma:
+    events: AsyncLumaEvents
+    event: AsyncLumaEvent
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.events = AsyncLumaEvents(call)
+        self.event = AsyncLumaEvent(call)
+
+
 class AsyncUpworkSearch:
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
@@ -6883,6 +7238,41 @@ class AsyncBooking:
         self._call = call
         self.search = AsyncBookingSearch(call)
         self.hotel = AsyncBookingHotel(call)
+
+
+class AsyncExpediaHotels:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        location: str,
+        check_in: str | None = None,
+        check_out: str | None = None,
+        adults: int | None = None,
+        sort: ExpediaHotelsSort | None = None,
+        page: int | None = None,
+    ) -> ExpediaHotelsResponse:
+        body = _omit_none(
+            {
+                "location": location,
+                "checkIn": check_in,
+                "checkOut": check_out,
+                "adults": adults,
+                "sort": sort,
+                "page": page,
+            }
+        )
+        return await self._call("POST", "/v1/expedia/hotels", body)
+
+
+class AsyncExpedia:
+    hotels: AsyncExpediaHotels
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.hotels = AsyncExpediaHotels(call)
 
 
 class AsyncAmazonSearch:
@@ -7793,6 +8183,9 @@ class AsyncSurface:
     meta: AsyncMeta
     linkedin: AsyncLinkedin
     zillow: AsyncZillow
+    realtor: AsyncRealtor
+    craigslist: AsyncCraigslist
+    luma: AsyncLuma
     upwork: AsyncUpwork
     indeed: AsyncIndeed
     careers: AsyncCareers
@@ -7800,6 +8193,7 @@ class AsyncSurface:
     tripadvisor: AsyncTripadvisor
     yelp: AsyncYelp
     booking: AsyncBooking
+    expedia: AsyncExpedia
     amazon: AsyncAmazon
     appstore: AsyncAppstore
     pinterest: AsyncPinterest
@@ -7823,6 +8217,9 @@ class AsyncSurface:
         self.meta = AsyncMeta(call)
         self.linkedin = AsyncLinkedin(call)
         self.zillow = AsyncZillow(call)
+        self.realtor = AsyncRealtor(call)
+        self.craigslist = AsyncCraigslist(call)
+        self.luma = AsyncLuma(call)
         self.upwork = AsyncUpwork(call)
         self.indeed = AsyncIndeed(call)
         self.careers = AsyncCareers(call)
@@ -7830,6 +8227,7 @@ class AsyncSurface:
         self.tripadvisor = AsyncTripadvisor(call)
         self.yelp = AsyncYelp(call)
         self.booking = AsyncBooking(call)
+        self.expedia = AsyncExpedia(call)
         self.amazon = AsyncAmazon(call)
         self.appstore = AsyncAppstore(call)
         self.pinterest = AsyncPinterest(call)

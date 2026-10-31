@@ -206,6 +206,21 @@ import type {
   ZillowPropertyData,
   ZillowPropertyResponse,
   ZillowPropertyError,
+  RealtorSearchData,
+  RealtorSearchResponse,
+  RealtorSearchError,
+  RealtorPropertyData,
+  RealtorPropertyResponse,
+  RealtorPropertyError,
+  CraigslistSearchData,
+  CraigslistSearchResponse,
+  CraigslistSearchError,
+  LumaEventsData,
+  LumaEventsResponse,
+  LumaEventsError,
+  LumaEventData,
+  LumaEventResponse,
+  LumaEventError,
   UpworkSearchData,
   UpworkSearchResponse,
   UpworkSearchError,
@@ -272,6 +287,9 @@ import type {
   BookingHotelReviewsData,
   BookingHotelReviewsResponse,
   BookingHotelReviewsError,
+  ExpediaHotelsData,
+  ExpediaHotelsResponse,
+  ExpediaHotelsError,
   AmazonSearchData,
   AmazonSearchResponse,
   AmazonSearchError,
@@ -547,7 +565,7 @@ export const webImages = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape any public web page, or up to 10 at once, as markdown, HTML, links or a screenshot
- * Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost. Works without an API key, within free limits.
+ * Costs 1 credit for most pages. 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 2 credits, or 5 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost. Works without an API key, within free limits.
  */
 export const webScrape = <ThrowOnError extends boolean = false>(
   options: Options<WebScrapeData, ThrowOnError>
@@ -655,7 +673,7 @@ export const webContacts = <ThrowOnError extends boolean = false>(
 
 /**
  * Crawl a website and scrape its pages as markdown
- * Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages. Pages with cursor.
+ * Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages. Pages with cursor.
  */
 export const webCrawl = <ThrowOnError extends boolean = false>(
   options: Options<WebCrawlData, ThrowOnError>
@@ -682,7 +700,7 @@ export const webCrawl = <ThrowOnError extends boolean = false>(
 
 /**
  * Crawl a website in the background
- * Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
  */
 export const webCrawlStart = <ThrowOnError extends boolean = false>(
   options: Options<WebCrawlStartData, ThrowOnError>
@@ -763,7 +781,7 @@ export const webCrawlCancel = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape up to 100 pages in the background
- * Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 2 credits, or 5 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
  */
 export const webBatch = <ThrowOnError extends boolean = false>(
   options: Options<WebBatchData, ThrowOnError>
@@ -1384,7 +1402,7 @@ export const redditUser = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape where else a link was shared on Reddit
- * Costs 1 credit per call. Pages with cursor.
+ * Costs 1 credit per call.
  */
 export const redditDiscussions = <ThrowOnError extends boolean = false>(
   options: Options<RedditDiscussionsData, ThrowOnError>
@@ -1410,7 +1428,7 @@ export const redditDiscussions = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Scrape Reddit's popular or newest communities
+ * Scrape Reddit's popular communities
  * Costs 1 credit per call. Pages with cursor.
  */
 export const redditSubreddits = <ThrowOnError extends boolean = false>(
@@ -1573,7 +1591,7 @@ export const instagramPost = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape an Instagram profile and its posts
- * Costs 2 credits per call. Pages with cursor.
+ * Costs 1 credit per call. Pages with cursor.
  */
 export const instagramProfile = <ThrowOnError extends boolean = false>(
   options: Options<InstagramProfileData, ThrowOnError>
@@ -2113,7 +2131,7 @@ export const linkedinCompany = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape a public LinkedIn profile
- * Costs 2 credits per call.
+ * Costs 1 credit per call.
  */
 export const linkedinProfile = <ThrowOnError extends boolean = false>(
   options: Options<LinkedinProfileData, ThrowOnError>
@@ -2194,7 +2212,7 @@ export const zillowSearch = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape a Zillow property page
- * Costs 2 credits per call.
+ * Costs 1 credit per call.
  */
 export const zillowProperty = <ThrowOnError extends boolean = false>(
   options: Options<ZillowPropertyData, ThrowOnError>
@@ -2211,6 +2229,141 @@ export const zillowProperty = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/v1/zillow/property",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape Realtor.com home listings
+ * Costs 1 credit per call. Pages with page.
+ */
+export const realtorSearch = <ThrowOnError extends boolean = false>(
+  options: Options<RealtorSearchData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RealtorSearchResponse,
+    RealtorSearchError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/realtor/search",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape a Realtor.com property with its history, taxes and schools
+ * Costs 1 credit per call.
+ */
+export const realtorProperty = <ThrowOnError extends boolean = false>(
+  options: Options<RealtorPropertyData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RealtorPropertyResponse,
+    RealtorPropertyError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/realtor/property",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape the newest Craigslist listings near a US ZIP code
+ * Costs 1 credit per 10 listings.
+ */
+export const craigslistSearch = <ThrowOnError extends boolean = false>(
+  options: Options<CraigslistSearchData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CraigslistSearchResponse,
+    CraigslistSearchError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/craigslist/search",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape upcoming Luma events in a city
+ * Costs 1 credit per call. Pages with cursor.
+ */
+export const lumaEvents = <ThrowOnError extends boolean = false>(
+  options: Options<LumaEventsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    LumaEventsResponse,
+    LumaEventsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/luma/events",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Scrape a Luma event's details, tickets and description
+ * Costs 1 credit per call.
+ */
+export const lumaEvent = <ThrowOnError extends boolean = false>(
+  options: Options<LumaEventData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    LumaEventResponse,
+    LumaEventError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/luma/event",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -2814,8 +2967,35 @@ export const bookingHotelReviews = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Scrape Expedia hotel search results with prices for your dates
+ * Costs 1 credit per call. Pages with page.
+ */
+export const expediaHotels = <ThrowOnError extends boolean = false>(
+  options: Options<ExpediaHotelsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ExpediaHotelsResponse,
+    ExpediaHotelsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/expedia/hotels",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
  * Scrape Amazon search results
- * Costs 2 credits per call. Pages with page.
+ * Costs 1 credit per call. Pages with page.
  */
 export const amazonSearch = <ThrowOnError extends boolean = false>(
   options: Options<AmazonSearchData, ThrowOnError>
@@ -2842,7 +3022,7 @@ export const amazonSearch = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape an Amazon product page
- * Costs 2 credits per call.
+ * Costs 1 credit per call.
  */
 export const amazonProduct = <ThrowOnError extends boolean = false>(
   options: Options<AmazonProductData, ThrowOnError>
@@ -2896,7 +3076,7 @@ export const amazonReviews = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape Amazon Best Sellers lists
- * Costs 2 credits per call. Pages with page.
+ * Costs 1 credit per call. Pages with page.
  */
 export const amazonBestsellers = <ThrowOnError extends boolean = false>(
   options: Options<AmazonBestsellersData, ThrowOnError>

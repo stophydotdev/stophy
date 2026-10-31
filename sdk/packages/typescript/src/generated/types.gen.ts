@@ -581,7 +581,7 @@ export type WebScrapeData = {
      */
     urls?: Array<string>;
     /**
-     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
+     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 2 credits, or 5 on the hardest pages to reach. A PDF comes back as markdown only.
      */
     formats?: Array<
       | (
@@ -625,7 +625,7 @@ export type WebScrapeData = {
      */
     excludeTags?: Array<string>;
     /**
-     * Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 3 credits, or 15 on the hardest pages to reach.
+     * Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 2 credits, or 5 on the hardest pages to reach.
      */
     waitFor?: number;
     /**
@@ -646,7 +646,7 @@ export type WebScrapeData = {
       country: string;
     };
     /**
-     * Steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 }, { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" } or { "type": "scroll", "direction": "down" }. A read with actions costs 3 credits, or 15 on the hardest pages to reach.
+     * Steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 }, { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" } or { "type": "scroll", "direction": "down" }. A read with actions costs 2 credits, or 5 on the hardest pages to reach.
      */
     actions?: Array<
       | {
@@ -1364,7 +1364,7 @@ export type WebBatchData = {
      */
     webhook?: string;
     /**
-     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.
+     * What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. A screenshot or network costs 2 credits, or 5 on the hardest pages to reach. A PDF comes back as markdown only.
      */
     formats?: Array<
       | (
@@ -1408,7 +1408,7 @@ export type WebBatchData = {
      */
     excludeTags?: Array<string>;
     /**
-     * Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 3 credits, or 15 on the hardest pages to reach.
+     * Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 2 credits, or 5 on the hardest pages to reach.
      */
     waitFor?: number;
     /**
@@ -1429,7 +1429,7 @@ export type WebBatchData = {
       country: string;
     };
     /**
-     * Steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 }, { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" } or { "type": "scroll", "direction": "down" }. A read with actions costs 3 credits, or 15 on the hardest pages to reach.
+     * Steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 }, { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" } or { "type": "scroll", "direction": "down" }. A read with actions costs 2 credits, or 5 on the hardest pages to reach.
      */
     actions?: Array<
       | {
@@ -3281,11 +3281,9 @@ export type RedditSearchResponses = {
             userId?: string;
             username?: string;
             userUrl: string;
-            postKarma?: number;
-            commentKarma?: number;
+            karma?: number;
             createdAt?: string;
             avatarUrl?: string;
-            isVerified: boolean;
           }
       >;
       cursor?: string;
@@ -3577,8 +3575,7 @@ export type RedditUserResponses = {
       userId?: string;
       username?: string;
       userUrl?: string;
-      postKarma?: number;
-      commentKarma?: number;
+      karma?: number;
       createdAt?: string;
       avatarUrl?: string;
       results: Array<
@@ -3645,10 +3642,6 @@ export type RedditDiscussionsData = {
      * Reddit post id, like 1abc2de. Send this or postUrl.
      */
     postId?: string;
-    /**
-     * The cursor from the previous response. Send it as is.
-     */
-    cursor?: string;
   };
   path?: never;
   query?: {
@@ -3713,7 +3706,6 @@ export type RedditDiscussionsResponses = {
         pollEndsAt?: string;
         repostOfUrl?: string;
       }>;
-      cursor?: string;
     };
     creditsUsed: number;
     requestId: string;
@@ -3725,7 +3717,7 @@ export type RedditDiscussionsResponse =
 
 export type RedditSubredditsData = {
   body: {
-    sort?: "popular" | "newest";
+    sort?: "popular";
     /**
      * The cursor from the previous response. Send it as is.
      */
@@ -6256,6 +6248,491 @@ export type ZillowPropertyResponses = {
 export type ZillowPropertyResponse =
   ZillowPropertyResponses[keyof ZillowPropertyResponses];
 
+export type RealtorSearchData = {
+  body: {
+    /**
+     * City and state, ZIP code or neighborhood (e.g., "Austin, TX", "78704")
+     */
+    location: string;
+    status?: "forSale" | "forRent" | "sold";
+    /**
+     * Lowest price in US dollars
+     */
+    minPrice?: number;
+    /**
+     * Highest price in US dollars
+     */
+    maxPrice?: number;
+    minBedrooms?: number;
+    maxBedrooms?: number;
+    minBathrooms?: number;
+    minSqft?: number;
+    maxSqft?: number;
+    homeTypes?: Array<
+      | "house"
+      | "townhouse"
+      | "multiFamily"
+      | "condo"
+      | "land"
+      | "apartment"
+      | "manufactured"
+    >;
+    /**
+     * Realtor.com's own order by default. priceLow and priceHigh also order each page by price. On sold homes, newest, price filters and price sorts use the sale
+     */
+    sort?: "relevance" | "newest" | "priceLow" | "priceHigh";
+    /**
+     * Page number, starting at 1.
+     */
+    page?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/realtor/search";
+};
+
+export type RealtorSearchErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type RealtorSearchError = RealtorSearchErrors[keyof RealtorSearchErrors];
+
+export type RealtorSearchResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      totalResults: number;
+      results: Array<{
+        propertyId?: string;
+        propertyUrl: string;
+        status: "forSale" | "forRent" | "sold" | "other";
+        isPending: boolean;
+        /**
+         * Asking price, monthly rent, or the sale price of a sold home. For a rental building, the lowest rent among its units. Null when Realtor.com shows none, which includes sold homes in states that keep sale prices private, such as Texas.
+         */
+        price?: number;
+        /**
+         * For a rental building, the highest rent.
+         */
+        priceMax?: number;
+        priceCurrency: "USD";
+        addressFull?: string;
+        addressStreet?: string;
+        addressCity?: string;
+        addressRegion?: string;
+        addressPostalCode?: string;
+        latitude?: number;
+        longitude?: number;
+        bedrooms?: number;
+        /**
+         * For a rental building, the most bedrooms in one unit.
+         */
+        bedroomsMax?: number;
+        bathrooms?: number;
+        sqft?: number;
+        lotSqft?: number;
+        yearBuilt?: number;
+        homeType?: string;
+        monthlyHoa?: number;
+        listedOn?: string;
+        lastSoldOn?: string;
+        lastSoldPrice?: number;
+        imageUrl?: string;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type RealtorSearchResponse =
+  RealtorSearchResponses[keyof RealtorSearchResponses];
+
+export type RealtorPropertyData = {
+  body: {
+    /**
+     * Link to the Realtor.com property, like https://www.realtor.com/realestateandhomes-detail/581-Leaning-Rock-Rdg_Austin_TX_78737_M99162-05223. Send this or propertyId.
+     */
+    propertyUrl?: string;
+    /**
+     * Realtor.com property id, like 9916205223. Send this or propertyUrl.
+     */
+    propertyId?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/realtor/property";
+};
+
+export type RealtorPropertyErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type RealtorPropertyError =
+  RealtorPropertyErrors[keyof RealtorPropertyErrors];
+
+export type RealtorPropertyResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      propertyId?: string;
+      propertyUrl: string;
+      status: "forSale" | "forRent" | "sold" | "other";
+      isPending: boolean;
+      /**
+       * Asking price, monthly rent, or the sale price of a sold home. For a rental building, the lowest rent among its units. Null when Realtor.com shows none, which includes sold homes in states that keep sale prices private, such as Texas.
+       */
+      price?: number;
+      /**
+       * For a rental building, the highest rent.
+       */
+      priceMax?: number;
+      priceCurrency: "USD";
+      addressFull?: string;
+      addressStreet?: string;
+      addressCity?: string;
+      addressRegion?: string;
+      addressPostalCode?: string;
+      latitude?: number;
+      longitude?: number;
+      bedrooms?: number;
+      /**
+       * For a rental building, the most bedrooms in one unit.
+       */
+      bedroomsMax?: number;
+      bathrooms?: number;
+      sqft?: number;
+      lotSqft?: number;
+      yearBuilt?: number;
+      homeType?: string;
+      monthlyHoa?: number;
+      listedOn?: string;
+      lastSoldOn?: string;
+      lastSoldPrice?: number;
+      imageUrl?: string;
+      description?: string;
+      garageSpaces?: number;
+      stories?: number;
+      imageUrls: Array<string>;
+      agentName?: string;
+      agentEmail?: string;
+      agentPhone?: string;
+      brokerName?: string;
+      priceHistory: Array<{
+        date: string;
+        event?: string;
+        price?: number;
+      }>;
+      taxHistory: Array<{
+        year: number;
+        tax?: number;
+        assessedValue?: number;
+      }>;
+      schools: Array<{
+        name?: string;
+        rating?: number;
+        levels?: Array<string>;
+        fundingType?: string;
+        distanceMiles?: number;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type RealtorPropertyResponse =
+  RealtorPropertyResponses[keyof RealtorPropertyResponses];
+
+export type CraigslistSearchData = {
+  body: {
+    /**
+     * US ZIP code to search around (e.g., "94103")
+     */
+    zipCode: string;
+    /**
+     * Search words (e.g., "road bike"). Leave out to list the newest in the category
+     */
+    query?: string;
+    /**
+     * Miles around the ZIP code, 25 by default
+     */
+    radius?: number;
+    /**
+     * Which listings to search, forSale by default
+     */
+    category?:
+      | "forSale"
+      | "carsAndTrucks"
+      | "apartments"
+      | "housing"
+      | "jobs"
+      | "gigs"
+      | "services"
+      | "free";
+    /**
+     * Lowest price in US dollars (e.g., 50)
+     */
+    minPrice?: number;
+    /**
+     * Highest price in US dollars (e.g., 500)
+     */
+    maxPrice?: number;
+    /**
+     * Return at most this many listings. You pay 1 credit per 10 returned.
+     */
+    limit?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/craigslist/search";
+};
+
+export type CraigslistSearchErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type CraigslistSearchError =
+  CraigslistSearchErrors[keyof CraigslistSearchErrors];
+
+export type CraigslistSearchResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      totalResults: number;
+      results: Array<{
+        listingId?: string;
+        listingUrl: string;
+        title?: string;
+        price?: number;
+        location?: string;
+        latitude?: number;
+        longitude?: number;
+        bedrooms?: number;
+        sqft?: number;
+        imageUrl?: string;
+        publishedAt: string;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type CraigslistSearchResponse =
+  CraigslistSearchResponses[keyof CraigslistSearchResponses];
+
+export type LumaEventsData = {
+  body: {
+    /**
+     * A city Luma lists (e.g., "San Francisco", "London", "Tokyo")
+     */
+    city: string;
+    /**
+     * Only events in this Luma category
+     */
+    category?:
+      | "ai"
+      | "arts"
+      | "books"
+      | "climate"
+      | "crypto"
+      | "family"
+      | "fitness"
+      | "food"
+      | "games"
+      | "running"
+      | "tech"
+      | "wellness";
+    /**
+     * The cursor from the previous response. Send it as is.
+     */
+    cursor?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/luma/events";
+};
+
+export type LumaEventsErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type LumaEventsError = LumaEventsErrors[keyof LumaEventsErrors];
+
+export type LumaEventsResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      city?: string;
+      results: Array<{
+        eventId?: string;
+        eventUrl: string;
+        name?: string;
+        startsAt: string;
+        endsAt?: string;
+        timezone?: string;
+        isOnline: boolean;
+        city?: string;
+        address?: string;
+        latitude?: number;
+        longitude?: number;
+        calendarName?: string;
+        hosts?: Array<string>;
+        guestCount: number;
+        isFree: boolean;
+        price?: number;
+        currency?: string;
+        isSoldOut: boolean;
+        spotsRemaining?: number;
+        needsApproval: boolean;
+        hasWaitlist: boolean;
+        imageUrl?: string;
+      }>;
+      cursor?: string;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type LumaEventsResponse = LumaEventsResponses[keyof LumaEventsResponses];
+
+export type LumaEventData = {
+  body: {
+    /**
+     * Luma event link or its last part (e.g., "https://luma.com/nighthack")
+     */
+    event: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/luma/event";
+};
+
+export type LumaEventErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type LumaEventError = LumaEventErrors[keyof LumaEventErrors];
+
+export type LumaEventResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      eventId?: string;
+      eventUrl: string;
+      name?: string;
+      startsAt: string;
+      endsAt?: string;
+      timezone?: string;
+      isOnline: boolean;
+      city?: string;
+      address?: string;
+      latitude?: number;
+      longitude?: number;
+      calendarName?: string;
+      hosts: Array<string>;
+      guestCount: number;
+      isFree: boolean;
+      price?: number;
+      currency?: string;
+      isSoldOut: boolean;
+      spotsRemaining?: number;
+      needsApproval: boolean;
+      hasWaitlist: boolean;
+      imageUrl?: string;
+      description?: string;
+      categories: Array<string>;
+      ticketTypes: Array<{
+        name?: string;
+        price?: number;
+        currency?: string;
+        needsApproval: boolean;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type LumaEventResponse = LumaEventResponses[keyof LumaEventResponses];
+
 export type UpworkSearchData = {
   body: {
     query?: string;
@@ -8415,6 +8892,96 @@ export type BookingHotelReviewsResponses = {
 
 export type BookingHotelReviewsResponse =
   BookingHotelReviewsResponses[keyof BookingHotelReviewsResponses];
+
+export type ExpediaHotelsData = {
+  body: {
+    /**
+     * Where to stay: a city, area or landmark (e.g., "Seattle, Washington")
+     */
+    location: string;
+    /**
+     * Defaults to tomorrow.
+     */
+    checkIn?: string;
+    /**
+     * Defaults to one night after checkIn.
+     */
+    checkOut?: string;
+    adults?: number;
+    /**
+     * Expedia's own sort: relevance (Recommended), priceLow (lowest price first) or rating (guest rating).
+     */
+    sort?: "relevance" | "priceLow" | "rating";
+    /**
+     * Page number, starting at 1.
+     */
+    page?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/expedia/hotels";
+};
+
+export type ExpediaHotelsErrors = {
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. retryable says whether trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type ExpediaHotelsError = ExpediaHotelsErrors[keyof ExpediaHotelsErrors];
+
+export type ExpediaHotelsResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    data: {
+      totalResults?: number;
+      results: Array<{
+        hotelId?: string;
+        hotelUrl: string;
+        name?: string;
+        neighborhood?: string;
+        /**
+         * Guest rating out of 10.
+         */
+        rating?: number;
+        ratingText?: string;
+        reviewCount?: number;
+        /**
+         * Price per night before taxes and fees.
+         */
+        nightlyPrice?: number;
+        /**
+         * Price for the whole stay with taxes and fees.
+         */
+        totalPrice?: number;
+        /**
+         * The stay's price before Expedia's discount, when it shows one.
+         */
+        totalPriceBefore?: number;
+        currency: "USD";
+        imageUrl?: string;
+      }>;
+    };
+    creditsUsed: number;
+    requestId: string;
+  };
+};
+
+export type ExpediaHotelsResponse =
+  ExpediaHotelsResponses[keyof ExpediaHotelsResponses];
 
 export type AmazonSearchData = {
   body: {
