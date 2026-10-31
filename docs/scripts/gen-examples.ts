@@ -1,5 +1,17 @@
 import { rm } from "node:fs/promises";
-import { type CatalogEndpoint, type Json, type JsonObject, fetchCatalog, isObject } from "./catalog";
+import {
+  type CatalogEndpoint,
+  type Json,
+  type JsonObject,
+  fetchCatalog,
+  isBoolean,
+  isNumber,
+  isObject,
+  isString,
+  namesAt,
+  schemaProperties,
+} from "./catalog";
+import { type Spec, findOperation, readSpec, responseData } from "./spec";
 
 const root = new URL("..", import.meta.url);
 const file = (path: string) => new URL(path, root);
@@ -55,8 +67,8 @@ const pythonKey = (name: string) => (name === "from" ? "from_" : toSnakeCase(nam
 
 function tsValue(value: Json): string {
   if (value === null) return "null";
-  if (typeof value === "string") return JSON.stringify(value);
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (isString(value)) return JSON.stringify(value);
+  if (isNumber(value) || isBoolean(value)) return String(value);
   if (Array.isArray(value)) return `[${value.map(tsValue).join(", ")}]`;
   if (isObject(value)) {
     const entries = Object.entries(value).map(([key, v]) => `${key}: ${tsValue(v)}`);
@@ -72,9 +84,9 @@ function tsObjectLiteral(input: JsonObject): string {
 
 function pythonValue(value: Json): string {
   if (value === null) return "None";
-  if (typeof value === "string") return JSON.stringify(value);
-  if (typeof value === "boolean") return value ? "True" : "False";
-  if (typeof value === "number") return String(value);
+  if (isString(value)) return JSON.stringify(value);
+  if (isBoolean(value)) return value ? "True" : "False";
+  if (isNumber(value)) return String(value);
   if (Array.isArray(value)) return `[${value.map(pythonValue).join(", ")}]`;
   if (isObject(value)) {
     const entries = Object.entries(value).map(([key, v]) => `${JSON.stringify(key)}: ${pythonValue(v)}`);
@@ -92,19 +104,18 @@ function pythonKwargs(input: JsonObject): string {
 const cliQuote = (value: string): string => (/^[A-Za-z0-9._:/@,+-]+$/u.test(value) ? value : JSON.stringify(value));
 
 function cliValue(value: Json): string | undefined {
-  if (typeof value === "string") return cliQuote(value);
-  if (typeof value === "number") return String(value);
+  if (isString(value)) return cliQuote(value);
+  if (isNumber(value)) return String(value);
   if (Array.isArray(value)) {
-    const items = value.filter((item): item is string | number => typeof item === "string" || typeof item === "number");
+    const items = value.filter((item): item is string | number => isString(item) || isNumber(item));
     return items.length === 0 ? undefined : items.map(String).join(",");
   }
   return undefined;
 }
 
 function positionalField(op: CatalogEndpoint): string | undefined {
-  const properties = (op.input?.properties as JsonObject | undefined) ?? {};
-  const required = Array.isArray(op.input?.required) ? (op.input?.required as string[]) : [];
-  const free = required.filter((name) => {
+  const properties = schemaProperties(op.input);
+  const free = namesAt(op.input, "required").filter((name) => {
     const schema = properties[name];
     return isObject(schema) && schema.type === "string" && schema.enum === undefined;
   });
@@ -114,22 +125,16 @@ function positionalField(op: CatalogEndpoint): string | undefined {
   return isObject(query) && query.type === "string" && query.enum === undefined ? "query" : undefined;
 }
 
-function dataProperties(op: CatalogEndpoint, spec: JsonObject): string[] {
-  const paths = spec.paths as JsonObject | undefined;
-  const item = paths?.[op.path];
-  if (!isObject(item)) return [];
-  const operation = item[op.method.toLowerCase()];
-  if (!isObject(operation)) return [];
-  const ok = ((operation.responses as JsonObject | undefined)?.["200"] as JsonObject | undefined)?.content as JsonObject | undefined;
-  const envelope = (ok?.["application/json"] as JsonObject | undefined)?.schema as JsonObject | undefined;
-  const data = (envelope?.properties as JsonObject | undefined)?.data as JsonObject | undefined;
-  if (!isObject(data)) return [];
-  const own = Object.keys((data.properties as JsonObject | undefined) ?? {});
+function dataProperties(op: CatalogEndpoint, spec: Spec): string[] {
+  const operation = findOperation(spec, op.path, op.method);
+  const data = operation === undefined ? undefined : responseData(operation);
+  if (data === undefined) return [];
+  const own = Object.keys(schemaProperties(data));
   if (own.length > 0) return own.filter((field) => field !== "cursor");
-  const options = (data.allOf ?? data.oneOf ?? data.anyOf) as Json[] | undefined;
+  const options = data.allOf ?? data.oneOf ?? data.anyOf;
   if (!Array.isArray(options)) return [];
   const [first] = options;
-  return isObject(first) ? Object.keys((first.properties as JsonObject | undefined) ?? {}).filter((field) => field !== "cursor") : [];
+  return Object.keys(schemaProperties(first)).filter((field) => field !== "cursor");
 }
 
 const PRIMARY_FIELD_OVERRIDES = new Map(Object.entries({
@@ -139,13 +144,13 @@ const PRIMARY_FIELD_OVERRIDES = new Map(Object.entries({
   "youtube.video": "title",
 }));
 
-function primaryField(op: CatalogEndpoint, spec: JsonObject): string | undefined {
+function primaryField(op: CatalogEndpoint, spec: Spec): string | undefined {
   const override = PRIMARY_FIELD_OVERRIDES.get(op.id);
   if (override !== undefined) return override;
   return dataProperties(op, spec).includes("results") ? "results" : undefined;
 }
 
-function tsSnippet(op: CatalogEndpoint, spec: JsonObject): string {
+function tsSnippet(op: CatalogEndpoint, spec: Spec): string {
   const field = primaryField(op, spec);
   const access = field === undefined ? "result.data" : `result.data.${field}`;
   return [
@@ -160,7 +165,7 @@ function tsSnippet(op: CatalogEndpoint, spec: JsonObject): string {
   ].join("\n");
 }
 
-function pythonSnippet(op: CatalogEndpoint, spec: JsonObject): string {
+function pythonSnippet(op: CatalogEndpoint, spec: Spec): string {
   const field = primaryField(op, spec);
   const access = field === undefined ? 'result["data"]' : `result["data"]["${field}"]`;
   return [
@@ -195,11 +200,11 @@ function cliSnippet(op: CatalogEndpoint): string {
   const pieces = [`stophy ${words}`];
   if (positional !== undefined) {
     const value = example[positional];
-    if (typeof value === "string") pieces.push(cliQuote(value));
+    if (isString(value)) pieces.push(cliQuote(value));
   }
   for (const [key, value] of Object.entries(example)) {
     if (key === positional || key === "cursor") continue;
-    if (typeof value === "boolean") {
+    if (isBoolean(value)) {
       pieces.push(value ? `--${key}` : `--no-${key}`);
       continue;
     }
@@ -210,7 +215,7 @@ function cliSnippet(op: CatalogEndpoint): string {
 }
 
 const rawCatalog = await fetchCatalog();
-const spec = (await Bun.file(file("api-reference/openapi.json")).json()) as JsonObject;
+const spec = await readSpec(file("api-reference/openapi.json"));
 
 const EXAMPLE_OVERRIDES = new Map(Object.entries<JsonObject>({
   "youtube.transcript": { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },

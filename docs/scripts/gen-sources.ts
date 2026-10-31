@@ -1,4 +1,13 @@
-import { type CatalogEndpoint, type Json, type JsonObject, fetchCatalog, isObject } from "./catalog";
+import {
+  type CatalogEndpoint,
+  type Json,
+  type JsonObject,
+  fetchCatalog,
+  isObject,
+  isString,
+  schemaProperties,
+} from "./catalog";
+import { type Spec, findOperation, readSpec, responseData } from "./spec";
 
 const root = new URL("..", import.meta.url);
 const file = (path: string) => new URL(path, root);
@@ -201,7 +210,8 @@ const KEYLESS_LIVE_RESPONSES = new Map(Object.entries<JsonObject>({
 }));
 
 function stringSample(key: string, format: string | undefined, enumValues: readonly Json[] | undefined): string {
-  if (Array.isArray(enumValues) && typeof enumValues[0] === "string") return enumValues[0];
+  const firstValue = enumValues?.[0];
+  if (isString(firstValue)) return firstValue;
   const k = key.toLowerCase();
   if (k.includes("thumbnail") || k.includes("image") || k.includes("photo") || k.includes("avatar")) return "https://example.com/image.jpg";
   if (k === "url" || k.endsWith("url")) return "https://example.com/";
@@ -234,37 +244,33 @@ function numberSample(key: string): number {
 function sampleFor(schema: Json | undefined, key: string): Json {
   if (!isObject(schema)) return null;
   if (schema.const !== undefined) return schema.const;
-  const enumValues = schema.enum as Json[] | undefined;
+  const enumValues = schema.enum;
   if (Array.isArray(enumValues) && enumValues.length > 0) return enumValues[0] ?? null;
-  const options = (schema.oneOf ?? schema.anyOf) as Json[] | undefined;
+  const options = schema.oneOf ?? schema.anyOf;
   if (Array.isArray(options) && options.length > 0) return sampleFor(options[0], key);
-  if (schema.type === "array") return [sampleFor(schema.items as Json | undefined, key)];
+  if (schema.type === "array") return [sampleFor(schema.items, key)];
   if (schema.type === "object") {
-    const props = (schema.properties as JsonObject | undefined) ?? {};
     const obj: JsonObject = {};
-    for (const [field, sub] of Object.entries(props)) {
+    for (const [field, sub] of Object.entries(schemaProperties(schema))) {
       if (field === "cursor") continue;
       obj[field] = sampleFor(sub, field);
     }
     return obj;
   }
-  if (schema.type === "string") return stringSample(key, schema.format as string | undefined, schema.enum as Json[] | undefined);
+  if (schema.type === "string") {
+    return stringSample(key, isString(schema.format) ? schema.format : undefined, Array.isArray(enumValues) ? enumValues : undefined);
+  }
   if (schema.type === "integer" || schema.type === "number") return numberSample(key);
   if (schema.type === "boolean") return false;
   return null;
 }
 
-function dataSchema(op: CatalogEndpoint, spec: JsonObject): Json | undefined {
-  const item = (spec.paths as JsonObject | undefined)?.[op.path];
-  if (!isObject(item)) return undefined;
-  const operation = item[op.method.toLowerCase()];
-  if (!isObject(operation)) return undefined;
-  const ok = ((operation.responses as JsonObject | undefined)?.["200"] as JsonObject | undefined)?.content as JsonObject | undefined;
-  const envelope = (ok?.["application/json"] as JsonObject | undefined)?.schema as JsonObject | undefined;
-  return (envelope?.properties as JsonObject | undefined)?.data;
+function dataSchema(op: CatalogEndpoint, spec: Spec): Json | undefined {
+  const operation = findOperation(spec, op.path, op.method);
+  return operation === undefined ? undefined : responseData(operation);
 }
 
-function responseSample(op: CatalogEndpoint, spec: JsonObject): JsonObject {
+function responseSample(op: CatalogEndpoint, spec: Spec): JsonObject {
   const live = KEYLESS_LIVE_RESPONSES.get(op.id);
   if (live !== undefined) return live;
   const data = sampleFor(dataSchema(op, spec), "data");
@@ -296,7 +302,7 @@ function codeGroup(id: string): string {
   return ["<CodeGroup>", ...tags, "</CodeGroup>"].join("\n");
 }
 
-function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: JsonObject): string {
+function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: Spec): string {
   const example = byId.get(area.example);
   if (example === undefined) throw new Error(`${area.title}: example ${area.example} is not in the catalog`);
   for (const id of [area.example, ...area.variations]) {
@@ -356,7 +362,7 @@ function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: JsonObje
 }
 
 const catalog = await fetchCatalog();
-const spec = (await Bun.file(file(SPEC_PATH)).json()) as JsonObject;
+const spec = await readSpec(file(SPEC_PATH));
 const byId = new Map(catalog.endpoints.map((op) => [op.id, op]));
 
 const assigned = AREAS.flatMap((area) => area.endpoints);
