@@ -1,5 +1,9 @@
 # stophy
 
+## 1.2.1
+
+- The package links point to github.com/stophydotdev/stophy, where the source now lives.
+
 ## 1.2.0
 
 - `craigslist.search`, `luma.events`, `luma.event`, `realtor.search`, `realtor.property` and `expedia.hotels` are new.
