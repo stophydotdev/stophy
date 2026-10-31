@@ -224,7 +224,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           NAME=$(node -p "require('./server.json').name")
-          if curl -fsS "https://registry.modelcontextprotocol.io/v0/servers?search=${NAME}&version=latest" \
+          if curl -fsS "https://registry.modelcontextprotocol.io/v0/servers?search=${NAME}" \
             | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const v=JSON.parse(s).servers?.map(e=>e.server?.version)??[];process.exit(v.includes(process.argv[1])?0:1)})" "$VERSION"; then
             echo "registered=true" >> "$GITHUB_OUTPUT"
           else
