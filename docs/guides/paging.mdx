@@ -1,0 +1,159 @@
+---
+title: "Page through results"
+description: "Get more than one page from Stophy. Send page 2, 3 and on until a page is empty, or send back the cursor from each response until none comes back."
+og:title: "Page through results | Stophy"
+og:description: "Get more than one page from Stophy. Send page 2, 3 and on until a page is empty, or send back the cursor from each response until none comes back."
+---
+
+Ask for page 2 of a search. Paging needs an API key.
+
+```bash
+curl -X POST https://api.stophy.dev/v1/google/search \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"query":"rust tutorial","page":2}'
+```
+
+<Accordion title="Response">
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "type": "web",
+        "url": "https://github.com/ImplFerris/LearnRust",
+        "title": "ImplFerris/LearnRust: Rust Learning Resources",
+        "description": "Rust Crash Course Tutorial : This playlist is designed to guide you from the very basics of Rust to its most advanced features. Rust 101 Crash Course: Learn ...",
+        "position": 1
+      }
+    ],
+    "page": 2
+  },
+  "creditsUsed": 1,
+  "requestId": "f53e44c9-6007-46b2-b65e-73a3d3fac03f"
+}
+```
+</Accordion>
+
+One call returns one page, the way the site shows it. Page 2 continues page 1 with no repeats. A page holds what the site puts on it, so the number of results changes from call to call.
+
+Each endpoint pages in one of three ways. Its page in the [API reference](/api-reference/introduction) says which.
+
+| The endpoint takes | How to get the next page | Examples |
+| --- | --- | --- |
+| `page` | Send the same input with `page: 2`, then `3`, until `data.results` is empty. An empty page costs nothing. | `google.search`, `google.news`, `google.maps.search`, `zillow.search`, `amazon.search`, `upwork.search` |
+| `cursor` | Send the same input with the `cursor` from the last response, until a response has no `cursor`. | `youtube.search`, `reddit.search`, `tiktok.search`, `instagram.comments` |
+| neither | There is no next page. One call returns everything for that input. | `google.maps.place`, `appstore.search`, `google.images` |
+
+Keep the rest of the input the same between pages. Each page is a normal call and costs its normal price.
+
+## Loop through numbered pages
+
+<CodeGroup>
+
+```ts Node.js
+const results = [];
+for (let page = 1; page <= 5; page += 1) {
+  const response = await fetch("https://api.stophy.dev/v1/google/search", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ query: "rust tutorial", page }),
+  });
+  const { data } = await response.json();
+  results.push(...data.results);
+  if (data.results.length === 0) break;
+}
+```
+
+```python Python
+import os
+import requests
+
+results = []
+for page in range(1, 6):
+    response = requests.post(
+        "https://api.stophy.dev/v1/google/search",
+        headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+        json={"query": "rust tutorial", "page": page},
+        timeout=30,
+    )
+    data = response.json()["data"]
+    results += data["results"]
+    if not data["results"]:
+        break
+```
+
+</CodeGroup>
+
+## Loop through cursors
+
+The response carries a `cursor` when there is a next page. Send it back, unchanged, with the same input.
+
+```json
+{
+  "success": true,
+  "data": {
+    "results": [{ "videoId": "Wc0ZJo06oAw", "title": "The Ultimate Rust Beginners Guide (2026)" }],
+    "cursor": "fms9tEb3seen.eyJ0b2t..."
+  },
+  "creditsUsed": 1,
+  "requestId": "43c2f153-e261-4147-a315-cc4eb1543585"
+}
+```
+
+<CodeGroup>
+
+```ts Node.js
+const results = [];
+let cursor: string | undefined;
+do {
+  const response = await fetch("https://api.stophy.dev/v1/youtube/search", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ query: "rust tutorial", cursor }),
+  });
+  const { data } = await response.json();
+  results.push(...data.results);
+  cursor = data.cursor;
+} while (cursor && results.length < 100);
+```
+
+```python Python
+import os
+import requests
+
+results = []
+cursor = None
+while True:
+    body = {"query": "rust tutorial"}
+    if cursor:
+        body["cursor"] = cursor
+    response = requests.post(
+        "https://api.stophy.dev/v1/youtube/search",
+        headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+        json=body,
+        timeout=30,
+    )
+    data = response.json()["data"]
+    results += data["results"]
+    cursor = data.get("cursor")
+    if not cursor or len(results) >= 100:
+        break
+```
+
+</CodeGroup>
+
+Set your own stop, like the 5 pages or 100 results above. Some sources have many pages. A cursor only works with the input that produced it. Any other cursor returns a `400` with code `invalidRequest`.
+
+## Keep fewer results
+
+`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. On `google.images`, `appstore.search`, `appstore.top` and `google.play.search`, 10 results cost 1 credit, so fewer results cost less.
+
+On every other endpoint, `limit` returns a `400`. To keep a model's context small, take the rows you need from `data.results`, or use `fields` through the [MCP server](/mcp-server) to keep only some keys.

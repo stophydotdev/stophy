@@ -1,0 +1,46 @@
+---
+title: "Build with AI"
+description: "Set up an AI agent with Stophy. Get a key, connect the MCP server, and give it agents.md, llms.txt and the live endpoint catalog."
+og:title: "Build with AI | Stophy"
+og:description: "Set up an AI agent with Stophy. Get a key, connect the MCP server, and give it agents.md, llms.txt and the live endpoint catalog."
+mode: "wide"
+---
+
+Give your agent [stophy.dev/agents.md](https://stophy.dev/agents.md). It says how to pick an endpoint and add Stophy to your project.
+
+## Connect over MCP
+
+```bash
+claude mcp add --transport http stophy https://api.stophy.dev/mcp
+```
+
+The free endpoints work right away. Add your key as a bearer token to use every endpoint, or sign in with your browser at `https://mcp.stophy.dev/mcp`.
+
+<Card title="MCP server" icon="plug" href="/mcp-server">Set up Codex, Claude Code, Cursor, OpenCode or another client.</Card>
+
+## Get a key
+
+Sign up in the [dashboard](https://stophy.dev/signup), create a key, and save it as `STOPHY_API_KEY`. Send it with every API request.
+
+## Your agent harness
+
+<CardGroup cols={4}>
+  <Card title="Codex" icon="code" href="/quickstarts/codex">Add Stophy to Codex.</Card>
+  <Card title="Claude Code" icon="terminal" href="/quickstarts/claude-code">Add Stophy to Claude Code.</Card>
+  <Card title="Cursor" icon="arrow-pointer" href="/quickstarts/cursor">Add Stophy to Cursor.</Card>
+  <Card title="Claude Desktop" icon="comments" href="/quickstarts/claude-desktop">Add Stophy to Claude Desktop.</Card>
+</CardGroup>
+
+OpenCode setup is in [MCP without a key or with one](/mcp-server/keyless).
+
+## Your LLM SDK
+
+<CardGroup cols={3}>
+  <Card title="OpenAI" icon="robot" href="/developer-guides/llm-sdks/openai">Call Stophy from an OpenAI tool.</Card>
+  <Card title="Anthropic" icon="brain" href="/developer-guides/llm-sdks/anthropic">Call Stophy from a Claude tool.</Card>
+  <Card title="Vercel AI SDK" icon="code" href="/developer-guides/llm-sdks/vercel-ai-sdk">Use Stophy with the AI SDK.</Card>
+</CardGroup>
+
+<Card title="Resources for agents" icon="file-code" href="/resources" arrow>
+  agents.md, llms.txt, the OpenAPI document and the endpoint catalog.
+</Card>

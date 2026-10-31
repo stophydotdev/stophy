@@ -1,0 +1,34 @@
+---
+title: "Browser sign-in"
+description: "Connect Stophy to Claude Code, Codex, Cursor or OpenCode by signing in with your browser. No API key to copy, and every endpoint is open."
+og:title: "Browser sign-in | Stophy"
+og:description: "Connect Stophy to Claude Code, Codex, Cursor or OpenCode by signing in with your browser. No API key to copy, and every endpoint is open."
+mode: "wide"
+---
+
+import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
+
+Run one command, then sign in with your browser. No key to copy.
+
+<McpClientSelector variant="signin" showSeeAll={false} />
+
+`https://mcp.stophy.dev/mcp` is a server URL for your client, not a page to open. Your client starts the sign-in.
+
+## What happens
+
+1. Your client opens stophy.dev in your browser.
+2. You sign in or sign up. New accounts get 1,000 free credits.
+3. Stophy shows which app is asking. Approve it only if you started the connection.
+4. Your client connects. Calls use your credits.
+
+Signing out of stophy.dev disconnects the app. Your client asks you to sign in again next time.
+
+## Check it
+
+Ask your agent this.
+
+```text
+Find coffee shops in Austin with a rating above 4.5 and list their websites.
+```
+
+Prefer a key? [Add an API key](/mcp-server/keyless#add-an-api-key).

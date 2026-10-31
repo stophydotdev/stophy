@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.google.maps.reviews(place_id="0x8644cc752bbe37bf:0x4a9e56f256689bb2", sort="relevance")
+print(result["data"]["results"])
+```

@@ -1,0 +1,1216 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "aspen",
+  "name": "Stophy Docs",
+  "description": "Stophy is a web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes.",
+  "colors": {
+    "primary": "#f5d90a",
+    "light": "#f5d90a",
+    "dark": "#f5d90a"
+  },
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "background": {
+    "color": {
+      "light": "#000000",
+      "dark": "#000000"
+    }
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://stophy.dev"
+  },
+  "fonts": {
+    "family": "Geist"
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:site_name": "Stophy Docs",
+      "twitter:site": "@stophydotdev"
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@stophy.dev"
+      },
+      {
+        "label": "Sign Up",
+        "href": "https://stophy.dev/signup"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/stophydotdev"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "advanced-guide"
+            ]
+          },
+          {
+            "group": "What you can get",
+            "pages": [
+              "sources/web",
+              "sources/video",
+              "sources/social",
+              "sources/places-and-travel",
+              "sources/jobs",
+              "sources/shopping",
+              "sources/apps",
+              "sources/real-estate",
+              "sources/ads"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/find-endpoint",
+              "guides/paging",
+              "guides/errors-and-retries"
+            ]
+          },
+          {
+            "group": "Plans and billing",
+            "pages": [
+              "billing",
+              "rate-limits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/overview",
+              "sdks/typescript",
+              "sdks/python",
+              "sdks/cli"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Using the API",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/errors"
+            ]
+          },
+          {
+            "group": "Catalog",
+            "pages": [
+              "api-reference/endpoint/endpoints"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "api-reference/usage",
+              "api-reference/logs"
+            ]
+          },
+          {
+            "group": "Search and AI answers",
+            "icon": "magnifying-glass",
+            "pages": [
+              {
+                "group": "Google",
+                "pages": [
+                  "api-reference/endpoint/google-search",
+                  "api-reference/endpoint/google-news",
+                  "api-reference/endpoint/google-images",
+                  "api-reference/endpoint/google-scholar",
+                  "api-reference/endpoint/google-patents",
+                  "api-reference/endpoint/google-suggest",
+                  "api-reference/endpoint/google-trends-related",
+                  "api-reference/endpoint/google-trends-trending",
+                  "api-reference/endpoint/google-trends-interest",
+                  "api-reference/endpoint/google-trends-regions"
+                ]
+              },
+              {
+                "group": "Web",
+                "pages": [
+                  "api-reference/endpoint/web-search",
+                  "api-reference/endpoint/web-news",
+                  "api-reference/endpoint/web-images",
+                  "api-reference/endpoint/web-scrape",
+                  "api-reference/endpoint/web-parse",
+                  "api-reference/endpoint/web-map",
+                  "api-reference/endpoint/web-contacts",
+                  "api-reference/endpoint/web-crawl",
+                  "api-reference/endpoint/web-crawl-start",
+                  "api-reference/endpoint/web-crawl-status",
+                  "api-reference/endpoint/web-crawl-cancel",
+                  "api-reference/endpoint/web-batch",
+                  "api-reference/endpoint/web-batch-status",
+                  "api-reference/endpoint/web-batch-cancel"
+                ]
+              },
+              {
+                "group": "ChatGPT",
+                "pages": [
+                  "api-reference/endpoint/chatgpt-search"
+                ]
+              },
+              {
+                "group": "Gemini",
+                "pages": [
+                  "api-reference/endpoint/gemini-search"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Video",
+            "icon": "video",
+            "pages": [
+              {
+                "group": "YouTube",
+                "pages": [
+                  "api-reference/endpoint/youtube-search",
+                  "api-reference/endpoint/youtube-suggest",
+                  "api-reference/endpoint/youtube-video",
+                  "api-reference/endpoint/youtube-transcript",
+                  "api-reference/endpoint/youtube-comments",
+                  "api-reference/endpoint/youtube-channel",
+                  "api-reference/endpoint/youtube-playlist",
+                  "api-reference/endpoint/youtube-post"
+                ]
+              },
+              {
+                "group": "TikTok",
+                "pages": [
+                  "api-reference/endpoint/tiktok-profile",
+                  "api-reference/endpoint/tiktok-video",
+                  "api-reference/endpoint/tiktok-transcript",
+                  "api-reference/endpoint/tiktok-hashtag",
+                  "api-reference/endpoint/tiktok-sound",
+                  "api-reference/endpoint/tiktok-comments",
+                  "api-reference/endpoint/tiktok-search"
+                ]
+              },
+              {
+                "group": "Instagram",
+                "pages": [
+                  "api-reference/endpoint/instagram-transcript"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Social",
+            "icon": "users",
+            "pages": [
+              {
+                "group": "Reddit",
+                "pages": [
+                  "api-reference/endpoint/reddit-search",
+                  "api-reference/endpoint/reddit-post",
+                  "api-reference/endpoint/reddit-subreddit",
+                  "api-reference/endpoint/reddit-user",
+                  "api-reference/endpoint/reddit-discussions",
+                  "api-reference/endpoint/reddit-subreddits"
+                ]
+              },
+              {
+                "group": "Instagram",
+                "pages": [
+                  "api-reference/endpoint/instagram-profile",
+                  "api-reference/endpoint/instagram-profile-reels",
+                  "api-reference/endpoint/instagram-post",
+                  "api-reference/endpoint/instagram-comments"
+                ]
+              },
+              {
+                "group": "LinkedIn",
+                "pages": [
+                  "api-reference/endpoint/linkedin-company",
+                  "api-reference/endpoint/linkedin-profile",
+                  "api-reference/endpoint/linkedin-posts"
+                ]
+              },
+              {
+                "group": "Pinterest",
+                "pages": [
+                  "api-reference/endpoint/pinterest-search",
+                  "api-reference/endpoint/pinterest-pin",
+                  "api-reference/endpoint/pinterest-board",
+                  "api-reference/endpoint/pinterest-profile"
+                ]
+              },
+              {
+                "group": "Facebook",
+                "pages": [
+                  "api-reference/endpoint/facebook-page",
+                  "api-reference/endpoint/facebook-page-posts",
+                  "api-reference/endpoint/facebook-post",
+                  "api-reference/endpoint/facebook-post-comments"
+                ]
+              },
+              {
+                "group": "X",
+                "pages": [
+                  "api-reference/endpoint/x-profile",
+                  "api-reference/endpoint/x-post",
+                  "api-reference/endpoint/x-profile-posts"
+                ]
+              },
+              {
+                "group": "Threads",
+                "pages": [
+                  "api-reference/endpoint/threads-profile",
+                  "api-reference/endpoint/threads-profile-posts",
+                  "api-reference/endpoint/threads-post"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Places and travel",
+            "icon": "map-location-dot",
+            "pages": [
+              {
+                "group": "Google",
+                "pages": [
+                  "api-reference/endpoint/google-maps-search",
+                  "api-reference/endpoint/google-maps-place",
+                  "api-reference/endpoint/google-maps-reviews",
+                  "api-reference/endpoint/google-hotels",
+                  "api-reference/endpoint/google-flights"
+                ]
+              },
+              {
+                "group": "Tripadvisor",
+                "pages": [
+                  "api-reference/endpoint/tripadvisor-search",
+                  "api-reference/endpoint/tripadvisor-place",
+                  "api-reference/endpoint/tripadvisor-reviews"
+                ]
+              },
+              {
+                "group": "Airbnb",
+                "pages": [
+                  "api-reference/endpoint/airbnb-search",
+                  "api-reference/endpoint/airbnb-listing",
+                  "api-reference/endpoint/airbnb-reviews"
+                ]
+              },
+              {
+                "group": "Booking.com",
+                "pages": [
+                  "api-reference/endpoint/booking-search",
+                  "api-reference/endpoint/booking-hotel",
+                  "api-reference/endpoint/booking-hotel-reviews"
+                ]
+              },
+              {
+                "group": "Yelp",
+                "pages": [
+                  "api-reference/endpoint/yelp-search",
+                  "api-reference/endpoint/yelp-business",
+                  "api-reference/endpoint/yelp-business-reviews"
+                ]
+              },
+              {
+                "group": "Expedia",
+                "pages": [
+                  "api-reference/endpoint/expedia-hotels"
+                ]
+              },
+              {
+                "group": "Luma",
+                "pages": [
+                  "api-reference/endpoint/luma-events",
+                  "api-reference/endpoint/luma-event"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Jobs",
+            "icon": "briefcase",
+            "pages": [
+              {
+                "group": "LinkedIn",
+                "pages": [
+                  "api-reference/endpoint/linkedin-jobs-search",
+                  "api-reference/endpoint/linkedin-jobs-job"
+                ]
+              },
+              {
+                "group": "Upwork",
+                "pages": [
+                  "api-reference/endpoint/upwork-search",
+                  "api-reference/endpoint/upwork-job"
+                ]
+              },
+              {
+                "group": "Indeed",
+                "pages": [
+                  "api-reference/endpoint/indeed-search",
+                  "api-reference/endpoint/indeed-job"
+                ]
+              },
+              {
+                "group": "Company careers",
+                "pages": [
+                  "api-reference/endpoint/careers-jobs",
+                  "api-reference/endpoint/careers-job"
+                ]
+              },
+              {
+                "group": "Glassdoor",
+                "pages": [
+                  "api-reference/endpoint/glassdoor-company",
+                  "api-reference/endpoint/glassdoor-company-reviews",
+                  "api-reference/endpoint/glassdoor-company-salaries"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Shopping",
+            "icon": "cart-shopping",
+            "pages": [
+              {
+                "group": "Amazon",
+                "pages": [
+                  "api-reference/endpoint/amazon-search",
+                  "api-reference/endpoint/amazon-product",
+                  "api-reference/endpoint/amazon-bestsellers",
+                  "api-reference/endpoint/amazon-suggest",
+                  "api-reference/endpoint/amazon-reviews"
+                ]
+              },
+              {
+                "group": "TikTok Shop",
+                "pages": [
+                  "api-reference/endpoint/tiktok-shop-search",
+                  "api-reference/endpoint/tiktok-shop-products",
+                  "api-reference/endpoint/tiktok-shop-product",
+                  "api-reference/endpoint/tiktok-shop-reviews"
+                ]
+              },
+              {
+                "group": "eBay",
+                "pages": [
+                  "api-reference/endpoint/ebay-search",
+                  "api-reference/endpoint/ebay-item"
+                ]
+              },
+              {
+                "group": "Facebook",
+                "pages": [
+                  "api-reference/endpoint/facebook-marketplace-search"
+                ]
+              },
+              {
+                "group": "Trustpilot",
+                "pages": [
+                  "api-reference/endpoint/trustpilot-search",
+                  "api-reference/endpoint/trustpilot-company",
+                  "api-reference/endpoint/trustpilot-company-reviews"
+                ]
+              },
+              {
+                "group": "Craigslist",
+                "pages": [
+                  "api-reference/endpoint/craigslist-search"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Apps",
+            "icon": "mobile-screen",
+            "pages": [
+              {
+                "group": "App Store",
+                "pages": [
+                  "api-reference/endpoint/appstore-app",
+                  "api-reference/endpoint/appstore-search",
+                  "api-reference/endpoint/appstore-reviews",
+                  "api-reference/endpoint/appstore-top"
+                ]
+              },
+              {
+                "group": "Google",
+                "pages": [
+                  "api-reference/endpoint/google-play-app",
+                  "api-reference/endpoint/google-play-search",
+                  "api-reference/endpoint/google-play-reviews"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Real estate",
+            "icon": "house",
+            "pages": [
+              {
+                "group": "Zillow",
+                "pages": [
+                  "api-reference/endpoint/zillow-search",
+                  "api-reference/endpoint/zillow-property"
+                ]
+              },
+              {
+                "group": "Realtor.com",
+                "pages": [
+                  "api-reference/endpoint/realtor-search",
+                  "api-reference/endpoint/realtor-property"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Ads",
+            "icon": "bullhorn",
+            "pages": [
+              {
+                "group": "Meta Ads",
+                "pages": [
+                  "api-reference/endpoint/meta-ads-search",
+                  "api-reference/endpoint/meta-ads-ad",
+                  "api-reference/endpoint/meta-ads-page"
+                ]
+              },
+              {
+                "group": "Google",
+                "pages": [
+                  "api-reference/endpoint/google-ads-search",
+                  "api-reference/endpoint/google-ads-ad",
+                  "api-reference/endpoint/google-ads-advertisers"
+                ]
+              },
+              {
+                "group": "TikTok",
+                "pages": [
+                  "api-reference/endpoint/tiktok-ads-search",
+                  "api-reference/endpoint/tiktok-ads-ad"
+                ]
+              },
+              {
+                "group": "LinkedIn",
+                "pages": [
+                  "api-reference/endpoint/linkedin-ads-search",
+                  "api-reference/endpoint/linkedin-ads-ad"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Build with AI",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "ai-onboarding"
+            ]
+          },
+          {
+            "group": "AI Tools",
+            "pages": [
+              {
+                "group": "MCP",
+                "root": "mcp-server",
+                "pages": [
+                  "mcp-server",
+                  "mcp-server/keyless",
+                  "mcp-server/oauth"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Agent Harnesses",
+            "pages": [
+              "quickstarts/claude-code",
+              "quickstarts/cursor",
+              "quickstarts/codex",
+              "quickstarts/claude-desktop"
+            ]
+          },
+          {
+            "group": "LLM SDKs",
+            "pages": [
+              "developer-guides/llm-sdks/openai",
+              "developer-guides/llm-sdks/anthropic",
+              "developer-guides/llm-sdks/vercel-ai-sdk"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Playground",
+          "href": "https://stophy.dev/playground",
+          "icon": "play"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://stophy.dev/blog",
+          "icon": "newspaper"
+        },
+        {
+          "anchor": "Changelog",
+          "href": "https://stophy.dev/changelog",
+          "icon": "list"
+        }
+      ]
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "footer": {
+    "links": [
+      {
+        "header": "For AI agents",
+        "items": [
+          {
+            "label": "Agent guide (agents.md)",
+            "href": "https://stophy.dev/agents.md"
+          },
+          {
+            "label": "Site index (llms.txt)",
+            "href": "https://stophy.dev/llms.txt"
+          },
+          {
+            "label": "MCP discovery (mcp.json)",
+            "href": "https://stophy.dev/.well-known/mcp.json"
+          },
+          {
+            "label": "OpenAPI",
+            "href": "https://api.stophy.dev/openapi.json"
+          }
+        ]
+      }
+    ],
+    "socials": {
+      "x": "https://x.com/stophydotdev"
+    }
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "javascript",
+        "python"
+      ]
+    }
+  },
+  "redirects": [
+    {
+      "source": "/quickstarts/curl",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/quickstarts/nodejs",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/quickstarts/python",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/guides/agents",
+      "destination": "/ai-onboarding"
+    },
+    {
+      "source": "/sources/youtube",
+      "destination": "/sources/video"
+    },
+    {
+      "source": "/sources/tiktok",
+      "destination": "/sources/video"
+    },
+    {
+      "source": "/sources/reddit",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/instagram",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/bluesky",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/mastodon",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/threads",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/telegram",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/more-social",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/local-and-leads",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/sources/travel",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/sources/ad-libraries",
+      "destination": "/sources/ads"
+    },
+    {
+      "source": "/sources/more-ads",
+      "destination": "/sources/ads"
+    },
+    {
+      "source": "/sources/keywords",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/sources/site-and-domain",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/sdks/node",
+      "destination": "/sdks/typescript"
+    },
+    {
+      "source": "/api-reference/endpoint/domain-dns",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/domain-tech",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/domain-whois",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/instagram-comments-replies",
+      "destination": "/api-reference/endpoint/instagram-comments"
+    },
+    {
+      "source": "/api-reference/endpoint/instagram-posts",
+      "destination": "/api-reference/endpoint/instagram-profile"
+    },
+    {
+      "source": "/api-reference/endpoint/instagram-url",
+      "destination": "/api-reference/endpoint/instagram-post"
+    },
+    {
+      "source": "/api-reference/endpoint/kick-channel",
+      "destination": "/sources/video"
+    },
+    {
+      "source": "/api-reference/endpoint/kick-clips",
+      "destination": "/sources/video"
+    },
+    {
+      "source": "/api-reference/endpoint/kick-videos",
+      "destination": "/sources/video"
+    },
+    {
+      "source": "/api-reference/endpoint/linkedin-company-posts",
+      "destination": "/api-reference/endpoint/linkedin-posts"
+    },
+    {
+      "source": "/api-reference/endpoint/mastodon-hashtag",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/mastodon-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/mastodon-posts",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/mastodon-profile",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/quora-question",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/realtor-property",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/realtor-search",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/reddit-comments-more",
+      "destination": "/api-reference/endpoint/reddit-post"
+    },
+    {
+      "source": "/api-reference/endpoint/redfin-property",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/redfin-search",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/site-map",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/snapchat-ads-ad",
+      "destination": "/sources/ads"
+    },
+    {
+      "source": "/api-reference/endpoint/snapchat-ads-search",
+      "destination": "/sources/ads"
+    },
+    {
+      "source": "/api-reference/endpoint/snapchat-profile",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/tiktok-comments-replies",
+      "destination": "/api-reference/endpoint/tiktok-comments"
+    },
+    {
+      "source": "/api-reference/endpoint/tiktok-posts",
+      "destination": "/api-reference/endpoint/tiktok-profile"
+    },
+    {
+      "source": "/api-reference/endpoint/tiktok-url",
+      "destination": "/api-reference/endpoint/tiktok-video"
+    },
+    {
+      "source": "/api-reference/endpoint/tumblr-blog",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/tumblr-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/tumblr-posts",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/tumblr-search",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/youtube-comments-replies",
+      "destination": "/api-reference/endpoint/youtube-comments"
+    },
+    {
+      "source": "/guides/markdown",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/authentication",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/errors",
+      "destination": "/api-reference/errors"
+    },
+    {
+      "source": "/sdk-typescript",
+      "destination": "/sdks/typescript"
+    },
+    {
+      "source": "/credits",
+      "destination": "/billing"
+    },
+    {
+      "source": "/v1/kids",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/api-reference/getLogs",
+      "destination": "/api-reference/logs"
+    },
+    {
+      "source": "/v1/channel",
+      "destination": "/api-reference/endpoint/youtube-channel"
+    },
+    {
+      "source": "/api-reference/endpoint/web-search",
+      "destination": "/api-reference/endpoint/google-search"
+    },
+    {
+      "source": "/api-reference/endpoint/ads-ad",
+      "destination": "/api-reference/endpoint/meta-ads-ad"
+    },
+    {
+      "source": "/api-reference/endpoint/ads-advertisers",
+      "destination": "/api-reference/endpoint/google-ads-advertisers"
+    },
+    {
+      "source": "/api-reference/endpoint/ads-search",
+      "destination": "/api-reference/endpoint/meta-ads-search"
+    },
+    {
+      "source": "/api-reference/endpoint/ai-answer",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/google-aiMode",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/google-jobs",
+      "destination": "/sources/jobs"
+    },
+    {
+      "source": "/api-reference/endpoint/google-shopping",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/airbnb-calendar",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/api-reference/endpoint/airbnb-listing",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/api-reference/endpoint/airbnb-reviews",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/api-reference/endpoint/airbnb-search",
+      "destination": "/sources/places-and-travel"
+    },
+    {
+      "source": "/api-reference/endpoint/googleplay-app",
+      "destination": "/api-reference/endpoint/google-play-app"
+    },
+    {
+      "source": "/api-reference/endpoint/googleplay-reviews",
+      "destination": "/api-reference/endpoint/google-play-reviews"
+    },
+    {
+      "source": "/api-reference/endpoint/googleplay-search",
+      "destination": "/api-reference/endpoint/google-play-search"
+    },
+    {
+      "source": "/api-reference/endpoint/googletravel-flights",
+      "destination": "/api-reference/endpoint/google-flights"
+    },
+    {
+      "source": "/api-reference/endpoint/immoscout-listing",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/immoscout-search",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/rightmove-property",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/rightmove-search",
+      "destination": "/sources/real-estate"
+    },
+    {
+      "source": "/api-reference/endpoint/linkedin-companies-search",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/linkedin-people-search",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/maps-place",
+      "destination": "/api-reference/endpoint/google-maps-place"
+    },
+    {
+      "source": "/api-reference/endpoint/maps-reviews",
+      "destination": "/api-reference/endpoint/google-maps-reviews"
+    },
+    {
+      "source": "/api-reference/endpoint/maps-search",
+      "destination": "/api-reference/endpoint/google-maps-search"
+    },
+    {
+      "source": "/api-reference/endpoint/pinterest-user",
+      "destination": "/api-reference/endpoint/pinterest-profile"
+    },
+    {
+      "source": "/api-reference/endpoint/transcript",
+      "destination": "/api-reference/endpoint/youtube-transcript"
+    },
+    {
+      "source": "/api-reference/endpoint/walmart-product",
+      "destination": "/api-reference/endpoint/amazon-product"
+    },
+    {
+      "source": "/api-reference/endpoint/walmart-search",
+      "destination": "/api-reference/endpoint/amazon-search"
+    },
+    {
+      "source": "/api-reference/endpoint/aliexpress-product",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/aliexpress-search",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/bluesky-followers",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/bluesky-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/bluesky-posts",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/bluesky-profile",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-binance-announcements",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-categories",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-coin",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-coins",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-dex-new",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-dex-pairs",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-dex-search",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-dex-token",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-history",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-movers",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-new",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-pump-coin",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-pump-coins",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-pump-trades",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-token-holders",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-trending",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/crypto-wallet",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/email-check",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/email-verify",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/finance-history",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/finance-profile",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/finance-quote",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/finance-search",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/finance-stock",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/google-trends",
+      "destination": "/api-reference/endpoint/google-trends-interest"
+    },
+    {
+      "source": "/api-reference/endpoint/shopify-collections",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/shopify-products",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/shopify-store",
+      "destination": "/sources/shopping"
+    },
+    {
+      "source": "/api-reference/endpoint/site-seo",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/suggest",
+      "destination": "/api-reference/endpoint/google-suggest"
+    },
+    {
+      "source": "/api-reference/endpoint/telegram-channel",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/telegram-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/telegram-posts",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/threads-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/threads-posts",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/threads-profile",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/threads-search",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/web-contacts",
+      "destination": "/sources/web"
+    },
+    {
+      "source": "/api-reference/endpoint/web-news",
+      "destination": "/api-reference/endpoint/google-news"
+    },
+    {
+      "source": "/api-reference/endpoint/x-post",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/api-reference/endpoint/x-tweet",
+      "destination": "/sources/social"
+    },
+    {
+      "source": "/sources/email",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/sources/finance-and-crypto",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/sdk-python",
+      "destination": "/sdks/python"
+    },
+    {
+      "source": "/api-reference/getUsage",
+      "destination": "/api-reference/usage"
+    },
+    {
+      "source": "/api-reference/getChannel",
+      "destination": "/api-reference/endpoint/youtube-channel"
+    }
+  ],
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_vZ4JqekGqvnoYuGao7gM9TWPaPmD84NDv7hhVkeM9mEQ",
+      "apiHost": "https://us.i.posthog.com"
+    }
+  }
+}

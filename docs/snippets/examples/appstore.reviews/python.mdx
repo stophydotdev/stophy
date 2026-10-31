@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.appstore.reviews(app_id="284882215", sort="lowest")
+print(result["data"]["results"])
+```

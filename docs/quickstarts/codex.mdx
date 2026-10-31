@@ -1,0 +1,39 @@
+---
+title: "Codex"
+description: "Add Stophy to Codex with one command. Start with no key, sign in with your browser, or use an API key to open every endpoint."
+og:title: "Codex | Stophy"
+og:description: "Add Stophy to Codex with one command. Start with no key, sign in with your browser, or use an API key to open every endpoint."
+---
+
+Add Stophy to [Codex](https://developers.openai.com/codex) with one command.
+
+```bash
+codex mcp add stophy --url https://api.stophy.dev/mcp
+```
+
+Your agent can use the free endpoints right away. Run `codex mcp list` to check it.
+
+## Sign in with your browser
+
+```bash
+codex mcp add stophy --url https://mcp.stophy.dev/mcp
+codex mcp login stophy
+```
+
+This opens every endpoint.
+
+## Use an API key
+
+```bash
+codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
+```
+
+Set `STOPHY_API_KEY` first. [Get a key](https://stophy.dev/signup). Codex reads it each time it starts, so it is never saved to `~/.codex/config.toml`.
+
+## Try it
+
+```text
+Use Stophy to get the transcript of https://www.youtube.com/watch?v=dQw4w9WgXcQ and summarize it.
+```
+
+To get one tool per endpoint for some sources, see [toolsets](/mcp-server#what-your-agent-sees).

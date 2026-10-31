@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.luma.event(event="https://luma.com/d8y4gf2p")
+print(result["data"])
+```

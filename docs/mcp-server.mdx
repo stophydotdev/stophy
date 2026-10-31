@@ -1,0 +1,58 @@
+---
+title: "MCP server"
+sidebarTitle: "Overview"
+description: "Connect Claude Code, Codex, Cursor or any MCP client to Stophy with no key, with your browser, or with an API key. One command per client."
+og:title: "MCP server | Stophy"
+og:description: "Connect Claude Code, Codex, Cursor or any MCP client to Stophy with no key, with your browser, or with an API key. One command per client."
+mode: "wide"
+---
+
+import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
+
+Connect your agent to Stophy in one command. Pick your client and run it.
+
+<McpClientSelector showSeeAll={false} />
+
+This needs no key. Your agent can use the free endpoints right away.
+
+## Choose how to connect
+
+<CardGroup cols={3}>
+  <Card title="No key" icon="bolt" href="/mcp-server/keyless">
+    Free endpoints only. Nothing to set up.
+  </Card>
+  <Card title="Browser sign-in" icon="right-to-bracket" href="/mcp-server/oauth">
+    Every endpoint. Approve the app in your browser.
+  </Card>
+  <Card title="API key" icon="key" href="/mcp-server/keyless#add-an-api-key">
+    Every endpoint. Your key goes in the client config.
+  </Card>
+</CardGroup>
+
+| | URL |
+| --- | --- |
+| No key or API key | `https://api.stophy.dev/mcp` |
+| Browser sign-in | `https://mcp.stophy.dev/mcp` |
+
+Both are server URLs for your client, not pages to open in a browser.
+
+## What your agent sees
+
+Three tools. `stophy_search_endpoints` finds an endpoint, `stophy_describe_endpoint` shows its inputs, and `stophy_call` runs it. `stophy_call` takes `id`, `input` and optional `fields`, which keeps only the keys you name on each result.
+
+Ask *"What are people saying about Bun on Reddit?"* and your agent finds `reddit.search`, calls it, and answers. A call costs the same credits as over HTTP. See [Credits and billing](/billing).
+
+To get one tool per endpoint for some sources, add `toolsets` to the URL.
+
+```text
+https://api.stophy.dev/mcp?toolsets=reddit,youtube
+```
+
+## Client guides
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/quickstarts/claude-code" />
+  <Card title="Claude Desktop" icon="desktop" href="/quickstarts/claude-desktop" />
+  <Card title="Cursor" icon="arrow-pointer" href="/quickstarts/cursor" />
+  <Card title="Codex" icon="code" href="/quickstarts/codex" />
+</CardGroup>

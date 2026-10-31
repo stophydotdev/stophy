@@ -1,0 +1,71 @@
+---
+title: "Overview"
+description: "Pick a Stophy client. Use the TypeScript or Python SDK in your code, or the CLI in your terminal and for AI agents that run shell commands."
+og:title: "SDKs overview | Stophy"
+og:description: "Pick a Stophy client. Use the TypeScript or Python SDK in your code, or the CLI in your terminal and for AI agents that run shell commands."
+mode: "wide"
+---
+
+Stophy has a TypeScript SDK, a Python SDK and a CLI. Each one calls the same [API](/api-reference/introduction).
+
+## Install
+
+<CodeGroup>
+
+```bash TypeScript icon="/images/icons/typescript.svg"
+npm install stophy
+```
+
+```bash Python icon="python"
+pip install stophy
+```
+
+```bash CLI icon="square-terminal"
+npm install -g @stophy/cli
+```
+
+</CodeGroup>
+
+## Make a call
+
+No account, no key.
+
+<CodeGroup>
+
+```ts TypeScript icon="/images/icons/typescript.svg"
+import { Stophy } from "stophy";
+
+const result = await new Stophy().google.search({ query: "bun runtime" });
+console.log(result.data.results);
+```
+
+```python Python icon="python"
+from stophy import Stophy
+
+result = Stophy().google.search(query="bun runtime")
+print(result["data"]["results"])
+```
+
+```bash CLI icon="square-terminal"
+stophy google search "bun runtime"
+```
+
+</CodeGroup>
+
+You get Google results with `creditsUsed: 0`. A key lifts the free limit.
+
+## Pick one
+
+<CardGroup cols={3}>
+  <Card title="TypeScript" icon="node-js" href="/sdks/typescript">
+    For Node.js, Bun, Deno and the browser. Typed inputs and results.
+  </Card>
+  <Card title="Python" icon="python" href="/sdks/python">
+    For Python apps and scripts. Sync and async clients.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/sdks/cli">
+    For your terminal, your scripts, and agents that run shell commands.
+  </Card>
+</CardGroup>
+
+The SDKs and the CLI read `STOPHY_API_KEY` from your environment. `npx -y @stophy/cli init --all` also adds Stophy's skills and MCP server to your coding agent. See [Quickstart](/quickstart) to get a key.

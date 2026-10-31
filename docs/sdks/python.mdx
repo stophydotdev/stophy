@@ -1,0 +1,173 @@
+---
+title: "Python SDK"
+description: "Install the Stophy Python SDK, make your first call with no key, then add a key to page through results, run async, handle errors and read your usage."
+sidebarTitle: "Python"
+icon: "python"
+og:title: "Python SDK | Stophy"
+og:description: "Install the Stophy Python SDK, make your first call with no key, then add a key to page through results, run async, handle errors and read your usage."
+---
+
+The `stophy` package gives you sync and async calls to Stophy from Python 3.9 or newer.
+
+```bash
+pip install stophy
+```
+
+## Make a call
+
+No account, no key.
+
+```python
+from stophy import Stophy
+
+result = Stophy().google.search(query="bun runtime")
+print(result["data"]["results"])
+```
+
+<Accordion title="Response">
+```json
+{
+  "success": true,
+  "data": {
+    "engine": "google",
+    "results": [
+      {
+        "type": "web",
+        "url": "https://bun.com/",
+        "title": "Bun — A fast all-in-one JavaScript runtime",
+        "description": "Bun is a fast JavaScript runtime & toolkit. All in one. Runtime, package manager, test runner and bundler in a single binary. Use bun install or bun test in an ...",
+        "position": 1
+      }
+    ]
+  },
+  "creditsUsed": 0,
+  "requestId": "dd201ca1-960f-4e2c-89b9-34011c638c51"
+}
+```
+</Accordion>
+
+Responses are plain dictionaries with `success`, `data`, `creditsUsed` and `requestId`. A list is in `data["results"]`.
+
+Methods follow the endpoint id, with keyword arguments in snake_case. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The [API reference](/api-reference/introduction) lists every endpoint.
+
+## Use a key
+
+Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call raises a `StophyError` with code `unauthorized`.
+
+Set `STOPHY_API_KEY` and `Stophy()` picks it up. Or pass it in:
+
+```python
+import os
+
+from stophy import Stophy
+
+stophy = Stophy(api_key=os.environ["STOPHY_API_KEY"])
+posts = stophy.reddit.search(query="bun runtime")
+print(len(posts["data"]["results"]), posts["creditsUsed"])
+```
+
+## Find endpoints
+
+```python
+from stophy import Stophy
+
+catalog = Stophy().endpoints()
+free = [endpoint for endpoint in catalog["endpoints"] if endpoint["keyless"]]
+print(len(catalog["endpoints"]), len(free))
+```
+
+## Run async
+
+`AsyncStophy` has the same methods. Await them.
+
+```python
+import asyncio
+
+from stophy import AsyncStophy
+
+
+async def main() -> None:
+    async with AsyncStophy() as stophy:
+        result = await stophy.google.search(query="bun runtime")
+        for item in result["data"]["results"]:
+            print(item["title"])
+
+
+asyncio.run(main())
+```
+
+## Page through results
+
+A list call returns one page. When there is more, `data["cursor"]` is set. Pass it back to get the next page. This needs a key.
+
+```python
+from stophy import Stophy
+
+stophy = Stophy()
+cursor = None
+for _ in range(2):
+    result = stophy.reddit.search(query="bun runtime", cursor=cursor)
+    print(len(result["data"]["results"]))
+    cursor = result["data"].get("cursor")
+    if not cursor:
+        break
+```
+
+Some endpoints take a `page` number instead, like `google.search`. See [Page through results](/guides/paging).
+
+## Handle errors
+
+```python
+from stophy import Stophy, StophyError
+
+try:
+    Stophy().reddit.search(query="bun runtime", cursor="next")
+except StophyError as error:
+    print(error.status, error.code, str(error))
+    print(error.retryable, error.retry_after_seconds, error.request_id)
+```
+
+The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it raises at once with `retry_after_seconds` set. A failed call costs nothing. See [Errors](/api-reference/errors) for every code.
+
+## Options
+
+```python
+from stophy import Stophy
+
+with Stophy(
+    timeout=20.0,
+    max_retries=3,
+    retry_initial_delay=0.5,
+    headers={"x-app": "my-app"},
+) as stophy:
+    result = stophy.google.search(query="bun runtime")
+```
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `api_key` | `STOPHY_API_KEY` | Your API key |
+| `base_url` | `STOPHY_BASE_URL` or `https://api.stophy.dev` | Where requests go |
+| `timeout` | `70.0` | Time limit in seconds |
+| `max_retries` | `2` | Retries per request. `0` turns them off. |
+| `retry_initial_delay` | `0.5` | Base delay in seconds before a retry. Each retry waits longer. |
+| `headers` | none | Extra headers on every request |
+| `transport` | none | An `httpx` transport, for tests |
+
+## Check your usage
+
+These need a key.
+
+```python
+from stophy import Stophy
+
+stophy = Stophy()
+
+usage = stophy.usage()
+print(usage["balanceMicros"] / 1500, usage["creditsUsed"], usage["requestCount"])
+
+logs = stophy.logs(days=7, endpoint="reddit.search")
+for entry in logs["logs"]:
+    print(entry["createdAt"], entry["endpoint"], entry["credits"])
+```
+
+`balanceMicros` is your balance in millionths of a dollar. One credit is 1,500, so divide by 1,500 to get credits. See [Usage](/api-reference/usage) and [Logs](/api-reference/logs).

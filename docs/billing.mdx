@@ -1,0 +1,67 @@
+---
+title: "Credits and billing"
+description: "Stophy credits start at $0.80 per 1,000. New accounts get 1,000 free, most calls cost 1 credit, and a call that fails or finds nothing costs nothing."
+og:title: "Credits and billing | Stophy"
+og:description: "Stophy credits start at $0.80 per 1,000. New accounts get 1,000 free, most calls cost 1 credit, and a call that fails or finds nothing costs nothing."
+---
+
+Most calls cost 1 credit, new accounts get 1,000 free, and a call that fails or finds nothing costs nothing.
+
+## Price
+
+| You add | Price per 1,000 credits |
+| --- | --- |
+| Less than $100 | $1.50 |
+| $100 or more | $1.20 |
+| $500 or more | $0.80 |
+
+Top up at [stophy.dev](https://stophy.dev). The smallest top-up is $10. Credits never expire.
+
+## What a call costs
+
+Of the 137 endpoints, 117 cost 1 credit and 1 costs 2. Fifteen are priced per unit and 4 are free.
+
+| Cost | Endpoints |
+| --- | --- |
+| 2 credits | `zillow.search` |
+| 1 credit per 10 images | `google.images`, `web.images` |
+| 1 credit per 10 articles | `web.news` |
+| 1 credit per 10 listings | `craigslist.search` |
+| 1 credit per 10 apps | `appstore.search`, `appstore.top`, `google.play.search` |
+| 1 credit, plus 1 for each result read in full | `google.search`, when `scrapeResults` is on |
+| 1 credit per 10 results, plus 1 for each result read in full | `web.search`, when `scrapeResults` is on |
+| 1 credit a page, 2 when a page takes more work to load, 5 on the hardest pages to reach | `web.scrape`, `web.crawl`, `web.crawl.start`, `web.batch` |
+| 2 credits, or 5 on the hardest pages to reach, for a screenshot, actions or `waitFor` | `web.scrape`, `web.batch` |
+| Free | `web.crawl.status`, `web.crawl.cancel`, `web.batch.status`, `web.batch.cancel` |
+| 2 credits, plus 1 per 10 seconds of audio | `instagram.transcript` |
+| 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio | `tiktok.transcript` |
+
+Every other endpoint costs 1 credit, however many results come back.
+
+Each endpoint's price is on its page in the [API reference](/api-reference/introduction). The catalog has it too, as `credits` and, when the price varies, `pricing`.
+
+```bash
+curl https://api.stophy.dev/v1/endpoints
+```
+
+## Transcripts
+
+`youtube.transcript` costs 1 credit. For `instagram.transcript` and `tiktok.transcript`, audio is rounded up to the next 10 seconds. Instagram goes up to 30 minutes, which is 182 credits at most. TikTok goes up to 3 minutes, which is 20 credits at most. A longer video is refused and costs nothing.
+
+When audio was transcribed, the response has `transcribedSeconds`.
+
+## Limit the cost of a long list
+
+`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top`, `google.play.search` and `craigslist.search` take `limit`. On the priced ones, a smaller `limit` costs fewer credits.
+
+## Pages
+
+One call returns one page. The next page is a new call and costs the same again. See [Page through results](/guides/paging).
+
+## See what a call cost
+
+Every successful response has `creditsUsed` in the body and an `x-credits-used` header. For your balance and history, use [`GET /v1/usage`](/api-reference/usage) and [`GET /v1/logs`](/api-reference/logs).
+
+## Running out
+
+When your balance is too low, the call answers `402` with code `insufficientCredits` and charges nothing. The error says how many credits the call needs and how many you have.

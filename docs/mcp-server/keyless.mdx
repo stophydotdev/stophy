@@ -1,0 +1,33 @@
+---
+title: "No key and API key"
+description: "Add Stophy to Claude Code, Codex, Cursor or OpenCode with no key to use the free endpoints, then add an API key to use every endpoint."
+og:title: "No key and API key | Stophy"
+og:description: "Add Stophy to Claude Code, Codex, Cursor or OpenCode with no key to use the free endpoints, then add an API key to use every endpoint."
+mode: "wide"
+---
+
+import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
+
+Run one command and your agent can use the free endpoints. No account.
+
+<McpClientSelector showSeeAll={false} />
+
+The free endpoints are the ones marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints). Google search, YouTube search and Reddit search are among them.
+
+## Add an API key
+
+A key lets your agent use every endpoint. [Create one](https://stophy.dev/signup). New accounts get 1,000 free credits. Then use the same URL with your key.
+
+<McpClientSelector variant="key" showSeeAll={false} />
+
+A key that is wrong is refused. Remove the header to go back to the free endpoints.
+
+## Check it
+
+Ask your agent this.
+
+```text
+Search YouTube for "rust tutorial" and summarize the top three videos.
+```
+
+If `stophy` shows no tools, restart your client. Prefer not to paste a key? [Sign in with your browser](/mcp-server/oauth).

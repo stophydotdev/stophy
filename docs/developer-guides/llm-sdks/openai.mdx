@@ -1,0 +1,83 @@
+---
+title: "OpenAI"
+description: "Give an OpenAI model live web search with Stophy. Save one search function, pass it as a tool, and send the results back when the model asks."
+og:title: "OpenAI tool calling with Stophy | Stophy"
+og:description: "Give an OpenAI model live web search with Stophy. Save one search function, pass it as a tool, and send the results back when the model asks."
+---
+
+Give an OpenAI model live web search. The model asks for a search, your code calls Stophy, and the model answers from the results.
+
+## The search tool
+
+Save this as `stophy.ts`. It calls Google search and returns the top 5 results as JSON. It works with no key. Set `STOPHY_API_KEY` to lift the free limit.
+
+```ts stophy.ts
+export async function stophySearch(query: string): Promise<string> {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (process.env.STOPHY_API_KEY) headers.authorization = `Bearer ${process.env.STOPHY_API_KEY}`;
+  const response = await fetch("https://api.stophy.dev/v1/google/search", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query }),
+  });
+  const body = await response.json();
+  if (!body.success) throw new Error(body.error.message);
+  return JSON.stringify(body.data.results.slice(0, 5));
+}
+```
+
+## Give it to an OpenAI model
+
+```bash
+npm install openai
+```
+
+Set `OPENAI_API_KEY` in your environment.
+
+Pass the search as a function tool to the Responses API. While the model keeps calling it, run the search and send the result back.
+
+```ts
+import OpenAI from "openai";
+import { stophySearch } from "./stophy";
+
+const openai = new OpenAI();
+
+const tools: OpenAI.Responses.Tool[] = [
+  {
+    type: "function",
+    name: "web_search",
+    description: "Search the web. Returns the top results as JSON.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+];
+
+let response = await openai.responses.create({
+  model: "gpt-5-mini",
+  input: "What changed in the latest Bun release?",
+  tools,
+});
+
+while (true) {
+  const calls = response.output.filter((item) => item.type === "function_call");
+  if (calls.length === 0) break;
+  const outputs: OpenAI.Responses.ResponseInputItem[] = [];
+  for (const call of calls) {
+    const { query } = JSON.parse(call.arguments) as { query: string };
+    outputs.push({ type: "function_call_output", call_id: call.call_id, output: await stophySearch(query) });
+  }
+  response = await openai.responses.create({
+    model: "gpt-5-mini",
+    previous_response_id: response.id,
+    input: outputs,
+    tools,
+  });
+}
+
+console.log(response.output_text);
+```

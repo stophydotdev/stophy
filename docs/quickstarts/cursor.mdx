@@ -1,0 +1,61 @@
+---
+title: "Cursor"
+description: "Add Stophy to Cursor in one config file. Start with no key, sign in with your browser, or use an API key to open every endpoint."
+og:title: "Cursor | Stophy"
+og:description: "Add Stophy to Cursor in one config file. Start with no key, sign in with your browser, or use an API key to open every endpoint."
+---
+
+Add Stophy to [Cursor](https://cursor.com). Put this in `~/.cursor/mcp.json`.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "url": "https://api.stophy.dev/mcp"
+    }
+  }
+}
+```
+
+Restart Cursor. Your agent can use the free endpoints right away.
+
+## Sign in with your browser
+
+Use this URL instead. Cursor opens your browser to sign in, and every endpoint opens.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "url": "https://mcp.stophy.dev/mcp"
+    }
+  }
+}
+```
+
+## Use an API key
+
+[Get a key](https://stophy.dev/signup), then add a header. Keep the file private, since it holds your key.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "url": "https://api.stophy.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_STOPHY_API_KEY"
+      }
+    }
+  }
+}
+```
+
+## Try it
+
+Open the MCP section of Cursor Settings and check that `stophy` is on. Then ask the agent this.
+
+```text
+Use Stophy to find coffee shops near Austin, TX with their ratings.
+```
+
+To get one tool per endpoint for some sources, see [toolsets](/mcp-server#what-your-agent-sees).

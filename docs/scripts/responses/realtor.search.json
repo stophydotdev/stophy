@@ -1,0 +1,34 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "totalResults": 2660,
+    "results": [
+      {
+        "propertyId": "8395932351",
+        "propertyUrl": "https://www.realtor.com/realestateandhomes-detail/6700-Tulloch-Way_Austin_TX_78754_M83959-32351",
+        "status": "forSale",
+        "isPending": true,
+        "price": 439999,
+        "priceCurrency": "USD",
+        "addressFull": "6700 Tulloch Way, Austin, TX 78754",
+        "addressStreet": "6700 Tulloch Way",
+        "addressCity": "Austin",
+        "addressRegion": "TX",
+        "addressPostalCode": "78754",
+        "latitude": 30.354294,
+        "longitude": -97.61154,
+        "bedrooms": 4,
+        "bathrooms": 4,
+        "sqft": 3840,
+        "lotSqft": 8350,
+        "yearBuilt": 2005,
+        "homeType": "single_family",
+        "monthlyHoa": 41,
+        "listedOn": "2026-10-02",
+        "lastSoldOn": "2005-08-30",
+        "imageUrl": "https://ap.rdcpix.com/e8cfb6fa65df9ca9d347ebd47586e33fl-m3060197626s.jpg"
+      }
+    ]
+  }
+}

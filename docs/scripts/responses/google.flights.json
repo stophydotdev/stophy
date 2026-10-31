@@ -1,0 +1,41 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "cabin": "economy",
+    "tripType": "oneWay",
+    "adults": 1,
+    "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjYtMTItMTJqBRIDSkZLcgUSA0xBWEABSAGYAQI%3D&tfu=EgQIABABIgA&hl=…",
+    "results": [
+      {
+        "isBest": true,
+        "price": 179,
+        "priceCurrency": "USD",
+        "airlines": [
+          "JetBlue"
+        ],
+        "stops": 0,
+        "durationSeconds": 22620,
+        "departureLocalTime": "2026-12-12T12:00",
+        "arrivalLocalTime": "2026-12-12T15:17",
+        "legs": [
+          {
+            "flightNumber": "B6 723",
+            "airline": "JetBlue",
+            "originCode": "JFK",
+            "originName": "John F. Kennedy International Airport",
+            "destinationCode": "LAX",
+            "destinationName": "Los Angeles International Airport",
+            "departureLocalTime": "2026-12-12T12:00",
+            "arrivalLocalTime": "2026-12-12T15:17",
+            "durationSeconds": 22620,
+            "aircraft": "Airbus A320",
+            "legroom": "33 inches"
+          }
+        ],
+        "emissionsGrams": 426000,
+        "typicalEmissionsGrams": 345000
+      }
+    ]
+  }
+}

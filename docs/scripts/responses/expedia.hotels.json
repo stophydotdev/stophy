@@ -1,0 +1,20 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "totalResults": 494,
+    "results": [
+      {
+        "hotelId": "136894976",
+        "hotelUrl": "https://www.expedia.com/Tacoma-Hotels-Tacoma-GL.h136894976.Hotel-Information?chkin=2026-11-01&chkout=2026-11-02&rm1=a2",
+        "name": "Tacoma GL",
+        "neighborhood": "Lakewood",
+        "nightlyPrice": 41,
+        "totalPrice": 47,
+        "totalPriceBefore": 70,
+        "currency": "USD",
+        "imageUrl": "https://images.trvl-media.com/lodging/137000000/136900000/136895000/136894976/6662bef5.jpg?impolicy=resizecrop&ra=fit&r…"
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.craigslist.search(zip_code="94103", query="road bike", max_price=800, limit=10)
+print(result["data"]["results"])
+```

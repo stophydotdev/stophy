@@ -1,0 +1,35 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "city": "San Francisco",
+    "results": [
+      {
+        "eventId": "evt-zdM9M2LyH31iaVi",
+        "eventUrl": "https://luma.com/d8y4gf2p",
+        "name": "Not so European Fridays at European Startup Embassy",
+        "startsAt": "2026-10-30T17:00:00.000Z",
+        "endsAt": "2026-10-31T01:00:00.000Z",
+        "timezone": "America/Los_Angeles",
+        "isOnline": false,
+        "city": "San Francisco, CA",
+        "address": "European Startup Embassy, 461 Bryant St, San Francisco, CA 94107, USA",
+        "latitude": 37.7819145,
+        "longitude": -122.39486069999998,
+        "calendarName": "European Startup Embassy",
+        "hosts": [
+          "European Startup Embassy",
+          "Krishaaaaa"
+        ],
+        "guestCount": 13,
+        "isFree": true,
+        "isSoldOut": false,
+        "spotsRemaining": 37,
+        "needsApproval": true,
+        "hasWaitlist": false,
+        "imageUrl": "https://images.lumacdn.com/uploads/j4/56efb675-6ede-4874-ae94-df9c76b4c867.png"
+      }
+    ],
+    "cursor": "u3ZE_CUpeyJzdiI6IjIwMjYtMTEtMDQgMjM6MDA6MDArMDAiLCJmYiI6ImV2dC1CdjlabFJMM0ZXZ25ZbGUifQ"
+  }
+}

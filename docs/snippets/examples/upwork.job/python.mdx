@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.upwork.job(job_url="https://www.upwork.com/jobs/~021234567890123456789")
+print(result["data"])
+```

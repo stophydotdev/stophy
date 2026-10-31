@@ -1,0 +1,78 @@
+---
+title: "Find the right endpoint"
+description: "Search the live Stophy catalog by keyword, browse it by category, or read one endpoint's full input before you write a call. No key needed to look."
+og:title: "Find the right endpoint | Stophy"
+og:description: "Search the live Stophy catalog by keyword, browse it by category, or read one endpoint's full input before you write a call. No key needed to look."
+---
+
+Search the catalog for any word. No key needed.
+
+<CodeGroup>
+
+```bash cURL
+curl -s https://api.stophy.dev/v1/endpoints \
+  | jq -r '.endpoints[] | select(.id | contains("video")) | "\(.id): \(.summary)"'
+```
+
+```bash CLI
+stophy endpoints video
+```
+
+</CodeGroup>
+
+```text
+youtube.video: Scrape a YouTube video page
+tiktok.video: Scrape a TikTok video
+```
+
+Drop the keyword to list every endpoint: `curl -s https://api.stophy.dev/v1/endpoints` or `stophy endpoints`. Each entry has the id, a summary, the price, the input, an example, and `keyless: true` when it needs no key.
+
+## Read one endpoint's input
+
+Once you have an id, get its input and a working example.
+
+<CodeGroup>
+
+```bash cURL
+curl -s https://api.stophy.dev/v1/endpoints \
+  | jq '.endpoints[] | select(.id == "youtube.transcript")'
+```
+
+```bash CLI
+stophy youtube transcript --help
+```
+
+</CodeGroup>
+
+<Accordion title="Response">
+```json
+{
+  "id": "youtube.transcript",
+  "summary": "Scrape a YouTube video's transcript",
+  "credits": 1,
+  "keyless": true,
+  "input": {
+    "type": "object",
+    "properties": {
+      "videoUrl": { "type": "string" },
+      "videoId": { "type": "string" },
+      "language": { "type": "string" },
+      "includeTimestamps": { "default": false, "type": "boolean" }
+    },
+    "sendOne": ["videoUrl", "videoId"],
+    "additionalProperties": false
+  },
+  "example": { "videoId": "p0fybvFyOlM" }
+}
+```
+</Accordion>
+
+The `example` field is a call you can send as it is. `sendOne` lists the fields where you send one and not both. A field not in `input` returns a `400`.
+
+## Browse by category
+
+Each page under [What you can get](/sources/web) lists the endpoints for one category, with the price and a call you can copy. The [API reference](/api-reference/introduction) has the same input for every endpoint.
+
+Over [MCP](/mcp-server), the `stophy_search_endpoints` tool runs this same search for your agent.
+
+<Tip>Try a call in the [playground](https://stophy.dev/playground) before you write any code.</Tip>

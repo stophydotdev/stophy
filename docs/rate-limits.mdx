@@ -1,0 +1,30 @@
+---
+title: "Rate limits"
+description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
+og:title: "Rate limits | Stophy"
+og:description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
+---
+
+| | Limit |
+| --- | --- |
+| Requests | 600 a minute per account |
+
+Every call answers or fails within 25 seconds, or up to 62 seconds when it reads a site you pick or asks ChatGPT or Gemini.
+
+## Without a key
+
+Endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work with no key, over HTTP and [MCP](/mcp-server/keyless). Without a key you get the first page only. Free calls are limited to 10 a minute and 50 a day for each IP address, and going over returns a `429`.
+
+[Sign up](https://stophy.dev/signup) for 1,000 free credits, higher limits and every endpoint.
+
+## Headers
+
+Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
+
+## When you go over
+
+| Code | Status | What to do |
+| --- | --- | --- |
+| `rateLimited` | `429` | Wait for the `Retry-After` header, which is also `retryAfterSeconds` in the body, then retry. |
+
+It is marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.

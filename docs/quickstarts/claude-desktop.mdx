@@ -1,0 +1,54 @@
+---
+title: "Claude Desktop"
+description: "Add Stophy to Claude Desktop with the local MCP package. Use it with no key for free endpoints, or add an API key to open every endpoint."
+og:title: "Claude Desktop | Stophy"
+og:description: "Add Stophy to Claude Desktop with the local MCP package. Use it with no key for free endpoints, or add an API key to open every endpoint."
+---
+
+Add Stophy to [Claude Desktop](https://claude.ai/download). It needs Node.js 18 or later.
+
+Claude Desktop runs a local package that forwards calls to Stophy. Open `claude_desktop_config.json`.
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add this to `mcpServers`.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "command": "npx",
+      "args": ["-y", "@stophy/mcp"]
+    }
+  }
+}
+```
+
+Quit Claude Desktop and open it again. Your agent can use the free endpoints right away.
+
+## Use an API key
+
+[Get a key](https://stophy.dev/signup) to open every endpoint. Add `env` to the same entry.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "command": "npx",
+      "args": ["-y", "@stophy/mcp"],
+      "env": { "STOPHY_API_KEY": "your key" }
+    }
+  }
+}
+```
+
+## Try it
+
+Open a new chat and check that `stophy` lists its three tools. Then ask this.
+
+```text
+Use Stophy to find the top Reddit posts about Bun this week and summarize them.
+```
+
+If `stophy` is missing, check the file is valid JSON and quit Claude Desktop fully. If calls say `unauthorized`, check the key has no extra spaces.

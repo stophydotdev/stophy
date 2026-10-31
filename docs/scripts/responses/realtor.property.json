@@ -1,0 +1,61 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "propertyId": "8395932351",
+    "propertyUrl": "https://www.realtor.com/realestateandhomes-detail/6700-Tulloch-Way_Austin_TX_78754_M83959-32351",
+    "status": "forSale",
+    "isPending": true,
+    "price": 439999,
+    "priceCurrency": "USD",
+    "addressFull": "6700 Tulloch Way, Austin, TX 78754",
+    "addressStreet": "6700 Tulloch Way",
+    "addressCity": "Austin",
+    "addressRegion": "TX",
+    "addressPostalCode": "78754",
+    "latitude": 30.354294,
+    "longitude": -97.61154,
+    "bedrooms": 4,
+    "bathrooms": 4,
+    "sqft": 3840,
+    "lotSqft": 8350,
+    "yearBuilt": 2005,
+    "homeType": "single_family",
+    "monthlyHoa": 41,
+    "listedOn": "2026-10-02",
+    "lastSoldOn": "2005-08-30",
+    "imageUrl": "https://ap.rdcpix.com/e8cfb6fa65df9ca9d347ebd47586e33fl-m3060197626s.jpg",
+    "description": "--WELCOME HOME-- 2 BRAND NEW HVACs (Just replaced 10-08-2026)- Updated Kimball Hill Home in Harris Branch - Move-In…",
+    "garageSpaces": 2,
+    "stories": 2,
+    "imageUrls": [
+      "https://ap.rdcpix.com/e8cfb6fa65df9ca9d347ebd47586e33fl-m3060197626s.jpg"
+    ],
+    "brokerName": "Realty Texas",
+    "priceHistory": [
+      {
+        "date": "2026-10-02",
+        "event": "Listed",
+        "price": 439999
+      }
+    ],
+    "taxHistory": [
+      {
+        "year": 2026,
+        "tax": 10448,
+        "assessedValue": 474359
+      }
+    ],
+    "schools": [
+      {
+        "name": "Bluebonnet Trail Elementary School",
+        "rating": 2,
+        "levels": [
+          "elementary"
+        ],
+        "fundingType": "public",
+        "distanceMiles": 0.4
+      }
+    ]
+  }
+}

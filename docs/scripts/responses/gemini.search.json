@@ -1,0 +1,15 @@
+{
+  "live": true,
+  "creditsUsed": 1,
+  "data": {
+    "query": "What is the best CRM for a small business?",
+    "answer": "The \"best\" CRM for a small business depends heavily on your budget, your technical setup, and whether your primary…",
+    "sources": [
+      {
+        "url": "https://helpmonks.com/blog/best-crm-tools-small-businesses-2026/",
+        "title": "10 Best CRM Tools for Small Businesses in 2026 - Helpmonks",
+        "domain": "helpmonks.com"
+      }
+    ]
+  }
+}

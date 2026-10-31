@@ -1,0 +1,7 @@
+```python Python icon="python"
+from stophy import Stophy
+
+stophy = Stophy()  # reads STOPHY_API_KEY
+result = stophy.tripadvisor.reviews(place_url="https://www.tripadvisor.com/Hotel_Review-g186338-d187591-Reviews-The_Ritz_London.html")
+print(result["data"]["results"])
+```

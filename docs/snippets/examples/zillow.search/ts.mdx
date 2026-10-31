@@ -1,0 +1,7 @@
+```typescript TypeScript icon="/images/icons/typescript.svg"
+import { Stophy } from "stophy";
+
+const stophy = new Stophy({ apiKey: process.env.STOPHY_API_KEY });
+const result = await stophy.zillow.search({ location: "Austin, TX", daysOnZillow: "30Days", hasPool: true });
+console.log(result.data.results);
+```

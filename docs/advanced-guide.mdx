@@ -1,0 +1,24 @@
+---
+title: "Advanced guide"
+description: "What to learn after your first Stophy call. Find the right endpoint, page through results, and handle errors and retries."
+og:title: "Advanced guide | Stophy"
+og:description: "What to learn after your first Stophy call. Find the right endpoint, page through results, and handle errors and retries."
+---
+
+Three guides take you past your first call.
+
+<CardGroup cols={3}>
+  <Card title="Find an endpoint" icon="magnifying-glass" href="/guides/find-endpoint">
+    Search the catalog by keyword, or browse it by category.
+  </Card>
+  <Card title="Page through results" icon="list" href="/guides/paging">
+    Send the next `page`, or the `cursor` from the last response.
+  </Card>
+  <Card title="Errors and retries" icon="triangle-exclamation" href="/guides/errors-and-retries">
+    Read the error code and retry only when it is safe.
+  </Card>
+</CardGroup>
+
+Every endpoint is a `POST` to `https://api.stophy.dev/v1/` and its id with dots as slashes. `google.search` is `/v1/google/search`. Send a JSON body and your key as a bearer token.
+
+The [API reference](/api-reference/introduction) has each endpoint's inputs and outputs.
