@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+
+  sdk-typescript:
+    name: SDK TypeScript
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run type-check
+      - run: bun run build:ts
+      - run: bun run generate:check
+      - run: bun run test:ts
+
+  sdk-python:
+    name: SDK Python
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - run: uv sync --locked --project packages/python --dev
+      - run: uv run --project packages/python ruff check packages/python/src test/python && uv run --project packages/python ruff format --check packages/python/src test/python
+      - run: uv run --directory packages/python pyright
+      - run: uv build --project packages/python
+      - run: |
+          uv run --project packages/python python scripts/gen_python.py
+          uv run --project packages/python ruff format packages/python/src/stophy/generated
+          git diff --exit-code -- packages/python/src/stophy/generated
+      - run: uv --project packages/python run pytest
+
+  cli:
+    name: CLI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run check-types
+      - run: bun run build
+      - run: bun run test
+      - run: bash tests/install.sh
+
+  cli-binary:
+    name: CLI binary (${{ matrix.os }})
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            binary: stophy-linux-x64
+          - os: macos-latest
+            target: bun-darwin-arm64
+            binary: stophy-darwin-arm64
+          - os: windows-latest
+            target: bun-windows-x64
+            binary: stophy-windows-x64.exe
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.binary }}
+      - if: runner.os != 'Windows'
+        run: |
+          chmod +x ${{ matrix.binary }}
+          ./${{ matrix.binary }} --version
+          ./${{ matrix.binary }} --help
+      - if: runner.os == 'Windows'
+        run: |
+          .\${{ matrix.binary }} --version
+          .\${{ matrix.binary }} --help
+
+  mcp:
+    name: MCP server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run check-types
+      - run: bun run build

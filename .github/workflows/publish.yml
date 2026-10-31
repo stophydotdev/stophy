@@ -1,0 +1,256 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - sdk/packages/typescript/package.json
+      - sdk/packages/python/pyproject.toml
+      - cli/package.json
+      - mcp/package.json
+      - .github/workflows/publish.yml
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  sdk-npm:
+    name: SDK on npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/packages/typescript
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "stophy@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.version.outputs.exists == 'false'
+        run: npm publish --access public --tag latest
+
+  sdk-python:
+    name: SDK on PyPI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - id: version
+        run: |
+          VERSION=$(uv version --project packages/python --short)
+          STATUS=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" "https://pypi.org/pypi/stophy/${VERSION}/json")
+          case "$STATUS" in
+            200) echo "exists=true" >> "$GITHUB_OUTPUT" ;;
+            404) echo "exists=false" >> "$GITHUB_OUTPUT" ;;
+            *) echo "PyPI version check failed with HTTP $STATUS" >&2; exit 1 ;;
+          esac
+      - if: steps.version.outputs.exists == 'false'
+        run: uv build --project packages/python
+      - if: steps.version.outputs.exists == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdk/packages/python/dist/
+
+  cli-npm:
+    name: CLI on npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run build
+      - id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@stophy/cli@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.version.outputs.exists == 'false'
+        run: npm publish --access public --tag latest
+
+  cli-version:
+    name: CLI release check
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      released: ${{ steps.check.outputs.released }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: check
+        run: |
+          VERSION=$(node -p "require('./cli/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then echo "released=true" >> "$GITHUB_OUTPUT"; else echo "released=false" >> "$GITHUB_OUTPUT"; fi
+
+  cli-binaries:
+    name: CLI binary ${{ matrix.binary }}
+    needs: cli-version
+    if: needs.cli-version.outputs.released == 'false'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            binary: stophy-linux-x64
+          - os: ubuntu-latest
+            target: bun-linux-arm64
+            binary: stophy-linux-arm64
+          - os: macos-latest
+            target: bun-darwin-arm64
+            binary: stophy-darwin-arm64
+          - os: macos-latest
+            target: bun-darwin-x64
+            binary: stophy-darwin-x64
+          - os: ubuntu-latest
+            target: bun-windows-x64
+            binary: stophy-windows-x64.exe
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.binary }}
+      - if: "!contains(matrix.binary, 'windows')"
+        run: tar -czf ${{ matrix.binary }}.tar.gz ${{ matrix.binary }}
+      - if: contains(matrix.binary, 'windows')
+        run: zip ${{ matrix.binary }}.zip ${{ matrix.binary }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.binary }}
+          path: |
+            cli/${{ matrix.binary }}
+            cli/${{ matrix.binary }}.tar.gz
+            cli/${{ matrix.binary }}.zip
+          if-no-files-found: ignore
+
+  cli-release:
+    name: CLI release
+    needs: [cli-version, cli-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          path: cli/artifacts
+      - run: |
+          mkdir -p release binaries
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release/ \;
+          for dir in artifacts/stophy-linux-*/; do
+            find "$dir" -type f ! -name "*.tar.gz" ! -name "*.zip" -exec cp {} binaries/ \;
+          done
+          chmod +x binaries/* || true
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NFPM_VERSION=$(gh release view --repo goreleaser/nfpm --json tagName --jq '.tagName' | sed 's/^v//')
+          curl -sfL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin nfpm
+      - run: |
+          VERSION="${{ needs.cli-version.outputs.version }}"
+          export BINARY=binaries/stophy-linux-x64 VERSION="$VERSION" ARCH=amd64
+          envsubst < nfpm.yaml > /tmp/nfpm-amd64.yaml
+          for fmt in deb rpm apk archlinux; do nfpm package --config /tmp/nfpm-amd64.yaml --packager "$fmt" --target release/; done
+          export BINARY=binaries/stophy-linux-arm64 ARCH=arm64
+          envsubst < nfpm.yaml > /tmp/nfpm-arm64.yaml
+          for fmt in deb rpm apk archlinux; do nfpm package --config /tmp/nfpm-arm64.yaml --packager "$fmt" --target release/; done
+          cd release && sha256sum * > checksums.txt
+      - run: |
+          VERSION="${{ needs.cli-version.outputs.version }}"
+          awk -v v="## $VERSION" '$0 == v {found=1; next} found && /^## / {exit} found' CHANGELOG.md | sed -E 's/^- [0-9a-f]{7}: /- /' > /tmp/release-notes.md
+          [ -s /tmp/release-notes.md ] || echo "See cli/CHANGELOG.md for $VERSION." > /tmp/release-notes.md
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ needs.cli-version.outputs.version }}"
+          git tag "$TAG" && git push origin "$TAG"
+          gh release create "$TAG" release/* --repo "${{ github.repository }}" --title "CLI $TAG" --notes-file /tmp/release-notes.md
+
+  mcp:
+    name: MCP server on npm and the MCP registry
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run build
+      - id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@stophy/mcp@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.version.outputs.exists == 'false'
+        run: npm publish --access public --tag latest
+      - id: registry
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./server.json').name")
+          if curl -fsS "https://registry.modelcontextprotocol.io/v0/servers?search=${NAME}&version=latest" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const v=JSON.parse(s).servers?.map(e=>e.server?.version)??[];process.exit(v.includes(process.argv[1])?0:1)})" "$VERSION"; then
+            echo "registered=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "registered=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.registry.outputs.registered == 'false'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          for attempt in $(seq 1 30); do
+            if npm view "@stophy/mcp@${VERSION}" version > /dev/null 2>&1; then exit 0; fi
+            sleep 10
+          done
+          echo "npm does not serve @stophy/mcp@${VERSION} after 5 minutes"; exit 1
+      - if: steps.registry.outputs.registered == 'false'
+        run: curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - if: steps.registry.outputs.registered == 'false'
+        run: ./mcp-publisher login github-oidc
+      - if: steps.registry.outputs.registered == 'false'
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const manifest = JSON.parse(fs.readFileSync('server.json', 'utf8'));
+            manifest.version = pkg.version;
+            for (const entry of manifest.packages ?? []) if (entry.registryType === 'npm' && entry.identifier === '@stophy/mcp') entry.version = pkg.version;
+            fs.writeFileSync('server.json', JSON.stringify(manifest, null, 2) + '\n');
+          "
+      - if: steps.registry.outputs.registered == 'false'
+        run: ./mcp-publisher publish

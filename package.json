@@ -1,0 +1,17 @@
+{
+  "name": "stophy-monorepo",
+  "private": true,
+  "workspaces": ["sdk", "sdk/packages/typescript", "cli", "mcp"],
+  "scripts": {
+    "check": "oxlint && oxfmt --check",
+    "fix": "oxlint --fix && oxfmt --write",
+    "changeset": "changeset",
+    "version": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "2.31.0",
+    "@oxlint/plugins": "1.90.0",
+    "oxfmt": "0.75.0",
+    "oxlint": "1.90.0"
+  }
+}
