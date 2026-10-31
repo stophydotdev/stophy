@@ -1,5 +1,11 @@
 # stophy
 
+## 1.2.1
+
+### Patch Changes
+
+- 642e494: The package links point to github.com/stophydotdev/stophy, where the source now lives. `stophy init` installs the agent skills from there.
+
 ## 1.2.0
 
 ### Minor Changes
