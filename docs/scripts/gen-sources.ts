@@ -1,10 +1,3 @@
-// Generates the "What you can get" category pages (sources/*.mdx) from the
-// live catalog and the snippets in snippets/examples/. Run with:
-//   bun scripts/gen-examples.ts && bun scripts/gen-sources.ts
-// Every file it writes is overwritten on each run: change AREAS below, not the
-// output. This script owns sources/*.mdx; it does not touch the API reference
-// pages or scripts/reference.config.json, which belong to gen-reference.ts.
-
 import { type CatalogEndpoint, type Json, type JsonObject, fetchCatalog, isObject } from "./catalog";
 
 const root = new URL("..", import.meta.url);
@@ -26,10 +19,6 @@ interface Area {
   tip: string;
 }
 
-// One row per category in the Documentation tab's "What you can get" group.
-// `endpoints` lists every catalog id that belongs on this page (checked below:
-// every POST endpoint must appear on exactly one page). `example` is the call
-// shown first; `variations` are 2-3 more calls shown further down the page.
 const AREAS: Area[] = [
   {
     title: "Search and AI answers",
@@ -132,10 +121,7 @@ const AREAS: Area[] = [
   },
 ];
 
-// Real, verified output from a keyless call made while writing this page (see
-// the docs repo's builder report for the exact command). Used instead of a
-// schema-guessed sample for the endpoints that actually answer without a key.
-const LIVE_RESPONSES: Record<string, JsonObject> = {
+const KEYLESS_LIVE_RESPONSES: Record<string, JsonObject> = {
   "google.search": {
     "success": true,
     "data": {
@@ -214,8 +200,6 @@ const LIVE_RESPONSES: Record<string, JsonObject> = {
   }
 };
 
-// --- schema-based sample responses, for endpoints that need a key ----------
-
 function stringSample(key: string, format: string | undefined, enumValues: readonly Json[] | undefined): string {
   if (Array.isArray(enumValues) && typeof enumValues[0] === "string") return enumValues[0];
   const k = key.toLowerCase();
@@ -281,13 +265,11 @@ function dataSchema(op: CatalogEndpoint, spec: JsonObject): Json | undefined {
 }
 
 function responseSample(op: CatalogEndpoint, spec: JsonObject): JsonObject {
-  const live = LIVE_RESPONSES[op.id];
+  const live = KEYLESS_LIVE_RESPONSES[op.id];
   if (live !== undefined) return live;
   const data = sampleFor(dataSchema(op, spec), "data");
   return { success: true, data, creditsUsed: op.credits ?? 1, requestId: crypto.randomUUID() };
 }
-
-// --- page rendering ---------------------------------------------------
 
 const slugOf = (id: string) => id.split(".").join("-");
 const importOf = (id: string, lang: string) =>
@@ -372,8 +354,6 @@ function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: JsonObje
     "",
   ].join("\n");
 }
-
-// --- main -----------------------------------------------------------------
 
 const catalog = await fetchCatalog();
 const spec = (await Bun.file(file(SPEC_PATH)).json()) as JsonObject;

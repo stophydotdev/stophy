@@ -1,7 +1,3 @@
-// The words on an endpoint page, built from the catalog entry, the response
-// schema, an example response and the wording in reference.config.json.
-// gen-reference.ts calls `body` once per endpoint and writes the result.
-
 import { type CatalogEndpoint, type Json, type JsonObject, isObject } from "./catalog";
 
 export interface TextConfig {
@@ -37,7 +33,6 @@ export interface PageInput {
   titleOf: (id: string) => string;
 }
 
-// Gaps found while building pages. gen-reference.ts reports them all at once.
 export const problems: string[] = [];
 
 const REQUEST_ID = "2fe9dbad-fc48-4890-9751-0b24b596035b";
@@ -60,16 +55,12 @@ const sendOne = (op: CatalogEndpoint): string[] => {
   return Array.isArray(one) ? one : [];
 };
 
-// "youtube.video" in a sentence becomes a link to that endpoint's page.
 function linkIds(text: string, input: PageInput): string {
   const ids = input.catalog.map((item) => item.id).sort((a, b) => b.length - a.length);
   const pattern = new RegExp(`(?<![\\w.\\[])(${ids.map((id) => id.replaceAll(".", "\\.")).join("|")})(?![\\w])`, "g");
   return text.replace(pattern, (id) => `[${input.label(id)}](/api-reference/endpoint/${input.slug(id)})`);
 }
 
-// --- opening ---------------------------------------------------------------
-
-// Summaries are imperative ("Get X", "Search Y"). Reference text states what the method does.
 const THIRD_PERSON: Record<string, string> = {
   Get: "Returns",
   Search: "Searches",
@@ -113,7 +104,6 @@ function whenToUse(op: CatalogEndpoint): string {
   return `The ${list(things, "or")} is identified by its ${list(forms, "or")}.`;
 }
 
-// Sentences of bestWhen that are facts about the endpoint, not advice on when to use it.
 function bestWhenNotes(op: CatalogEndpoint, config: TextConfig): string[] {
   const reworded = config.bestWhenNotes[op.id];
   if (reworded !== undefined) return reworded === "" ? [] : [reworded];
@@ -122,8 +112,6 @@ function bestWhenNotes(op: CatalogEndpoint, config: TextConfig): string[] {
   const rest = advice ? sentences.slice(1) : sentences;
   return rest.filter((text) => !/^Costs /.test(text));
 }
-
-// --- request ---------------------------------------------------------------
 
 function requestLine(op: CatalogEndpoint, config: TextConfig): string {
   const override = config.requests[op.id];
@@ -140,7 +128,6 @@ function requestLine(op: CatalogEndpoint, config: TextConfig): string {
   return [send, choose].filter((line) => line !== undefined).join(" ");
 }
 
-// JSON with pretty-printed objects and short lists of plain values on one line.
 function showJson(value: Json, indent = ""): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
@@ -155,8 +142,6 @@ function showJson(value: Json, indent = ""): string {
   }
   return JSON.stringify(value);
 }
-
-// --- response ---------------------------------------------------------------
 
 function* walk(schema: Json | undefined): Generator<[string, JsonObject]> {
   if (!isObject(schema)) return;
@@ -181,7 +166,6 @@ function schemaNotes(schema: JsonObject | undefined): Record<string, string> {
 
 const FIRST_FIELDS = ["cursor", "repliesCursor", "type"];
 
-// The values the `type` field can take on this endpoint's rows.
 function rowKinds(schema: JsonObject | undefined): string[] {
   const kinds: string[] = [];
   for (const [name, child] of walk(schema)) {
@@ -196,7 +180,6 @@ function fieldNames(schema: JsonObject | undefined): Set<string> {
   return new Set([...walk(schema)].map(([name]) => name));
 }
 
-// Names the example actually shows, top level first, then the first row of each list.
 function shownNames(data: JsonObject): string[] {
   const names: string[] = [];
   const add = (value: JsonObject) => names.push(...Object.keys(value).filter((name) => !names.includes(name)));
@@ -298,7 +281,6 @@ function responseSection(input: PageInput): string[] {
   ];
 }
 
-// Rewrites plain descriptions into reference wording: what a field holds, what a parameter does.
 const FORMAL: [RegExp, string][] = [
   [/^Only (.+)$/, "Restricts results to $1"],
   [/^Which (.+) to (.+)$/, "Specifies which $1 to $2"],
@@ -332,7 +314,6 @@ const FORMAL: [RegExp, string][] = [
   [/^Language code, like `en` or `pt-BR`\.$/, "The language of the results, as a BCP 47 tag such as `en` or `pt-BR`"],
 ];
 
-// Wording fixes that apply anywhere in a sentence.
 const NEUTRAL: [RegExp, string][] = [
   [/, like /g, ", such as "],
   [/ like (`|\[|")/g, " such as $1"],
@@ -363,8 +344,6 @@ function formal(text: string): string {
   return NEUTRAL.reduce((line, [pattern, to]) => line.replace(pattern, to), shaped);
 }
 
-// --- options -----------------------------------------------------------------
-
 const GENERIC_TEXT: [RegExp, string][] = [
   [/^ISO 3166-1 alpha-2 country code, e\.g\. us\. Any case is accepted\.$/, "Two-letter country code, like `us`."],
   [/^ISO 3166-1 alpha-2 country code, or all\. Any case is accepted\.$/, "Two-letter country code, or `all`."],
@@ -374,7 +353,6 @@ const GENERIC_TEXT: [RegExp, string][] = [
   [/^Page number, starting at 1\.$/, "Page number, starting at 1."],
 ];
 
-// "citesId" in a sentence becomes `citesId`, and a { ... } example becomes code, since MDX reads a bare brace as an expression.
 const backtickNames = (text: string) =>
   text
     .split(/(\{[^{}]*\})/)
@@ -457,8 +435,6 @@ function optionsSection(input: PageInput): string[] {
   ];
 }
 
-// --- cost and limits ------------------------------------------------------------
-
 function pagingText(input: PageInput): string {
   const note = input.config.pagingNotes[input.endpoint.id];
   return `${pagingRule(input)}${note === undefined ? "" : ` ${note}`}`;
@@ -498,8 +474,6 @@ function costSection(input: PageInput): string[] {
   ];
 }
 
-// --- next ----------------------------------------------------------------------
-
 const ALIASES: Record<string, string[]> = {
   username: ["username", "authorUsername"],
   userUrl: ["userUrl", "authorUrl"],
@@ -534,7 +508,6 @@ function derivedLinks(input: PageInput): Link[] {
   return links.sort((a, b) => b.score - a.score).map(({ id, sends }) => ({ id, sends }));
 }
 
-// A forced link is an id, or [id, text] when the line needs its own words.
 function nextSection(input: PageInput): string[] {
   const { endpoint, catalog, config } = input;
   const byId = new Map(catalog.map((item) => [item.id, item]));
@@ -557,8 +530,6 @@ function nextSection(input: PageInput): string[] {
   });
   return lines.length === 0 ? [] : ["## Related methods", "", ...lines];
 }
-
-// --- the page ---------------------------------------------------------------------
 
 export function opening(op: CatalogEndpoint): string {
   return [whatYouGet(op.summary), whenToUse(op)].filter((part) => part !== "").join(" ");

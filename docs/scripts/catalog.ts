@@ -1,6 +1,3 @@
-// Shared client for the live endpoint catalog. Both gen-examples.ts and
-// gen-reference.ts read the same catalog, so this is the one place that fetches it.
-
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type JsonObject = { [key: string]: Json };
 
@@ -30,8 +27,6 @@ export interface Catalog {
 
 export const CATALOG_URL = process.env.STOPHY_CATALOG_URL ?? "https://api.stophy.dev/v1/endpoints";
 
-// The catalog is either the live URL or, for a catalog saved before the API ships,
-// a path to a JSON file holding the endpoint list (STOPHY_CATALOG_URL=./catalog.json).
 export async function fetchCatalog(): Promise<Catalog> {
   if (!/^https?:/.test(CATALOG_URL)) {
     const saved = (await Bun.file(CATALOG_URL).json()) as Catalog | CatalogEndpoint[];

@@ -1,13 +1,3 @@
-// Generates the call examples used across the Documentation tab, one snippet
-// file per endpoint per language, from the live catalog's example input.
-// Run with `bun scripts/gen-examples.ts`.
-//
-// Output: snippets/examples/<endpoint-id>/{ts,python,curl,cli}.mdx
-// Every file it writes is overwritten on each run: the catalog is the source
-// of truth, not these files. Import them into a page with, for example:
-//   import Ts from '/snippets/examples/google.search/ts.mdx';
-// and place the import inside a <CodeGroup>.
-
 import { rm } from "node:fs/promises";
 import { type CatalogEndpoint, type Json, type JsonObject, fetchCatalog, isObject } from "./catalog";
 
@@ -15,10 +5,6 @@ const root = new URL("..", import.meta.url);
 const file = (path: string) => new URL(path, root);
 const SNIPPETS_DIR = "snippets/examples";
 
-// The catalog only ships an `example` for endpoints it can fill in on its own.
-// A "get one item" endpoint needs a real id or URL that normally comes from a
-// search result, so these are hand-picked, realistic values for the ones the
-// catalog leaves out.
 const FALLBACK_EXAMPLES: Record<string, JsonObject> = {
   "reddit.post": { postUrl: "https://www.reddit.com/r/programming/comments/1abc2de/example_post/" },
   "reddit.discussions": { postUrl: "https://www.reddit.com/r/programming/comments/1abc2de/example_post/" },
@@ -64,12 +50,8 @@ const FALLBACK_EXAMPLES: Record<string, JsonObject> = {
   "luma.event": { event: "https://luma.com/d8y4gf2p" },
 };
 
-// --- naming -----------------------------------------------------------
-
 const toSnakeCase = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
 const pythonKey = (name: string) => (name === "from" ? "from_" : toSnakeCase(name));
-
-// --- value rendering ----------------------------------------------------
 
 function tsValue(value: Json): string {
   if (value === null) return "null";
@@ -119,9 +101,6 @@ function cliValue(value: Json): string | undefined {
   return undefined;
 }
 
-// --- schema helpers -------------------------------------------------------
-
-/** The CLI's positional argument: the one required free-text field, else `query`. Choices such as `type` stay flags. */
 function positionalField(op: CatalogEndpoint): string | undefined {
   const properties = (op.input?.properties as JsonObject | undefined) ?? {};
   const required = Array.isArray(op.input?.required) ? (op.input?.required as string[]) : [];
@@ -153,10 +132,6 @@ function dataProperties(op: CatalogEndpoint, spec: JsonObject): string[] {
   return isObject(first) ? Object.keys((first.properties as JsonObject | undefined) ?? {}).filter((field) => field !== "cursor") : [];
 }
 
-// The first property in the response schema is usually the substance of the
-// call (`results`, `profile`, `listings`...), but a few endpoints put an echo
-// of the input first (`domain`, `query`) or a bare `id` ahead of the payload.
-// These name the field that is actually worth printing in an example.
 const PRIMARY_FIELD_OVERRIDES: Record<string, string> = {
   "youtube.transcript": "text",
   "tiktok.transcript": "text",
@@ -164,14 +139,11 @@ const PRIMARY_FIELD_OVERRIDES: Record<string, string> = {
   "youtube.video": "title",
 };
 
-/** The field to read off `result.data` in the TS and Python snippets. */
 function primaryField(op: CatalogEndpoint, spec: JsonObject): string | undefined {
   const override = PRIMARY_FIELD_OVERRIDES[op.id];
   if (override !== undefined) return override;
   return dataProperties(op, spec).includes("results") ? "results" : undefined;
 }
-
-// --- snippet bodies -----------------------------------------------------
 
 function tsSnippet(op: CatalogEndpoint, spec: JsonObject): string {
   const field = primaryField(op, spec);
@@ -236,8 +208,6 @@ function cliSnippet(op: CatalogEndpoint): string {
   }
   return ['```bash CLI icon="square-terminal"', pieces.join(" "), "```", ""].join("\n");
 }
-
-// --- main -----------------------------------------------------------------
 
 const rawCatalog = await fetchCatalog();
 const spec = (await Bun.file(file("api-reference/openapi.json")).json()) as JsonObject;

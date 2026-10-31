@@ -1,8 +1,3 @@
-// Checks that the source names and endpoint titles in reference.config.json
-// match the live catalog, which is their single source of truth. Run with
-// `bun scripts/check-titles.ts`. Once the catalog serves titles, gen-reference.ts
-// should read them from it and this map and check can be deleted.
-
 import { fetchCatalog } from "./catalog";
 
 interface Config {
