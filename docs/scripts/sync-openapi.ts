@@ -1,13 +1,9 @@
+import { type Json, isObject, isString, jsonObject } from "./catalog";
+
 const source = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
 const target = new URL("../api-reference/openapi.json", import.meta.url);
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-type JsonObject = { [key: string]: Json };
-
 const KEYLESS_SENTENCE = / ?Works without an API key, within free limits\./g;
-
-const isObject = (value: Json | undefined): value is JsonObject =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const keyedOnly = (security: Json | undefined): Json | undefined =>
   Array.isArray(security)
@@ -16,10 +12,10 @@ const keyedOnly = (security: Json | undefined): Json | undefined =>
 
 const response = await fetch(source);
 if (!response.ok) throw new Error(`GET ${source} returned ${response.status}`);
-const spec = (await response.json()) as JsonObject;
+const spec = jsonObject.parse(await response.json());
 
 const info = spec.info;
-if (isObject(info) && typeof info.description === "string") {
+if (isObject(info) && isString(info.description)) {
   info.description = info.description
     .split("\n\n")
     .filter((paragraph) => !paragraph.includes("without an API key"))
@@ -31,10 +27,10 @@ for (const item of Object.values(paths)) {
   if (!isObject(item)) continue;
   for (const operation of Object.values(item)) {
     if (!isObject(operation)) continue;
-    if (typeof operation.description === "string") {
+    if (isString(operation.description)) {
       operation.description = operation.description.replace(KEYLESS_SENTENCE, "");
     }
-    if (typeof operation.summary === "string") {
+    if (isString(operation.summary)) {
       operation.summary = operation.summary.replace(KEYLESS_SENTENCE, "");
     }
     const security = keyedOnly(operation.security);

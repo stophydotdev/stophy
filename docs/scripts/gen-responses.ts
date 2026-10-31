@@ -1,8 +1,11 @@
-import { type Json, type JsonObject, fetchCatalog, isObject } from "./catalog";
+import { z } from "zod";
+import { type Json, type JsonObject, fetchCatalog, isNumber, isObject, isString, jsonObject } from "./catalog";
 
 const root = new URL("..", import.meta.url);
 const liveDir = process.env.STOPHY_LIVE_DIR;
 if (liveDir === undefined) throw new Error("Set STOPHY_LIVE_DIR to the folder with the saved calls.");
+
+const savedCall = z.object({ output: jsonObject });
 
 const MAX_STRING = 120;
 const PRIVATE_FIELDS = new Set(["agentName", "agentPhone", "agentEmail", "developerEmail"]);
@@ -19,19 +22,21 @@ const isEmpty = (value: Json) =>
 const kindOf = (item: Json) => {
   if (!isObject(item)) return undefined;
   const kind = item.type ?? item.kind;
-  return typeof kind === "string" ? kind : undefined;
+  return isString(kind) ? kind : undefined;
 };
+
+function withoutEmptyEntries(value: JsonObject): JsonObject {
+  const entries = Object.entries(value)
+    .filter(([key]) => !PRIVATE_FIELDS.has(key))
+    .map(([key, item]) => [key, PHONE_FIELD.test(key) && isString(item) ? "+1 555 0100" : withoutEmptyValues(item)] as const)
+    .filter(([, item]) => !isEmpty(item));
+  return Object.fromEntries(entries);
+}
 
 function withoutEmptyValues(value: Json): Json {
   if (Array.isArray(value)) return value.map(withoutEmptyValues).filter((item) => !isEmpty(item));
-  if (isObject(value)) {
-    const entries = Object.entries(value)
-      .filter(([key]) => !PRIVATE_FIELDS.has(key))
-      .map(([key, item]) => [key, PHONE_FIELD.test(key) && typeof item === "string" ? "+1 555 0100" : withoutEmptyValues(item)] as const)
-      .filter(([, item]) => !isEmpty(item));
-    return Object.fromEntries(entries);
-  }
-  return typeof value === "string" ? maskContacts(value) : value;
+  if (isObject(value)) return withoutEmptyEntries(value);
+  return isString(value) ? maskContacts(value) : value;
 }
 
 const PERSONAL = /cancer|surviv|diagnos|funeral|surgery|chemo|my (late )?(wife|husband|son|daughter|mother|father|mom|dad)\b|bankrupt|foreclos|my address/i;
@@ -51,7 +56,7 @@ function cutAtWord(text: string): string {
 }
 
 function shorten(value: Json, top: boolean): Json {
-  if (typeof value === "string") return value.length > MAX_STRING ? `${cutAtWord(value)}…` : value;
+  if (isString(value)) return value.length > MAX_STRING ? `${cutAtWord(value)}…` : value;
   if (Array.isArray(value)) {
     const kept = top ? sampleRows(value) : value.slice(0, value.every(isObject) ? 1 : 2);
     return kept.map((item) => shorten(item, false));
@@ -63,7 +68,7 @@ function shorten(value: Json, top: boolean): Json {
 }
 
 function trim(data: JsonObject): JsonObject {
-  const cleaned = withoutEmptyValues(data) as JsonObject;
+  const cleaned = withoutEmptyEntries(data);
   return Object.fromEntries(Object.entries(cleaned).map(([key, item]) => [key, shorten(item, true)]));
 }
 
@@ -74,7 +79,7 @@ function creditsUsed(pricing: string | null | undefined, credits: number, data: 
   const per = pricing?.match(/(\d+) credits? per (\d+)/);
   if (per !== null && per !== undefined) return Math.max(credits, Math.ceil(itemCount(data) / Number(per[2])) * Number(per[1]));
   const seconds = data.transcribedSeconds;
-  if (typeof seconds === "number") return 2 + Math.ceil(seconds / 10);
+  if (isNumber(seconds)) return 2 + Math.ceil(seconds / 10);
   return credits;
 }
 
@@ -83,7 +88,7 @@ let written = 0;
 for (const op of catalog.endpoints) {
   const saved = Bun.file(`${liveDir}/${op.id}.json`);
   if (!(await saved.exists())) continue;
-  const { output } = (await saved.json()) as { output: JsonObject };
+  const { output } = savedCall.parse(await saved.json());
   const data = trim(output);
   if (Object.keys(data).length === 0) continue;
   const body = { live: true, creditsUsed: creditsUsed(op.pricing, op.credits ?? 1, output), data };

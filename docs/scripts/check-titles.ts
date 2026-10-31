@@ -1,15 +1,10 @@
+import { z } from "zod";
 import { fetchCatalog } from "./catalog";
 
-interface Config {
-  sources: Record<string, string>;
-  titles: Record<string, string>;
-}
-
-const config = (await Bun.file(new URL("./reference.config.json", import.meta.url)).json()) as Config;
-const catalog = (await fetchCatalog()) as unknown as {
-  sources: { id: string; name?: string }[];
-  endpoints: { id: string; title?: string }[];
-};
+const config = z
+  .object({ sources: z.record(z.string(), z.string()), titles: z.record(z.string(), z.string()) })
+  .parse(await Bun.file(new URL("./reference.config.json", import.meta.url)).json());
+const catalog = await fetchCatalog();
 
 if (catalog.endpoints.every((endpoint) => endpoint.title === undefined)) {
   console.log("The live catalog does not serve titles yet, so there is nothing to compare.");
