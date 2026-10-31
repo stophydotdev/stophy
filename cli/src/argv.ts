@@ -20,10 +20,7 @@ export function currentArgs(): readonly string[] {
   return invocation;
 }
 
-export function stripGlobalRefresh(args: readonly string[]): {
-  args: string[];
-  refresh: boolean;
-} {
+export function stripGlobalRefresh(args: readonly string[]) {
   let refresh = false;
   const next: string[] = [];
   for (const arg of args) {

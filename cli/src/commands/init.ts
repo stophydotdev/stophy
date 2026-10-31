@@ -89,7 +89,7 @@ const defaultDependencies: InitDependencies = {
   interactive: !!process.stdin.isTTY,
 };
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Unknown error.");
+const messageOf = (cause: unknown) => (cause instanceof Error ? cause.message : "Unknown error.");
 
 const isClaudeCode = (agent: string | undefined) =>
   agent === undefined || agent === "claude-code" || agent === "claude";

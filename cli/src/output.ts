@@ -13,6 +13,6 @@ export function writeOutput(content: string, output?: string, silent = false) {
   process.stdout.write(content.endsWith("\n") ? content : `${content}\n`);
 }
 
-export function handleOutput(value: unknown, options: OutputOptions = {}) {
+export function handleOutput<Value>(value: Value, options: OutputOptions = {}) {
   writeOutput(JSON.stringify(value, null, 2) ?? "null", options.output, Boolean(options.output));
 }
