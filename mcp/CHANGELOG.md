@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.2.0
+
+### Patch Changes
+
+- No changes since 2.0.9.
+
 ## 2.0.9
 
 ### Patch Changes
