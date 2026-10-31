@@ -1,0 +1,75 @@
+# @stophy/mcp
+
+## 1.2.0
+
+### Patch Changes
+
+- No changes since 2.0.9.
+
+## 2.0.9
+
+### Patch Changes
+
+- 8ca7993: Follow the new API. Endpoints take a link or an id under the response's names, such as `videoUrl` or `videoId`, and exactly one is sent. Search, news, maps, Play, flights and trends are now `google` endpoints, and transcripts are `youtubeTranscript`, `instagramTranscript` and `tiktokTranscript`. Amazon endpoints are new. Page-numbered lists no longer return `hasMore`: ask for the next page until `results` is empty. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results.
+- a64e584: The README and the server descriptions open with the product's line, "Web scraping API for AI agents". They no longer list which endpoints work without a key, since that list grows: the endpoint list marks them with `keyless: true`.
+
+## 2.0.8
+
+### Patch Changes
+
+- 4a07907: Reddit search and Google Maps places now work without a key, next to Google search, Google News and YouTube.
+
+## 2.0.7
+
+### Patch Changes
+
+- 8dddcb3: Sign in at https://mcp.stophy.dev/mcp. The old sign-in URL still works.
+
+## 2.0.6
+
+### Patch Changes
+
+- d5a346d: Docs: list endpoints return one page from the site, paged with `page` or the site's own `cursor`; `limit` is gone. List every endpoint that works without a key.
+
+## 2.0.5
+
+### Patch Changes
+
+- ee93d95: Agents now get Google search, News, Images, Shopping and AI Mode, AI answers, and LinkedIn people and company search. Without a key, Google search is the free tool.
+
+## 2.0.4
+
+### Patch Changes
+
+- 45a306d: The README lists apps and shopping among the things your agent can use, and says each endpoint shows its price before you call it. The new App Store, Google Play, Indeed, Tripadvisor and Walmart endpoints appear through the same three tools with no update, and a transcript's price terms show in `stophy_describe_endpoint`.
+
+## 2.0.3
+
+### Patch Changes
+
+- 0eb9e04: The description and README match the API we ship. Only web search works without a key.
+
+## 2.0.2
+
+### Patch Changes
+
+- b333db0: The README now matches the current tools: `stophy_call` takes `id`, `input` and `fields` and returns JSON, ids are camelCase, and there is no feedback tool.
+
+## 2.0.1
+
+### Patch Changes
+
+- 8fd4bc7: Update the package description and keywords, and add Cursor and Claude setup steps to the README.
+- 3f2b2b5: Remove the obsolete Smithery config file. Stophy is now listed on Smithery through its hosted server.
+- dd46af1: Sync the server.json description with the package description.
+
+## 2.0.0
+
+### Major Changes
+
+- 11ec036: The package now connects your app to the hosted Stophy MCP server.
+
+  - Your agent can use every Stophy endpoint through three tools: `stophy_search_endpoints`, `stophy_describe_endpoint` and `stophy_call`.
+  - `STOPHY_API_KEY` is optional. Without it, your agent gets the free endpoints: web search, YouTube search and YouTube transcripts.
+  - The six YouTube-only tools are gone.
+  - The mode that put your API key in a URL is gone. Connect to `https://api.stophy.dev/mcp` directly instead.

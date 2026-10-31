@@ -1,0 +1,56 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.stophydotdev/mcp",
+  "title": "Stophy",
+  "description": "Web scraping API for AI agents.",
+  "version": "1.2.0",
+  "repository": {
+    "url": "https://github.com/stophydotdev/mcp.git",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@stophy/mcp",
+      "version": "1.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "STOPHY_API_KEY",
+          "description": "Optional Stophy API key for every tool. Without it, only the endpoints that need no key work, within a free allowance. Get one at https://stophy.dev/signup.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.stophy.dev/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. Your Stophy API key as a bearer token. Without it, only the endpoints that need no key work, within a free allowance.",
+          "isRequired": false,
+          "isSecret": true,
+          "value": "Bearer {api_key}",
+          "variables": {
+            "api_key": {
+              "description": "Your Stophy API key",
+              "isRequired": false,
+              "isSecret": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.stophy.dev/mcp"
+    }
+  ]
+}
