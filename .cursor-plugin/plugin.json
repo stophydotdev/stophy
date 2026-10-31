@@ -1,0 +1,30 @@
+{
+  "name": "stophy",
+  "version": "1.0.8",
+  "description": "Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back.",
+  "author": {
+    "name": "Stophy"
+  },
+  "homepage": "https://docs.stophy.dev",
+  "repository": "https://github.com/stophydotdev/skills",
+  "license": "MIT",
+  "keywords": [
+    "web-data",
+    "search",
+    "youtube",
+    "reddit",
+    "maps",
+    "jobs",
+    "shopping",
+    "apps",
+    "real-estate",
+    "ads",
+    "mcp"
+  ],
+  "logo": "assets/logo.svg",
+  "mcpServers": {
+    "stophy": {
+      "url": "https://mcp.stophy.dev/mcp"
+    }
+  }
+}
