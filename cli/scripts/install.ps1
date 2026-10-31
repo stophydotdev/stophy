@@ -7,7 +7,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$Repo = "stophydotdev/cli"
+$Repo = "stophydotdev/stophy"
 $BinaryName = "stophy"
 
 function Write-Info($msg) { Write-Host "info   " -ForegroundColor Blue -NoNewline; Write-Host $msg }

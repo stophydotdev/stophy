@@ -21,8 +21,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stophydotdev/sdk.git",
-    "directory": "packages/typescript"
+    "url": "git+https://github.com/stophydotdev/stophy.git",
+    "directory": "sdk/packages/typescript"
   },
   "files": [
     "dist"

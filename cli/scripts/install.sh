@@ -11,7 +11,7 @@ set -euo pipefail
 #   STOPHY_INSTALL_DIR  - Override install directory (default: ~/.local/bin)
 #   STOPHY_VERSION      - Install a specific version (default: latest)
 
-REPO="stophydotdev/cli"
+REPO="stophydotdev/stophy"
 BINARY_NAME="stophy"
 
 if [ -t 1 ]; then

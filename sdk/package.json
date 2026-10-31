@@ -7,7 +7,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stophydotdev/sdk.git"
+    "url": "git+https://github.com/stophydotdev/stophy.git",
+    "directory": "sdk"
   },
   "scripts": {
     "build": "bun run build:ts && bun run build:py",

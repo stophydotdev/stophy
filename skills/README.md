@@ -1,6 +1,6 @@
 # Stophy skills
 
-[![skills.sh](https://skills.sh/b/stophydotdev/skills)](https://skills.sh/stophydotdev/skills)
+[![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
 Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back. This repo is a plugin with two parts:
@@ -13,7 +13,7 @@ Web scraping API for AI agents. Search, video, social, jobs, places, shopping, a
 ### Claude Code
 
 ```
-/plugin marketplace add stophydotdev/skills
+/plugin marketplace add stophydotdev/stophy
 /plugin install stophy@stophy
 ```
 
@@ -24,7 +24,7 @@ Install the Stophy plugin from the [Cursor Marketplace](https://cursor.com/marke
 ### Gemini CLI
 
 ```bash
-gemini extensions install https://github.com/stophydotdev/skills
+gemini extensions install https://github.com/stophydotdev/stophy
 ```
 
 ### Skills only
@@ -32,8 +32,8 @@ gemini extensions install https://github.com/stophydotdev/skills
 Works with any agent that supports the Agent Skills format.
 
 ```bash
-npx skills add stophydotdev/skills
-npx skills add stophydotdev/skills --skill stophy-web --skill stophy-video
+npx skills add stophydotdev/stophy
+npx skills add stophydotdev/stophy --skill stophy-web --skill stophy-video
 ```
 
 ### MCP server only

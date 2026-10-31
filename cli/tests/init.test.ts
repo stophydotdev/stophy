@@ -53,7 +53,7 @@ test("--all logs in, installs the skills and adds the MCP server, in that order"
       "-y",
       "skills",
       "add",
-      "stophydotdev/skills",
+      "stophydotdev/stophy",
       "--agent",
       "*",
       "--skill",
@@ -108,7 +108,7 @@ test("--agent narrows the skills install to one agent", () => {
     "-y",
     "skills",
     "add",
-    "stophydotdev/skills",
+    "stophydotdev/stophy",
     "--agent",
     "codex",
     "--skill",
@@ -116,7 +116,7 @@ test("--agent narrows the skills install to one agent", () => {
     "--yes",
     "--global",
   ]);
-  expect(skillsArgs({})).toEqual(["-y", "skills", "add", "stophydotdev/skills"]);
+  expect(skillsArgs({})).toEqual(["-y", "skills", "add", "stophydotdev/stophy"]);
 });
 
 test("an interactive run asks first and respects a no", async () => {

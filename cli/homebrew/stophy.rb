@@ -6,21 +6,21 @@ class Stophy < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/stophydotdev/cli/releases/download/v#{version}/stophy-darwin-arm64.tar.gz"
+      url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-darwin-arm64.tar.gz"
       sha256 "PLACEHOLDER"
     end
     on_intel do
-      url "https://github.com/stophydotdev/cli/releases/download/v#{version}/stophy-darwin-x64.tar.gz"
+      url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-darwin-x64.tar.gz"
       sha256 "PLACEHOLDER"
     end
   end
   on_linux do
     on_arm do
-      url "https://github.com/stophydotdev/cli/releases/download/v#{version}/stophy-linux-arm64.tar.gz"
+      url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-linux-arm64.tar.gz"
       sha256 "PLACEHOLDER"
     end
     on_intel do
-      url "https://github.com/stophydotdev/cli/releases/download/v#{version}/stophy-linux-x64.tar.gz"
+      url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-linux-x64.tar.gz"
       sha256 "PLACEHOLDER"
     end
   end

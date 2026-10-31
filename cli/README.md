@@ -13,7 +13,7 @@ npx -y @stophy/cli init --all
 `init` runs three steps in order:
 
 1. Logs you in with your browser, unless you are already logged in.
-2. Installs the Stophy skills with `npx -y skills add stophydotdev/skills`.
+2. Installs the Stophy skills with `npx -y skills add stophydotdev/stophy`.
 3. Adds the MCP server. With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the exact command or snippet to use, and does not edit your config files.
 
 | Option           | What it does                                       |
@@ -132,7 +132,7 @@ The CLI tells you when a newer version is available. To turn off the check, set 
 ## More
 
 - [Stophy docs](https://docs.stophy.dev)
-- [Agent skills for the CLI](https://github.com/stophydotdev/skills): `npx skills add stophydotdev/skills`
+- [Agent skills for the CLI](https://github.com/stophydotdev/stophy): `npx skills add stophydotdev/stophy`
 - [Dashboard and API keys](https://stophy.dev/dashboard)
 
 ## License

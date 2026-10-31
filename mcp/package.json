@@ -21,12 +21,13 @@
   ],
   "homepage": "https://stophy.dev",
   "bugs": {
-    "url": "https://github.com/stophydotdev/mcp/issues"
+    "url": "https://github.com/stophydotdev/stophy/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stophydotdev/mcp.git"
+    "url": "git+https://github.com/stophydotdev/stophy.git",
+    "directory": "mcp"
   },
   "bin": {
     "stophy-mcp": "dist/index.js"
