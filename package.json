@@ -5,6 +5,7 @@
     "sdk",
     "sdk/packages/typescript",
     "cli",
+    "docs",
     "mcp"
   ],
   "type": "module",

@@ -34,6 +34,12 @@
         "typescript": "^5.8.0",
       },
     },
+    "docs": {
+      "name": "stophy-docs",
+      "dependencies": {
+        "zod": "^4.6.5",
+      },
+    },
     "mcp": {
       "name": "@stophy/mcp",
       "version": "1.2.0",
@@ -833,6 +839,8 @@
     "stdin-discarder": ["stdin-discarder@0.3.2", "", {}, "sha512-eCPu1qRxPVkl5605OTWF8Wz40b4Mf45NY5LQmVPQ599knfs5QhASUm9GbJ5BDMDOXgrnh0wyEdvzmL//YMlw0A=="],
 
     "stophy": ["stophy@workspace:sdk/packages/typescript"],
+
+    "stophy-docs": ["stophy-docs@workspace:docs"],
 
     "stophy-sdk": ["stophy-sdk@workspace:sdk"],
 
