@@ -1,25 +1,45 @@
-import { type CatalogEndpoint, type Json, type JsonObject, isObject } from "./catalog";
+import { z } from "zod";
+import {
+  type CatalogEndpoint,
+  type Json,
+  type JsonObject,
+  isNumber,
+  isObject,
+  isString,
+  jsonObject,
+  namesAt,
+  schemaProperties,
+} from "./catalog";
 
-export interface TextConfig {
-  notes: Record<string, string>;
-  holds: Record<string, string>;
-  bestWhenNotes: Record<string, string>;
-  requests: Record<string, string>;
-  cursorHours: Record<string, number>;
-  pagingNotes: Record<string, string>;
-  fields: Record<string, string>;
-  fieldsFor: Record<string, Record<string, string>>;
-  optionText: Record<string, string>;
-  optionRewrites: Record<string, string>;
-  optionValues: Record<string, string>;
-  next: Record<string, (string | [string, string])[]>;
-}
+const wording = z.record(z.string(), z.string());
 
-export interface ExampleResponse {
-  live: boolean;
-  creditsUsed: number;
-  data: JsonObject;
-}
+export const textConfig = z.object({
+  notes: wording,
+  holds: wording,
+  bestWhenNotes: wording,
+  requests: wording,
+  cursorHours: z.record(z.string(), z.number()),
+  pagingNotes: wording,
+  fields: wording,
+  fieldsFor: z.record(z.string(), wording),
+  optionText: wording,
+  optionRewrites: wording,
+  optionValues: wording,
+  next: z.record(
+    z.string(),
+    z.array(z.union([z.string().transform((id) => [id, undefined] as const), z.tuple([z.string(), z.string()])])),
+  ),
+});
+
+export type TextConfig = z.infer<typeof textConfig>;
+
+export const exampleResponse = z.object({
+  live: z.boolean(),
+  creditsUsed: z.number(),
+  data: jsonObject,
+});
+
+export type ExampleResponse = z.infer<typeof exampleResponse>;
 
 export interface PageInput {
   endpoint: CatalogEndpoint;
@@ -46,14 +66,8 @@ const list = (items: string[], last: string) =>
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 const sentence = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);
-const properties = (schema: Json | undefined): JsonObject =>
-  isObject(schema) && isObject(schema.properties) ? schema.properties : {};
-
-const required = (op: CatalogEndpoint): string[] => (Array.isArray(op.input?.required) ? (op.input.required as string[]) : []);
-const sendOne = (op: CatalogEndpoint): string[] => {
-  const one = (op.input as { sendOne?: string[] } | undefined)?.sendOne;
-  return Array.isArray(one) ? one : [];
-};
+const required = (op: CatalogEndpoint) => namesAt(op.input, "required");
+const sendOne = (op: CatalogEndpoint) => namesAt(op.input, "sendOne");
 
 function linkIds(text: string, input: PageInput): string {
   const ids = input.catalog.map((item) => item.id).sort((a, b) => b.length - a.length);
@@ -145,7 +159,7 @@ function showJson(value: Json, indent = ""): string {
 
 function* walk(schema: Json | undefined): Generator<[string, JsonObject]> {
   if (!isObject(schema)) return;
-  for (const [name, child] of Object.entries(properties(schema))) {
+  for (const [name, child] of Object.entries(schemaProperties(schema))) {
     if (isObject(child)) yield [name, child];
     yield* walk(child);
     if (isObject(child)) yield* walk(child.items);
@@ -159,7 +173,7 @@ function* walk(schema: Json | undefined): Generator<[string, JsonObject]> {
 function schemaNotes(schema: JsonObject | undefined) {
   const notes: Record<string, string> = {};
   for (const [name, child] of walk(schema)) {
-    if (typeof child.description === "string" && notes[name] === undefined) notes[name] = child.description;
+    if (isString(child.description) && notes[name] === undefined) notes[name] = child.description;
   }
   return notes;
 }
@@ -171,7 +185,7 @@ function rowKinds(schema: JsonObject | undefined): string[] {
   for (const [name, child] of walk(schema)) {
     if (name !== "type") continue;
     const values = child.const !== undefined ? [child.const] : Array.isArray(child.enum) ? child.enum : [];
-    for (const value of values) if (typeof value === "string" && !kinds.includes(value)) kinds.push(value);
+    for (const value of values) if (isString(value) && !kinds.includes(value)) kinds.push(value);
   }
   return kinds;
 }
@@ -234,16 +248,16 @@ function typeOf(schema: JsonObject | undefined, name: string, depth = 0): string
 function typeLabel(schema: JsonObject): string {
   const variants = Array.isArray(schema.anyOf) ? schema.anyOf.filter(isObject).filter((part) => part.type !== "null") : [];
   const own = variants.length === 1 ? (variants[0] ?? schema) : schema;
-  if (variants.length > 1 && variants.every((part) => typeof part.const === "number")) return "integer";
+  if (variants.length > 1 && variants.every((part) => isNumber(part.const))) return "integer";
   const raw = Array.isArray(own.type) ? own.type.find((item) => item !== "null") : own.type;
   if (raw === "array") {
     const items = isObject(own.items) ? own.items : {};
-    return items.type === "object" || Array.isArray(items.anyOf) ? "object[]" : `${typeof items.type === "string" ? items.type : "string"}[]`;
+    return items.type === "object" || Array.isArray(items.anyOf) ? "object[]" : `${isString(items.type) ? items.type : "string"}[]`;
   }
   if (own.format === "date-time") return "string (ISO 8601)";
   if (own.format === "date") return "string (date)";
   if (own.format === "uri") return "string (URL)";
-  return typeof raw === "string" ? raw : "object";
+  return isString(raw) ? raw : "object";
 }
 
 function responseSection(input: PageInput): string[] {
@@ -362,7 +376,7 @@ const backtickNames = (text: string) =>
 function optionText(op: CatalogEndpoint, name: string, schema: JsonObject, config: TextConfig): string {
   const override = config.optionText[`${op.id}.${name}`];
   if (override !== undefined) return override;
-  const given = typeof schema.description === "string" ? schema.description : undefined;
+  const given = isString(schema.description) ? schema.description : undefined;
   if (given === undefined) {
     const shared = config.optionText[name];
     if (shared === undefined) problems.push(`No text for option ${name} of ${op.id} in reference.config.json`);
@@ -392,8 +406,8 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
   if (consts.length > 0) return `${choices(consts)}${defaultText}`;
   if (Array.isArray(schema.enum)) return `${choices(schema.enum)}${defaultText}`;
   const range = (min: Json | undefined, max: Json | undefined, unit: string) => {
-    const low = typeof min === "number" ? min : undefined;
-    const high = typeof max === "number" && !tooBig(max) ? max : undefined;
+    const low = isNumber(min) ? min : undefined;
+    const high = isNumber(max) && !tooBig(max) ? max : undefined;
     if (low !== undefined && high !== undefined) return `Must be between ${low} and ${high}.`;
     if (low !== undefined) return low === 0 ? "" : `The minimum is ${low}.`;
     if (high !== undefined) return `The maximum is ${high}.`;
@@ -404,7 +418,7 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
   if (schema.type === "number") return `${range(schema.minimum, schema.maximum, "")}${defaultText}`.trim();
   if (schema.type === "array") {
     const items = isObject(schema.items) ? schema.items : {};
-    const cap = typeof schema.maxItems === "number" ? ` Accepts up to ${schema.maxItems} values.` : "";
+    const cap = isNumber(schema.maxItems) ? ` Accepts up to ${schema.maxItems} values.` : "";
     if (Array.isArray(items.enum)) return `${choices(items.enum)}${cap}`;
     return cap.trim();
   }
@@ -415,7 +429,7 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
 function optionsSection(input: PageInput): string[] {
   const { endpoint, config } = input;
   const chosen = new Set([...required(endpoint), ...sendOne(endpoint)]);
-  const rows = Object.entries(properties(endpoint.input))
+  const rows = Object.entries(schemaProperties(endpoint.input))
     .filter(([name]) => !chosen.has(name))
     .flatMap(([name, schema]) => {
       if (!isObject(schema)) return [];
@@ -441,7 +455,7 @@ function pagingText(input: PageInput): string {
 
 function pagingRule(input: PageInput): string {
   const { endpoint, config } = input;
-  const props = properties(endpoint.input);
+  const props = schemaProperties(endpoint.input);
   if ("cursor" in props) {
     const hours = config.cursorHours[endpoint.id];
     const life = hours === undefined ? "" : ` A cursor expires ${plural(hours, "hour")} after it is issued.`;
@@ -449,7 +463,7 @@ function pagingRule(input: PageInput): string {
   }
   const page = props.page;
   if (isObject(page)) {
-    const last = typeof page.maximum === "number" ? ` The maximum value of ${code("page")} is ${page.maximum}.` : "";
+    const last = isNumber(page.maximum) ? ` The maximum value of ${code("page")} is ${page.maximum}.` : "";
     return `Results are paginated. To retrieve the next page, increment ${code("page")}. An empty ${code("data.results")} indicates the last page.${last}`;
   }
   return "This method is not paginated. A single request returns the complete result.";
@@ -461,7 +475,7 @@ function costSection(input: PageInput): string[] {
   const price = flat
     ? `Each successful request consumes ${plural(endpoint.credits ?? 1, "credit")}, regardless of the number of items returned.`
     : `A successful request consumes ${endpoint.pricing}${creditsMax === undefined ? "" : `, up to ${plural(creditsMax, "credit")}`}.`;
-  const limit = "limit" in properties(endpoint.input) ? ` Set ${code("limit")} to cap the number of items returned and billed.` : "";
+  const limit = "limit" in schemaProperties(endpoint.input) ? ` Set ${code("limit")} to cap the number of items returned and billed.` : "";
   return [
     "## Billing",
     "",
@@ -510,7 +524,7 @@ function derivedLinks(input: PageInput): Link[] {
 function nextSection(input: PageInput): string[] {
   const { endpoint, catalog, config } = input;
   const byId = new Map(catalog.map((item) => [item.id, item]));
-  const forced = (config.next[endpoint.id] ?? []).map((entry) => (typeof entry === "string" ? ([entry, undefined] as const) : entry));
+  const forced = config.next[endpoint.id] ?? [];
   const derived = derivedLinks(input).map((link) => [link.id, link] as const);
   const entries = [...forced.map(([id, text]) => [id, text] as const), ...derived.map(([id]) => [id, undefined] as const)]
     .filter(([id], index, all) => all.findIndex(([other]) => other === id) === index)
