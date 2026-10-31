@@ -4,6 +4,7 @@
   "private": true,
   "description": "Web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.",
   "homepage": "https://stophy.dev",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/stophydotdev/sdk.git"
@@ -26,6 +27,5 @@
     "test:py": "uv --project packages/python run pytest",
     "test": "bun run test:ts && bun run test:py",
     "type-check:py": "uv run --directory packages/python pyright"
-  },
-  "license": "MIT"
+  }
 }

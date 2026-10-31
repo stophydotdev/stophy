@@ -45,7 +45,10 @@ A YouTube transcript, Reddit posts, Google Maps reviews, a TikTok profile and Me
 ```ts
 const stophy = new Stophy({ apiKey: "st_..." });
 
-const transcript = await stophy.youtube.transcript({ videoUrl: "https://youtu.be/dQw4w9WgXcQ", includeTimestamps: true });
+const transcript = await stophy.youtube.transcript({
+  videoUrl: "https://youtu.be/dQw4w9WgXcQ",
+  includeTimestamps: true,
+});
 console.log(transcript.data.text, transcript.data.segments);
 
 const posts = await stophy.reddit.search({ query: "bun runtime", sort: "top", within: "month" });
@@ -105,12 +108,12 @@ The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504
 
 ## Options
 
-| Option | Default | What it does |
-| --- | --- | --- |
-| `apiKey` | `STOPHY_API_KEY` | Your API key |
-| `baseUrl` | `STOPHY_BASE_URL`, or the Stophy API | The server to call |
-| `maxRetries` | `2` | Retries per request. `0` turns retries off. |
-| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
+| Option       | Default                              | What it does                                                     |
+| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                     |
+| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                               |
+| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                      |
+| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is not retried. |
 
 Each method also takes `signal` to cancel the request.
 

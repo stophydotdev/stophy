@@ -2,29 +2,32 @@
   "name": "stophy",
   "version": "1.2.0",
   "description": "Web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.",
-  "type": "module",
-  "license": "MIT",
+  "keywords": [
+    "ads",
+    "ai-agents",
+    "google-maps",
+    "llm",
+    "maps",
+    "reddit",
+    "scraping",
+    "sdk",
+    "stophy",
+    "transcripts",
+    "web-data",
+    "web-search",
+    "youtube"
+  ],
   "homepage": "https://stophy.dev",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/stophydotdev/sdk.git",
     "directory": "packages/typescript"
   },
-  "keywords": [
-    "stophy",
-    "sdk",
-    "web-data",
-    "web-search",
-    "scraping",
-    "ai-agents",
-    "llm",
-    "youtube",
-    "reddit",
-    "maps",
-    "google-maps",
-    "transcripts",
-    "ads"
+  "files": [
+    "dist"
   ],
+  "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -35,9 +38,6 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "generate": "openapi-ts && bun ../../scripts/gen-surface.ts",
     "build": "tsup",

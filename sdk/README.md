@@ -2,10 +2,10 @@
 
 Web scraping API for AI agents, in TypeScript and Python. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.
 
-| Language | Install | Guide |
-| --- | --- | --- |
+| Language                  | Install              | Guide                                        |
+| ------------------------- | -------------------- | -------------------------------------------- |
 | TypeScript and JavaScript | `npm install stophy` | [packages/typescript](./packages/typescript) |
-| Python | `pip install stophy` | [packages/python](./packages/python) |
+| Python                    | `pip install stophy` | [packages/python](./packages/python)         |
 
 ```ts
 import { Stophy } from "stophy";

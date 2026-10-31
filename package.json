@@ -1,7 +1,12 @@
 {
   "name": "stophy-monorepo",
   "private": true,
-  "workspaces": ["sdk", "sdk/packages/typescript", "cli", "mcp"],
+  "workspaces": [
+    "sdk",
+    "sdk/packages/typescript",
+    "cli",
+    "mcp"
+  ],
   "scripts": {
     "check": "oxlint && oxfmt --check",
     "fix": "oxlint --fix && oxfmt --write",

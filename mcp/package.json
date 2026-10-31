@@ -2,22 +2,48 @@
   "name": "@stophy/mcp",
   "version": "1.2.0",
   "description": "Web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.",
-  "type": "module",
+  "keywords": [
+    "ads",
+    "ai-agent",
+    "ai-agents",
+    "google-maps",
+    "google-search",
+    "linkedin",
+    "llm",
+    "mcp",
+    "mcp-server",
+    "reddit",
+    "stophy",
+    "transcripts",
+    "web-data",
+    "web-search",
+    "youtube"
+  ],
+  "homepage": "https://stophy.dev",
+  "bugs": {
+    "url": "https://github.com/stophydotdev/mcp/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stophydotdev/mcp.git"
+  },
   "bin": {
     "stophy-mcp": "dist/index.js"
   },
   "files": [
     "dist"
   ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node --minify && chmod +x ./dist/index.js",
     "prepare": "bun run build",
     "start": "node ./dist/index.js",
     "dev": "bun run ./src/index.ts",
     "check-types": "tsc --noEmit"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"
@@ -29,31 +55,5 @@
   "engines": {
     "node": ">=18"
   },
-  "keywords": [
-    "stophy",
-    "mcp",
-    "mcp-server",
-    "ai-agent",
-    "ai-agents",
-    "llm",
-    "web-data",
-    "web-search",
-    "google-search",
-    "linkedin",
-    "youtube",
-    "reddit",
-    "google-maps",
-    "transcripts",
-    "ads"
-  ],
-  "mcpName": "io.github.stophydotdev/mcp",
-  "homepage": "https://stophy.dev",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/stophydotdev/mcp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/stophydotdev/mcp/issues"
-  }
+  "mcpName": "io.github.stophydotdev/mcp"
 }

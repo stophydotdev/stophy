@@ -10,11 +10,11 @@ Web scraping API for AI agents, as an MCP server. One API to search the web, rea
 
 Most apps can connect to the hosted server directly. There is nothing to install.
 
-| URL | How you connect | What your agent can use |
-| --- | --- | --- |
-| `https://api.stophy.dev/mcp` | No key | The endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), within a free allowance |
-| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every endpoint |
-| `https://mcp.stophy.dev/mcp` | Sign in with your browser | Every endpoint |
+| URL                          | How you connect                      | What your agent can use                                                                                                   |
+| ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `https://api.stophy.dev/mcp` | No key                               | The endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), within a free allowance |
+| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every endpoint                                                                                                            |
+| `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every endpoint                                                                                                            |
 
 Get an API key at [stophy.dev/signup](https://stophy.dev/signup).
 
@@ -104,18 +104,18 @@ To start without a key, leave out `env`.
 
 The package needs Node.js 18 or later.
 
-| Variable | What it does |
-| --- | --- |
-| `STOPHY_API_KEY` | Your Stophy API key. Optional. |
+| Variable         | What it does                                                           |
+| ---------------- | ---------------------------------------------------------------------- |
+| `STOPHY_API_KEY` | Your Stophy API key. Optional.                                         |
 | `STOPHY_MCP_URL` | The server to connect to. The default is `https://api.stophy.dev/mcp`. |
 
 ## Tools
 
-| Tool | What it does |
-| --- | --- |
-| `stophy_search_endpoints` | Finds the endpoint for a task, with its cost |
-| `stophy_describe_endpoint` | Shows the input an endpoint takes and what it returns |
-| `stophy_call` | Runs an endpoint with `id`, `input` and optional `fields`, and returns JSON |
+| Tool                       | What it does                                                                |
+| -------------------------- | --------------------------------------------------------------------------- |
+| `stophy_search_endpoints`  | Finds the endpoint for a task, with its cost                                |
+| `stophy_describe_endpoint` | Shows the input an endpoint takes and what it returns                       |
+| `stophy_call`              | Runs an endpoint with `id`, `input` and optional `fields`, and returns JSON |
 
 Your agent usually searches, then describes, then calls. Endpoint ids are camelCase, such as `googleSearch` or `youtubeSearch`. Lists come back as `results`, and `fields` keeps only the keys you name on each row. Each result says how many credits it used.
 

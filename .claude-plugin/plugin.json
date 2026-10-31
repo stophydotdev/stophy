@@ -7,5 +7,17 @@
   "homepage": "https://docs.stophy.dev",
   "repository": "https://github.com/stophydotdev/skills",
   "license": "MIT",
-  "keywords": ["web-data", "search", "youtube", "reddit", "maps", "jobs", "shopping", "apps", "real-estate", "ads", "mcp"]
+  "keywords": [
+    "web-data",
+    "search",
+    "youtube",
+    "reddit",
+    "maps",
+    "jobs",
+    "shopping",
+    "apps",
+    "real-estate",
+    "ads",
+    "mcp"
+  ]
 }

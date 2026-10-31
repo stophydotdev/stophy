@@ -16,13 +16,13 @@ npx -y @stophy/cli init --all
 2. Installs the Stophy skills with `npx -y skills add stophydotdev/skills`.
 3. Adds the MCP server. With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the exact command or snippet to use, and does not edit your config files.
 
-| Option | What it does |
-| --- | --- |
-| `--all` | Run every step without asking |
+| Option           | What it does                                       |
+| ---------------- | -------------------------------------------------- |
+| `--all`          | Run every step without asking                      |
 | `--agent <name>` | Set up one agent, such as `claude-code` or `codex` |
-| `--skip-auth` | Do not log in |
-| `--skip-skills` | Do not install the skills |
-| `--skip-mcp` | Do not add the MCP server |
+| `--skip-auth`    | Do not log in                                      |
+| `--skip-skills`  | Do not install the skills                          |
+| `--skip-mcp`     | Do not add the MCP server                          |
 
 When it finishes, `init` prints a summary and a first command to try. To run `stophy ...` commands directly, install the CLI as described below.
 
@@ -114,18 +114,18 @@ stophy logs --days 7
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `stophy init` | Log in, install the agent skills, and add the MCP server |
-| `stophy login` | Log in with your browser or an API key |
-| `stophy logout` | Log out and revoke this computer's key |
-| `stophy <source> <command>` | Get data, for example `stophy youtube search` |
-| `stophy endpoints [word]` | List every command and its cost |
-| `stophy status` | Show your login, balance, and CLI version |
-| `stophy usage` | Show your balance and all-time usage |
-| `stophy logs` | Show your recent requests |
-| `stophy doctor` | Check your install, login, and connection |
-| `stophy version` | Show the CLI version |
+| Command                     | What it does                                             |
+| --------------------------- | -------------------------------------------------------- |
+| `stophy init`               | Log in, install the agent skills, and add the MCP server |
+| `stophy login`              | Log in with your browser or an API key                   |
+| `stophy logout`             | Log out and revoke this computer's key                   |
+| `stophy <source> <command>` | Get data, for example `stophy youtube search`            |
+| `stophy endpoints [word]`   | List every command and its cost                          |
+| `stophy status`             | Show your login, balance, and CLI version                |
+| `stophy usage`              | Show your balance and all-time usage                     |
+| `stophy logs`               | Show your recent requests                                |
+| `stophy doctor`             | Check your install, login, and connection                |
+| `stophy version`            | Show the CLI version                                     |
 
 The CLI tells you when a newer version is available. To turn off the check, set `STOPHY_NO_UPDATE_CHECK=1`.
 
