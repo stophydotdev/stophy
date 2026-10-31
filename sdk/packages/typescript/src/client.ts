@@ -1,5 +1,5 @@
 import { type Logs, type LogsQuery, logs, type Usage, usage } from "./account";
-import { bindSurface, type Surface } from "./generated/surface.gen";
+import { Surface } from "./generated/surface.gen";
 import { type Caller, type CallOptions, createCaller, type FetchLike } from "./transport";
 
 export interface StophyOptions {
@@ -20,18 +20,19 @@ function env(name: string): string | undefined {
   return globalThis.process?.env[name];
 }
 
-export class Stophy {
+export class Stophy extends Surface {
   readonly #call: Caller;
 
   constructor(input: StophyClientInput = {}) {
     const options = input instanceof Object ? input : { apiKey: input };
     const apiKey = options.apiKey?.trim() || env("STOPHY_API_KEY")?.trim();
-    this.#call = createCaller({
+    const call = createCaller({
       ...options,
       apiKey,
       baseUrl: options.baseUrl ?? env("STOPHY_BASE_URL"),
     });
-    Object.assign(this, bindSurface(this.#call));
+    super(call);
+    this.#call = call;
   }
 
   usage(): Promise<Usage> {
@@ -42,5 +43,3 @@ export class Stophy {
     return logs(this.#call, query);
   }
 }
-
-export interface Stophy extends Surface {}

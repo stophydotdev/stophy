@@ -280,7 +280,7 @@ import type {
 } from "./types.gen";
 import type { Caller } from "../transport";
 
-export function bindSurface(call: Caller) {
+function bindSurface(call: Caller) {
 	return {
 		endpoints: get<ListEndpointsResponse>("/v1/endpoints", call),
 		google: {
@@ -516,4 +516,75 @@ export function bindSurface(call: Caller) {
 	};
 }
 
-export type Surface = ReturnType<typeof bindSurface>;
+type BoundSurface = ReturnType<typeof bindSurface>;
+
+export class Surface {
+	readonly endpoints: BoundSurface["endpoints"];
+	readonly google: BoundSurface["google"];
+	readonly web: BoundSurface["web"];
+	readonly youtube: BoundSurface["youtube"];
+	readonly reddit: BoundSurface["reddit"];
+	readonly instagram: BoundSurface["instagram"];
+	readonly tiktok: BoundSurface["tiktok"];
+	readonly meta: BoundSurface["meta"];
+	readonly linkedin: BoundSurface["linkedin"];
+	readonly zillow: BoundSurface["zillow"];
+	readonly realtor: BoundSurface["realtor"];
+	readonly craigslist: BoundSurface["craigslist"];
+	readonly luma: BoundSurface["luma"];
+	readonly upwork: BoundSurface["upwork"];
+	readonly indeed: BoundSurface["indeed"];
+	readonly careers: BoundSurface["careers"];
+	readonly glassdoor: BoundSurface["glassdoor"];
+	readonly tripadvisor: BoundSurface["tripadvisor"];
+	readonly yelp: BoundSurface["yelp"];
+	readonly booking: BoundSurface["booking"];
+	readonly expedia: BoundSurface["expedia"];
+	readonly amazon: BoundSurface["amazon"];
+	readonly appstore: BoundSurface["appstore"];
+	readonly pinterest: BoundSurface["pinterest"];
+	readonly x: BoundSurface["x"];
+	readonly threads: BoundSurface["threads"];
+	readonly trustpilot: BoundSurface["trustpilot"];
+	readonly ebay: BoundSurface["ebay"];
+	readonly airbnb: BoundSurface["airbnb"];
+	readonly facebook: BoundSurface["facebook"];
+	readonly chatgpt: BoundSurface["chatgpt"];
+	readonly gemini: BoundSurface["gemini"];
+
+	constructor(call: Caller) {
+		const bound = bindSurface(call);
+		this.endpoints = bound.endpoints;
+		this.google = bound.google;
+		this.web = bound.web;
+		this.youtube = bound.youtube;
+		this.reddit = bound.reddit;
+		this.instagram = bound.instagram;
+		this.tiktok = bound.tiktok;
+		this.meta = bound.meta;
+		this.linkedin = bound.linkedin;
+		this.zillow = bound.zillow;
+		this.realtor = bound.realtor;
+		this.craigslist = bound.craigslist;
+		this.luma = bound.luma;
+		this.upwork = bound.upwork;
+		this.indeed = bound.indeed;
+		this.careers = bound.careers;
+		this.glassdoor = bound.glassdoor;
+		this.tripadvisor = bound.tripadvisor;
+		this.yelp = bound.yelp;
+		this.booking = bound.booking;
+		this.expedia = bound.expedia;
+		this.amazon = bound.amazon;
+		this.appstore = bound.appstore;
+		this.pinterest = bound.pinterest;
+		this.x = bound.x;
+		this.threads = bound.threads;
+		this.trustpilot = bound.trustpilot;
+		this.ebay = bound.ebay;
+		this.airbnb = bound.airbnb;
+		this.facebook = bound.facebook;
+		this.chatgpt = bound.chatgpt;
+		this.gemini = bound.gemini;
+	}
+}
