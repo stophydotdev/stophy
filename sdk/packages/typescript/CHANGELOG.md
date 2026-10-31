@@ -1,5 +1,12 @@
 # stophy
 
+## 1.2.0
+
+### Minor Changes
+
+- `craigslist.search`, `luma.events`, `luma.event`, `realtor.search`, `realtor.property` and `expedia.hotels` are new.
+- Breaking: `reddit.discussions` no longer takes or returns `cursor`, and Reddit results no longer have `postKarma`, `commentKarma` or `isVerified`, because the API stopped returning them.
+
 ## 3.1.0
 
 ### Minor Changes

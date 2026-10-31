@@ -11,4 +11,4 @@ __all__ = [
     "StophyError",
     "Usage",
 ]
-__version__ = "3.1.0"
+__version__ = "1.2.0"

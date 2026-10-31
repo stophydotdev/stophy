@@ -54,7 +54,7 @@ jobs:
 
       - name: Publish to npm
         if: steps.version.outputs.exists == 'false'
-        run: npm publish --access public
+        run: npm publish --access public --tag latest
 
   publish-python:
     name: PyPI
