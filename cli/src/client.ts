@@ -34,7 +34,6 @@ export interface HttpResponse {
   };
 }
 
-/** The only HTTP path. Throws `CliError` on network failure and non-2xx responses. */
 export async function request(options: RequestOptions): Promise<HttpResponse> {
   const runtime = await resolveRuntimeConfig();
   const { baseUrl, sessionCookie } = runtime;
@@ -109,7 +108,6 @@ function requestIdFrom(body: unknown): string | null {
   return parsed.data.error.requestId ?? null;
 }
 
-/** Every API error ends with the request id, so a report can point at the exact call. */
 export function withRequestId(message: string, requestId: string | null): string {
   return requestId === null ? message : `${message}\nRequest id: ${requestId}`;
 }

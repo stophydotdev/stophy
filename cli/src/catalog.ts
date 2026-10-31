@@ -34,7 +34,6 @@ export interface Catalog {
   readonly sources: readonly CatalogSource[];
 }
 
-/** Entries the CLI cannot use are skipped, so a new catalog field or shape never breaks every command. */
 const usable = <T extends z.ZodType>(schema: T) =>
   z.array(z.unknown()).transform((items) =>
     items.flatMap((item) => {
@@ -60,7 +59,6 @@ interface StoredCatalog extends Catalog {
 
 export type CatalogPlan = "fetch" | "fresh" | "stale";
 
-/** Decide whether a cached catalog is fresh, stale, or missing. */
 export function planCatalog(input: {
   readonly fetchedAt: number | undefined;
   readonly now: number;
@@ -75,7 +73,6 @@ export function catalogFilePath(): string {
   return join(dirname(getConfigPath()), "catalog.json");
 }
 
-/** Load `GET /v1/endpoints`, using a 5 minute cache. An older cache is refetched, and used only when that fails. */
 export async function loadCatalog(options: {
   readonly file: string;
   readonly now: number;

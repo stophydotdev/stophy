@@ -26,9 +26,7 @@ export function getConfigPath() {
 function secureConfigFile() {
   try {
     chmodSync(store.path, 0o600);
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 export async function loadConfig(): Promise<CliConfig> {

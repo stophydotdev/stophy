@@ -304,7 +304,6 @@ function mergeDescription(schema: ValueSchema, description: string | undefined):
   return { ...schema, description };
 }
 
-/** Flatten an endpoint input schema into the flags the CLI accepts. */
 export function slotsFromInput(input: unknown): Slot[] {
   const schema = readSchema(input);
   if (schema === undefined || schema.type !== "object") {
@@ -316,12 +315,10 @@ export function slotsFromInput(input: unknown): Slot[] {
     .map((slot) => (group.has(slot.flag) ? { ...slot, sendOne: true } : slot));
 }
 
-/** The fields of which exactly one must be sent, such as `videoUrl` and `videoId`. */
 function sendOneOf(input: unknown): readonly string[] {
   return isRecord(input) ? (readStringList(input.sendOne) ?? []) : [];
 }
 
-/** A `[xUrl, xId]` pair can be given as one bare argument: a link goes to the first field, anything else to the second. */
 function linkOrId(input: unknown): readonly [string, string] | undefined {
   const [link, id, ...rest] = sendOneOf(input);
   if (link === undefined || id === undefined || rest.length > 0) return undefined;
@@ -425,7 +422,6 @@ function knownFlags(slots: readonly Slot[]): string {
   return [...slots.map((slot) => `--${slot.flag}`), "--json", "--raw", "--output"].join(", ");
 }
 
-/** Parse endpoint flags into a JSON body. Required fields are checked before the call. */
 export function parseCall(tokens: readonly string[], input: unknown): ParseResult {
   const slots = slotsFromInput(input);
   const byFlag = new Map(slots.map((slot) => [slot.flag, slot]));
@@ -835,7 +831,6 @@ export function creditPhrase(credits: number): string {
   return `${credits} ${credits === 1 ? "credit" : "credits"}`;
 }
 
-/** Cost for `describe`. The catalog's `pricing` wins when the price is not flat. */
 export function costLine(endpoint: {
   readonly credits?: number;
   readonly pricing?: string | null;
@@ -845,7 +840,6 @@ export function costLine(endpoint: {
   return `Cost: ${creditPhrase(endpoint.credits)} per call.`;
 }
 
-/** Cost column for `endpoints`. A price that is not flat shows its lowest price. */
 function costCell(endpoint: {
   readonly credits?: number;
   readonly pricing?: string | null;
@@ -869,7 +863,6 @@ export function positionalSlot(slots: readonly Slot[]): StringSlot | undefined {
   );
 }
 
-/** Help text for `stophy <source> <command> --help`. */
 export function formatEndpointHelp(endpoint: CatalogEndpoint): string {
   const slots = slotsFromInput(endpoint.input);
   const positional = positionalSlot(slots);
@@ -902,7 +895,6 @@ export function formatEndpointHelp(endpoint: CatalogEndpoint): string {
   ].join("\n");
 }
 
-/** Readable entry for `stophy describe <id>`. */
 export function formatDescribe(endpoint: CatalogEndpoint): string {
   const slots = slotsFromInput(endpoint.input);
   const positional = positionalSlot(slots);
@@ -1061,7 +1053,6 @@ function quoteArg(value: string): string {
   return /^[A-Za-z0-9._:/@,+-]+$/u.test(value) ? value : JSON.stringify(value);
 }
 
-/** `stophy endpoints` listing. Keyless endpoints are marked free. */
 export function formatEndpointIndex(
   endpoints: readonly Pick<CatalogEndpoint, "id" | "credits" | "pricing" | "keyless">[],
   term?: string,

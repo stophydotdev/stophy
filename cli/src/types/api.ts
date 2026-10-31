@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-/** JSON envelope returned by `POST /v1/<source>/<endpoint>`. */
 export const successEnvelope = z.object({
   success: z.literal(true),
   data: z.unknown(),

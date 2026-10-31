@@ -8,7 +8,6 @@ import { renderData } from "./render.js";
 import { withSpinner } from "./spinner.js";
 import { successEnvelope } from "./types/api.js";
 
-/** Call one catalog endpoint and print readable text, JSON data, or the raw envelope. */
 export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
   const parsed = parseCall(flagTokens(currentArgs(), endpoint.id.split(".")), endpoint.input);
   if (!parsed.ok) throw new CliError(parsed.message);

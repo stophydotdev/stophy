@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-/** One API credit is 1500 micros ($0.0015), the same ratio the API uses for billing. */
 export const MICROS_PER_CREDIT = 1_500;
 
 const MICROS_PER_DOLLAR = 1_000_000;
 
-/** `GET /v1/usage` body. This route accepts an API key. */
 export const usageDataSchema = z.object({
   balanceMicros: z.number(),
   creditsUsed: z.number(),
@@ -27,7 +25,6 @@ const logEntrySchema = z.object({
   createdAt: z.string(),
 });
 
-/** `GET /v1/logs` body. This route accepts an API key. */
 export const logsDataSchema = z.object({
   logs: z.array(logEntrySchema),
   endpoints: z.array(z.string()),

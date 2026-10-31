@@ -25,7 +25,5 @@ export async function maybeShowUpdateNotice(): Promise<void> {
       isGlobal: true,
       message: `Update available ${notifier.update.current} → ${notifier.update.latest}\nRun ${INSTALL_COMMAND} to update.`,
     });
-  } catch {
-    // never let the update check interfere with a command
-  }
+  } catch {}
 }

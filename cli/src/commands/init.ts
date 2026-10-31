@@ -23,7 +23,6 @@ interface StepResult {
   readonly note: string;
 }
 
-/** Everything `init` does outside its own process, so tests can replace it. */
 export interface InitDependencies {
   isLoggedIn: () => Promise<boolean>;
   browserLogin: () => Promise<void>;
@@ -95,7 +94,6 @@ const messageOf = (error: unknown) => (error instanceof Error ? error.message : 
 const isClaudeCode = (agent: string | undefined) =>
   agent === undefined || agent === "claude-code" || agent === "claude";
 
-/** Exact instructions for adding the MCP server to an agent we do not edit. */
 export function mcpInstructions(agent: string | undefined): string[] {
   if (isClaudeCode(agent)) {
     return [`claude mcp add --transport http stophy ${MCP_URL}`];
@@ -109,7 +107,6 @@ export function mcpInstructions(agent: string | undefined): string[] {
   ];
 }
 
-/** The `skills add` arguments: fully non-interactive with --all, the tool's own prompts otherwise. */
 export function skillsArgs(options: InitOptions): string[] {
   const args = ["-y", "skills", "add", SKILLS_PACKAGE];
   if (options.agent) args.push("--agent", options.agent);

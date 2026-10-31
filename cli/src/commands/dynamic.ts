@@ -24,7 +24,6 @@ interface TreeNode {
   children: Map<string, TreeNode>;
 }
 
-/** Register `stophy <source> <endpoint words>` from the live catalog. */
 export function registerDynamicCommands(
   program: Command,
   endpoints: readonly CatalogEndpoint[],
@@ -41,7 +40,6 @@ export function sourceLabel(name: string): string {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-/** Dot-id of the command being run, such as `youtube.comments`. */
 export function commandPath(command: Command): string | undefined {
   const names: string[] = [];
   let current: Command | null = command;

@@ -12,7 +12,6 @@ const SKIP_CATALOG = new Set([
 
 let invocation: readonly string[] = [];
 
-/** Remember the args Commander is parsing, so endpoint commands can read flags from them. */
 export function setCurrentArgs(args: readonly string[]): void {
   invocation = args;
 }
@@ -21,7 +20,6 @@ export function currentArgs(): readonly string[] {
   return invocation;
 }
 
-/** `--refresh` is global and may sit anywhere on the command line. */
 export function stripGlobalRefresh(args: readonly string[]): {
   args: string[];
   refresh: boolean;
@@ -38,7 +36,6 @@ export function stripGlobalRefresh(args: readonly string[]): {
   return { args: next, refresh };
 }
 
-/** The first positional token, skipping options. */
 export function firstCommand(args: readonly string[]): string | undefined {
   for (const arg of args) {
     if (arg === "--") return undefined;
@@ -48,19 +45,16 @@ export function firstCommand(args: readonly string[]): string | undefined {
   return undefined;
 }
 
-/** Data, discovery, and account commands need the endpoint catalog. Login and diagnostics do not. */
 export function catalogNeeded(args: readonly string[]): boolean {
   const command = firstCommand(args);
   if (command === undefined) return true;
   return !SKIP_CATALOG.has(command);
 }
 
-/** Root help can still run when the catalog cannot be loaded. */
 export function catalogOptional(args: readonly string[]): boolean {
   return firstCommand(args) === undefined;
 }
 
-/** Flags and positionals that follow a command path such as `youtube search`. */
 export function flagTokens(args: readonly string[], words: readonly string[]): string[] {
   const start = findWords(args, words);
   if (start < 0) return [];

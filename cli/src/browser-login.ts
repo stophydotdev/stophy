@@ -88,9 +88,7 @@ export async function startBrowserLogin(
           );
           return;
         }
-      } catch {
-        // retry on next tick
-      }
+      } catch {}
 
       setTimeout(poll, 2000);
     };
