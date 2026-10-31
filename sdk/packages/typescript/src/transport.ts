@@ -1,5 +1,6 @@
 import { version } from "../package.json";
 import { StophyError } from "./errors";
+import { isBoolean, isNumber, isRecord, isString, type JsonValue } from "./json";
 
 const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
@@ -19,7 +20,7 @@ export interface RequestSpec {
   options?: CallOptions;
 }
 
-export type Caller = (spec: RequestSpec) => Promise<unknown>;
+export type Caller = <Result>(spec: RequestSpec) => Promise<Result>;
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -42,9 +43,9 @@ export function createCaller(options: TransportOptions): Caller {
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   };
 
-  return async (spec) => {
+  return async <Result>(spec: RequestSpec): Promise<Result> => {
     const headers = new Headers(options.headers);
-    if (typeof document === "undefined" && !headers.has("user-agent")) {
+    if (!("document" in globalThis) && !headers.has("user-agent")) {
       headers.set("user-agent", USER_AGENT);
     }
     if (options.apiKey) {
@@ -54,7 +55,7 @@ export function createCaller(options: TransportOptions): Caller {
     if (spec.body !== undefined) headers.set("content-type", "application/json");
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
-    return send(
+    return send<Result>(
       baseFetch,
       url,
       (signal) => ({
@@ -75,18 +76,18 @@ interface RetryPolicy {
   timeoutMs: number;
 }
 
-async function send(
+async function send<Result>(
   baseFetch: FetchLike,
   url: string,
   init: (signal: AbortSignal) => RequestInit,
   signal: AbortSignal | undefined,
   retry: RetryPolicy,
-): Promise<unknown> {
+): Promise<Result> {
   for (let n = 0; ; n += 1) {
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
-      const response = await baseFetch(url, init(deadline.signal)).catch((error: unknown) => {
+      const response = await baseFetch(url, init(deadline.signal)).catch((error) => {
         if (deadline.signal.aborted || n >= retry.maxRetries) throw error;
         return undefined;
       });
@@ -100,7 +101,7 @@ async function send(
         }
         waitMs = seconds === undefined ? backoffMs(n, retry.initialDelayMs) : seconds * 1000;
       } else {
-        return await readBody(response);
+        return await readBody<Result>(response);
       }
     } finally {
       deadline.clear();
@@ -130,7 +131,7 @@ function withDeadline(signal: AbortSignal | undefined, timeoutMs: number) {
   };
 }
 
-async function readBody(response: Response): Promise<unknown> {
+async function readBody<Result>(response: Response): Promise<Result> {
   if (!response.ok) throw await errorFrom(response);
   const text = await response.text();
   if (!text) {
@@ -145,15 +146,7 @@ async function readBody(response: Response): Promise<unknown> {
 
 async function errorFrom(response: Response): Promise<StophyError> {
   const text = await response.text();
-  let body: unknown;
-  if (text) {
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = undefined;
-    }
-  }
-  const error = readError(body);
+  const error = readError(text ? parseJson(text) : null);
   const retryAfterSeconds = error.retryAfterSeconds ?? headerRetryAfter(response);
   return failed(response, error.message ?? `Stophy request failed with status ${response.status}`, {
     code: error.code,
@@ -190,21 +183,24 @@ interface ErrorFields {
   requestId?: string;
 }
 
-function readError(body: unknown): ErrorFields {
+function parseJson(text: string): JsonValue {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function readError(body: JsonValue): ErrorFields {
   if (!isRecord(body) || !isRecord(body.error)) return {};
   const error = body.error;
   return {
-    code: typeof error.code === "string" ? error.code : undefined,
-    message: typeof error.message === "string" ? error.message : undefined,
-    retryable: typeof error.retryable === "boolean" ? error.retryable : undefined,
-    retryAfterSeconds:
-      typeof error.retryAfterSeconds === "number" ? error.retryAfterSeconds : undefined,
-    requestId: typeof error.requestId === "string" ? error.requestId : undefined,
+    code: isString(error.code) ? error.code : undefined,
+    message: isString(error.message) ? error.message : undefined,
+    retryable: isBoolean(error.retryable) ? error.retryable : undefined,
+    retryAfterSeconds: isNumber(error.retryAfterSeconds) ? error.retryAfterSeconds : undefined,
+    requestId: isString(error.requestId) ? error.requestId : undefined,
   };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function headerRequestId(response: Response): string | undefined {

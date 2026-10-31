@@ -6,20 +6,20 @@ export interface RequestOptions {
 
 export function post<Body, Response>(path: string, call: Caller) {
   return (body: Body, options?: RequestOptions): Promise<Response> =>
-    call({ method: "POST", path, body, options }) as Promise<Response>;
+    call<Response>({ method: "POST", path, body, options });
 }
 
 export function postOptional<Body, Response>(path: string, call: Caller) {
   return (body?: Body, options?: RequestOptions): Promise<Response> =>
-    call({
+    call<Response>({
       method: "POST",
       path,
       body: body ?? {},
       options,
-    }) as Promise<Response>;
+    });
 }
 
 export function get<Response>(path: string, call: Caller) {
   return (options?: RequestOptions): Promise<Response> =>
-    call({ method: "GET", path, options }) as Promise<Response>;
+    call<Response>({ method: "GET", path, options });
 }

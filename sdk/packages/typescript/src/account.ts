@@ -1,4 +1,5 @@
 import { StophyError } from "./errors";
+import { isNumber, isRecord, isString, type JsonObject, type JsonValue } from "./json";
 import type { Caller } from "./transport";
 
 export interface Usage {
@@ -37,7 +38,7 @@ export interface LogsQuery {
 }
 
 export function usage(call: Caller): Promise<Usage> {
-  return call({ method: "GET", path: "/v1/usage" }).then(parseUsage);
+  return call<JsonValue>({ method: "GET", path: "/v1/usage" }).then(parseUsage);
 }
 
 export function logs(call: Caller, query?: LogsQuery): Promise<Logs> {
@@ -46,10 +47,10 @@ export function logs(call: Caller, query?: LogsQuery): Promise<Logs> {
   if (query?.days !== undefined) params.days = query.days;
   if (query?.endpoint !== undefined) params.endpoint = query.endpoint;
   if (query?.page !== undefined) params.page = query.page;
-  return call({ method: "GET", path: "/v1/logs", query: params }).then(parseLogs);
+  return call<JsonValue>({ method: "GET", path: "/v1/logs", query: params }).then(parseLogs);
 }
 
-function parseUsage(value: unknown): Usage {
+function parseUsage(value: JsonValue): Usage {
   if (!isRecord(value)) return unexpected("usage");
   const balanceMicros = numberField(value, "balanceMicros");
   const creditsUsed = numberField(value, "creditsUsed");
@@ -57,13 +58,13 @@ function parseUsage(value: unknown): Usage {
   return { balanceMicros, creditsUsed, requestCount };
 }
 
-function parseLogs(value: unknown): Logs {
+function parseLogs(value: JsonValue): Logs {
   if (!isRecord(value) || !Array.isArray(value.logs) || !Array.isArray(value.endpoints)) {
     return unexpected("logs");
   }
   return {
     endpoints: value.endpoints.map((item) => {
-      if (typeof item !== "string") return unexpected("logs.endpoints");
+      if (!isString(item)) return unexpected("logs.endpoints");
       return item;
     }),
     logs: value.logs.map(parseLog),
@@ -74,7 +75,7 @@ function parseLogs(value: unknown): Logs {
   };
 }
 
-function parseLog(value: unknown): LogEntry {
+function parseLog(value: JsonValue): LogEntry {
   if (!isRecord(value)) return unexpected("logs.logs");
   return {
     apiKeyId: stringOrNull(value, "apiKeyId"),
@@ -90,29 +91,29 @@ function parseLog(value: unknown): LogEntry {
   };
 }
 
-function numberField(record: Record<string, unknown>, field: string): number {
+function numberField(record: JsonObject, field: string): number {
   const value = record[field];
-  if (typeof value !== "number") return unexpected(field);
+  if (!isNumber(value)) return unexpected(field);
   return value;
 }
 
-function numberOrNull(record: Record<string, unknown>, field: string): number | null {
+function numberOrNull(record: JsonObject, field: string): number | null {
   const value = record[field];
   if (value === null) return null;
-  if (typeof value !== "number") return unexpected(field);
+  if (!isNumber(value)) return unexpected(field);
   return value;
 }
 
-function stringField(record: Record<string, unknown>, field: string): string {
+function stringField(record: JsonObject, field: string): string {
   const value = record[field];
-  if (typeof value !== "string") return unexpected(field);
+  if (!isString(value)) return unexpected(field);
   return value;
 }
 
-function stringOrNull(record: Record<string, unknown>, field: string): string | null {
+function stringOrNull(record: JsonObject, field: string): string | null {
   const value = record[field];
   if (value === null) return null;
-  if (typeof value !== "string") return unexpected(field);
+  if (!isString(value)) return unexpected(field);
   return value;
 }
 
@@ -121,8 +122,4 @@ function unexpected(field: string): never {
     status: 200,
     retryable: false,
   });
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
