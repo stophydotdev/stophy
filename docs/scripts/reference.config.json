@@ -27,7 +27,11 @@
     "chatgpt": "ChatGPT",
     "gemini": "Gemini",
     "glassdoor": "Glassdoor",
-    "yelp": "Yelp"
+    "yelp": "Yelp",
+    "realtor": "Realtor.com",
+    "craigslist": "Craigslist",
+    "luma": "Luma",
+    "expedia": "Expedia"
   },
   "titles": {
     "google.search": "Google Search",
@@ -160,7 +164,13 @@
     "yelp.business": "Yelp Business",
     "yelp.business.reviews": "Yelp Business Reviews",
     "amazon.reviews": "Amazon Reviews",
-    "x.profile.posts": "X Profile Posts"
+    "x.profile.posts": "X Profile Posts",
+    "realtor.search": "Realtor.com Search",
+    "realtor.property": "Realtor.com Property",
+    "craigslist.search": "Craigslist Search",
+    "luma.events": "Luma Events",
+    "luma.event": "Luma Event",
+    "expedia.hotels": "Expedia Hotels"
   },
   "areas": [
     {
@@ -274,7 +284,10 @@
         "booking.hotel.reviews",
         "yelp.search",
         "yelp.business",
-        "yelp.business.reviews"
+        "yelp.business.reviews",
+        "expedia.hotels",
+        "luma.events",
+        "luma.event"
       ]
     },
     {
@@ -314,7 +327,8 @@
         "trustpilot.search",
         "trustpilot.company",
         "trustpilot.company.reviews",
-        "amazon.reviews"
+        "amazon.reviews",
+        "craigslist.search"
       ]
     },
     {
@@ -337,7 +351,9 @@
       "icon": "house",
       "endpoints": [
         "zillow.search",
-        "zillow.property"
+        "zillow.property",
+        "realtor.search",
+        "realtor.property"
       ]
     },
     {
@@ -417,6 +433,12 @@
     "linkedin.posts": "`data.results` lists the latest public posts, each with its text, likes and date.",
     "zillow.search": "`data.results` lists the homes, each with its price, address, size and status.",
     "zillow.property": "`data` has the home's price, address, size, description, photos and facts.",
+    "realtor.search": "`data.results` lists the homes, each with its price, address, size and status.",
+    "realtor.property": "`data` has the home's price, address, size, description, photos, price and tax history, and schools.",
+    "craigslist.search": "`data.results` lists the listings, newest first, each with its title, price, location and link.",
+    "luma.events": "`data.results` lists the events, soonest first, each with its time, place, hosts and how many are going.",
+    "luma.event": "`data` has the event's time, place, hosts, description and ticket types.",
+    "expedia.hotels": "`data.results` lists the hotels, each with its price for your dates, guest rating and address.",
     "upwork.search": "`data.results` lists the jobs, each with its budget or hourly rate, skills and posting date.",
     "upwork.job": "`data` has the job's description, budget and skills, and what the job page shows about the client.",
     "google.trends.related": "`data.results` lists the related searches, each with a score.",
@@ -719,6 +741,9 @@
     "meta.ads.page.status": "Active ads, inactive ads or both.",
     "meta.ads.search.status": "Active ads, inactive ads or both.",
     "zillow.search.status": "Homes for sale, for rent or sold.",
+    "realtor.search.status": "Homes for sale, for rent or sold.",
+    "realtor.search.sort": "How to order the homes.",
+    "expedia.hotels.sort": "How to order the hotels: by Expedia's recommended order, lowest price first or guest rating.",
     "reddit.search.subreddit": "Search inside one subreddit.",
     "tab": "Which part of the profile to read.",
     "google.images.time": "Only images from this period.",

@@ -1464,14 +1464,14 @@
       "post": {
         "operationId": "webScrape",
         "summary": "Scrape any public web page, or up to 10 at once, as markdown, HTML, links or a screenshot",
-        "description": "Costs 1 credit for most pages. 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost.",
+        "description": "Costs 1 credit for most pages. 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 2 credits, or 5 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost.",
         "security": [
           {
             "apiKey": []
           }
         ],
         "x-credits": 1,
-        "x-credits-max": 150,
+        "x-credits-max": 50,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -1498,7 +1498,7 @@
                     }
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
+                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 2 credits, or 5 on the hardest pages to reach. A PDF comes back as markdown only.",
                     "default": [
                       "markdown"
                     ],
@@ -1595,7 +1595,7 @@
                     }
                   },
                   "waitFor": {
-                    "description": "Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 3 credits, or 15 on the hardest pages to reach.",
+                    "description": "Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 2 credits, or 5 on the hardest pages to reach.",
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000
@@ -1629,7 +1629,7 @@
                     "additionalProperties": false
                   },
                   "actions": {
-                    "description": "Steps to run on the page, in order, before reading it: { \"type\": \"wait\", \"milliseconds\": 500 }, { \"type\": \"wait\", \"selector\": \".results\" }, { \"type\": \"click\", \"selector\": \"button.more\" }, { \"type\": \"write\", \"text\": \"tides\" }, { \"type\": \"press\", \"key\": \"Enter\" } or { \"type\": \"scroll\", \"direction\": \"down\" }. A read with actions costs 3 credits, or 15 on the hardest pages to reach.",
+                    "description": "Steps to run on the page, in order, before reading it: { \"type\": \"wait\", \"milliseconds\": 500 }, { \"type\": \"wait\", \"selector\": \".results\" }, { \"type\": \"click\", \"selector\": \"button.more\" }, { \"type\": \"write\", \"text\": \"tides\" }, { \"type\": \"press\", \"key\": \"Enter\" } or { \"type\": \"scroll\", \"direction\": \"down\" }. A read with actions costs 2 credits, or 5 on the hardest pages to reach.",
                     "minItems": 1,
                     "maxItems": 20,
                     "type": "array",
@@ -2701,9 +2701,9 @@
       "post": {
         "operationId": "webCrawl",
         "summary": "Crawl a website and scrape its pages as markdown",
-        "description": "Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages. Pages with cursor.",
+        "description": "Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages. Pages with cursor.",
         "x-credits": 1,
-        "x-credits-max": 60,
+        "x-credits-max": 20,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -2904,9 +2904,9 @@
       "post": {
         "operationId": "webCrawlStart",
         "summary": "Crawl a website in the background",
-        "description": "Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
+        "description": "Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
-        "x-credits-max": 15000,
+        "x-credits-max": 5000,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -3422,9 +3422,9 @@
       "post": {
         "operationId": "webBatch",
         "summary": "Scrape up to 100 pages in the background",
-        "description": "Costs 1 credit a page for most pages, 2 or 3 credits when a page takes more work to load, and 15 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 3 credits, or 15 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
+        "description": "Costs 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A read with a screenshot, actions or waitFor costs 2 credits, or 5 on the hardest pages to reach. An answer from a stored copy costs 1 credit. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
-        "x-credits-max": 1500,
+        "x-credits-max": 500,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -3451,7 +3451,7 @@
                     "type": "string"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 3 credits, or 15 on the hardest pages to reach. A PDF comes back as markdown only.",
+                    "description": "What to return: markdown (clean page text), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), screenshot (a link to a JPEG of the visible page, kept for 7 days), changes (what changed in the markdown since your key last read this page with the same options, kept 30 days) and network (the JSON the page loaded while it rendered, up to 30 responses). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. A screenshot or network costs 2 credits, or 5 on the hardest pages to reach. A PDF comes back as markdown only.",
                     "default": [
                       "markdown"
                     ],
@@ -3548,7 +3548,7 @@
                     }
                   },
                   "waitFor": {
-                    "description": "Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 3 credits, or 15 on the hardest pages to reach.",
+                    "description": "Extra milliseconds to wait before reading, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 2 credits, or 5 on the hardest pages to reach.",
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000
@@ -3582,7 +3582,7 @@
                     "additionalProperties": false
                   },
                   "actions": {
-                    "description": "Steps to run on the page, in order, before reading it: { \"type\": \"wait\", \"milliseconds\": 500 }, { \"type\": \"wait\", \"selector\": \".results\" }, { \"type\": \"click\", \"selector\": \"button.more\" }, { \"type\": \"write\", \"text\": \"tides\" }, { \"type\": \"press\", \"key\": \"Enter\" } or { \"type\": \"scroll\", \"direction\": \"down\" }. A read with actions costs 3 credits, or 15 on the hardest pages to reach.",
+                    "description": "Steps to run on the page, in order, before reading it: { \"type\": \"wait\", \"milliseconds\": 500 }, { \"type\": \"wait\", \"selector\": \".results\" }, { \"type\": \"click\", \"selector\": \"button.more\" }, { \"type\": \"write\", \"text\": \"tides\" }, { \"type\": \"press\", \"key\": \"Enter\" } or { \"type\": \"scroll\", \"direction\": \"down\" }. A read with actions costs 2 credits, or 5 on the hardest pages to reach.",
                     "minItems": 1,
                     "maxItems": 20,
                     "type": "array",
@@ -5131,6 +5131,10 @@
                   "adId"
                 ],
                 "additionalProperties": false
+              },
+              "example": {
+                "adId": "CR14091266735822864385",
+                "advertiserId": "AR16735076323512287233"
               }
             }
           }
@@ -8385,12 +8389,7 @@
                                     "type": "string",
                                     "format": "uri"
                                   },
-                                  "postKarma": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 9007199254740991
-                                  },
-                                  "commentKarma": {
+                                  "karma": {
                                     "type": "integer",
                                     "minimum": -9007199254740991,
                                     "maximum": 9007199254740991
@@ -8403,15 +8402,11 @@
                                   "avatarUrl": {
                                     "type": "string",
                                     "format": "uri"
-                                  },
-                                  "isVerified": {
-                                    "type": "boolean"
                                   }
                                 },
                                 "required": [
                                   "type",
-                                  "userUrl",
-                                  "isVerified"
+                                  "userUrl"
                                 ]
                               }
                             ]
@@ -9203,12 +9198,7 @@
                           "type": "string",
                           "format": "uri"
                         },
-                        "postKarma": {
-                          "type": "integer",
-                          "minimum": -9007199254740991,
-                          "maximum": 9007199254740991
-                        },
-                        "commentKarma": {
+                        "karma": {
                           "type": "integer",
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
@@ -9440,7 +9430,7 @@
       "post": {
         "operationId": "redditDiscussions",
         "summary": "Scrape where else a link was shared on Reddit",
-        "description": "Costs 1 credit per call. Pages with cursor.",
+        "description": "Costs 1 credit per call.",
         "x-credits": 1,
         "parameters": [
           {
@@ -9461,11 +9451,6 @@
                   "postId": {
                     "type": "string",
                     "description": "Reddit post id, like 1abc2de. Send this or postUrl."
-                  },
-                  "cursor": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "The cursor from the previous response. Send it as is."
                   }
                 },
                 "sendOne": [
@@ -9658,9 +9643,6 @@
                               "isPinned"
                             ]
                           }
-                        },
-                        "cursor": {
-                          "type": "string"
                         }
                       },
                       "required": [
@@ -9690,7 +9672,7 @@
     "/v1/reddit/subreddits": {
       "post": {
         "operationId": "redditSubreddits",
-        "summary": "Scrape Reddit's popular or newest communities",
+        "summary": "Scrape Reddit's popular communities",
         "description": "Costs 1 credit per call. Pages with cursor.",
         "x-credits": 1,
         "parameters": [
@@ -9709,8 +9691,7 @@
                     "default": "popular",
                     "type": "string",
                     "enum": [
-                      "popular",
-                      "newest"
+                      "popular"
                     ]
                   },
                   "cursor": {
@@ -10401,7 +10382,8 @@
                 "additionalProperties": false
               },
               "example": {
-                "placeId": "0x8644cc752bbe37bf:0x4a9e56f256689bb2"
+                "placeId": "0x8644cc752bbe37bf:0x4a9e56f256689bb2",
+                "sort": "relevance"
               }
             }
           }
@@ -10767,6 +10749,9 @@
                   "postCode"
                 ],
                 "additionalProperties": false
+              },
+              "example": {
+                "postCode": "DehZj9wggt0"
               }
             }
           }
@@ -11034,8 +11019,8 @@
       "post": {
         "operationId": "instagramProfile",
         "summary": "Scrape an Instagram profile and its posts",
-        "description": "Costs 2 credits per call. Pages with cursor.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call. Pages with cursor.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -15443,8 +15428,8 @@
       "post": {
         "operationId": "linkedinProfile",
         "summary": "Scrape a public LinkedIn profile",
-        "description": "Costs 2 credits per call.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -16251,8 +16236,8 @@
       "post": {
         "operationId": "zillowProperty",
         "summary": "Scrape a Zillow property page",
-        "description": "Costs 2 credits per call.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -16505,6 +16490,1298 @@
                         "imageUrls",
                         "priceHistory",
                         "facts"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/realtor/search": {
+      "post": {
+        "operationId": "realtorSearch",
+        "summary": "Scrape Realtor.com home listings",
+        "description": "Costs 1 credit per call. Pages with page.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 200,
+                    "description": "City and state, ZIP code or neighborhood (e.g., \"Austin, TX\", \"78704\")"
+                  },
+                  "status": {
+                    "default": "forSale",
+                    "type": "string",
+                    "enum": [
+                      "forSale",
+                      "forRent",
+                      "sold"
+                    ]
+                  },
+                  "minPrice": {
+                    "description": "Lowest price in US dollars",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxPrice": {
+                    "description": "Highest price in US dollars",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "minBedrooms": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "maxBedrooms": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "minBathrooms": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "minSqft": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxSqft": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "homeTypes": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "house",
+                        "townhouse",
+                        "multiFamily",
+                        "condo",
+                        "land",
+                        "apartment",
+                        "manufactured"
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "default": "relevance",
+                    "description": "Realtor.com's own order by default. priceLow and priceHigh also order each page by price. On sold homes, newest, price filters and price sorts use the sale",
+                    "type": "string",
+                    "enum": [
+                      "relevance",
+                      "newest",
+                      "priceLow",
+                      "priceHigh"
+                    ]
+                  },
+                  "page": {
+                    "default": 1,
+                    "description": "Page number, starting at 1.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "location": "Austin, TX",
+                "maxPrice": 600000,
+                "minBedrooms": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "totalResults": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "propertyId": {
+                                "type": "string"
+                              },
+                              "propertyUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "forSale",
+                                  "forRent",
+                                  "sold",
+                                  "other"
+                                ]
+                              },
+                              "isPending": {
+                                "type": "boolean"
+                              },
+                              "price": {
+                                "description": "Asking price, monthly rent, or the sale price of a sold home. For a rental building, the lowest rent among its units. Null when Realtor.com shows none, which includes sold homes in states that keep sale prices private, such as Texas.",
+                                "type": "number"
+                              },
+                              "priceMax": {
+                                "description": "For a rental building, the highest rent.",
+                                "type": "number"
+                              },
+                              "priceCurrency": {
+                                "type": "string",
+                                "const": "USD"
+                              },
+                              "addressFull": {
+                                "type": "string"
+                              },
+                              "addressStreet": {
+                                "type": "string"
+                              },
+                              "addressCity": {
+                                "type": "string"
+                              },
+                              "addressRegion": {
+                                "type": "string"
+                              },
+                              "addressPostalCode": {
+                                "type": "string"
+                              },
+                              "latitude": {
+                                "type": "number",
+                                "minimum": -90,
+                                "maximum": 90
+                              },
+                              "longitude": {
+                                "type": "number",
+                                "minimum": -180,
+                                "maximum": 180
+                              },
+                              "bedrooms": {
+                                "type": "number"
+                              },
+                              "bedroomsMax": {
+                                "description": "For a rental building, the most bedrooms in one unit.",
+                                "type": "number"
+                              },
+                              "bathrooms": {
+                                "type": "number"
+                              },
+                              "sqft": {
+                                "type": "number"
+                              },
+                              "lotSqft": {
+                                "type": "number"
+                              },
+                              "yearBuilt": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "homeType": {
+                                "type": "string"
+                              },
+                              "monthlyHoa": {
+                                "type": "number"
+                              },
+                              "listedOn": {
+                                "type": "string",
+                                "format": "date",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                              },
+                              "lastSoldOn": {
+                                "type": "string",
+                                "format": "date",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                              },
+                              "lastSoldPrice": {
+                                "type": "number"
+                              },
+                              "imageUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              }
+                            },
+                            "required": [
+                              "propertyUrl",
+                              "status",
+                              "isPending",
+                              "priceCurrency"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "totalResults",
+                        "results"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/realtor/property": {
+      "post": {
+        "operationId": "realtorProperty",
+        "summary": "Scrape a Realtor.com property with its history, taxes and schools",
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "propertyUrl": {
+                    "type": "string",
+                    "description": "Link to the Realtor.com property, like https://www.realtor.com/realestateandhomes-detail/581-Leaning-Rock-Rdg_Austin_TX_78737_M99162-05223. Send this or propertyId."
+                  },
+                  "propertyId": {
+                    "type": "string",
+                    "description": "Realtor.com property id, like 9916205223. Send this or propertyUrl."
+                  }
+                },
+                "sendOne": [
+                  "propertyUrl",
+                  "propertyId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "propertyId": {
+                          "type": "string"
+                        },
+                        "propertyUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "forSale",
+                            "forRent",
+                            "sold",
+                            "other"
+                          ]
+                        },
+                        "isPending": {
+                          "type": "boolean"
+                        },
+                        "price": {
+                          "description": "Asking price, monthly rent, or the sale price of a sold home. For a rental building, the lowest rent among its units. Null when Realtor.com shows none, which includes sold homes in states that keep sale prices private, such as Texas.",
+                          "type": "number"
+                        },
+                        "priceMax": {
+                          "description": "For a rental building, the highest rent.",
+                          "type": "number"
+                        },
+                        "priceCurrency": {
+                          "type": "string",
+                          "const": "USD"
+                        },
+                        "addressFull": {
+                          "type": "string"
+                        },
+                        "addressStreet": {
+                          "type": "string"
+                        },
+                        "addressCity": {
+                          "type": "string"
+                        },
+                        "addressRegion": {
+                          "type": "string"
+                        },
+                        "addressPostalCode": {
+                          "type": "string"
+                        },
+                        "latitude": {
+                          "type": "number",
+                          "minimum": -90,
+                          "maximum": 90
+                        },
+                        "longitude": {
+                          "type": "number",
+                          "minimum": -180,
+                          "maximum": 180
+                        },
+                        "bedrooms": {
+                          "type": "number"
+                        },
+                        "bedroomsMax": {
+                          "description": "For a rental building, the most bedrooms in one unit.",
+                          "type": "number"
+                        },
+                        "bathrooms": {
+                          "type": "number"
+                        },
+                        "sqft": {
+                          "type": "number"
+                        },
+                        "lotSqft": {
+                          "type": "number"
+                        },
+                        "yearBuilt": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "homeType": {
+                          "type": "string"
+                        },
+                        "monthlyHoa": {
+                          "type": "number"
+                        },
+                        "listedOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "lastSoldOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "lastSoldPrice": {
+                          "type": "number"
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "garageSpaces": {
+                          "type": "number"
+                        },
+                        "stories": {
+                          "type": "number"
+                        },
+                        "imageUrls": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "agentName": {
+                          "type": "string"
+                        },
+                        "agentEmail": {
+                          "type": "string"
+                        },
+                        "agentPhone": {
+                          "type": "string"
+                        },
+                        "brokerName": {
+                          "type": "string"
+                        },
+                        "priceHistory": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "format": "date",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                              },
+                              "event": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "date"
+                            ]
+                          }
+                        },
+                        "taxHistory": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "year": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "tax": {
+                                "type": "number"
+                              },
+                              "assessedValue": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "year"
+                            ]
+                          }
+                        },
+                        "schools": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "rating": {
+                                "type": "number"
+                              },
+                              "levels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "fundingType": {
+                                "type": "string"
+                              },
+                              "distanceMiles": {
+                                "type": "number"
+                              }
+                            },
+                            "required": []
+                          }
+                        }
+                      },
+                      "required": [
+                        "propertyUrl",
+                        "status",
+                        "isPending",
+                        "priceCurrency",
+                        "imageUrls",
+                        "priceHistory",
+                        "taxHistory",
+                        "schools"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/craigslist/search": {
+      "post": {
+        "operationId": "craigslistSearch",
+        "summary": "Scrape the newest Craigslist listings near a US ZIP code",
+        "description": "Costs 1 credit per 10 listings.",
+        "x-credits": 1,
+        "x-credits-max": 36,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "zipCode": {
+                    "type": "string",
+                    "pattern": "^\\d{5}$",
+                    "description": "US ZIP code to search around (e.g., \"94103\")"
+                  },
+                  "query": {
+                    "description": "Search words (e.g., \"road bike\"). Leave out to list the newest in the category",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "radius": {
+                    "default": 25,
+                    "description": "Miles around the ZIP code, 25 by default",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 250
+                  },
+                  "category": {
+                    "default": "forSale",
+                    "description": "Which listings to search, forSale by default",
+                    "type": "string",
+                    "enum": [
+                      "forSale",
+                      "carsAndTrucks",
+                      "apartments",
+                      "housing",
+                      "jobs",
+                      "gigs",
+                      "services",
+                      "free"
+                    ]
+                  },
+                  "minPrice": {
+                    "description": "Lowest price in US dollars (e.g., 50)",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000
+                  },
+                  "maxPrice": {
+                    "description": "Highest price in US dollars (e.g., 500)",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "Return at most this many listings. You pay 1 credit per 10 returned.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 360
+                  }
+                },
+                "required": [
+                  "zipCode"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "zipCode": "94103",
+                "query": "road bike",
+                "maxPrice": 800,
+                "limit": 10
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "totalResults": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "listingId": {
+                                "type": "string"
+                              },
+                              "listingUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "location": {
+                                "type": "string"
+                              },
+                              "latitude": {
+                                "type": "number"
+                              },
+                              "longitude": {
+                                "type": "number"
+                              },
+                              "bedrooms": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "sqft": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "imageUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "publishedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                              }
+                            },
+                            "required": [
+                              "listingUrl",
+                              "publishedAt"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "totalResults",
+                        "results"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/luma/events": {
+      "post": {
+        "operationId": "lumaEvents",
+        "summary": "Scrape upcoming Luma events in a city",
+        "description": "Costs 1 credit per call. Pages with cursor.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "city": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "description": "A city Luma lists (e.g., \"San Francisco\", \"London\", \"Tokyo\")"
+                  },
+                  "category": {
+                    "description": "Only events in this Luma category",
+                    "type": "string",
+                    "enum": [
+                      "ai",
+                      "arts",
+                      "books",
+                      "climate",
+                      "crypto",
+                      "family",
+                      "fitness",
+                      "food",
+                      "games",
+                      "running",
+                      "tech",
+                      "wellness"
+                    ]
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The cursor from the previous response. Send it as is."
+                  }
+                },
+                "required": [
+                  "city"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "city": "San Francisco",
+                "category": "tech"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "city": {
+                          "type": "string"
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "eventId": {
+                                "type": "string"
+                              },
+                              "eventUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "startsAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                              },
+                              "endsAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                              },
+                              "timezone": {
+                                "type": "string"
+                              },
+                              "isOnline": {
+                                "type": "boolean"
+                              },
+                              "city": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "string"
+                              },
+                              "latitude": {
+                                "type": "number"
+                              },
+                              "longitude": {
+                                "type": "number"
+                              },
+                              "calendarName": {
+                                "type": "string"
+                              },
+                              "hosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "guestCount": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "isFree": {
+                                "type": "boolean"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "currency": {
+                                "type": "string"
+                              },
+                              "isSoldOut": {
+                                "type": "boolean"
+                              },
+                              "spotsRemaining": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "needsApproval": {
+                                "type": "boolean"
+                              },
+                              "hasWaitlist": {
+                                "type": "boolean"
+                              },
+                              "imageUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              }
+                            },
+                            "required": [
+                              "eventUrl",
+                              "startsAt",
+                              "isOnline",
+                              "guestCount",
+                              "isFree",
+                              "isSoldOut",
+                              "needsApproval",
+                              "hasWaitlist"
+                            ]
+                          }
+                        },
+                        "cursor": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "results"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/luma/event": {
+      "post": {
+        "operationId": "lumaEvent",
+        "summary": "Scrape a Luma event's details, tickets and description",
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "description": "Luma event link or its last part (e.g., \"https://luma.com/nighthack\")",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "event"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "eventId": {
+                          "type": "string"
+                        },
+                        "eventUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "startsAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "endsAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "timezone": {
+                          "type": "string"
+                        },
+                        "isOnline": {
+                          "type": "boolean"
+                        },
+                        "city": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        },
+                        "latitude": {
+                          "type": "number"
+                        },
+                        "longitude": {
+                          "type": "number"
+                        },
+                        "calendarName": {
+                          "type": "string"
+                        },
+                        "hosts": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "guestCount": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "isFree": {
+                          "type": "boolean"
+                        },
+                        "price": {
+                          "type": "number"
+                        },
+                        "currency": {
+                          "type": "string"
+                        },
+                        "isSoldOut": {
+                          "type": "boolean"
+                        },
+                        "spotsRemaining": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "needsApproval": {
+                          "type": "boolean"
+                        },
+                        "hasWaitlist": {
+                          "type": "boolean"
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "ticketTypes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "currency": {
+                                "type": "string"
+                              },
+                              "needsApproval": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "needsApproval"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "eventUrl",
+                        "startsAt",
+                        "isOnline",
+                        "hosts",
+                        "guestCount",
+                        "isFree",
+                        "isSoldOut",
+                        "needsApproval",
+                        "hasWaitlist",
+                        "categories",
+                        "ticketTypes"
                       ]
                     },
                     "creditsUsed": {
@@ -20644,7 +21921,7 @@
               "example": {
                 "origin": "JFK",
                 "destination": "LAX",
-                "departDate": "2026-12-12"
+                "departDate": "2026-12-14"
               }
             }
           }
@@ -21051,7 +22328,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-12"
+                "checkIn": "2026-12-14"
               }
             }
           }
@@ -21295,7 +22572,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-12"
+                "checkIn": "2026-12-14"
               }
             }
           }
@@ -21911,12 +23188,216 @@
         }
       }
     },
+    "/v1/expedia/hotels": {
+      "post": {
+        "operationId": "expediaHotels",
+        "summary": "Scrape Expedia hotel search results with prices for your dates",
+        "description": "Costs 1 credit per call. Pages with page.",
+        "x-credits": 1,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 200,
+                    "description": "Where to stay: a city, area or landmark (e.g., \"Seattle, Washington\")"
+                  },
+                  "checkIn": {
+                    "description": "Defaults to tomorrow.",
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "checkOut": {
+                    "description": "Defaults to one night after checkIn.",
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "adults": {
+                    "default": 2,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 14
+                  },
+                  "sort": {
+                    "default": "relevance",
+                    "description": "Expedia's own sort: relevance (Recommended), priceLow (lowest price first) or rating (guest rating).",
+                    "type": "string",
+                    "enum": [
+                      "relevance",
+                      "priceLow",
+                      "rating"
+                    ]
+                  },
+                  "page": {
+                    "default": 1,
+                    "description": "Page number, starting at 1.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "location": "Seattle, Washington",
+                "sort": "priceLow"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "totalResults": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "hotelId": {
+                                "type": "string"
+                              },
+                              "hotelUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "neighborhood": {
+                                "type": "string"
+                              },
+                              "rating": {
+                                "description": "Guest rating out of 10.",
+                                "type": "number"
+                              },
+                              "ratingText": {
+                                "type": "string"
+                              },
+                              "reviewCount": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "nightlyPrice": {
+                                "description": "Price per night before taxes and fees.",
+                                "type": "number"
+                              },
+                              "totalPrice": {
+                                "description": "Price for the whole stay with taxes and fees.",
+                                "type": "number"
+                              },
+                              "totalPriceBefore": {
+                                "description": "The stay's price before Expedia's discount, when it shows one.",
+                                "type": "number"
+                              },
+                              "currency": {
+                                "type": "string",
+                                "const": "USD"
+                              },
+                              "imageUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              }
+                            },
+                            "required": [
+                              "hotelUrl",
+                              "currency"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "results"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/v1/amazon/search": {
       "post": {
         "operationId": "amazonSearch",
         "summary": "Scrape Amazon search results",
-        "description": "Costs 2 credits per call. Pages with page.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call. Pages with page.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -22152,8 +23633,8 @@
       "post": {
         "operationId": "amazonProduct",
         "summary": "Scrape an Amazon product page",
-        "description": "Costs 2 credits per call.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -22654,8 +24135,8 @@
       "post": {
         "operationId": "amazonBestsellers",
         "summary": "Scrape Amazon Best Sellers lists",
-        "description": "Costs 2 credits per call. Pages with page.",
-        "x-credits": 2,
+        "description": "Costs 1 credit per call. Pages with page.",
+        "x-credits": 1,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -28327,6 +29808,9 @@
                   "postCode"
                 ],
                 "additionalProperties": false
+              },
+              "example": {
+                "postCode": "DekCdIIEZCG"
               }
             }
           }
@@ -29823,8 +31307,8 @@
               },
               "example": {
                 "location": "Lisbon, Portugal",
-                "checkIn": "2026-12-09",
-                "checkOut": "2026-12-12",
+                "checkIn": "2026-12-11",
+                "checkOut": "2026-12-14",
                 "guests": 2,
                 "maxPrice": 200,
                 "roomType": "entireHome"
@@ -30647,6 +32131,9 @@
                   "postId"
                 ],
                 "additionalProperties": false
+              },
+              "example": {
+                "postId": "1670768087751894"
               }
             }
           }

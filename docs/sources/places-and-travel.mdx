@@ -1,8 +1,8 @@
 ---
 title: 'Places and travel'
-description: 'Find places on Google Maps and Tripadvisor with their reviews, and search stays on Google Hotels, Airbnb and Booking.com. Search flights on Google. Filter by rating, traveler type, dates and more.'
+description: 'Find places on Google Maps and Tripadvisor, and search stays on Google Hotels, Airbnb, Booking.com and Expedia. Search flights on Google and events on Luma.'
 og:title: 'Places and travel | Stophy'
-og:description: 'Find places on Google Maps and Tripadvisor with their reviews, and search stays on Google Hotels, Airbnb and Booking.com. Search flights on Google. Filter by rating, traveler type, dates and more.'
+og:description: 'Find places on Google Maps and Tripadvisor, and search stays on Google Hotels, Airbnb, Booking.com and Expedia. Search flights on Google and events on Luma.'
 icon: 'map-location-dot'
 ---
 
@@ -21,7 +21,7 @@ import GoogleFlightsPython from '/snippets/examples/google.flights/python.mdx';
 import GoogleFlightsCurl from '/snippets/examples/google.flights/curl.mdx';
 import GoogleFlightsCli from '/snippets/examples/google.flights/cli.mdx';
 
-Find places on Google Maps and Tripadvisor with their reviews, and search stays on Google Hotels, Airbnb and Booking.com. Search flights on Google. Filter by rating, traveler type, dates and more. See every field in the [Places and travel reference](/api-reference/endpoint/google-maps-search), or try it in the [playground](https://stophy.dev/playground).
+Find places on Google Maps and Tripadvisor, and search stays on Google Hotels, Airbnb, Booking.com and Expedia. Search flights on Google and events on Luma. See every field in the [Places and travel reference](/api-reference/endpoint/google-maps-search), or try it in the [playground](https://stophy.dev/playground).
 
 ## Scrape Google Maps search results
 
@@ -77,7 +77,7 @@ The response:
     "page": 1
   },
   "creditsUsed": 1,
-  "requestId": "c2340913-dda9-413f-abd0-401d92169587"
+  "requestId": "afbc04dc-2b87-4ba0-a47f-5fd333a4e00c"
 }
 ```
 
@@ -102,6 +102,9 @@ The response:
 | [Scrape Yelp search results](/api-reference/endpoint/yelp-search) | 1 credit |
 | [Scrape a Yelp business page](/api-reference/endpoint/yelp-business) | 1 credit |
 | [Scrape a Yelp business's reviews](/api-reference/endpoint/yelp-business-reviews) | 1 credit |
+| [Scrape Expedia hotel search results with prices for your dates](/api-reference/endpoint/expedia-hotels) | 1 credit |
+| [Scrape upcoming Luma events in a city](/api-reference/endpoint/luma-events) | 1 credit |
+| [Scrape a Luma event's details, tickets and description](/api-reference/endpoint/luma-event) | 1 credit |
 
 ## More ways to call it
 
@@ -123,4 +126,4 @@ The response:
   <GoogleFlightsCli />
 </CodeGroup>
 
-<Tip>Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints.</Tip>
+<Tip>Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints. Luma events, Luma event and Expedia hotels cost 1 credit. Pass an `eventUrl` from Luma events into Luma event for the full details.</Tip>

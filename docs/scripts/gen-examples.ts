@@ -60,6 +60,8 @@ const FALLBACK_EXAMPLES: Record<string, JsonObject> = {
   "yelp.business": { businessUrl: "https://www.yelp.com/biz/franklin-barbecue-austin" },
   "yelp.business.reviews": { businessUrl: "https://www.yelp.com/biz/franklin-barbecue-austin" },
   "amazon.reviews": { productUrl: "https://www.amazon.com/dp/B0CX23V2ZK" },
+  "realtor.property": { propertyUrl: "https://www.realtor.com/realestateandhomes-detail/6700-Tulloch-Way_Austin_TX_78754_M83959-32351" },
+  "luma.event": { event: "https://luma.com/d8y4gf2p" },
 };
 
 // --- naming -----------------------------------------------------------

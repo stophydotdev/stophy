@@ -19,14 +19,20 @@ Top up at [stophy.dev](https://stophy.dev). The smallest top-up is $10. Credits 
 
 ## What a call costs
 
-Of the 110 endpoints, 94 cost 1 credit and 9 cost 2. Seven are priced per unit.
+Of the 137 endpoints, 117 cost 1 credit and 1 costs 2. Fifteen are priced per unit and 4 are free.
 
 | Cost | Endpoints |
 | --- | --- |
-| 2 credits | `amazon.search`, `amazon.product`, `amazon.bestsellers`, `zillow.search`, `zillow.property`, `instagram.profile`, `linkedin.profile` |
-| 1 credit per 10 images | `google.images` |
+| 2 credits | `zillow.search` |
+| 1 credit per 10 images | `google.images`, `web.images` |
+| 1 credit per 10 articles | `web.news` |
+| 1 credit per 10 listings | `craigslist.search` |
 | 1 credit per 10 apps | `appstore.search`, `appstore.top`, `google.play.search` |
 | 1 credit, plus 1 for each result read in full | `google.search`, when `scrapeResults` is on |
+| 1 credit per 10 results, plus 1 for each result read in full | `web.search`, when `scrapeResults` is on |
+| 1 credit a page, 2 when a page takes more work to load, 5 on the hardest pages to reach | `web.scrape`, `web.crawl`, `web.crawl.start`, `web.batch` |
+| 2 credits, or 5 on the hardest pages to reach, for a screenshot, actions or `waitFor` | `web.scrape`, `web.batch` |
+| Free | `web.crawl.status`, `web.crawl.cancel`, `web.batch.status`, `web.batch.cancel` |
 | 2 credits, plus 1 per 10 seconds of audio | `instagram.transcript` |
 | 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio | `tiktok.transcript` |
 
@@ -46,7 +52,7 @@ When audio was transcribed, the response has `transcribedSeconds`.
 
 ## Limit the cost of a long list
 
-`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. On the priced ones, a smaller `limit` costs fewer credits.
+`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top`, `google.play.search` and `craigslist.search` take `limit`. On the priced ones, a smaller `limit` costs fewer credits.
 
 ## Pages
 

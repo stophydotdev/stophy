@@ -1,9 +1,9 @@
 ---
 title: 'Amazon amazon Product API'
 sidebarTitle: 'Amazon Product'
-description: 'Scrape an Amazon product page. Call the Amazon amazon Product API and get JSON back in one request. 2 credits per call. Failed calls cost nothing.'
+description: 'Scrape an Amazon product page. Call the Amazon amazon Product API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
 og:title: 'Amazon amazon Product API | Stophy'
-og:description: 'Scrape an Amazon product page. Call the Amazon amazon Product API and get JSON back in one request. 2 credits per call. Failed calls cost nothing.'
+og:description: 'Scrape an Amazon product page. Call the Amazon amazon Product API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
 openapi: 'api-reference/openapi.json POST /v1/amazon/product'
 ---
 
@@ -72,7 +72,7 @@ The following example is a real response, truncated: each list shows one item an
       }
     ]
   },
-  "creditsUsed": 2,
+  "creditsUsed": 1,
   "requestId": "2fe9dbad-fc48-4890-9751-0b24b596035b"
 }
 ```
@@ -93,7 +93,7 @@ For every field, see the response schema on this page.
 
 ## Billing
 
-Each successful request consumes 2 credits, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
 
 ## Pagination
 

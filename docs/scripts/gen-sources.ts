@@ -62,18 +62,18 @@ const AREAS: Area[] = [
     endpoints: ["reddit.search", "reddit.post", "reddit.subreddit", "reddit.user", "reddit.discussions", "reddit.subreddits", "instagram.profile", "instagram.profile.reels", "instagram.post", "instagram.comments", "linkedin.company", "linkedin.profile", "linkedin.posts", "pinterest.search", "pinterest.pin", "pinterest.board", "pinterest.profile", "facebook.page", "facebook.page.posts", "facebook.post", "facebook.post.comments", "x.profile", "x.post", "threads.profile", "threads.profile.posts", "threads.post", "x.profile.posts"],
     example: "reddit.search",
     variations: ["instagram.profile", "linkedin.profile"],
-    tip: "Reddit search, Pinterest pins, X profiles and X posts work without a key. Instagram profile and LinkedIn profile cost 2 credits. Endpoints that return a `cursor` or take a `page` give you more pages. See [Page through results](/guides/paging).",
+    tip: "Reddit search, Pinterest pins, X profiles and X posts work without a key. Instagram profile and LinkedIn profile cost 1 credit. Endpoints that return a `cursor` or take a `page` give you more pages. See [Page through results](/guides/paging).",
   },
   {
     title: "Places and travel",
     slug: "places-and-travel",
     icon: "map-location-dot",
     description:
-      "Find places on Google Maps and Tripadvisor with their reviews, and search stays on Google Hotels, Airbnb and Booking.com. Search flights on Google. Filter by rating, traveler type, dates and more.",
-    endpoints: ["google.maps.search", "google.maps.place", "google.maps.reviews", "tripadvisor.search", "tripadvisor.place", "tripadvisor.reviews", "google.hotels", "google.flights", "airbnb.search", "airbnb.listing", "airbnb.reviews", "booking.search", "booking.hotel", "booking.hotel.reviews", "yelp.search", "yelp.business", "yelp.business.reviews"],
+      "Find places on Google Maps and Tripadvisor, and search stays on Google Hotels, Airbnb, Booking.com and Expedia. Search flights on Google and events on Luma.",
+    endpoints: ["google.maps.search", "google.maps.place", "google.maps.reviews", "tripadvisor.search", "tripadvisor.place", "tripadvisor.reviews", "google.hotels", "google.flights", "airbnb.search", "airbnb.listing", "airbnb.reviews", "booking.search", "booking.hotel", "booking.hotel.reviews", "yelp.search", "yelp.business", "yelp.business.reviews", "expedia.hotels", "luma.events", "luma.event"],
     example: "google.maps.search",
     variations: ["google.hotels", "google.flights"],
-    tip: "Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints.",
+    tip: "Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints. Luma events, Luma event and Expedia hotels cost 1 credit. Pass an `eventUrl` from Luma events into Luma event for the full details.",
   },
   {
     title: "Jobs",
@@ -91,11 +91,11 @@ const AREAS: Area[] = [
     slug: "shopping",
     icon: "cart-shopping",
     description:
-      "Search Amazon products and best sellers, and search TikTok Shop products, sellers and reviews. Search eBay and Facebook Marketplace, and read Trustpilot reviews.",
-    endpoints: ["amazon.search", "amazon.product", "amazon.bestsellers", "amazon.suggest", "tiktok.shop.search", "tiktok.shop.products", "tiktok.shop.product", "tiktok.shop.reviews", "ebay.search", "ebay.item", "facebook.marketplace.search", "trustpilot.search", "trustpilot.company", "trustpilot.company.reviews", "amazon.reviews"],
+      "Search Amazon products and best sellers, and TikTok Shop products and reviews. Search eBay, Craigslist and Facebook Marketplace, and read Trustpilot reviews.",
+    endpoints: ["amazon.search", "amazon.product", "amazon.bestsellers", "amazon.suggest", "tiktok.shop.search", "tiktok.shop.products", "tiktok.shop.product", "tiktok.shop.reviews", "ebay.search", "ebay.item", "facebook.marketplace.search", "trustpilot.search", "trustpilot.company", "trustpilot.company.reviews", "amazon.reviews", "craigslist.search"],
     example: "amazon.search",
     variations: ["amazon.product", "amazon.reviews"],
-    tip: "Amazon search, product and best sellers cost 2 credits. Pass the product link from an Amazon search result into `amazon.product`.",
+    tip: "Amazon search, product and best sellers cost 1 credit. Craigslist search costs 1 credit per 10 listings. Pass the product link from an Amazon search result into `amazon.product`.",
   },
   {
     title: "Apps",
@@ -113,11 +113,11 @@ const AREAS: Area[] = [
     slug: "real-estate",
     icon: "house",
     description:
-      "Search homes for sale, for rent and sold on Zillow with more than 20 filters. Get the price, photos and details for any listing.",
-    endpoints: ["zillow.search", "zillow.property"],
+      "Search homes for sale, for rent and sold on Zillow and Realtor.com. Filter by price, size and home type, and get the photos and details for any listing.",
+    endpoints: ["zillow.search", "zillow.property", "realtor.search", "realtor.property"],
     example: "zillow.search",
     variations: ["zillow.property"],
-    tip: "Zillow search and Zillow property cost 2 credits. Pass the property link from a search result into `zillow.property` for the full listing.",
+    tip: "Zillow search costs 2 credits. Zillow property, Realtor.com search and Realtor.com property cost 1 credit. Pass the property link from a search result into that site's property endpoint for the full listing.",
   },
   {
     title: "Ads",

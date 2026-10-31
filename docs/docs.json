@@ -333,6 +333,19 @@
                   "api-reference/endpoint/yelp-business",
                   "api-reference/endpoint/yelp-business-reviews"
                 ]
+              },
+              {
+                "group": "Expedia",
+                "pages": [
+                  "api-reference/endpoint/expedia-hotels"
+                ]
+              },
+              {
+                "group": "Luma",
+                "pages": [
+                  "api-reference/endpoint/luma-events",
+                  "api-reference/endpoint/luma-event"
+                ]
               }
             ]
           },
@@ -421,6 +434,12 @@
                   "api-reference/endpoint/trustpilot-company",
                   "api-reference/endpoint/trustpilot-company-reviews"
                 ]
+              },
+              {
+                "group": "Craigslist",
+                "pages": [
+                  "api-reference/endpoint/craigslist-search"
+                ]
               }
             ]
           },
@@ -456,6 +475,13 @@
                 "pages": [
                   "api-reference/endpoint/zillow-search",
                   "api-reference/endpoint/zillow-property"
+                ]
+              },
+              {
+                "group": "Realtor.com",
+                "pages": [
+                  "api-reference/endpoint/realtor-search",
+                  "api-reference/endpoint/realtor-property"
                 ]
               }
             ]
