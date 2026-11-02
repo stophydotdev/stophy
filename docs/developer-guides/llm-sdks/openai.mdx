@@ -9,7 +9,7 @@ Give an OpenAI model live web search. The model asks for a search, your code cal
 
 ## The search tool
 
-Save this as `stophy.ts`. It calls Google search and returns the top 5 results as JSON. It works with no key. Set `STOPHY_API_KEY` to lift the free limit.
+Save this as `stophy.ts`. When the model calls it, it returns the top 5 Google results as JSON.
 
 ```ts stophy.ts
 export async function stophySearch(query: string): Promise<string> {
@@ -32,7 +32,7 @@ export async function stophySearch(query: string): Promise<string> {
 npm install openai
 ```
 
-Set `OPENAI_API_KEY` in your environment.
+Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
 Pass the search as a function tool to the Responses API. While the model keeps calling it, run the search and send the result back.
 

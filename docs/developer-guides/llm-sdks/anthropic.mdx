@@ -9,7 +9,7 @@ Give Claude live web search. Claude asks for a search, your code calls Stophy, a
 
 ## The search tool
 
-Save this as `stophy.ts`. It calls Google search and returns the top 5 results as JSON. It works with no key. Set `STOPHY_API_KEY` to lift the free limit.
+Save this as `stophy.ts`. When Claude calls it, it returns the top 5 Google results as JSON.
 
 ```ts stophy.ts
 export async function stophySearch(query: string): Promise<string> {
@@ -32,7 +32,7 @@ export async function stophySearch(query: string): Promise<string> {
 npm install @anthropic-ai/sdk zod
 ```
 
-Set `ANTHROPIC_API_KEY` in your environment.
+Set `ANTHROPIC_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
 `betaZodTool` defines the search as a tool. The tool runner calls it whenever Claude asks, and returns Claude's final message.
 
