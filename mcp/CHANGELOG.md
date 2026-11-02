@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.3.0
+
+### Minor Changes
+
+- The MCP server stays on version 1, like the API. This replaces 2.1.0, and the 2.x versions are removed from the MCP Registry. The registry entry points at github.com/stophydotdev/stophy and reads "Give your agents the live web."
+
 ## 2.1.0
 
 ### Minor Changes
