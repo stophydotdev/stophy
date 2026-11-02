@@ -1,43 +1,9 @@
 ---
 title: "Introduction"
-description: "Give your agents the live web. Send a JSON request to search the web, read what people say, or look up products, places, jobs and homes."
+description: "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes."
 og:title: "Introduction | Stophy"
-og:description: "Give your agents the live web. Send a JSON request to search the web, read what people say, or look up products, places, jobs and homes."
+og:description: "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes."
 ---
-
-Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.
-
-You send a JSON request and get JSON back. Most calls cost $1.50 per 1,000. The call below needs no key.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/google/search \
-  -H "content-type: application/json" \
-  -d '{"query":"postgres jsonb index"}'
-```
-
-<Accordion title="Response">
-```json
-{
-  "success": true,
-  "data": {
-    "results": [
-      {
-        "type": "web",
-        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
-        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
-        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
-        "position": 1
-      }
-    ],
-    "page": 1
-  },
-  "creditsUsed": 0,
-  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
-}
-```
-</Accordion>
-
-That is page 1 of Google results, and `creditsUsed: 0` means it cost nothing. Without a key you get the first page only, up to 10 calls a minute and 50 a day. A key opens every endpoint and every page.
 
 ## Connect your agent
 
@@ -51,65 +17,21 @@ codex mcp add stophy --url https://api.stophy.dev/mcp
 ```
 </CodeGroup>
 
-Your agent can call the free endpoints right away. To use every endpoint, sign in with your browser at `https://mcp.stophy.dev/mcp`. Every other client has its own page under [MCP server](/mcp-server).
-
-## What your agent can get
-
-<CardGroup cols={3}>
-  <Card title="Search and AI answers" icon="magnifying-glass" href="/sources/web">
-    Google results, news and Scholar papers.
-  </Card>
-  <Card title="Video" icon="video" href="/sources/video">
-    YouTube and TikTok videos, comments and transcripts.
-  </Card>
-  <Card title="Social" icon="users" href="/sources/social">
-    Reddit threads, X posts, and Instagram, Facebook, LinkedIn and Threads pages.
-  </Card>
-  <Card title="Places and travel" icon="map-location-dot" href="/sources/places-and-travel">
-    Google Maps reviews, hotels, flights, Airbnb, Booking.com, Expedia and Luma events.
-  </Card>
-  <Card title="Jobs" icon="briefcase" href="/sources/jobs">
-    LinkedIn, Indeed, Upwork and company careers pages.
-  </Card>
-  <Card title="Shopping" icon="cart-shopping" href="/sources/shopping">
-    Amazon and eBay prices, Craigslist listings, and Trustpilot reviews.
-  </Card>
-  <Card title="Apps" icon="mobile-screen" href="/sources/apps">
-    App Store and Google Play apps and their reviews.
-  </Card>
-  <Card title="Real estate" icon="house" href="/sources/real-estate">
-    Zillow and Realtor.com homes for sale, for rent and sold.
-  </Card>
-  <Card title="Ads" icon="bullhorn" href="/sources/ads">
-    The Meta, Google, TikTok and LinkedIn ad libraries.
-  </Card>
-</CardGroup>
-
-## Search, then read
-
-Most sites take two calls. Find posts with `reddit.search`, then open one with `reddit.post` to read its comments. Each call returns one page, and the response tells you how to get the next. `reddit.search` works without a key and `reddit.post` needs one. See [Page through results](/guides/paging).
-
-## What it costs
-
-- Most calls cost $0.0015, which is $1.50 per 1,000. Top up $100 or more and they cost $1.20 per 1,000, or $0.80 from $500.
-- New accounts start with $1.50 free, enough for 1,000 calls.
-- A call that fails or finds nothing costs nothing.
-
-A few endpoints cost more. [Pricing](/billing) lists them.
+Your agent can call the free endpoints right away. For all 137, add `https://mcp.stophy.dev/mcp` instead and sign in with your browser. [MCP server](/mcp-server) covers Cursor, Claude Desktop and other clients.
 
 ## Next
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get a key and call Stophy from TypeScript, Python or the CLI.
+    Make a call from cURL, TypeScript, Python or the CLI.
   </Card>
   <Card title="Find an endpoint" icon="compass" href="/guides/find-endpoint">
-    Pick the right endpoint for what you need.
+    Search the catalog for the call you need.
+  </Card>
+  <Card title="Search and AI answers" icon="magnifying-glass" href="/sources/web">
+    Start with Google results and any public page.
   </Card>
   <Card title="API reference" icon="code" href="/api-reference/introduction">
     Every endpoint, with its inputs, outputs and price.
-  </Card>
-  <Card title="llms.txt" icon="robot" href="https://docs.stophy.dev/llms.txt">
-    These docs as one index your agent can read.
   </Card>
 </CardGroup>

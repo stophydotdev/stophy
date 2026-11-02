@@ -59,8 +59,7 @@
             "group": "Get started",
             "pages": [
               "introduction",
-              "quickstart",
-              "advanced-guide"
+              "quickstart"
             ]
           },
           {
@@ -1205,6 +1204,10 @@
     {
       "source": "/api-reference/getChannel",
       "destination": "/api-reference/endpoint/youtube-channel"
+    },
+    {
+      "source": "/advanced-guide",
+      "destination": "/guides/find-endpoint"
     }
   ],
   "integrations": {
