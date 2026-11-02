@@ -1,18 +1,18 @@
 ---
 title: "Quickstart"
-description: "Make your first Stophy call with no key, then add a key to use every Stophy endpoint from TypeScript, Python, cURL or the CLI."
+description: "Make your first Stophy call with no key, then add a key to use all 137 endpoints from TypeScript, Python, cURL or the CLI."
 og:title: "Quickstart | Stophy"
-og:description: "Make your first Stophy call with no key, then add a key to use every Stophy endpoint from TypeScript, Python, cURL or the CLI."
+og:description: "Make your first Stophy call with no key, then add a key to use all 137 endpoints from TypeScript, Python, cURL or the CLI."
 ---
 
-Make a call with no account, then add a key to get all 137 endpoints.
+Send a search with no key and get Google results as JSON. Then add a key to use all 137 endpoints.
 
 ## Try it with no key
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/google/search \
   -H "content-type: application/json" \
-  -d '{"query":"bun runtime"}'
+  -d '{"query":"postgres jsonb index"}'
 ```
 
 <Accordion title="Response">
@@ -20,28 +20,34 @@ curl -X POST https://api.stophy.dev/v1/google/search \
 {
   "success": true,
   "data": {
-    "engine": "google",
     "results": [
       {
         "type": "web",
-        "url": "https://bun.com/",
-        "title": "Bun — A fast all-in-one JavaScript runtime",
-        "description": "Bun is a fast JavaScript runtime & toolkit. All in one. Runtime, package manager, test runner and bundler in a single binary.",
+        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
+        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
+        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
         "position": 1
       }
-    ]
+    ],
+    "page": 1
   },
   "creditsUsed": 0,
-  "requestId": "f09d5d15-c2b2-45d3-aa5e-9868563cc9c8"
+  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
 }
 ```
 </Accordion>
 
-`data.results` is one page of Google results, and `creditsUsed` is `0`. Without a key you get the first page only. The endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work this way.
+`data.results` is page 1 of Google results, and `creditsUsed: 0` means it cost nothing. The endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work this way, for the first page only. Past 10 calls a minute or 50 a day, you get `429` with code `freeLimit` and a `signupUrl`.
 
 ## Get a key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup). You start with 1,000 free credits. Create a key and save it as `STOPHY_API_KEY`.
+Sign up at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $1.50 free, enough for 1,000 calls. Create a key and save it as `STOPHY_API_KEY`.
+
+To use the CLI, install it. It reads `STOPHY_API_KEY`, or you can run `stophy login`.
+
+```bash
+curl -fsSL https://stophy.dev/install | bash
+```
 
 ## Call it with your key
 
@@ -57,7 +63,9 @@ import WebSearchCli from '/snippets/examples/google.search/cli.mdx';
   <WebSearchCli />
 </CodeGroup>
 
-The response has the same shape and costs 1 credit. Send `page: 2` to get the next page. Every endpoint is a `POST` to `https://api.stophy.dev/v1/` and its id with dots as slashes, so `youtube.transcript` is `/v1/youtube/transcript`.
+The response has the same shape and costs $0.0015. Send `page: 2` for the next page.
+
+Every endpoint is a `POST` to `https://api.stophy.dev/v1/` and its id with dots as slashes. `youtube.transcript` is `/v1/youtube/transcript`.
 
 ## Next
 
@@ -68,8 +76,8 @@ The response has the same shape and costs 1 credit. Send `page: 2` to get the ne
   <Card title="Page through results" icon="list" href="/guides/paging">
     Get past the first page.
   </Card>
-  <Card title="Credits and billing" icon="coins" href="/billing">
-    What each call costs.
+  <Card title="Pricing" icon="coins" href="/billing">
+    What each call costs, in dollars.
   </Card>
   <Card title="Connect over MCP" icon="plug" href="/mcp-server">
     Let your agent call Stophy.
