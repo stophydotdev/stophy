@@ -1,0 +1,69 @@
+identity:
+  name: job_search
+  author: stophy
+  label:
+    en_US: Job Search
+description:
+  human:
+    en_US: Search job listings on Indeed.
+  llm: Search job listings on Indeed. Returns title, company, location, salary when listed and url.
+parameters:
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query
+    human_description:
+      en_US: Role or skill, such as data analyst.
+    llm_description: Role or skill, such as data analyst.
+    form: llm
+  - name: location
+    type: string
+    required: false
+    label:
+      en_US: Location
+    human_description:
+      en_US: City, region or postal code.
+    llm_description: City, region or postal code.
+    form: llm
+  - name: remote
+    type: select
+    required: false
+    options:
+      - value: remote
+        label:
+          en_US: Remote
+      - value: hybrid
+        label:
+          en_US: Hybrid
+    label:
+      en_US: Remote
+    human_description:
+      en_US: Only remote or hybrid jobs.
+    llm_description: Only remote or hybrid jobs.
+    form: llm
+  - name: date_posted
+    type: select
+    required: false
+    options:
+      - value: last24Hours
+        label:
+          en_US: Last 24 hours
+      - value: last3Days
+        label:
+          en_US: Last 3 days
+      - value: last7Days
+        label:
+          en_US: Last 7 days
+      - value: last14Days
+        label:
+          en_US: Last 14 days
+    label:
+      en_US: Posted
+    human_description:
+      en_US: Only jobs posted in this period.
+    llm_description: Only jobs posted in this period.
+    form: llm
+extra:
+  python:
+    source: tools/job_search.py

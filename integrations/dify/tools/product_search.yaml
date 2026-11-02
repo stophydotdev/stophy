@@ -1,0 +1,60 @@
+identity:
+  name: product_search
+  author: stophy
+  label:
+    en_US: Product Search
+description:
+  human:
+    en_US: Search Amazon products and get price, rating and reviews.
+  llm: Search Amazon products. Returns title, price, rating, review count and url.
+parameters:
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query
+    human_description:
+      en_US: What to buy, such as wireless earbuds.
+    llm_description: What to buy, such as wireless earbuds.
+    form: llm
+  - name: max_price
+    type: number
+    required: false
+    min: 0
+    label:
+      en_US: Max price
+    human_description:
+      en_US: Highest price in the store's currency.
+    llm_description: Highest price in the store's currency.
+    form: llm
+  - name: sort
+    type: select
+    required: false
+    options:
+      - value: relevance
+        label:
+          en_US: Relevance
+      - value: priceLow
+        label:
+          en_US: Price, low to high
+      - value: priceHigh
+        label:
+          en_US: Price, high to low
+      - value: avgCustomerReview
+        label:
+          en_US: Highest rated
+      - value: newest
+        label:
+          en_US: Newest
+      - value: bestSelling
+        label:
+          en_US: Best selling
+    label:
+      en_US: Sort
+    human_description:
+      en_US: How to order the products.
+    llm_description: How to order the products.
+    form: llm
+extra:
+  python:
+    source: tools/product_search.py

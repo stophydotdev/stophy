@@ -1,0 +1,40 @@
+identity:
+  name: place_search
+  author: stophy
+  label:
+    en_US: Place Search
+description:
+  human:
+    en_US: Find places on Google Maps, such as restaurants, shops or clinics near a location.
+  llm: Find places on Google Maps, such as restaurants, shops or clinics near a location. Returns name, address, rating, review count and hours.
+parameters:
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query
+    human_description:
+      en_US: What to find, such as coffee.
+    llm_description: What to find, such as coffee.
+    form: llm
+  - name: location
+    type: string
+    required: true
+    label:
+      en_US: Location
+    human_description:
+      en_US: Where, such as Austin, TX.
+    llm_description: Where, such as Austin, TX.
+    form: llm
+  - name: open_now
+    type: boolean
+    required: false
+    label:
+      en_US: Open now
+    human_description:
+      en_US: Only places open right now.
+    llm_description: Only places open right now.
+    form: llm
+extra:
+  python:
+    source: tools/place_search.py

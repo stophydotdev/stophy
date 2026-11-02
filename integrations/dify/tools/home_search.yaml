@@ -1,0 +1,71 @@
+identity:
+  name: home_search
+  author: stophy
+  label:
+    en_US: Home Search
+description:
+  human:
+    en_US: Search US homes for sale or rent on Zillow.
+  llm: Search US homes for sale or rent on Zillow. Returns address, price, beds, baths, size and url.
+parameters:
+  - name: location
+    type: string
+    required: true
+    label:
+      en_US: Location
+    human_description:
+      en_US: City, ZIP code or neighborhood, such as Austin, TX.
+    llm_description: City, ZIP code or neighborhood, such as Austin, TX.
+    form: llm
+  - name: status
+    type: select
+    required: false
+    options:
+      - value: forSale
+        label:
+          en_US: For sale
+      - value: forRent
+        label:
+          en_US: For rent
+      - value: sold
+        label:
+          en_US: Sold
+    label:
+      en_US: Status
+    human_description:
+      en_US: For sale, for rent or sold.
+    llm_description: For sale, for rent or sold.
+    form: llm
+  - name: min_price
+    type: number
+    required: false
+    min: 0
+    label:
+      en_US: Min price
+    human_description:
+      en_US: Lowest price in US dollars.
+    llm_description: Lowest price in US dollars.
+    form: llm
+  - name: max_price
+    type: number
+    required: false
+    min: 0
+    label:
+      en_US: Max price
+    human_description:
+      en_US: Highest price in US dollars.
+    llm_description: Highest price in US dollars.
+    form: llm
+  - name: min_bedrooms
+    type: number
+    required: false
+    min: 0
+    label:
+      en_US: Min bedrooms
+    human_description:
+      en_US: Fewest bedrooms.
+    llm_description: Fewest bedrooms.
+    form: llm
+extra:
+  python:
+    source: tools/home_search.py
