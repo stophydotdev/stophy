@@ -5,30 +5,6 @@ og:title: "Handle errors and retries | Stophy"
 og:description: "Read the error code, retry only when retryable is true, wait for Retry-After, and back off. A failed call costs nothing. Retry loops for Node.js and Python."
 ---
 
-Send a bad call and see what an error looks like. No key needed.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/google/search \
-  -H "content-type: application/json" \
-  -d '{"query":"bun runtime","foo":1}'
-```
-
-<Accordion title="Response">
-```json
-{
-  "error": {
-    "code": "invalidRequest",
-    "message": "Unknown field `foo`. Fields: query, country, language, includeDomains, excludeDomains, time, safeSearch, page, scrapeResults, scrapeLimit",
-    "retryable": false,
-    "requestId": "fb79d36c-6041-4e7f-a934-ed72fef872c2"
-  },
-  "success": false
-}
-```
-</Accordion>
-
-Every error has this shape, and a failed call costs nothing. Read `retryable` before you do anything else.
-
 ## Decide what to do
 
 | When | Do this |
@@ -38,7 +14,7 @@ Every error has this shape, and a failed call costs nothing. Read `retryable` be
 | `retryable` is `true` with no wait | Back off: 0.5 s, then 1 s, then 2 s. |
 | Still failing after a few tries | Stop, and log the `requestId`. |
 
-Every code is listed in [Errors](/api-reference/errors).
+[Errors](/api-reference/errors) lists every code.
 
 ## A retry loop
 
@@ -93,14 +69,6 @@ def call(endpoint_id, payload, attempts=3):
 
 </CodeGroup>
 
-## Common cases
-
-- **`401 unauthorized`** means the key is missing or wrong. Send `Authorization: Bearer <key>`.
-- **`402 insufficientCredits`** means your balance is too low. The error says how many credits the call needs and how many you have. [Add credits](/billing) and try again.
-- **`429 rateLimited`** means you are over your [rate limits](/rate-limits). Wait, then retry.
-- **`400 invalidRequest`** means the input is not valid. The message names the field. Check the endpoint's input in the [API reference](/api-reference/introduction).
-- **`404 notFound`** means the thing you asked for does not exist. Don't retry.
-
 ## Timeouts
 
-Every call answers or fails within 25 seconds, or up to 62 seconds when it reads a site you pick or asks ChatGPT or Gemini. Set your client timeout a little above that, such as 30 seconds, or 70 seconds for those calls.
+Most calls answer within 15 seconds. A few take up to a minute, like reading a page you pick, transcribing audio, or asking ChatGPT or Gemini. Set your client timeout to at least 65 seconds.

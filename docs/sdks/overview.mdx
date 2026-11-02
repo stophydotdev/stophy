@@ -6,7 +6,7 @@ og:description: "Pick a Stophy client. Use the TypeScript or Python SDK in your 
 mode: "wide"
 ---
 
-Stophy has a TypeScript SDK, a Python SDK and a CLI. Each one calls the same [API](/api-reference/introduction).
+Call Stophy from TypeScript, Python or your terminal. All three call the same [API](/api-reference/introduction) and read `STOPHY_API_KEY` from your environment.
 
 ## Install
 
@@ -21,38 +21,10 @@ pip install stophy
 ```
 
 ```bash CLI icon="square-terminal"
-npm install -g @stophy/cli
+curl -fsSL https://stophy.dev/install | bash
 ```
 
 </CodeGroup>
-
-## Make a call
-
-No account, no key.
-
-<CodeGroup>
-
-```ts TypeScript icon="/images/icons/typescript.svg"
-import { Stophy } from "stophy";
-
-const result = await new Stophy().google.search({ query: "bun runtime" });
-console.log(result.data.results);
-```
-
-```python Python icon="python"
-from stophy import Stophy
-
-result = Stophy().google.search(query="bun runtime")
-print(result["data"]["results"])
-```
-
-```bash CLI icon="square-terminal"
-stophy google search "bun runtime"
-```
-
-</CodeGroup>
-
-You get Google results with `creditsUsed: 0`. A key lifts the free limit.
 
 ## Pick one
 
@@ -68,4 +40,4 @@ You get Google results with `creditsUsed: 0`. A key lifts the free limit.
   </Card>
 </CardGroup>
 
-The SDKs and the CLI read `STOPHY_API_KEY` from your environment. `npx -y @stophy/cli init --all` also adds Stophy's skills and MCP server to your coding agent. See [Quickstart](/quickstart) to get a key.
+Get a key in the [Quickstart](/quickstart).

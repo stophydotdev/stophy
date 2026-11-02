@@ -7,7 +7,7 @@ og:title: "TypeScript SDK | Stophy"
 og:description: "Install the Stophy TypeScript SDK, make your first call with no key, then add a key to page through results, handle errors and read your usage."
 ---
 
-The `stophy` package gives you typed calls to Stophy from Node.js, Bun, Deno and the browser.
+Call Stophy from Node.js, Bun, Deno or the browser and get typed results back.
 
 ```bash
 npm install stophy
@@ -20,39 +20,15 @@ No account, no key.
 ```ts
 import { Stophy } from "stophy";
 
-const result = await new Stophy().google.search({ query: "bun runtime" });
+const result = await new Stophy().google.search({ query: "postgres jsonb index" });
 console.log(result.data.results);
 ```
 
-<Accordion title="Response">
-```json
-{
-  "success": true,
-  "data": {
-    "engine": "google",
-    "results": [
-      {
-        "type": "web",
-        "url": "https://bun.com/",
-        "title": "Bun — A fast all-in-one JavaScript runtime",
-        "description": "Bun is a fast JavaScript runtime & toolkit. All in one. Runtime, package manager, test runner and bundler in a single binary. Use bun install or bun test in an ...",
-        "position": 1
-      }
-    ]
-  },
-  "creditsUsed": 0,
-  "requestId": "9532e2f9-ea3d-4ba4-8bc2-8ee5685668ee"
-}
-```
-</Accordion>
-
-Every response has `success`, `data`, `creditsUsed` and `requestId`. A list is in `data.results`.
-
-Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The inputs and results are typed, so a missing required field is a compile error. The [API reference](/api-reference/introduction) lists every endpoint.
+Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The inputs and results are typed, so a missing required field is a compile error.
 
 ## Use a key
 
-Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `unauthorized`.
+A call that needs a key throws a `StophyError` with code `apiKeyRequired`.
 
 Set `STOPHY_API_KEY` and `new Stophy()` picks it up. Or pass it in:
 
@@ -78,7 +54,7 @@ console.log(catalog.endpoints.length, free.length);
 
 ## Page through results
 
-A list call returns one page. When there is more, `data.cursor` is set. Pass it back to get the next page. This needs a key.
+When there is more, `data.cursor` is set. Pass it back for the next page. Paging needs a key.
 
 ```ts
 import { Stophy } from "stophy";
@@ -110,7 +86,7 @@ try {
 }
 ```
 
-The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it throws at once with `retryAfterSeconds` set. A failed call costs nothing. See [Errors](/api-reference/errors) for every code.
+The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it throws at once with `retryAfterSeconds` set. [Errors](/api-reference/errors) lists every code.
 
 ## Options
 
@@ -150,7 +126,7 @@ import { Stophy } from "stophy";
 const stophy = new Stophy();
 
 const usage = await stophy.usage();
-console.log(usage.balanceMicros / 1500, usage.creditsUsed, usage.requestCount);
+console.log(usage.balanceMicros / 1_000_000, usage.creditsUsed, usage.requestCount);
 
 const logs = await stophy.logs({ days: 7, endpoint: "reddit.search" });
 for (const entry of logs.logs) {
@@ -158,4 +134,3 @@ for (const entry of logs.logs) {
 }
 ```
 
-`balanceMicros` is your balance in millionths of a dollar. One credit is 1,500, so divide by 1,500 to get credits. See [Usage](/api-reference/usage) and [Logs](/api-reference/logs).
