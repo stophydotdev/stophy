@@ -73,6 +73,23 @@ jobs:
           git diff --exit-code -- packages/python/src/stophy/generated
       - run: uv --project packages/python run pytest
 
+  langchain:
+    name: LangChain tools
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/packages/langchain
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check src tests && uv run ruff format --check src tests
+      - run: uv run pyright
+      - run: uv run pytest
+      - run: uv build
+
   cli:
     name: CLI
     runs-on: ubuntu-latest
