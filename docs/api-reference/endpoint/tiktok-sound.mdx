@@ -1,9 +1,9 @@
 ---
-title: 'TikTok tikTok Sound API'
+title: 'TikTok Sound API'
 sidebarTitle: 'TikTok Sound'
-description: 'Scrape a TikTok sound and its videos. Call the TikTok tikTok Sound API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'TikTok tikTok Sound API | Stophy'
-og:description: 'Scrape a TikTok sound and its videos. Call the TikTok tikTok Sound API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape a TikTok sound and its videos. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'TikTok Sound API | Stophy'
+og:description: 'Scrape a TikTok sound and its videos. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/tiktok/sound'
 ---
 
@@ -18,7 +18,7 @@ Scrape a TikTok sound and its videos.
 
 ## Request
 
-`audioId` is required.
+Send `audioId`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape a TikTok sound and its videos.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the sound's details, and `results` lists a page of videos that use it.
+`data` has the sound's details, and `results` lists a page of videos that use it.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -80,32 +80,30 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `type` | string | The kind of item: `video` or `photo`. |
-| `videos` | integer | The number of videos use the sound. |
+| `videos` | integer | How many videos use the sound. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
 | `durationSeconds` | number | The duration, in seconds. |
 | `likes` | integer | The number of likes. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token from the previous response. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [TikTok tikTok Video](/api-reference/endpoint/tiktok-video): Accepts `videoUrl`. Scrape a TikTok video.
-- [TikTok tikTok Comments](/api-reference/endpoint/tiktok-comments): Accepts `videoUrl`. Scrape the comments of a TikTok video.
-- [TikTok tikTok Transcript](/api-reference/endpoint/tiktok-transcript): Accepts `videoUrl`. Scrape a TikTok video's transcript.
-- [TikTok tikTok Profile](/api-reference/endpoint/tiktok-profile): Accepts `userUrl`. Scrape a TikTok profile and its videos.
+- [TikTok Video](/api-reference/endpoint/tiktok-video): Takes `videoUrl`. Scrape a TikTok video.
+- [TikTok Comments](/api-reference/endpoint/tiktok-comments): Takes `videoUrl`. Scrape the comments of a TikTok video.
+- [TikTok Transcript](/api-reference/endpoint/tiktok-transcript): Takes `videoUrl`. Scrape a TikTok video's transcript.
+- [TikTok Profile](/api-reference/endpoint/tiktok-profile): Takes `userUrl`. Scrape a TikTok profile and its videos.

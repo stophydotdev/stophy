@@ -1,9 +1,9 @@
 ---
-title: 'TikTok tikTok Ads Search API'
+title: 'TikTok Ads Search API'
 sidebarTitle: 'TikTok Ads Search'
-description: 'Scrape ads from the TikTok ad library. Call the TikTok tikTok Ads Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'TikTok tikTok Ads Search API | Stophy'
-og:description: 'Scrape ads from the TikTok ad library. Call the TikTok tikTok Ads Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape ads from the TikTok ad library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'TikTok Ads Search API | Stophy'
+og:description: 'Scrape ads from the TikTok ad library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/tiktok/ads/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape ads from the TikTok ad library.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the ads, each with its advertiser and how many people it reached.
+`data.results` lists the ads, each with its advertiser and how many people it reached.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -62,31 +62,29 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
-| `total` | integer | The number of ads match. Null when TikTok caps the count at 5000 for a large search. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
+| `total` | integer | How many ads match. Null when TikTok caps the count at 5000 for a large search. |
 | `firstShownAt` | string (ISO 8601) | The first day the ad was shown. |
 | `lastShownAt` | string (ISO 8601) | The last day the ad was shown. |
 | `reachMin` | integer | With `reachMax`, the range for the number of people the ad reached. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | A keyword to find in ads. Send this or advertiser, not both. |
-| `advertiser` | string | Restricts results to ads from this advertiser name. |
-| `country` | string | Two-letter code of a European country, such as `de`. TikTok shows ads for these countries only. |
-| `cursor` | string | The pagination token from the previous response. |
+| `advertiser` | string | Only ads from this advertiser name. |
+| `country` | string | Two-letter code of a European country, like `de`. TikTok shows ads for these countries only. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [TikTok ad details](/api-reference/endpoint/tiktok-ads-ad): Accepts `adUrl`. Scrape a TikTok ad's details.
+- [TikTok ad details](/api-reference/endpoint/tiktok-ads-ad): Takes `adUrl`. Scrape a TikTok ad's details.

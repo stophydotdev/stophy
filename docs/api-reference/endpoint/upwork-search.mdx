@@ -1,9 +1,9 @@
 ---
-title: 'Upwork upwork Search API'
+title: 'Upwork Search API'
 sidebarTitle: 'Upwork Search'
-description: 'Scrape Upwork job search results. Call the Upwork upwork Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Upwork upwork Search API | Stophy'
-og:description: 'Scrape Upwork job search results. Call the Upwork upwork Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Upwork job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Upwork Search API | Stophy'
+og:description: 'Scrape Upwork job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/upwork/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Upwork job search results.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the jobs, each with its budget or hourly rate, skills and posting date.
+`data.results` lists the jobs, each with its budget or hourly rate, skills and posting date.
 
-The following example is illustrative.
+An example of the shape. The values are made up.
 
 ```json
 {
@@ -63,14 +63,12 @@ The following example is illustrative.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type` | string | Indicates whether the job pays by the hour (`hourly`) or a fixed price (`fixed`). |
+| `type` | string | Whether the job pays by the hour (`hourly`) or a fixed price (`fixed`). |
 | `workload` | string | Upwork's hours needed. Empty when the job does not say, including fixed-price jobs and clients who are not sure. |
 | `duration` | string | Upwork's project length. `underOneMonth` is under one month, `oneToThreeMonths` is one to three months, `threeToSixMonths` is three to six months, and `overSixMonths` is longer. |
 | `page` | integer | The page number of this response. |
 | `total` | integer | The total number of matching results, across all pages. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
-
-For every field, see the response schema on this page.
 
 <Note>`workload`, `duration` and the hourly rate filters apply to hourly jobs only.</Note>
 
@@ -79,23 +77,23 @@ For every field, see the response schema on this page.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Words to search for. |
-| `sort` | string | Specifies the order of the jobs. Acceptable values are `newest` and `relevance`. If unset, defaults to `newest`. |
-| `jobType` | string | Hourly jobs or fixed-price jobs. Acceptable values are `hourly` and `fixed`. |
-| `experienceLevel` | string | Restricts results to jobs that ask for this level. Acceptable values are `entry`, `intermediate` and `expert`. |
-| `workload` | string | Hours needed: full time, part time or as needed. Only hourly jobs say this, so the search stays hourly. Acceptable values are `fullTime`, `partTime` and `asNeeded`. |
-| `duration` | string | Project length: under one month, one to three months, three to six months or over six months. Only hourly jobs say this, so the search stays hourly. Acceptable values are `underOneMonth`, `oneToThreeMonths`, `threeToSixMonths` and `overSixMonths`. |
-| `minHourlyRate` | integer | The minimum hourly rate in USD. A job matches when its posted range overlaps this minimum, so 25 to 50 matches a minimum of 50. The search stays hourly. Must be between 1 and 999. |
-| `maxHourlyRate` | integer | The maximum hourly rate in USD. Requires `minHourlyRate`. The job's posted range overlaps both, and the search stays hourly. Must be between 1 and 999. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `sort` | string | How to order the jobs. One of `newest` or `relevance`. Defaults to `newest`. |
+| `jobType` | string | Hourly jobs or fixed-price jobs. One of `hourly` or `fixed`. |
+| `experienceLevel` | string | Only jobs that ask for this level. One of `entry`, `intermediate` or `expert`. |
+| `workload` | string | Hours needed: full time, part time or as needed. Only hourly jobs say this, so the search stays hourly. One of `fullTime`, `partTime` or `asNeeded`. |
+| `duration` | string | Project length: under one month, one to three months, three to six months or over six months. Only hourly jobs say this, so the search stays hourly. One of `underOneMonth`, `oneToThreeMonths`, `threeToSixMonths` or `overSixMonths`. |
+| `minHourlyRate` | integer | Lowest hourly rate in USD. A job matches when its posted range overlaps this minimum, so 25 to 50 matches a minimum of 50. The search stays hourly. From 1 to 999. |
+| `maxHourlyRate` | integer | Highest hourly rate in USD. Send it with `minHourlyRate`. The job's posted range overlaps both, and the search stays hourly. From 1 to 999. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100.
 
-## Related methods
+## Related endpoints
 
-- [Upwork upwork Job](/api-reference/endpoint/upwork-job): Accepts `jobUrl`. Scrape an Upwork job page.
+- [Upwork Job](/api-reference/endpoint/upwork-job): Takes `jobUrl`. Scrape an Upwork job page.

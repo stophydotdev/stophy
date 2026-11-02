@@ -1,9 +1,9 @@
 ---
-title: 'eBay eBay Search API'
+title: 'eBay Search API'
 sidebarTitle: 'eBay Search'
-description: 'Scrape eBay search results. Call the eBay eBay Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'eBay eBay Search API | Stophy'
-og:description: 'Scrape eBay search results. Call the eBay eBay Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape eBay search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
+og:title: 'eBay Search API | Stophy'
+og:description: 'Scrape eBay search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
 openapi: 'api-reference/openapi.json POST /v1/ebay/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape eBay search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape eBay search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the items, each with its price, shipping cost, total price, condition and location.
+`data.results` lists the items, each with its price, shipping cost, total price, condition and location.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -72,27 +72,25 @@ The following example is a real response, truncated: each list shows one item an
 | `page` | integer | The page number of this response. |
 | `total` | integer | The total number of matching results, across all pages. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `condition` | string | Restricts results to `new` or only `used` items. Acceptable values are `new` and `used`. |
-| `auctionsOnly` | boolean | Restricts results to auctions. With sort `endingSoonest` this lists auctions about to end; [eBay eBay Item](/api-reference/endpoint/ebay-item) then returns what each one sold for. If unset, defaults to `false`. |
-| `minPrice` | number | The minimum price. |
-| `maxPrice` | number | The maximum price. |
-| `sort` | string | `priceLow` and `priceHigh` return each page in order of `totalPrice`: price plus shipping to New York 10001. Across pages the order is `eBay`'s, so a listing can belong on the neighbouring page. Listings with no `totalPrice` come last on their page: the price is hidden (`isPriceHidden`), the variation range is outside the price filter, or it is pickup only outside the United States. Acceptable values are `bestMatch`, `priceLow`, `priceHigh` and `endingSoonest`. If unset, defaults to `bestMatch`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `condition` | string | Only `new` or only `used` items. One of `new` or `used`. |
+| `auctionsOnly` | boolean | Only auctions. With sort `endingSoonest` this lists auctions about to end; [eBay Item](/api-reference/endpoint/ebay-item) then returns what each one sold for. Defaults to `false`. |
+| `minPrice` | number | Lowest price. |
+| `maxPrice` | number | Highest price. |
+| `sort` | string | `priceLow` and `priceHigh` return each page in order of `totalPrice`: price plus shipping to New York 10001. Across pages the order is `eBay`'s, so a listing can belong on the neighbouring page. Listings with no `totalPrice` come last on their page: the price is hidden (`isPriceHidden`), the variation range is outside the price filter, or it is pickup only outside the United States. One of `bestMatch`, `priceLow`, `priceHigh` or `endingSoonest`. Defaults to `bestMatch`. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100.
 
-## Related methods
+## Related endpoints
 
-- [eBay eBay Item](/api-reference/endpoint/ebay-item): Accepts `itemUrl`. Scrape an eBay item page.
+- [eBay Item](/api-reference/endpoint/ebay-item): Takes `itemUrl`. Scrape an eBay item page.

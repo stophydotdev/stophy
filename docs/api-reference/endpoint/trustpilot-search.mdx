@@ -1,9 +1,9 @@
 ---
-title: 'Trustpilot trustpilot Search API'
+title: 'Trustpilot Search API'
 sidebarTitle: 'Trustpilot Search'
-description: 'Scrape Trustpilot search results. Call the Trustpilot trustpilot Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Trustpilot trustpilot Search API | Stophy'
-og:description: 'Scrape Trustpilot search results. Call the Trustpilot trustpilot Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Trustpilot search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Trustpilot Search API | Stophy'
+og:description: 'Scrape Trustpilot search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/trustpilot/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Trustpilot search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Trustpilot search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the companies, each with its TrustScore, stars, review count and categories.
+`data.results` lists the companies, each with its TrustScore, stars, review count and categories.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -68,25 +68,23 @@ The following example is a real response, truncated: each list shows one item an
 | `total` | integer | The total number of matching results, across all pages. |
 | `reviews` | integer | The number of reviews the rating is based on. |
 
-For every field, see the response schema on this page.
-
-<Note>A domain as the query returns that one company; with a domain, [Trustpilot trustpilot Company](/api-reference/endpoint/trustpilot-company) is the direct way in.</Note>
+<Note>A domain as the query returns that one company; with a domain, [Trustpilot Company](/api-reference/endpoint/trustpilot-company) is the direct way in.</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `page` | integer | Page number, starting at 1. Trustpilot shows 10 pages of 10 companies without an account, so one search reaches at most 100 companies even when total is larger. Make the query more specific to reach the rest. Must be between 1 and 10. If unset, defaults to `1`. |
+| `page` | integer | Page number, starting at 1. Trustpilot shows 10 pages of 10 companies without an account, so one search reaches at most 100 companies even when total is larger. Make the query more specific to reach the rest. From 1 to 10. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 10.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 10.
 
-## Related methods
+## Related endpoints
 
-- [Trustpilot trustpilot Company](/api-reference/endpoint/trustpilot-company): Accepts `companyUrl`. Scrape a Trustpilot company page.
-- [Trustpilot trustpilot Company Reviews](/api-reference/endpoint/trustpilot-company-reviews): Accepts `companyUrl`. Scrape a Trustpilot company's reviews.
+- [Trustpilot Company](/api-reference/endpoint/trustpilot-company): Takes `companyUrl`. Scrape a Trustpilot company page.
+- [Trustpilot Company Reviews](/api-reference/endpoint/trustpilot-company-reviews): Takes `companyUrl`. Scrape a Trustpilot company's reviews.

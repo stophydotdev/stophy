@@ -1,9 +1,9 @@
 ---
-title: 'Facebook facebook Marketplace Search API'
+title: 'Facebook Marketplace Search API'
 sidebarTitle: 'Facebook Marketplace Search'
-description: 'Scrape Facebook Marketplace search results. Call the Facebook facebook Marketplace Search API for JSON. 1 credit per call.'
-og:title: 'Facebook facebook Marketplace Search API | Stophy'
-og:description: 'Scrape Facebook Marketplace search results. Call the Facebook facebook Marketplace Search API for JSON. 1 credit per call.'
+description: 'Scrape Facebook Marketplace search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Facebook Marketplace Search API | Stophy'
+og:description: 'Scrape Facebook Marketplace search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/facebook/marketplace/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Facebook Marketplace search results.
 
 ## Request
 
-`query` and `location` are required.
+Send `query` and `location`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Facebook Marketplace search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the listings, each with its title, price, city and photo.
+`data.results` lists the listings, each with its title, price, city and photo.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -64,20 +64,18 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `minPrice` | integer | The minimum price in local currency (e.g., 50). Must be between 0 and 1000000000. |
-| `maxPrice` | integer | The maximum price in local currency (e.g., 500). Must be between 0 and 1000000000. |
-| `sort` | string | Sort order (newest, `priceLow` or `priceHigh`), relevance by default. Acceptable values are `newest`, `priceLow` and `priceHigh`. |
+| `minPrice` | integer | Lowest price in local currency (e.g., 50). From 0 to 1000000000. |
+| `maxPrice` | integer | Highest price in local currency (e.g., 500). From 0 to 1000000000. |
+| `sort` | string | Sort order (newest, `priceLow` or `priceHigh`), relevance by default. One of `newest`, `priceLow` or `priceHigh`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

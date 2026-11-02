@@ -1,9 +1,9 @@
 ---
-title: 'Web web News API'
+title: 'Web News API'
 sidebarTitle: 'Web News'
-description: 'Scrape news search results. Call the Web web News API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
-og:title: 'Web web News API | Stophy'
-og:description: 'Scrape news search results. Call the Web web News API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape news search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
+og:title: 'Web News API | Stophy'
+og:description: 'Scrape news search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/web/news'
 ---
 
@@ -18,9 +18,9 @@ Scrape news search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Scrape news search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the articles, each with its source, description and time.
+`data.results` lists the articles, each with its source, description and time.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -60,20 +60,18 @@ The following example is a real response, truncated: each list shows one item an
 | `position` | integer | The 1-based position of the result in the list. |
 | `publishedAt` | string (ISO 8601) | When the article was published. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `time` | string | Restricts results to articles from the past week, month or year. Leave out for any time. Acceptable values are `pastWeek`, `pastMonth` and `pastYear`. |
-| `limit` | integer | The maximum number of articles to return. Billed at 1 credit per 10 returned. Must be between 1 and 50. If unset, defaults to `10`. |
+| `country` | string | Two-letter country code, like `us`. |
+| `time` | string | Only articles from the past week, month or year. Leave out for any time. One of `pastWeek`, `pastMonth` or `pastYear`. |
+| `limit` | integer | Return at most this many articles. You pay $0.0015 per 10 returned. From 1 to 50. Defaults to `10`. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit per 10 articles, up to 5 credits. Requests that fail, or that return no items, are not billed. Set `limit` to cap the number of items returned and billed.
+$0.0015 per 10 articles. A call costs at most $0.0075. A call that fails or finds nothing is free. Send a smaller `limit` to get fewer items and pay less. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

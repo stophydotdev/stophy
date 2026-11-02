@@ -2,6 +2,7 @@ import {
   type CatalogEndpoint,
   type Json,
   type JsonObject,
+  dollars,
   fetchCatalog,
   isObject,
   isString,
@@ -34,11 +35,11 @@ const AREAS: Area[] = [
     slug: "web",
     icon: "magnifying-glass",
     description:
-      "Search Google, News, Images, Scholar and Patents, and read what people search for. You get results and cited sources.",
+      "Search Google, News, Images, Scholar and Patents, and read what people search for. You get results and cited sources, and any public page as markdown.",
     endpoints: ["google.search", "google.news", "google.images", "google.scholar", "google.patents", "google.suggest", "google.trends.related", "google.trends.trending", "google.trends.interest", "google.trends.regions", "web.search", "web.news", "web.images", "web.scrape", "web.parse", "web.map", "web.contacts", "web.crawl", "web.crawl.start", "web.crawl.status", "web.crawl.cancel", "web.batch", "web.batch.status", "web.batch.cancel", "chatgpt.search", "gemini.search"],
     example: "google.search",
     variations: ["google.news", "google.scholar"],
-    tip: "Google search, News, suggestions and Patents work without a key, for the first page only. Google Images costs 1 credit per 10 images. Turn on `scrapeResults` in Google search to read the top pages in the same call. Every other endpoint costs 1 credit.",
+    tip: "Google search, News, suggestions and Patents work without a key, for the first page only. Google Images costs $0.0015 per 10 images. Turn on `scrapeResults` in Google search to read the top pages in the same call. Every other endpoint costs $0.0015.",
   },
   {
     title: "Video",
@@ -49,18 +50,18 @@ const AREAS: Area[] = [
     endpoints: ["youtube.search", "youtube.suggest", "youtube.video", "youtube.transcript", "youtube.comments", "youtube.channel", "youtube.playlist", "youtube.post", "tiktok.profile", "tiktok.video", "tiktok.transcript", "tiktok.hashtag", "tiktok.sound", "tiktok.comments", "tiktok.search", "instagram.transcript"],
     example: "youtube.search",
     variations: ["youtube.transcript", "tiktok.profile"],
-    tip: "YouTube search, video, transcript, comments and channel work without a key, and so do TikTok profiles and TikTok transcripts. A YouTube transcript costs 1 credit. TikTok and Instagram transcripts are priced by the video, so see [Credits and billing](/billing). TikTok videos over 3 minutes can't be transcribed.",
+    tip: "YouTube search, video, transcript, comments and channel work without a key, and so do TikTok profiles and TikTok transcripts. A YouTube transcript costs $0.0015. TikTok and Instagram transcripts are priced by the length of the audio, so see [Pricing](/billing). TikTok videos over 3 minutes can't be transcribed.",
   },
   {
     title: "Social",
     slug: "social",
     icon: "users",
     description:
-      "Search and read posts, profiles and comments on Reddit, Instagram, LinkedIn, Pinterest, Facebook, X and Threads. Get a LinkedIn profile, a company, or its latest posts.",
+      "Search and read posts, profiles and comments on Reddit, Instagram, LinkedIn, Pinterest, Facebook, X and Threads, and get them back as JSON.",
     endpoints: ["reddit.search", "reddit.post", "reddit.subreddit", "reddit.user", "reddit.discussions", "reddit.subreddits", "instagram.profile", "instagram.profile.reels", "instagram.post", "instagram.comments", "linkedin.company", "linkedin.profile", "linkedin.posts", "pinterest.search", "pinterest.pin", "pinterest.board", "pinterest.profile", "facebook.page", "facebook.page.posts", "facebook.post", "facebook.post.comments", "x.profile", "x.post", "threads.profile", "threads.profile.posts", "threads.post", "x.profile.posts"],
     example: "reddit.search",
     variations: ["instagram.profile", "linkedin.profile"],
-    tip: "Reddit search, Pinterest pins, X profiles and X posts work without a key. Instagram profile and LinkedIn profile cost 1 credit. Endpoints that return a `cursor` or take a `page` give you more pages. See [Page through results](/guides/paging).",
+    tip: "Reddit search, Pinterest pins, X profiles and X posts work without a key. Instagram profile and LinkedIn profile cost $0.0015. Endpoints that return a `cursor` or take a `page` give you more pages. See [Page through results](/guides/paging).",
   },
   {
     title: "Places and travel",
@@ -71,7 +72,7 @@ const AREAS: Area[] = [
     endpoints: ["google.maps.search", "google.maps.place", "google.maps.reviews", "tripadvisor.search", "tripadvisor.place", "tripadvisor.reviews", "google.hotels", "google.flights", "airbnb.search", "airbnb.listing", "airbnb.reviews", "booking.search", "booking.hotel", "booking.hotel.reviews", "yelp.search", "yelp.business", "yelp.business.reviews", "expedia.hotels", "luma.events", "luma.event"],
     example: "google.maps.search",
     variations: ["google.hotels", "google.flights"],
-    tip: "Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints. Luma events, Luma event and Expedia hotels cost 1 credit. Pass an `eventUrl` from Luma events into Luma event for the full details.",
+    tip: "Google Maps search and Google Maps reviews work without a key. Pass the place id from a Google Maps search, or the place link from a Tripadvisor search, into that source's other endpoints. Luma events, Luma event and Expedia hotels cost $0.0015. Pass an `eventUrl` from Luma events into Luma event for the full details.",
   },
   {
     title: "Jobs",
@@ -93,18 +94,18 @@ const AREAS: Area[] = [
     endpoints: ["amazon.search", "amazon.product", "amazon.bestsellers", "amazon.suggest", "tiktok.shop.search", "tiktok.shop.products", "tiktok.shop.product", "tiktok.shop.reviews", "ebay.search", "ebay.item", "facebook.marketplace.search", "trustpilot.search", "trustpilot.company", "trustpilot.company.reviews", "amazon.reviews", "craigslist.search"],
     example: "amazon.search",
     variations: ["amazon.product", "amazon.reviews"],
-    tip: "Amazon search, product and best sellers cost 1 credit. Craigslist search costs 1 credit per 10 listings. Pass the product link from an Amazon search result into `amazon.product`.",
+    tip: "Amazon search, product and best sellers cost $0.0015. Craigslist search costs $0.0015 per 10 listings. Pass the product link from an Amazon search result into `amazon.product`.",
   },
   {
     title: "Apps",
     slug: "apps",
     icon: "mobile-screen",
     description:
-      "Search the App Store and Google Play. Get any app's details and reviews, and the App Store top charts.",
+      "Search the App Store and Google Play, and get any app's details and reviews as JSON. The App Store top charts come back the same way.",
     endpoints: ["appstore.app", "appstore.search", "appstore.reviews", "appstore.top", "google.play.app", "google.play.search", "google.play.reviews"],
     example: "appstore.search",
     variations: ["google.play.reviews", "appstore.top"],
-    tip: "App Store reviews and Google Play reviews work without a key. Pass an App Store app id or a Google Play package name from a search result into that store's other endpoints. Search and chart endpoints cost 1 credit per 10 apps, and `limit` returns fewer. Review endpoints page. See [Page through results](/guides/paging).",
+    tip: "App Store reviews and Google Play reviews work without a key. Pass an App Store app id or a Google Play package name from a search result into that store's other endpoints. Search and chart endpoints cost $0.0015 per 10 apps, and `limit` returns fewer. Review endpoints page. See [Page through results](/guides/paging).",
   },
   {
     title: "Real estate",
@@ -115,7 +116,7 @@ const AREAS: Area[] = [
     endpoints: ["zillow.search", "zillow.property", "realtor.search", "realtor.property"],
     example: "zillow.search",
     variations: ["zillow.property"],
-    tip: "Zillow search costs 2 credits. Zillow property, Realtor.com search and Realtor.com property cost 1 credit. Pass the property link from a search result into that site's property endpoint for the full listing.",
+    tip: "Zillow search costs $0.003. Zillow property, Realtor.com search and Realtor.com property cost $0.0015. Pass the property link from a search result into that site's property endpoint for the full listing.",
   },
   {
     title: "Ads",
@@ -284,11 +285,10 @@ const importOf = (id: string, lang: string) =>
     .map((part) => part[0]?.toUpperCase() + part.slice(1))
     .join("")}${lang[0]?.toUpperCase()}${lang.slice(1)}`;
 
-function creditPhrase(op: CatalogEndpoint): string {
-  if (op.credits === undefined || op.credits === null) return "Free";
-  const noun = op.credits === 1 ? "credit" : "credits";
-  const base = `${op.pricing ? "From " : ""}${op.credits} ${noun}`;
-  return op.keyless ? `${base} (no key needed)` : base;
+function price(op: CatalogEndpoint): string {
+  if (op.credits === undefined || op.credits === null || (op.credits === 0 && !op.pricing)) return "Free";
+  const base = op.credits === 0 ? "Per page" : `${op.pricing ? "From " : ""}${dollars(op.credits)}`;
+  return op.keyless ? `${base}, no key needed` : base;
 }
 
 function codeGroupImports(id: string): string {
@@ -312,7 +312,7 @@ function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: Spec): s
   const rows = area.endpoints.map((id) => {
     const op = byId.get(id);
     if (op === undefined) throw new Error(`${area.title}: ${id} is not in the catalog`);
-    return `| [${op.summary}](/api-reference/endpoint/${slugOf(id)}) | ${creditPhrase(op)} |`;
+    return `| [${op.summary}](/api-reference/endpoint/${slugOf(id)}) | ${price(op)} |`;
   });
 
   const allImports = [area.example, ...area.variations].map(codeGroupImports).join("\n");
@@ -350,7 +350,7 @@ function areaPage(area: Area, byId: Map<string, CatalogEndpoint>, spec: Spec): s
     "",
     "## Endpoints",
     "",
-    "| Endpoint | Cost |",
+    "| Endpoint | Price |",
     "| --- | --- |",
     ...rows,
     "",

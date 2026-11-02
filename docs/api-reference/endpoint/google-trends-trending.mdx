@@ -1,9 +1,9 @@
 ---
-title: 'Google google Trends Trending API'
+title: 'Google Trends Trending API'
 sidebarTitle: 'Google Trends Trending'
-description: 'Scrape what is trending on Google now. Call the Google google Trends Trending API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Google google Trends Trending API | Stophy'
-og:description: 'Scrape what is trending on Google now. Call the Google google Trends Trending API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape what is trending on Google now. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Trends Trending API | Stophy'
+og:description: 'Scrape what is trending on Google now. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/trends/trending'
 ---
 
@@ -18,7 +18,7 @@ Scrape what is trending on Google now.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains what is trending, each with its search volume and start time.
+`data.results` lists what is trending, each with its search volume and start time.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -60,28 +60,26 @@ The following example is a real response, truncated: each list shows one item an
 | `volume` | number | The search volume of the trend. |
 | `increasePercent` | number | The growth in search volume, as a percentage. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. If unset, defaults to `us`. |
-| `time` | string | Specifies the time range. Acceptable values are `past4Hours`, `past24Hours`, `past48Hours` and `past7Days`. If unset, defaults to `past24Hours`. |
-| `category` | string | Restricts results to trends in this category. Accepts one of 19 values, such as `autos`, `beautyFashion` and `business`. |
-| `status` | string | All trends, or only the ones still rising. Acceptable values are `all` and `active`. If unset, defaults to `all`. |
-| `sort` | string | Specifies the order of the trends. Acceptable values are `relevance`, `searchVolume`, `recency` and `title`. If unset, defaults to `relevance`. |
+| `country` | string | Two-letter country code, like `us`. Defaults to `us`. |
+| `time` | string | How far back to look. One of `past4Hours`, `past24Hours`, `past48Hours` or `past7Days`. Defaults to `past24Hours`. |
+| `category` | string | Only trends in this category. One of 19 values, like `autos`, `beautyFashion` and `business`. |
+| `status` | string | All trends, or only the ones still rising. One of `all` or `active`. Defaults to `all`. |
+| `sort` | string | How to order the trends. One of `relevance`, `searchVolume`, `recency` or `title`. Defaults to `relevance`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Google google Search](/api-reference/endpoint/google-search): Accepts a trend's `query`. Scrape Google Search results.
-- [Google google News](/api-reference/endpoint/google-news): Accepts a trend's `query`. Scrape Google News results and headlines.
-- [Google Trends interest over time](/api-reference/endpoint/google-trends-interest): Accepts a trend's `query` as `queries`. Scrape Google Trends interest over time.
+- [Google Search](/api-reference/endpoint/google-search): Takes a trend's `query`. Scrape Google Search results.
+- [Google News](/api-reference/endpoint/google-news): Takes a trend's `query`. Scrape Google News results and headlines.
+- [Google Trends interest over time](/api-reference/endpoint/google-trends-interest): Takes a trend's `query` as `queries`. Scrape Google Trends interest over time.

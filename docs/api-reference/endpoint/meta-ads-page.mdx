@@ -1,9 +1,9 @@
 ---
-title: 'Meta Ads meta Ads Page API'
+title: 'Meta Ads Page API'
 sidebarTitle: 'Meta Ads Page'
-description: 'Scrape the ads a Facebook page runs. Call the Meta Ads meta Ads Page API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Meta Ads meta Ads Page API | Stophy'
-og:description: 'Scrape the ads a Facebook page runs. Call the Meta Ads meta Ads Page API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape the ads a Facebook page runs. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Meta Ads Page API | Stophy'
+og:description: 'Scrape the ads a Facebook page runs. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/meta/ads/page'
 ---
 
@@ -18,7 +18,7 @@ Scrape the ads a Facebook page runs.
 
 ## Request
 
-`advertiser` is required.
+Send `advertiser`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape the ads a Facebook page runs.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the ads the page runs, each with its text, format and platforms.
+`data.results` lists the ads the page runs, each with its text, format and platforms.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -76,33 +76,31 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `firstShownAt` | string (ISO 8601) | The first day the ad was shown. |
 | `countries` | string[] | Countries the Ad Library says the ad ran in. Meta sends none for most ads, so an empty list means unknown, not worldwide. It is not the country you searched. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code, or `all`. If unset, defaults to `us`. |
-| `status` | string | Active ads, inactive ads or both. Acceptable values are `active`, `inactive` and `all`. If unset, defaults to `active`. |
-| `mediaType` | string | Restricts results to ads of this type. `text` means no image or video. Acceptable values are `image`, `video` and `text`. |
-| `platforms` | string[] | Restricts results to ads shown on at least one of these platforms. Acceptable values are `facebook`, `instagram`, `audienceNetwork`, `messenger`, `whatsapp` and `threads`. |
-| `language` | string | Restricts results to ads written in this language. Two-letter code, such as `en`. |
-| `shownFrom` | string (date) | Restricts results to ads shown on or after this day. Format: `YYYY-MM-DD`. |
-| `shownTo` | string (date) | Restricts results to ads shown on or before this day. Format: `YYYY-MM-DD`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `country` | string | Two-letter country code, or `all`. Defaults to `us`. |
+| `status` | string | Active ads, inactive ads or both. One of `active`, `inactive` or `all`. Defaults to `active`. |
+| `mediaType` | string | Only ads of this type. `text` means no image or video. One of `image`, `video` or `text`. |
+| `platforms` | string[] | Only ads shown on at least one of these platforms. One of `facebook`, `instagram`, `audienceNetwork`, `messenger`, `whatsapp` or `threads`. |
+| `language` | string | Only ads written in this language. Two-letter code, like `en`. |
+| `shownFrom` | string (date) | Only ads shown on or after this day. Format: `YYYY-MM-DD`. |
+| `shownTo` | string (date) | Only ads shown on or before this day. Format: `YYYY-MM-DD`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Meta ad details](/api-reference/endpoint/meta-ads-ad): Accepts `adUrl`. Scrape a Meta ad's details.
+- [Meta ad details](/api-reference/endpoint/meta-ads-ad): Takes `adUrl`. Scrape a Meta ad's details.

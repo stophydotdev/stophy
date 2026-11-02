@@ -45,10 +45,12 @@
               "code": {
                 "type": "string",
                 "enum": [
+                  "apiKeyRequired",
                   "cliSessionCompleted",
                   "cliSessionExists",
                   "cliSessionNotFound",
                   "forbidden",
+                  "freeLimit",
                   "insufficientCredits",
                   "internalError",
                   "inviteClaimed",
@@ -1849,6 +1851,10 @@
                               "type": "string",
                               "format": "uri"
                             },
+                            "screenshotCropped": {
+                              "description": "true when the page was taller than the screenshot, so the bottom is cut off.",
+                              "type": "boolean"
+                            },
                             "highlights": {
                               "description": "The passages that best match the highlights query, best first.",
                               "type": "array",
@@ -1895,6 +1901,12 @@
                                   "status"
                                 ]
                               }
+                            },
+                            "networkDropped": {
+                              "description": "How many JSON responses were left out because the page loaded too many or they were too big.",
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
                             },
                             "changes": {
                               "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
@@ -2013,6 +2025,10 @@
                                         "type": "string",
                                         "format": "uri"
                                       },
+                                      "screenshotCropped": {
+                                        "description": "true when the page was taller than the screenshot, so the bottom is cut off.",
+                                        "type": "boolean"
+                                      },
                                       "highlights": {
                                         "description": "The passages that best match the highlights query, best first.",
                                         "type": "array",
@@ -2059,6 +2075,12 @@
                                             "status"
                                           ]
                                         }
+                                      },
+                                      "networkDropped": {
+                                        "description": "How many JSON responses were left out because the page loaded too many or they were too big.",
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0,
+                                        "maximum": 9007199254740991
                                       },
                                       "changes": {
                                         "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
@@ -3982,6 +4004,10 @@
                                 "type": "string",
                                 "format": "uri"
                               },
+                              "screenshotCropped": {
+                                "description": "true when the page was taller than the screenshot, so the bottom is cut off.",
+                                "type": "boolean"
+                              },
                               "highlights": {
                                 "description": "The passages that best match the highlights query, best first.",
                                 "type": "array",
@@ -4028,6 +4054,12 @@
                                     "status"
                                   ]
                                 }
+                              },
+                              "networkDropped": {
+                                "description": "How many JSON responses were left out because the page loaded too many or they were too big.",
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9007199254740991
                               },
                               "changes": {
                                 "description": "new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did.",
@@ -11431,9 +11463,9 @@
       "post": {
         "operationId": "instagramTranscript",
         "summary": "Scrape an Instagram video's transcript",
-        "description": "Costs 2 credits plus 1 credit for every 10 seconds of audio, up to 30 minutes.",
-        "x-credits": 3,
-        "x-credits-max": 182,
+        "description": "Costs 1 credit plus 1 credit for every 30 seconds of audio, up to 5 minutes.",
+        "x-credits": 2,
+        "x-credits-max": 11,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -12866,7 +12898,8 @@
                 "additionalProperties": false
               },
               "example": {
-                "query": "street food"
+                "query": "street food",
+                "type": "users"
               }
             }
           }
@@ -14594,7 +14627,7 @@
                 "advertiser": "89516513179",
                 "country": "us",
                 "status": "active",
-                "mediaType": "image"
+                "mediaType": "video"
               }
             }
           }
@@ -21921,7 +21954,7 @@
               "example": {
                 "origin": "JFK",
                 "destination": "LAX",
-                "departDate": "2026-12-14"
+                "departDate": "2026-12-17"
               }
             }
           }
@@ -22328,7 +22361,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-14"
+                "checkIn": "2026-12-17"
               }
             }
           }
@@ -22572,7 +22605,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-14"
+                "checkIn": "2026-12-17"
               }
             }
           }
@@ -31307,8 +31340,8 @@
               },
               "example": {
                 "location": "Lisbon, Portugal",
-                "checkIn": "2026-12-11",
-                "checkOut": "2026-12-14",
+                "checkIn": "2026-12-14",
+                "checkOut": "2026-12-17",
                 "guests": 2,
                 "maxPrice": 200,
                 "roomType": "entireHome"

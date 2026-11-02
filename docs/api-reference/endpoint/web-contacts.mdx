@@ -1,9 +1,9 @@
 ---
-title: 'Web web Contacts API'
+title: 'Web Contacts API'
 sidebarTitle: 'Web Contacts'
-description: 'Scrape the emails, phone numbers and social profiles a website publishes. Call the Web web Contacts API for JSON. 1 credit per call.'
-og:title: 'Web web Contacts API | Stophy'
-og:description: 'Scrape the emails, phone numbers and social profiles a website publishes. Call the Web web Contacts API for JSON. 1 credit per call.'
+description: 'Scrape the emails, phone numbers and social profiles a website publishes. Get JSON back. $0.0015 per call. Examples in TypeScript, Python, cURL and the CLI.'
+og:title: 'Web Contacts API | Stophy'
+og:description: 'Scrape the emails, phone numbers and social profiles a website publishes. Get JSON back. $0.0015 per call. Examples in TypeScript, Python, cURL and the CLI.'
 openapi: 'api-reference/openapi.json POST /v1/web/contacts'
 ---
 
@@ -18,7 +18,7 @@ Scrape the emails, phone numbers and social profiles a website publishes.
 
 ## Request
 
-`url` is required.
+Send `url`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape the emails, phone numbers and social profiles a website publishes.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the emails, phone numbers and social profiles the site publishes.
+`data` has the emails, phone numbers and social profiles the site publishes.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -58,12 +58,12 @@ The following example is a real response, truncated: each list shows one item an
 }
 ```
 
-<Note>Reads the page you send and the contact, imprint and about pages it links to. Use [Web web Scrape](/api-reference/endpoint/web-scrape) to read a page in full.</Note>
+<Note>Reads the page you send and the contact, imprint and about pages it links to. Use [Web Scrape](/api-reference/endpoint/web-scrape) to read a page in full.</Note>
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

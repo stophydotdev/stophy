@@ -1,9 +1,9 @@
 ---
-title: 'Zillow zillow Search API'
+title: 'Zillow Search API'
 sidebarTitle: 'Zillow Search'
-description: 'Scrape Zillow search results. Call the Zillow zillow Search API and get JSON back in one request. 2 credits per call. Failed calls cost nothing.'
-og:title: 'Zillow zillow Search API | Stophy'
-og:description: 'Scrape Zillow search results. Call the Zillow zillow Search API and get JSON back in one request. 2 credits per call. Failed calls cost nothing.'
+description: 'Scrape Zillow search results. Send one JSON request and get JSON back. $0.003 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
+og:title: 'Zillow Search API | Stophy'
+og:description: 'Scrape Zillow search results. Send one JSON request and get JSON back. $0.003 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
 openapi: 'api-reference/openapi.json POST /v1/zillow/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Zillow search results.
 
 ## Request
 
-`location` is required.
+Send `location`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Zillow search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the homes, each with its price, address, size and status.
+`data.results` lists the homes, each with its price, address, size and status.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -72,56 +72,54 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `price` | number | Asking price, monthly rent, or the sale price of a sold home. Omitted when Zillow shows none, such as for sold homes in states that keep sale prices private. |
+| `price` | number | Asking price, monthly rent, or the sale price of a sold home. Left out when Zillow shows none, such as for sold homes in states that keep sale prices private. |
 | `page` | integer | The page number of this response. |
 | `totalPages` | integer | The number of pages that match the request. |
 | `total` | integer | The total number of matching results, across all pages. |
 | `statusText` | string | The listing status label as displayed by Zillow, such as `Active`. |
 | `daysOnZillow` | integer | The number of days since the home was listed. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `status` | string | Homes for sale, for rent or sold. Acceptable values are `forSale`, `forRent` and `sold`. If unset, defaults to `forSale`. |
-| `minPrice` | number | The minimum price. |
-| `maxPrice` | number | The maximum price. |
-| `minBedrooms` | integer | The minimum number of bedrooms. Must be between 0 and 20. |
-| `maxBedrooms` | integer | The maximum number of bedrooms. Must be between 0 and 20. |
-| `minBathrooms` | number | The minimum number of bathrooms. Must be between 0 and 20. |
-| `minSqft` | integer | The minimum size, in square feet. |
-| `maxSqft` | integer | The maximum size, in square feet. |
-| `minLotSize` | integer | The minimum lot, in square feet. |
-| `maxLotSize` | integer | The maximum lot, in square feet. |
-| `minYearBuilt` | integer | Restricts results to homes built in or after this year. Must be between 1600 and 2100. |
-| `maxYearBuilt` | integer | Restricts results to homes built in or before this year. Must be between 1600 and 2100. |
-| `maxHoa` | number | The maximum monthly HOA fee, in USD. `0` means no HOA fee. |
-| `minParkingSpots` | integer | Restricts results to homes with at least this many parking spots. Must be between 1 and 4. |
-| `daysOnZillow` | string | Restricts results to homes listed in the last 1, 7, 14, 30 or 90 days, or 6, 12, 24 or 36 months. For sold homes, it means sold in that time. Acceptable values are `1Day`, `7Days`, `14Days`, `30Days`, `90Days`, `6Months`, `12Months`, `24Months` and `36Months`. |
-| `hasPool` | boolean | Restricts results to homes with a pool. If unset, defaults to `false`. |
-| `hasGarage` | boolean | Restricts results to homes with a garage. If unset, defaults to `false`. |
-| `hasAirConditioning` | boolean | Restricts results to homes with air conditioning. If unset, defaults to `false`. |
-| `isWaterfront` | boolean | Restricts results to waterfront homes. If unset, defaults to `false`. |
-| `singleStory` | boolean | Restricts results to single-story homes. If unset, defaults to `false`. |
-| `openHouse` | boolean | Restricts results to homes with an open house. If unset, defaults to `false`. |
-| `priceReduced` | boolean | Restricts results to homes with a price cut. If unset, defaults to `false`. |
-| `has3dTour` | boolean | Restricts results to homes with a 3D tour. If unset, defaults to `false`. |
-| `petsAllowed` | boolean | Restricts results to places that allow pets. Rentals only: set `status` to `forRent`. If unset, defaults to `false`. |
-| `homeTypes` | string[] | Zillow's own Home type filter. On rentals, apartment and condo are one Zillow category (apartments, condos and co-ops), so either one returns both. Acceptable values are `house`, `townhouse`, `multiFamily`, `condo`, `land`, `apartment` and `manufactured`. |
-| `sort` | string | Specifies the order of the homes. Acceptable values are `relevance`, `newest`, `priceHigh`, `priceLow`, `bedrooms`, `bathrooms`, `squareFeet` and `lotSize`. If unset, defaults to `relevance`. |
-| `keywords` | string | Words the listing must mention, such as "pool" or "fixer upper". |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 20. If unset, defaults to `1`. |
+| `status` | string | Homes for sale, for rent or sold. One of `forSale`, `forRent` or `sold`. Defaults to `forSale`. |
+| `minPrice` | number | Lowest price. |
+| `maxPrice` | number | Highest price. |
+| `minBedrooms` | integer | Fewest bedrooms. From 0 to 20. |
+| `maxBedrooms` | integer | Most bedrooms. From 0 to 20. |
+| `minBathrooms` | number | Fewest bathrooms. From 0 to 20. |
+| `minSqft` | integer | Smallest size, in square feet. |
+| `maxSqft` | integer | Largest size, in square feet. |
+| `minLotSize` | integer | Smallest lot, in square feet. |
+| `maxLotSize` | integer | Largest lot, in square feet. |
+| `minYearBuilt` | integer | Only homes built in or after this year. From 1600 to 2100. |
+| `maxYearBuilt` | integer | Only homes built in or before this year. From 1600 to 2100. |
+| `maxHoa` | number | Highest monthly HOA fee, in USD. `0` means no HOA fee. |
+| `minParkingSpots` | integer | Only homes with at least this many parking spots. From 1 to 4. |
+| `daysOnZillow` | string | Only homes listed in the last 1, 7, 14, 30 or 90 days, or 6, 12, 24 or 36 months. For sold homes, it means sold in that time. One of `1Day`, `7Days`, `14Days`, `30Days`, `90Days`, `6Months`, `12Months`, `24Months` or `36Months`. |
+| `hasPool` | boolean | Only homes with a pool. Defaults to `false`. |
+| `hasGarage` | boolean | Only homes with a garage. Defaults to `false`. |
+| `hasAirConditioning` | boolean | Only homes with air conditioning. Defaults to `false`. |
+| `isWaterfront` | boolean | Only waterfront homes. Defaults to `false`. |
+| `singleStory` | boolean | Only single-story homes. Defaults to `false`. |
+| `openHouse` | boolean | Only homes with an open house. Defaults to `false`. |
+| `priceReduced` | boolean | Only homes with a price cut. Defaults to `false`. |
+| `has3dTour` | boolean | Only homes with a 3D tour. Defaults to `false`. |
+| `petsAllowed` | boolean | Only places that allow pets. Rentals only: set `status` to `forRent`. Defaults to `false`. |
+| `homeTypes` | string[] | Zillow's own Home type filter. On rentals, apartment and condo are one Zillow category (apartments, condos and co-ops), so either one returns both. One of `house`, `townhouse`, `multiFamily`, `condo`, `land`, `apartment` or `manufactured`. |
+| `sort` | string | How to order the homes. One of `relevance`, `newest`, `priceHigh`, `priceLow`, `bedrooms`, `bathrooms`, `squareFeet` or `lotSize`. Defaults to `relevance`. |
+| `keywords` | string | Words the listing must mention, like "pool" or "fixer upper". |
+| `page` | integer | Page number, starting at 1. From 1 to 20. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 2 credits, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.003, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 20.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 20.
 
-## Related methods
+## Related endpoints
 
-- [Zillow zillow Property](/api-reference/endpoint/zillow-property): Accepts `propertyUrl`. Scrape a Zillow property page.
+- [Zillow Property](/api-reference/endpoint/zillow-property): Takes `propertyUrl`. Scrape a Zillow property page.

@@ -1,9 +1,9 @@
 ---
-title: 'Web web Parse API'
+title: 'Web Parse API'
 sidebarTitle: 'Web Parse'
-description: 'Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown. Call the Web web Parse API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Web web Parse API | Stophy'
-og:description: 'Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown. Call the Web web Parse API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Web Parse API | Stophy'
+og:description: 'Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/web/parse'
 ---
 
@@ -18,9 +18,9 @@ Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown.
 
 ## Request
 
-`file` is required.
+Send `file`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the file's text as markdown, with its metadata.
+`data` has the file's text as markdown, with its metadata.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -51,19 +51,19 @@ The following example is a real response, truncated: each list shows one item an
 }
 ```
 
-<Note>To read a page or a PDF by its address, use [Web web Scrape](/api-reference/endpoint/web-scrape).</Note>
+<Note>To read a page or a PDF by its address, use [Web Scrape](/api-reference/endpoint/web-scrape).</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `filename` | string | The file's name, such as report.docx. The type is read from the file itself. |
-| `maxPages` | integer | Read at most this many PDF pages, sheets or slides; `isTruncated` says when the file had more. Must be between 1 and 100. If unset, defaults to `100`. |
+| `maxPages` | integer | Read at most this many PDF pages, sheets or slides; `isTruncated` says when the file had more. From 1 to 100. Defaults to `100`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

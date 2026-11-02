@@ -1,9 +1,9 @@
 ---
-title: 'LinkedIn linkedIn Ads Search API'
+title: 'LinkedIn Ads Search API'
 sidebarTitle: 'LinkedIn Ads Search'
-description: 'Scrape ads from the LinkedIn ad library. Call the LinkedIn linkedIn Ads Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'LinkedIn linkedIn Ads Search API | Stophy'
-og:description: 'Scrape ads from the LinkedIn ad library. Call the LinkedIn linkedIn Ads Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape ads from the LinkedIn ad library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'LinkedIn Ads Search API | Stophy'
+og:description: 'Scrape ads from the LinkedIn ad library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/linkedin/ads/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape ads from the LinkedIn ad library.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the ads, each with its advertiser, text and images.
+`data.results` lists the ads, each with its advertiser, text and images.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -60,31 +60,29 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `total` | integer | The total number of matching results, across all pages. |
 
-For every field, see the response schema on this page.
-
-<Note>Run dates, impressions and the paying entity are returned only by [LinkedIn ad details](/api-reference/endpoint/linkedin-ads-ad), and only for ads shown in the EU. To retrieve them, set an EU country.</Note>
+<Note>Only [LinkedIn ad details](/api-reference/endpoint/linkedin-ads-ad) returns run dates, impressions and who paid, and only for ads shown in the EU. To get them, set an EU country.</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Words to search for. |
-| `advertiser` | string | Restricts results to ads from this advertiser. |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `within` | string | Restricts results to ads shown in the last 30 days or the last year. Acceptable values are `month`, `year` and `all`. If unset, defaults to `all`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `advertiser` | string | Only ads from this advertiser. |
+| `country` | string | Two-letter country code, like `us`. |
+| `within` | string | Only ads shown in the last 30 days or the last year. One of `month`, `year` or `all`. Defaults to `all`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [LinkedIn ad details](/api-reference/endpoint/linkedin-ads-ad): Accepts `adUrl`. Scrape a LinkedIn ad's details.
+- [LinkedIn ad details](/api-reference/endpoint/linkedin-ads-ad): Takes `adUrl`. Scrape a LinkedIn ad's details.

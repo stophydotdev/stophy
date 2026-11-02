@@ -1,9 +1,9 @@
 ---
 title: 'Company careers careers Jobs API'
 sidebarTitle: 'Careers Jobs'
-description: 'Scrape a company''s open jobs from its careers page. Call the Company careers careers Jobs API for JSON. 1 credit per call.'
+description: 'Scrape a company''s open jobs from its careers page. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 og:title: 'Company careers careers Jobs API | Stophy'
-og:description: 'Scrape a company''s open jobs from its careers page. Call the Company careers careers Jobs API for JSON. 1 credit per call.'
+og:description: 'Scrape a company''s open jobs from its careers page. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/careers/jobs'
 ---
 
@@ -18,7 +18,7 @@ Scrape a company's open jobs from its careers page.
 
 ## Request
 
-`boardUrl` is required.
+Send `boardUrl`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape a company's open jobs from its careers page.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains a page of the company's open jobs, each with its title, department, location and date.
+`data.results` lists a page of the company's open jobs, each with its title, department, location and date.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -58,10 +58,8 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
-
-For every field, see the response schema on this page.
 
 <Note>The list can be up to 2 hours old.</Note>
 
@@ -69,16 +67,16 @@ For every field, see the response schema on this page.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token from the previous response. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Company careers careers Job](/api-reference/endpoint/careers-job): Accepts `jobUrl`. Scrape one job from a company's careers page.
+- [Company careers careers Job](/api-reference/endpoint/careers-job): Takes `jobUrl`. Scrape one job from a company's careers page.

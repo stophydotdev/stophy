@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "aspen",
   "name": "Stophy Docs",
-  "description": "Stophy is a web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes.",
+  "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
   "colors": {
     "primary": "#f5d90a",
     "light": "#f5d90a",

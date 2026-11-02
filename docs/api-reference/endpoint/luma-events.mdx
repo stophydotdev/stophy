@@ -1,9 +1,9 @@
 ---
-title: 'Luma luma Events API'
+title: 'Luma Events API'
 sidebarTitle: 'Luma Events'
-description: 'Scrape upcoming Luma events in a city. Call the Luma luma Events API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Luma luma Events API | Stophy'
-og:description: 'Scrape upcoming Luma events in a city. Call the Luma luma Events API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape upcoming Luma events in a city. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Luma Events API | Stophy'
+og:description: 'Scrape upcoming Luma events in a city. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/luma/events'
 ---
 
@@ -18,7 +18,7 @@ Scrape upcoming Luma events in a city.
 
 ## Request
 
-`city` is required.
+Send `city`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape upcoming Luma events in a city.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the events, soonest first, each with its time, place, hosts and how many are going.
+`data.results` lists the events, soonest first, each with its time, place, hosts and how many are going.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -71,9 +71,7 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
-
-For every field, see the response schema on this page.
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 
 <Note>Luma has no keyword search, so narrow with category.</Note>
 
@@ -81,13 +79,13 @@ For every field, see the response schema on this page.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `category` | string | Restricts results to events in this Luma category. Accepts one of 12 values, such as `ai`, `arts` and `books`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `category` | string | Only events in this Luma category. One of 12 values, like `ai`, `arts` and `books`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.

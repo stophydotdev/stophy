@@ -1,9 +1,9 @@
 ---
-title: 'Expedia expedia Hotels API'
+title: 'Expedia Hotels API'
 sidebarTitle: 'Expedia Hotels'
-description: 'Scrape Expedia hotel search results with prices for your dates. Call the Expedia expedia Hotels API for JSON. 1 credit per call.'
-og:title: 'Expedia expedia Hotels API | Stophy'
-og:description: 'Scrape Expedia hotel search results with prices for your dates. Call the Expedia expedia Hotels API for JSON. 1 credit per call.'
+description: 'Scrape Expedia hotel search results with prices for your dates. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Expedia Hotels API | Stophy'
+og:description: 'Scrape Expedia hotel search results with prices for your dates. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/expedia/hotels'
 ---
 
@@ -18,7 +18,7 @@ Scrape Expedia hotel search results with prices for your dates.
 
 ## Request
 
-`location` is required.
+Send `location`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Expedia hotel search results with prices for your dates.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the hotels, each with its price for your dates, guest rating and address.
+`data.results` lists the hotels, each with its price for your dates, guest rating and address.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -63,14 +63,14 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `checkIn` | string (date) | The check-in date. Defaults to tomorrow. Format: `YYYY-MM-DD`. |
 | `checkOut` | string (date) | The check-out date. Defaults to one night after `checkIn`. Format: `YYYY-MM-DD`. |
-| `adults` | integer | The number of adults. Must be between 1 and 14. If unset, defaults to `2`. |
-| `sort` | string | Specifies the order of the hotels: by Expedia's recommended order, lowest price first or guest rating. Acceptable values are `relevance`, `priceLow` and `rating`. If unset, defaults to `relevance`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 20. If unset, defaults to `1`. |
+| `adults` | integer | How many adults. From 1 to 14. Defaults to `2`. |
+| `sort` | string | How to order the hotels: by Expedia's recommended order, lowest price first or guest rating. One of `relevance`, `priceLow` or `rating`. Defaults to `relevance`. |
+| `page` | integer | Page number, starting at 1. From 1 to 20. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 20.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 20.

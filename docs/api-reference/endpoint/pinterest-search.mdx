@@ -1,9 +1,9 @@
 ---
-title: 'Pinterest pinterest Search API'
+title: 'Pinterest Search API'
 sidebarTitle: 'Pinterest Search'
-description: 'Scrape Pinterest search results. Call the Pinterest pinterest Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Pinterest pinterest Search API | Stophy'
-og:description: 'Scrape Pinterest search results. Call the Pinterest pinterest Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Pinterest search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Pinterest Search API | Stophy'
+og:description: 'Scrape Pinterest search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/pinterest/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Pinterest search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Pinterest search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the pins or videos, each with its image, link and author.
+`data.results` lists the pins or videos, each with its image, link and author.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -72,28 +72,26 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `type` | string | Pins or videos. Acceptable values are `pins` and `videos`. If unset, defaults to `pins`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `type` | string | Pins or videos. One of `pins` or `videos`. Defaults to `pins`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Pinterest pinterest Pin](/api-reference/endpoint/pinterest-pin): Accepts `pinUrl`. Scrape a Pinterest pin.
-- [Pinterest pinterest Board](/api-reference/endpoint/pinterest-board): Accepts `boardUrl`. Scrape a Pinterest board and its pins.
-- [Pinterest pinterest Profile](/api-reference/endpoint/pinterest-profile): Accepts `userUrl`. Scrape a Pinterest profile and its pins.
+- [Pinterest Pin](/api-reference/endpoint/pinterest-pin): Takes `pinUrl`. Scrape a Pinterest pin.
+- [Pinterest Board](/api-reference/endpoint/pinterest-board): Takes `boardUrl`. Scrape a Pinterest board and its pins.
+- [Pinterest Profile](/api-reference/endpoint/pinterest-profile): Takes `userUrl`. Scrape a Pinterest profile and its pins.

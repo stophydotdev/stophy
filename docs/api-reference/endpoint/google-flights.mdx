@@ -1,9 +1,9 @@
 ---
-title: 'Google google Flights API'
+title: 'Google Flights API'
 sidebarTitle: 'Google Flights'
-description: 'Scrape Google Flights results with prices and times. Call the Google google Flights API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Google google Flights API | Stophy'
-og:description: 'Scrape Google Flights results with prices and times. Call the Google google Flights API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape Google Flights results with prices and times. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Flights API | Stophy'
+og:description: 'Scrape Google Flights results with prices and times. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/flights'
 ---
 
@@ -18,7 +18,7 @@ Scrape Google Flights results with prices and times.
 
 ## Request
 
-`origin`, `destination` and `departDate` are required.
+Send `origin`, `destination` and `departDate`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Google Flights results with prices and times.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the flight options, each with its price, airlines, stops, times and legs.
+`data.results` lists the flight options, each with its price, airlines, stops, times and legs.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -81,36 +81,34 @@ The following example is a real response, truncated: each list shows one item an
 | `price` | number | Total fare in `priceCurrency` for all adults together. For a round trip it covers both directions. |
 | `legs` | object[] | The outbound journey only, including a return search. |
 | `departureLocalTime` | string | Local time at the airport, YYYY-MM-DDTHH:mm, no time zone. |
-| `isBest` | boolean | `true` for the options Google marks as best. |
+| `isBest` | boolean | True for the options Google marks as best. |
 | `durationSeconds` | integer | The duration, in seconds. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `returnDate` | string | The return date. Leave it out for a one-way trip. Format: `YYYY-MM-DD`. |
-| `adults` | integer | The number of adults. Must be between 1 and 9. If unset, defaults to `1`. |
-| `cabin` | string | The cabin class. Acceptable values are `economy`, `premiumEconomy`, `business` and `first`. If unset, defaults to `economy`. |
-| `currency` | string | Three-letter currency code, such as `USD`. If unset, defaults to `USD`. |
-| `stops` | string | The number of stops to allow. Acceptable values are `any`, `nonstop`, `oneStopOrFewer` and `twoStopsOrFewer`. If unset, defaults to `any`. |
-| `airlines` | string[] | Restricts results to these airlines, as codes such as `KQ` or `EK`. Accepts up to 10 values. |
-| `carryOnBags` | integer | Include this many carry-on bags in the price. Must be between 0 and 1. If unset, defaults to `0`. |
-| `checkedBags` | integer | Include this many checked bags in the price. Must be between 0 and 2. If unset, defaults to `0`. |
-| `maxPrice` | integer | The maximum price, in `currency`, for all adults. |
+| `adults` | integer | How many adults. From 1 to 9. Defaults to `1`. |
+| `cabin` | string | The cabin class. One of `economy`, `premiumEconomy`, `business` or `first`. Defaults to `economy`. |
+| `currency` | string | Three-letter currency code, like `USD`. Defaults to `USD`. |
+| `stops` | string | How many stops to allow. One of `any`, `nonstop`, `oneStopOrFewer` or `twoStopsOrFewer`. Defaults to `any`. |
+| `airlines` | string[] | Only these airlines, as codes like `KQ` or `EK`. Up to 10 values. |
+| `carryOnBags` | integer | Include this many carry-on bags in the price. From 0 to 1. Defaults to `0`. |
+| `checkedBags` | integer | Include this many checked bags in the price. From 0 to 2. Defaults to `0`. |
+| `maxPrice` | integer | Highest price, in `currency`, for all adults. |
 | `departureTime` | object | Limit the outbound departure to these hours of the day. An object with `earliest` and `latest`, each an hour from 0 to 24. |
 | `arrivalTime` | object | Limit the outbound arrival to these hours of the day. An object with `earliest` and `latest`, each an hour from 0 to 24. |
-| `maxDurationHours` | integer | Longest trip, in hours. Must be between 1 and 48. |
+| `maxDurationHours` | integer | Longest trip, in hours. From 1 to 48. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Google google Hotels](/api-reference/endpoint/google-hotels): Accepts a leg's `destinationName` as `query`. Scrape Google Hotels results with prices and ratings.
+- [Google Hotels](/api-reference/endpoint/google-hotels): Takes a leg's `destinationName` as `query`. Scrape Google Hotels results with prices and ratings.
