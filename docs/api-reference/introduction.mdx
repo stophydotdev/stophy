@@ -84,7 +84,7 @@ response = requests.post(
 
 </CodeGroup>
 
-A missing or invalid key on an endpoint that needs one returns `401` with code `unauthorized`. The endpoints marked `keyless: true` in the [catalog](https://api.stophy.dev/v1/endpoints) work without a key, with [rate limits](/rate-limits).
+A missing or invalid key on an endpoint that needs one returns `401` with code `apiKeyRequired`. The endpoints marked `keyless: true` in the [catalog](https://api.stophy.dev/v1/endpoints) work without a key, with [rate limits](/rate-limits).
 
 ## Responses
 

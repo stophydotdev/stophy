@@ -52,7 +52,7 @@ Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, 
 
 ## Use a key
 
-Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `unauthorized`.
+Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `apiKeyRequired`.
 
 Set `STOPHY_API_KEY` and `new Stophy()` picks it up. Or pass it in:
 

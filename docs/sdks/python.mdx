@@ -52,7 +52,7 @@ Methods follow the endpoint id, with keyword arguments in snake_case. `google.se
 
 ## Use a key
 
-Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call raises a `StophyError` with code `unauthorized`.
+Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call raises a `StophyError` with code `apiKeyRequired`.
 
 Set `STOPHY_API_KEY` and `Stophy()` picks it up. Or pass it in:
 

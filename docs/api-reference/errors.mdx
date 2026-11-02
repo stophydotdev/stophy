@@ -36,15 +36,17 @@ The status is `400`. Every error has this shape, and a failed call costs nothing
 | `retryable` | `true` when the same request may work later |
 | `retryAfterSeconds` | Present when you should wait a set time. The `Retry-After` header has the same value. |
 | `requestId` | The ID of this request. Include it when you contact support. |
+| `signupUrl` | Present on `apiKeyRequired` and `freeLimit`. Where to get a key. |
 
 ## Error codes
 
 | Code | Status | Retryable | What it means |
 | --- | --- | --- | --- |
 | `invalidRequest` | 400 | No | The input is not valid. The message names the field. |
-| `unauthorized` | 401 | No | The API key is missing or not valid. |
+| `apiKeyRequired` | 401 | No | This call needs a valid API key. The key is missing, not valid or expired, or the endpoint or a field you sent needs one. The error adds `signupUrl`. |
 | `insufficientCredits` | 402 | No | Your balance is too low for this call. The error adds `requiredCredits`, `availableCredits` and `billingUrl`. [Add credits](/billing). |
 | `notFound` | 404 | No | The endpoint, or the thing you asked for, does not exist. |
+| `freeLimit` | 429 | Yes | You used the free allowance for calls without a key. Get a key at `signupUrl`, or wait for `Retry-After`. |
 | `rateLimited` | 429 | Yes | Too many requests. Wait for `Retry-After`. |
 | `internalError` | 500, 503 | Yes | Something went wrong on our side. Try again shortly. |
 | `sourceChanged` | 502 | No | The site answered in a shape we could not read. Retrying will not help yet. |
@@ -80,16 +82,16 @@ These calls cost nothing. The first needs no key, and the rest are real response
 { "code": "invalidRequest", "message": "cursor: This is not a cursor returned for this request. Send the cursor from the last response to the same request, unchanged, or leave cursor out to start again from page 1 and get a fresh one.", "retryable": false }
 ```
 
-**Paging with no key.** `400 invalidRequest`, from `google.search` with `page: 2`.
+**Paging with no key.** `401 apiKeyRequired`, from `google.search` with `page: 2`.
 
 ```json
-{ "code": "invalidRequest", "message": "Paging needs an API key: https://stophy.dev/signup", "retryable": false }
+{ "code": "apiKeyRequired", "message": "Paging needs an API key. Get one at https://stophy.dev/signup, or leave out page and cursor to read page 1.", "retryable": false, "signupUrl": "https://stophy.dev/signup" }
 ```
 
-**An endpoint that needs a key, with no key.** `401 unauthorized`, from `reddit.post`.
+**An endpoint that needs a key, with no key.** `401 apiKeyRequired`, from `reddit.post`.
 
 ```json
-{ "code": "unauthorized", "message": "Send an API key as Authorization: Bearer <key>. Get a key: https://stophy.dev/signup", "retryable": false }
+{ "code": "apiKeyRequired", "message": "This needs an API key. Get one at https://stophy.dev/signup, then send it as Authorization: Bearer <key>.", "retryable": false, "signupUrl": "https://stophy.dev/signup" }
 ```
 
 **A path that is not an endpoint.** `404 notFound`, sent with a key.
@@ -110,7 +112,8 @@ These come from your account and the dashboard, not from a data endpoint.
 
 | Code | Status | Retryable | What it means |
 | --- | --- | --- | --- |
-| `forbidden` | 403 | No | This request is not allowed. |
+| `unauthorized` | 401 | No | You need to be signed in to the dashboard. |
+| `forbidden` | 403 | No | This needs the Stophy dashboard. Sign in at https://stophy.dev and make the change there. |
 | `unsupportedMediaType` | 415 | No | Send the body as JSON with `content-type: application/json`. |
 | `invalidCliSession` | 400 | No | The sign-in session is not valid. |
 | `invalidCliVerifier` | 400 | No | The sign-in verifier is not valid. |

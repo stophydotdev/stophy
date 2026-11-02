@@ -26,5 +26,6 @@ Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 | Code | Status | What to do |
 | --- | --- | --- |
 | `rateLimited` | `429` | Wait for the `Retry-After` header, which is also `retryAfterSeconds` in the body, then retry. |
+| `freeLimit` | `429` | You used the free allowance for calls without a key. [Get a key](https://stophy.dev/signup), or wait for `retryAfterSeconds`. |
 
 It is marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.
