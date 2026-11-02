@@ -1,9 +1,9 @@
 ---
-title: 'Google google Hotels API'
+title: 'Google Hotels API'
 sidebarTitle: 'Google Hotels'
-description: 'Scrape Google Hotels results with prices and ratings. Call the Google google Hotels API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Google google Hotels API | Stophy'
-og:description: 'Scrape Google Hotels results with prices and ratings. Call the Google google Hotels API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape Google Hotels results with prices and ratings. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Hotels API | Stophy'
+og:description: 'Scrape Google Hotels results with prices and ratings. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/hotels'
 ---
 
@@ -18,7 +18,7 @@ Scrape Google Hotels results with prices and ratings.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Google Hotels results with prices and ratings.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the hotels, each with its price per night, total price, rating and amenities.
+`data.results` lists the hotels, each with its price per night, total price, rating and amenities.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -62,14 +62,12 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `price` | number | The minimum price per night. |
+| `price` | number | Lowest price per night. |
 | `totalPrice` | number | For the whole stay, with taxes and fees. |
 | `page` | string | The page number of this response. |
 | `position` | integer | The 1-based position of the result in the list. |
 | `rating` | number | The average star rating, on a scale of 1 to 5. |
 | `reviews` | integer | The number of reviews the rating is based on. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
@@ -77,28 +75,28 @@ For every field, see the response schema on this page.
 | --- | --- | --- |
 | `checkIn` | string (date) | The check-in date. Defaults to tomorrow. Format: `YYYY-MM-DD`. |
 | `checkOut` | string (date) | The check-out date. Defaults to one night after `checkIn`. Format: `YYYY-MM-DD`. |
-| `adults` | integer | The number of adults. Must be between 1 and 12. If unset, defaults to `2`. |
-| `childrenAges` | integer[] | One age for each child, such as `[7, 12]`. Accepts up to 8 values. |
-| `currency` | string | Three-letter currency code, such as `USD`. If unset, defaults to `USD`. |
-| `minPrice` | integer | The minimum price per night. |
-| `maxPrice` | integer | The maximum price per night. |
-| `minRating` | string | Restricts results to hotels with at least this guest rating. Acceptable values are `3.5+`, `4+` and `4.5+`. |
-| `hotelClass` | integer[] | Restricts results to hotels with these star ratings, such as `[4, 5]`. Accepts up to 4 values. |
-| `amenities` | string[] | Restricts results to hotels that offer every one of these. Accepts one of 19 values, such as `freeWifi`, `freeBreakfast` and `restaurant`. |
-| `propertyTypes` | string[] | Restricts results to these kinds of property. Acceptable values are `beachHotels`, `boutiqueHotels`, `hostels`, `inns`, `motels`, `resorts`, `spaHotels`, `bedAndBreakfasts`, `other` and `apartmentHotels`. |
-| `freeCancellation` | boolean | Restricts results to hotels that offer free cancellation. If unset, defaults to `false`. |
-| `specialOffers` | boolean | Restricts results to hotels with special offers. If unset, defaults to `false`. |
-| `sort` | string | Specifies the order of the hotels. Acceptable values are `relevance`, `lowestPrice`, `highestRating` and `mostReviewed`. If unset, defaults to `relevance`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `adults` | integer | How many adults. From 1 to 12. Defaults to `2`. |
+| `childrenAges` | integer[] | One age for each child, like `[7, 12]`. Up to 8 values. |
+| `currency` | string | Three-letter currency code, like `USD`. Defaults to `USD`. |
+| `minPrice` | integer | Lowest price per night. |
+| `maxPrice` | integer | Highest price per night. |
+| `minRating` | string | Only hotels with at least this guest rating. One of `3.5+`, `4+` or `4.5+`. |
+| `hotelClass` | integer[] | Only hotels with these star ratings, like `[4, 5]`. Up to 4 values. |
+| `amenities` | string[] | Only hotels that offer every one of these. One of 19 values, like `freeWifi`, `freeBreakfast` and `restaurant`. |
+| `propertyTypes` | string[] | Only these kinds of property. One of `beachHotels`, `boutiqueHotels`, `hostels`, `inns`, `motels`, `resorts`, `spaHotels`, `bedAndBreakfasts`, `other` or `apartmentHotels`. |
+| `freeCancellation` | boolean | Only hotels you can cancel for free. Defaults to `false`. |
+| `specialOffers` | boolean | Only hotels with special offers. Defaults to `false`. |
+| `sort` | string | How to order the hotels. One of `relevance`, `lowestPrice`, `highestRating` or `mostReviewed`. Defaults to `relevance`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Tripadvisor tripadvisor Search](/api-reference/endpoint/tripadvisor-search): Accepts a hotel's `name` as `query`. Scrape Tripadvisor search results.
+- [Tripadvisor Search](/api-reference/endpoint/tripadvisor-search): Takes a hotel's `name` as `query`. Scrape Tripadvisor search results.

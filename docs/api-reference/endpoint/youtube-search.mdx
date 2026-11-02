@@ -1,9 +1,9 @@
 ---
-title: 'YouTube youTube Search API'
+title: 'YouTube Search API'
 sidebarTitle: 'YouTube Search'
-description: 'Scrape YouTube search results. Call the YouTube youTube Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'YouTube youTube Search API | Stophy'
-og:description: 'Scrape YouTube search results. Call the YouTube youTube Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape YouTube search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
+og:title: 'YouTube Search API | Stophy'
+og:description: 'Scrape YouTube search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
 openapi: 'api-reference/openapi.json POST /v1/youtube/search'
 ---
 
@@ -18,9 +18,9 @@ Scrape YouTube search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Scrape YouTube search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains videos, channels and playlists, and each row has a `type`.
+`data.results` lists videos, channels and playlists, and each row has a `type`.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -78,36 +78,34 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `type` | string | The kind of item: `video`, `channel` or `playlist`. |
-| `publishedAt` | string (ISO 8601) | Approximate. YouTube lists show only how long ago a video was published, so this is rounded to that unit, such as a day or a year. [YouTube youTube Video](/api-reference/endpoint/youtube-video) has the exact time. |
+| `publishedAt` | string (ISO 8601) | Approximate: YouTube lists show only how long ago a video was published, so this is rounded to that unit, such as a day or a year. [YouTube Video](/api-reference/endpoint/youtube-video) has the exact time. |
 | `durationSeconds` | integer | The duration, in seconds. |
 | `videos` | integer | The number of videos. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `type` | string | Leave out for videos, channels and playlists. Use shorts for Shorts. Acceptable values are `videos`, `shorts`, `channels`, `playlists` and `movies`. |
-| `duration` | string | Restricts results to videos of this length. Acceptable values are `under3Minutes`, `3to20Minutes` and `over20Minutes`. |
-| `uploadDate` | string | Restricts results to videos uploaded in this period. Acceptable values are `today`, `thisWeek`, `thisMonth` and `thisYear`. |
-| `features` | string[] | Restricts results to videos with these features. Accepts one of 11 values, such as `360`, `live` and `4k`. Accepts up to 11 values. |
-| `prioritize` | string | Specifies how results are ranked. Acceptable values are `relevance` and `popularity`. If unset, defaults to `relevance`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `type` | string | Leave out for videos, channels and playlists. Use shorts for Shorts. One of `videos`, `shorts`, `channels`, `playlists` or `movies`. |
+| `duration` | string | Only videos of this length. One of `under3Minutes`, `3to20Minutes` or `over20Minutes`. |
+| `uploadDate` | string | Only videos uploaded in this period. One of `today`, `thisWeek`, `thisMonth` or `thisYear`. |
+| `features` | string[] | Only videos with these features. One of 11 values, like `360`, `live` and `4k`. Up to 11 values. |
+| `prioritize` | string | What to put first. One of `relevance` or `popularity`. Defaults to `relevance`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [YouTube youTube Transcript](/api-reference/endpoint/youtube-transcript): Accepts `videoUrl`. Scrape a YouTube video's transcript.
-- [YouTube youTube Video](/api-reference/endpoint/youtube-video): Accepts `videoUrl`. Scrape a YouTube video page.
-- [YouTube youTube Comments](/api-reference/endpoint/youtube-comments): Accepts `videoUrl`. Scrape the comments of a YouTube video.
-- [YouTube youTube Channel](/api-reference/endpoint/youtube-channel): Accepts `channelUrl`. Scrape a YouTube channel and its videos.
+- [YouTube Transcript](/api-reference/endpoint/youtube-transcript): Takes `videoUrl`. Scrape a YouTube video's transcript.
+- [YouTube Video](/api-reference/endpoint/youtube-video): Takes `videoUrl`. Scrape a YouTube video page.
+- [YouTube Comments](/api-reference/endpoint/youtube-comments): Takes `videoUrl`. Scrape the comments of a YouTube video.
+- [YouTube Channel](/api-reference/endpoint/youtube-channel): Takes `channelUrl`. Scrape a YouTube channel and its videos.

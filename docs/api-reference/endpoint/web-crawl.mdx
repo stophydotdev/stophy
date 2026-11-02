@@ -1,9 +1,9 @@
 ---
-title: 'Web web Crawl API'
+title: 'Web Crawl API'
 sidebarTitle: 'Web Crawl'
-description: 'Crawl a website and scrape its pages as markdown. Call the Web web Crawl API for JSON. From 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Web web Crawl API | Stophy'
-og:description: 'Crawl a website and scrape its pages as markdown. Call the Web web Crawl API for JSON. From 1 credit per call. Every call returns the same flat shape.'
+description: 'Crawl a website and scrape its pages as markdown. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
+og:title: 'Web Crawl API | Stophy'
+og:description: 'Crawl a website and scrape its pages as markdown. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/web/crawl'
 ---
 
@@ -18,7 +18,7 @@ Crawl a website and scrape its pages as markdown.
 
 ## Request
 
-`url` is required.
+Send `url`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Crawl a website and scrape its pages as markdown.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the pages read, each with its depth and its text as markdown.
+`data.results` lists the pages read, each with its depth and its text as markdown.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -56,28 +56,26 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `depth` | integer | The nesting level of the comment in the thread. Top-level comments are 0. |
 
-For every field, see the response schema on this page.
-
-<Note>Set goal to read the pages about one topic first and stop when the site has no more about it. Use [Web web Map](/api-reference/endpoint/web-map) to only list pages.</Note>
+<Note>Set goal to read the pages about one topic first and stop when the site has no more about it. Use [Web Map](/api-reference/endpoint/web-map) to only list pages.</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `goal` | string | What you are looking for, such as sqlite performance. Pages about it are read first, and the crawl stops once new pages stop mentioning it. |
-| `includePaths` | string[] | Read only pages whose path matches one of these, such as /blog/*. Accepts up to 20 values. |
-| `excludePaths` | string[] | Skip pages whose path matches one of these, such as /tag/*. Accepts up to 20 values. |
-| `maxDepth` | integer | The number of links away from the start page to go. Must be between 1 and 10. If unset, defaults to `3`. |
-| `maxPages` | integer | Stop after reading this many pages in total, across every call. Must be between 1 and 1000. If unset, defaults to `100`. |
-| `entireSite` | boolean | Read the whole site, not only pages under the start page's path. If unset, defaults to `false`. |
-| `includeSubdomains` | boolean | Also read pages on subdomains, such as docs.bun.com for bun.com. If unset, defaults to `false`. |
-| `onlyMainContent` | boolean | Keep only each page's main content, without menus, headers and footers. If unset, defaults to `true`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `includePaths` | string[] | Read only pages whose path matches one of these, such as /blog/*. Up to 20 values. |
+| `excludePaths` | string[] | Skip pages whose path matches one of these, such as /tag/*. Up to 20 values. |
+| `maxDepth` | integer | How many links away from the start page to go. From 1 to 10. Defaults to `3`. |
+| `maxPages` | integer | Stop after reading this many pages in total, across every call. From 1 to 1000. Defaults to `100`. |
+| `entireSite` | boolean | Read the whole site, not only pages under the start page's path. Defaults to `false`. |
+| `includeSubdomains` | boolean | Also read pages on subdomains, such as docs.bun.com for bun.com. Defaults to `false`. |
+| `onlyMainContent` | boolean | Keep only each page's main content, without menus, headers and footers. Defaults to `true`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages, up to 20 credits. Requests that fail, or that return no items, are not billed.
+$0.0015 a page for most pages, $0.003 when a page takes more work to load, and $0.0075 for the hardest pages to reach. A page that cannot be read costs nothing. Each call reads up to 4 pages. A call costs at most $0.03. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.

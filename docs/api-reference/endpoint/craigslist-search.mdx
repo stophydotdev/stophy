@@ -1,9 +1,9 @@
 ---
-title: 'Craigslist craigslist Search API'
+title: 'Craigslist Search API'
 sidebarTitle: 'Craigslist Search'
-description: 'Scrape the newest Craigslist listings near a US ZIP code. Call the Craigslist craigslist Search API for JSON. From 1 credit per call.'
-og:title: 'Craigslist craigslist Search API | Stophy'
-og:description: 'Scrape the newest Craigslist listings near a US ZIP code. Call the Craigslist craigslist Search API for JSON. From 1 credit per call.'
+description: 'Scrape the newest Craigslist listings near a US ZIP code. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
+og:title: 'Craigslist Search API | Stophy'
+og:description: 'Scrape the newest Craigslist listings near a US ZIP code. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/craigslist/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape the newest Craigslist listings near a US ZIP code.
 
 ## Request
 
-`zipCode` is required.
+Send `zipCode`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape the newest Craigslist listings near a US ZIP code.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the listings, newest first, each with its title, price, location and link.
+`data.results` lists the listings, newest first, each with its title, price, location and link.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -61,8 +61,6 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
 
-For every field, see the response schema on this page.
-
 <Note>Listings come newest first, at most 360 per search, so narrow with filters when totalResults is higher.</Note>
 
 ## Optional parameters
@@ -70,16 +68,16 @@ For every field, see the response schema on this page.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Search words (e.g., "road bike"). Leave out to list the newest in the category. |
-| `radius` | integer | Miles around the ZIP code, 25 by default. Must be between 1 and 250. If unset, defaults to `25`. |
-| `category` | string | Specifies which listings to search, `forSale` by default. Acceptable values are `forSale`, `carsAndTrucks`, `apartments`, `housing`, `jobs`, `gigs`, `services` and `free`. If unset, defaults to `forSale`. |
-| `minPrice` | integer | The minimum price in US dollars (e.g., 50). Must be between 0 and 100000000. |
-| `maxPrice` | integer | The maximum price in US dollars (e.g., 500). Must be between 0 and 100000000. |
-| `limit` | integer | The maximum number of listings to return. Billed at 1 credit per 10 returned. Must be between 1 and 360. If unset, defaults to `20`. |
+| `radius` | integer | Miles around the ZIP code, 25 by default. From 1 to 250. Defaults to `25`. |
+| `category` | string | Which listings to search, `forSale` by default. One of `forSale`, `carsAndTrucks`, `apartments`, `housing`, `jobs`, `gigs`, `services` or `free`. Defaults to `forSale`. |
+| `minPrice` | integer | Lowest price in US dollars (e.g., 50). From 0 to 100000000. |
+| `maxPrice` | integer | Highest price in US dollars (e.g., 500). From 0 to 100000000. |
+| `limit` | integer | Return at most this many listings. You pay $0.0015 per 10 returned. From 1 to 360. Defaults to `20`. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit per 10 listings, up to 36 credits. Requests that fail, or that return no items, are not billed. Set `limit` to cap the number of items returned and billed.
+$0.0015 per 10 listings. A call costs at most $0.054. A call that fails or finds nothing is free. Send a smaller `limit` to get fewer items and pay less. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

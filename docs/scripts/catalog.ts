@@ -68,3 +68,15 @@ export async function fetchCatalog(): Promise<Catalog> {
   if (!response.ok) throw new Error(`GET ${CATALOG_URL} returned ${response.status}`);
   return catalog.parse(await response.json());
 }
+
+const DOLLARS_PER_UNIT = 0.0015;
+
+export const dollars = (units: number): string => {
+  const amount = units * DOLLARS_PER_UNIT;
+  return `$${amount >= 1 ? amount.toFixed(2) : String(Number(amount.toFixed(4)))}`;
+};
+
+export const inDollars = (text: string): string =>
+  text
+    .replace(/\b(\d+) credits?, or (\d+)\b/g, (_, low: string, high: string) => `${dollars(Number(low))}, or ${dollars(Number(high))}`)
+    .replace(/\b(\d+) (more )?credits?\b/g, (_, units: string, more = "") => `${dollars(Number(units))}${more === "" ? "" : " more"}`);

@@ -1,9 +1,9 @@
 ---
-title: 'Realtor.com realtor.com Search API'
+title: 'Realtor.com Search API'
 sidebarTitle: 'Realtor.com Search'
-description: 'Scrape Realtor.com home listings. Call the Realtor.com realtor.com Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Realtor.com realtor.com Search API | Stophy'
-og:description: 'Scrape Realtor.com home listings. Call the Realtor.com realtor.com Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Realtor.com home listings. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Realtor.com Search API | Stophy'
+og:description: 'Scrape Realtor.com home listings. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/realtor/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Realtor.com home listings.
 
 ## Request
 
-`location` is required.
+Send `location`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Realtor.com home listings.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the homes, each with its price, address, size and status.
+`data.results` lists the homes, each with its price, address, size and status.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -75,26 +75,26 @@ The following example is a real response, truncated: each list shows one item an
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `status` | string | Homes for sale, for rent or sold. Acceptable values are `forSale`, `forRent` and `sold`. If unset, defaults to `forSale`. |
-| `minPrice` | integer | The minimum price in US dollars. |
-| `maxPrice` | integer | The maximum price in US dollars. |
-| `minBedrooms` | integer | The minimum number of bedrooms. Must be between 0 and 20. |
-| `maxBedrooms` | integer | The maximum number of bedrooms. Must be between 0 and 20. |
-| `minBathrooms` | number | The minimum number of bathrooms. Must be between 0 and 20. |
-| `minSqft` | integer | The minimum size, in square feet. |
-| `maxSqft` | integer | The maximum size, in square feet. |
-| `homeTypes` | string[] | Restricts results to these kinds of home. Acceptable values are `house`, `townhouse`, `multiFamily`, `condo`, `land`, `apartment` and `manufactured`. |
-| `sort` | string | Specifies the order of the homes. Acceptable values are `relevance`, `newest`, `priceLow` and `priceHigh`. If unset, defaults to `relevance`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 20. If unset, defaults to `1`. |
+| `status` | string | Homes for sale, for rent or sold. One of `forSale`, `forRent` or `sold`. Defaults to `forSale`. |
+| `minPrice` | integer | Lowest price in US dollars. |
+| `maxPrice` | integer | Highest price in US dollars. |
+| `minBedrooms` | integer | Fewest bedrooms. From 0 to 20. |
+| `maxBedrooms` | integer | Most bedrooms. From 0 to 20. |
+| `minBathrooms` | number | Fewest bathrooms. From 0 to 20. |
+| `minSqft` | integer | Smallest size, in square feet. |
+| `maxSqft` | integer | Largest size, in square feet. |
+| `homeTypes` | string[] | Only these kinds of home. One of `house`, `townhouse`, `multiFamily`, `condo`, `land`, `apartment` or `manufactured`. |
+| `sort` | string | How to order the homes. One of `relevance`, `newest`, `priceLow` or `priceHigh`. Defaults to `relevance`. |
+| `page` | integer | Page number, starting at 1. From 1 to 20. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 20.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 20.
 
-## Related methods
+## Related endpoints
 
-- [Realtor.com realtor.com Property](/api-reference/endpoint/realtor-property): Accepts `propertyUrl`. Scrape a Realtor.com property with its history, taxes and schools.
+- [Realtor.com Property](/api-reference/endpoint/realtor-property): Takes `propertyUrl`. Scrape a Realtor.com property with its history, taxes and schools.

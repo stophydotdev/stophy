@@ -1,9 +1,9 @@
 ---
-title: 'Web web Map API'
+title: 'Web Map API'
 sidebarTitle: 'Web Map'
-description: 'Scrape the list of pages on a website. Call the Web web Map API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Web web Map API | Stophy'
-og:description: 'Scrape the list of pages on a website. Call the Web web Map API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape the list of pages on a website. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Web Map API | Stophy'
+og:description: 'Scrape the list of pages on a website. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/web/map'
 ---
 
@@ -18,9 +18,9 @@ Scrape the list of pages on a website.
 
 ## Request
 
-`url` is required.
+Send `url`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Scrape the list of pages on a website.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the site's pages, each with its address and title.
+`data.results` lists the site's pages, each with its address and title.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -58,8 +58,6 @@ The following example is a real response, truncated: each list shows one item an
 | `page` | integer | The page number of this response. |
 | `totalPages` | integer | The number of pages that match the request. |
 
-For every field, see the response schema on this page.
-
 <Note>Add search to rank pages about one topic first.</Note>
 
 ## Optional parameters
@@ -67,13 +65,13 @@ For every field, see the response schema on this page.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `search` | string | Keep only addresses that mention these words, best matches first, such as pricing. |
-| `includeSubdomains` | boolean | Also list pages on subdomains, such as docs.bun.com for bun.com. If unset, defaults to `false`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `includeSubdomains` | boolean | Also list pages on subdomains, such as docs.bun.com for bun.com. Defaults to `false`. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100.

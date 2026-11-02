@@ -1,9 +1,9 @@
 ---
-title: 'Amazon amazon Best Sellers API'
+title: 'Amazon Best Sellers API'
 sidebarTitle: 'Amazon Best Sellers'
-description: 'Scrape Amazon Best Sellers lists. Call the Amazon amazon Best Sellers API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Amazon amazon Best Sellers API | Stophy'
-og:description: 'Scrape Amazon Best Sellers lists. Call the Amazon amazon Best Sellers API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Amazon Best Sellers lists. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Amazon Best Sellers API | Stophy'
+og:description: 'Scrape Amazon Best Sellers lists. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/amazon/bestsellers'
 ---
 
@@ -18,7 +18,7 @@ Scrape Amazon Best Sellers lists.
 
 ## Request
 
-`category` is required.
+Send `category`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Amazon Best Sellers lists.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the best sellers in the category, in rank order.
+`data.results` lists the best sellers in the category, in rank order.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -65,24 +65,22 @@ The following example is a real response, truncated: each list shows one item an
 | `reviews` | integer | The number of reviews the rating is based on. |
 | `rank` | integer | The 1-based position of the entry in the list. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. Accepts one of 21 values, such as `us`, `gb` and `de`. If unset, defaults to `us`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 2. If unset, defaults to `1`. |
+| `country` | string | Two-letter country code, like `us`. One of 21 values, like `us`, `gb` and `de`. Defaults to `us`. |
+| `page` | integer | Page number, starting at 1. From 1 to 2. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 2.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 2.
 
-## Related methods
+## Related endpoints
 
-- [Amazon amazon Product](/api-reference/endpoint/amazon-product): Accepts `productUrl`. Scrape an Amazon product page.
-- [Amazon amazon Reviews](/api-reference/endpoint/amazon-reviews): Accepts `productUrl`. Scrape an Amazon product's US reviews.
+- [Amazon Product](/api-reference/endpoint/amazon-product): Takes `productUrl`. Scrape an Amazon product page.
+- [Amazon Reviews](/api-reference/endpoint/amazon-reviews): Takes `productUrl`. Scrape an Amazon product's US reviews.

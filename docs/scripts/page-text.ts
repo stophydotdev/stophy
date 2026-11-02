@@ -5,6 +5,8 @@ import {
   type JsonObject,
   isNumber,
   isObject,
+  dollars,
+  inDollars,
   isString,
   jsonObject,
   namesAt,
@@ -64,7 +66,6 @@ const code = (text: string) => `\`${text}\``;
 const list = (items: string[], last: string) =>
   items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} ${last} ${items.at(-1)}`;
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
-const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 const sentence = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);
 const required = (op: CatalogEndpoint) => namesAt(op.input, "required");
 const sendOne = (op: CatalogEndpoint) => namesAt(op.input, "sendOne");
@@ -73,32 +74,6 @@ function linkIds(text: string, input: PageInput): string {
   const ids = input.catalog.map((item) => item.id).sort((a, b) => b.length - a.length);
   const pattern = new RegExp(`(?<![\\w.\\[])(${ids.map((id) => id.replaceAll(".", "\\.")).join("|")})(?![\\w])`, "g");
   return text.replace(pattern, (id) => `[${input.label(id)}](/api-reference/endpoint/${input.slug(id)})`);
-}
-
-const THIRD_PERSON = new Map(Object.entries({
-  Get: "Returns",
-  Search: "Searches",
-  Find: "Finds",
-  Ask: "Sends a question to",
-  Compare: "Compares",
-  Read: "Returns",
-  See: "Returns",
-  List: "Lists",
-  Pull: "Extracts",
-}));
-
-function thirdPerson(summary: string): string {
-  const text = summary.replace(/\.$/, "");
-  const [first = "", ...rest] = text.split(" ");
-  const verb = THIRD_PERSON.get(first);
-  const likened = (line: string) => line.replace(/ and get /g, " and returns ").replace(/, and get /g, ", and returns ").replace(/ and open /g, " and opens ").replace(/ and see /g, " and returns ").replace(/ and read /g, " and reads ").replace(/ and list /g, " and lists ").replace(/, or read /g, ", or returns ").replace(/\. Get /g, ". Returns ").replace(/\. Read /g, ". Returns ").replace(/, like (its|the|Reddit's) /, ", equivalent to $1 ").replace(/, like /, ", such as ");
-  if (verb !== undefined) return likened([verb, ...rest].join(" ")).replace(/^Sends a question to Google AI Mode a question and get/, "Sends a question to Google AI Mode and returns");
-  if (/^(A|An|The) /.test(text)) return `Returns ${lowerFirst(text)}`;
-  return text;
-}
-
-function whatYouGet(summary: string): string {
-  return sentence(thirdPerson(summary));
 }
 
 function whenToUse(op: CatalogEndpoint): string {
@@ -115,7 +90,7 @@ function whenToUse(op: CatalogEndpoint): string {
     if (!forms.includes(form)) forms.push(form);
   }
   if (things.join() === forms.join()) return "";
-  return `The ${list(things, "or")} is identified by its ${list(forms, "or")}.`;
+  return `Pick the ${list(things, "or")} by its ${list(forms, "or")}.`;
 }
 
 function bestWhenNotes(op: CatalogEndpoint, config: TextConfig): string[] {
@@ -133,12 +108,12 @@ function requestLine(op: CatalogEndpoint, config: TextConfig): string {
   const one = sendOne(op);
   const others = required(op).filter((name) => !one.includes(name));
   const send =
-    others.length === 0 ? undefined : `${list(others.map(code), "and")} ${others.length === 1 ? "is" : "are"} required.`;
+    others.length === 0 ? undefined : `Send ${list(others.map(code), "and")}.`;
   const choose =
     one.length === 0
       ? undefined
-      : `Exactly one of ${list(one.map(code), "or")} is required. A request that sets ${one.length === 2 ? "both" : "more than one"}, or none, fails with ${code("invalidRequest")}.`;
-  if (send === undefined && choose === undefined) return "This method has no required parameters.";
+      : `Send exactly one of ${list(one.map(code), "or")}. ${one.length === 2 ? "Both" : "More than one"}, or none, fails with ${code("invalidRequest")}.`;
+  if (send === undefined && choose === undefined) return "Every field is optional.";
   return [send, choose].filter((line) => line !== undefined).join(" ");
 }
 
@@ -264,17 +239,16 @@ function responseSection(input: PageInput): string[] {
   const { endpoint, config, response } = input;
   const holds = config.holds[endpoint.id];
   if (holds === undefined) throw new Error(`No "holds" sentence for ${endpoint.id} in reference.config.json`);
-  const contains = formal(holds).replace(/^`data\.results` lists /, "`data.results[]` contains ").replace(/^`data` has /, "`data` contains ").replace(/^`data` names /, "`data` contains ");
   const lead = response.live
-    ? "The following example is a real response, truncated: each list shows one item and long strings are cut."
-    : "The following example is illustrative.";
+    ? "This real response is cut to one item per list."
+    : "An example of the shape. The values are made up.";
   const envelope = { success: true, data: response.data, creditsUsed: response.creditsUsed, requestId: REQUEST_ID };
   const notes = fieldNotes(input);
   const extra = bestWhenNotes(endpoint, config);
   return [
     "## Response",
     "",
-    `If successful, the response body contains the standard envelope. ${contains}`,
+    holds,
     "",
     lead,
     "",
@@ -287,75 +261,10 @@ function responseSection(input: PageInput): string[] {
           "",
           "| Field | Type | Description |",
           "| --- | --- | --- |",
-          ...notes.map(([name, note]) => `| ${code(name)} | ${typeOf(input.schema, name) ?? "string"} | ${sentence(linkIds(formal(note), input))} |`),
-          "",
-          "For every field, see the response schema on this page.",
+          ...notes.map(([name, note]) => `| ${code(name)} | ${typeOf(input.schema, name) ?? "string"} | ${sentence(linkIds(note, input))} |`),
         ]),
     ...(extra.length === 0 ? [] : ["", `<Note>${linkIds(extra.join(" "), input)}</Note>`]),
   ];
-}
-
-const FORMAL: [RegExp, string][] = [
-  [/^Only (.+)$/, "Restricts results to $1"],
-  [/^Which (.+) to (.+)$/, "Specifies which $1 to $2"],
-  [/^How to order (.+)$/, "Specifies the order of $1"],
-  [/^How many (.+)$/, "The number of $1"],
-  [/^How much (.+)$/, "The amount $1"],
-  [/^How far back to look/, "Specifies the time range"],
-  [/^How far from the location to look, in miles/, "The search radius around `location`, in miles"],
-  [/^What to search for/, "Specifies the kind of result to search for"],
-  [/^What to put first/, "Specifies how results are ranked"],
-  [/^Whether (.+)$/, "Indicates whether $1"],
-  [/^True when (.+)$/, "`true` if $1"],
-  [/^True for (.+)$/, "`true` for $1"],
-  [/^When it was (\w+), as a UTC time\.?$/, "The time it was $1, in UTC"],
-  [/^Who (.+)$/, "The entity that $1"],
-  [/^Where the searches were made/, "Specifies the Google property the searches were made on"],
-  [/^Where the result sits in the list, starting at 1/, "The 1-based position of the result in the list"],
-  [/^Lowest (.+)$/, "The minimum $1"],
-  [/^Highest (.+)$/, "The maximum $1"],
-  [/^Fewest (.+)$/, "The minimum number of $1"],
-  [/^Most (.+)$/, "The maximum number of $1"],
-  [/^Smallest (.+)$/, "The minimum $1"],
-  [/^Largest (.+)$/, "The maximum $1"],
-  [/^Send it back as (`\w+`) to get the next page\. The last page has none\.$/, "The pagination token. Pass it as $1 to retrieve the next page. Omitted on the last page"],
-  [/^Send it as (`\w+`) to get (.+)$/, "A token. Pass it as $1 to retrieve $2"],
-  [/^Page number, starting at 1\.$/, "The page to return. Pages are numbered from 1"],
-  [/^The `cursor` from the previous response\. Send it back unchanged\.$/, "The pagination token from the previous response"],
-  [/^Two-letter country code, like `us`\.$/, "The country to query, as a two-letter ISO 3166-1 code such as `us`"],
-  [/^Two-letter country code, or `all`\.$/, "The country to query, as a two-letter ISO 3166-1 code, or `all`"],
-  [/^Two-letter language code, like `en` or `pt`\.$/, "The language of the results, as a two-letter ISO 639-1 code such as `en`"],
-  [/^Language code, like `en` or `pt-BR`\.$/, "The language of the results, as a BCP 47 tag such as `en` or `pt-BR`"],
-];
-
-const NEUTRAL: [RegExp, string][] = [
-  [/, like /g, ", such as "],
-  [/ like (`|\[|")/g, " such as $1"],
-  [/\bSend it back as (`\w+`) to get /g, "Pass it as $1 to retrieve "],
-  [/\bSend one back as /g, "Pass one as "],
-  [/\bSend as (`\w+`) to /g, "Pass it as $1 to "],
-  [/\bSend it with (`\w+`)\./g, "Requires $1."],
-  [/\bSend (`\w+`) or (`\w+`), not both\./g, "Mutually exclusive: set either $1 or $2."],
-  [/\bLeft out when\b/g, "Omitted when"],
-  [/ you can cancel for free/g, " that offer free cancellation"],
-  [/ that match your query/g, " that match the query"],
-  [/Choices you already picked are applied\. Sending a chosen one again removes it\./g, "Previously selected filters remain applied. Passing a selected filter again removes it."],
-  [/ when you send (`\w+`)/g, " when $1 is set"],
-  [/ you picked| you asked for/g, " requested"],
-  [/^How finely to split the results by place/, "Specifies the granularity of the regional breakdown"],
-  [/^How recent the ads are/, "Restricts results by recency"],
-  [/^How popular the related search is\. 100 is the most popular/, "The relative popularity of the related search. The maximum is 100"],
-  [/^Which (\w+) come first/, "Specifies which $1 are returned first"],
-  [/^Which date (`\w+`) and (`\w+`) compare to/, "Specifies the date that $1 and $2 are compared against"],
-  [/ Text, or a list of 1 to 5\./g, " Accepts a string or an array of 1 to 5 strings."],
-  [/^Return at most this many ([\w ]+)\. You pay (.+) returned\.?$/, "The maximum number of $1 to return. Billed at $2 returned"],
-  [/^Approximate: /, "Approximate. "],
-];
-
-function formal(text: string): string {
-  const rule = FORMAL.find(([pattern]) => pattern.test(text));
-  const rewritten = rule === undefined ? text : text.replace(rule[0], rule[1]);
-  return NEUTRAL.reduce((line, [pattern, to]) => line.replace(pattern, to), rewritten);
 }
 
 const GENERIC_TEXT: [RegExp, string][] = [
@@ -397,20 +306,20 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
   if (custom !== undefined) return custom;
   const fallback = schema.default;
   const defaultText =
-    fallback === undefined || (Array.isArray(fallback) && fallback.length === 0) ? "" : ` If unset, defaults to ${code(String(fallback))}.`;
+    fallback === undefined || (Array.isArray(fallback) && fallback.length === 0) ? "" : ` Defaults to ${code(String(fallback))}.`;
   const choices = (values: Json[]) =>
     values.length > MAX_ENUM_SHOWN
-      ? `Accepts one of ${values.length} values, such as ${list(values.slice(0, 3).map((value) => code(String(value))), "and")}.`
-      : `Acceptable values are ${list(values.map((value) => code(String(value))), "and")}.`;
+      ? `One of ${values.length} values, like ${list(values.slice(0, 3).map((value) => code(String(value))), "and")}.`
+      : `One of ${list(values.map((value) => code(String(value))), "or")}.`;
   const consts = Array.isArray(schema.anyOf) ? schema.anyOf.filter(isObject).flatMap((part) => (part.const === undefined ? [] : [part.const])) : [];
   if (consts.length > 0) return `${choices(consts)}${defaultText}`;
   if (Array.isArray(schema.enum)) return `${choices(schema.enum)}${defaultText}`;
   const range = (min: Json | undefined, max: Json | undefined, unit: string) => {
     const low = isNumber(min) ? min : undefined;
     const high = isNumber(max) && !tooBig(max) ? max : undefined;
-    if (low !== undefined && high !== undefined) return `Must be between ${low} and ${high}.`;
-    if (low !== undefined) return low === 0 ? "" : `The minimum is ${low}.`;
-    if (high !== undefined) return `The maximum is ${high}.`;
+    if (low !== undefined && high !== undefined) return `From ${low} to ${high}.`;
+    if (low !== undefined) return low === 0 ? "" : `At least ${low}.`;
+    if (high !== undefined) return `At most ${high}.`;
     return unit === "" ? "" : "";
   };
   if (schema.type === "boolean") return defaultText.trim();
@@ -418,7 +327,7 @@ function optionValues(op: CatalogEndpoint, name: string, schema: JsonObject, con
   if (schema.type === "number") return `${range(schema.minimum, schema.maximum, "")}${defaultText}`.trim();
   if (schema.type === "array") {
     const items = isObject(schema.items) ? schema.items : {};
-    const cap = isNumber(schema.maxItems) ? ` Accepts up to ${schema.maxItems} values.` : "";
+    const cap = isNumber(schema.maxItems) ? ` Up to ${schema.maxItems} values.` : "";
     if (Array.isArray(items.enum)) return `${choices(items.enum)}${cap}`;
     return cap.trim();
   }
@@ -433,7 +342,7 @@ function optionsSection(input: PageInput): string[] {
     .filter(([name]) => !chosen.has(name))
     .flatMap(([name, schema]) => {
       if (!isObject(schema)) return [];
-      const text = sentence(formal(linkIds(optionText(endpoint, name, schema, config), input)).replace(/\.$/, ""));
+      const text = sentence(linkIds(optionText(endpoint, name, schema, config), input).replace(/\.$/, ""));
       const values = optionValues(endpoint, name, schema, config);
       return [`| ${code(name)} | ${typeLabel(schema)} | ${[text, values].filter((part) => part !== "").join(" ")} |`];
     });
@@ -458,30 +367,33 @@ function pagingRule(input: PageInput): string {
   const props = schemaProperties(endpoint.input);
   if ("cursor" in props) {
     const hours = config.cursorHours[endpoint.id];
-    const life = hours === undefined ? "" : ` A cursor expires ${plural(hours, "hour")} after it is issued.`;
-    return `Results are paginated. To retrieve the next page, pass the value of ${code("data.cursor")} as ${code("cursor")} in a subsequent request. A response that omits ${code("cursor")} is the last page.${life}`;
+    const life = hours === undefined ? "" : ` A cursor expires after ${plural(hours, "hour")}.`;
+    return `Each call returns one page. For the next one, send ${code("data.cursor")} back as ${code("cursor")}. The last page has no ${code("cursor")}.${life}`;
   }
   const page = props.page;
   if (isObject(page)) {
-    const last = isNumber(page.maximum) ? ` The maximum value of ${code("page")} is ${page.maximum}.` : "";
-    return `Results are paginated. To retrieve the next page, increment ${code("page")}. An empty ${code("data.results")} indicates the last page.${last}`;
+    const last = isNumber(page.maximum) ? ` ${code("page")} goes up to ${page.maximum}.` : "";
+    return `Each call returns one page. Send ${code("page: 2")} for the next one. An empty ${code("data.results")} means you are past the last page.${last}`;
   }
-  return "This method is not paginated. A single request returns the complete result.";
+  return "One call returns everything. There are no more pages.";
 }
 
 function costSection(input: PageInput): string[] {
   const { endpoint, creditsMax } = input;
   const flat = endpoint.pricing === null || endpoint.pricing === undefined;
+  const ceiling = creditsMax === undefined ? "" : ` A call costs at most ${dollars(creditsMax)}.`;
   const price = flat
-    ? `Each successful request consumes ${plural(endpoint.credits ?? 1, "credit")}, regardless of the number of items returned.`
-    : `A successful request consumes ${endpoint.pricing}${creditsMax === undefined ? "" : `, up to ${plural(creditsMax, "credit")}`}.`;
-  const limit = "limit" in schemaProperties(endpoint.input) ? ` Set ${code("limit")} to cap the number of items returned and billed.` : "";
+    ? endpoint.credits === 0
+      ? "This call is free."
+      : `Each call costs ${dollars(endpoint.credits ?? 1)}, however many items come back.`
+    : `${sentence(inDollars(endpoint.pricing ?? ""))}${ceiling}`;
+  const limit = "limit" in schemaProperties(endpoint.input) ? ` Send a smaller ${code("limit")} to get fewer items${flat ? "" : " and pay less"}.` : "";
   return [
-    "## Billing",
+    "## Price",
     "",
-    `${price} Requests that fail, or that return no items, are not billed.${limit}`,
+    `${price} A call that fails or finds nothing is free.${limit} Top-ups of $100 or more cost less. See [Pricing](/billing).`,
     "",
-    "## Pagination",
+    "## Pages",
     "",
     pagingText(input),
   ];
@@ -533,25 +445,25 @@ function nextSection(input: PageInput): string[] {
     const target = byId.get(id);
     if (target === undefined) throw new Error(`Next link ${id} for ${endpoint.id} is not an endpoint`);
     const link = `[${input.label(id)}](/api-reference/endpoint/${input.slug(id)})`;
-    const does = sentence(thirdPerson(target.summary));
+    const does = sentence(target.summary);
     if (text !== undefined) {
       const accepts = text.match(/^Send (.+?) to /)?.[1];
-      return accepts === undefined ? `- ${link}: ${text}` : `- ${link}: Accepts ${accepts}. ${does}`;
+      return accepts === undefined ? `- ${link}: ${text}` : `- ${link}: Takes ${accepts}. ${does}`;
     }
     const sends = derived.find(([other]) => other === id)?.[1].sends ?? required(target).filter((name) => !sendOne(target).includes(name));
-    return sends.length === 0 ? `- ${link}: ${does}` : `- ${link}: Accepts ${list(sends.map(code), "and")}. ${does}`;
+    return sends.length === 0 ? `- ${link}: ${does}` : `- ${link}: Takes ${list(sends.map(code), "and")}. ${does}`;
   });
-  return lines.length === 0 ? [] : ["## Related methods", "", ...lines];
+  return lines.length === 0 ? [] : ["## Related endpoints", "", ...lines];
 }
 
 export function opening(op: CatalogEndpoint): string {
-  return [whatYouGet(op.summary), whenToUse(op)].filter((part) => part !== "").join(" ");
+  return [sentence(op.summary), whenToUse(op)].filter((part) => part !== "").join(" ");
 }
 
 export function requestIntro(op: CatalogEndpoint, config: TextConfig): string {
   const keyless =
     op.keyless === true
-      ? "\n\n<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>"
+      ? "\n\n<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>"
       : "";
   return `${requestLine(op, config)}${keyless}`;
 }
@@ -574,5 +486,5 @@ export function body(input: PageInput, example: string[]): string[] {
     "",
     ...costSection(input),
     ...(next.length === 0 ? [] : ["", ...next]),
-  ];
+  ].map(inDollars);
 }

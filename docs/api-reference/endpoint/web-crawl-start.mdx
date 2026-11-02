@@ -1,9 +1,9 @@
 ---
-title: 'Web web Crawl Start API'
+title: 'Web Crawl Start API'
 sidebarTitle: 'Web Crawl Start'
-description: 'Crawl a website in the background. Call the Web web Crawl Start API and get JSON back in one request. From 0 credits per call. Failed calls cost nothing.'
-og:title: 'Web web Crawl Start API | Stophy'
-og:description: 'Crawl a website in the background. Call the Web web Crawl Start API and get JSON back in one request. From 0 credits per call. Failed calls cost nothing.'
+description: 'Crawl a website in the background. Send one JSON request and get JSON back. Up to $7.50 per call. A failed call costs nothing.'
+og:title: 'Web Crawl Start API | Stophy'
+og:description: 'Crawl a website in the background. Send one JSON request and get JSON back. Up to $7.50 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/web/crawl/start'
 ---
 
@@ -18,7 +18,7 @@ Crawl a website in the background.
 
 ## Request
 
-`url` is required.
+Send `url`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Crawl a website in the background.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the crawl's id and status, to follow with `web.crawl.status`.
+`data` has the crawl's id and status, to follow with `web.crawl.status`.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -50,28 +50,26 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `total` | integer | The total number of matching results, across all pages. |
 
-For every field, see the response schema on this page.
-
-<Note>It answers at once with an id; ask [Web web Crawl Status](/api-reference/endpoint/web-crawl-status) for the pages, or send webhook to be told as each one finishes.</Note>
+<Note>It answers at once with an id; ask [Web Crawl Status](/api-reference/endpoint/web-crawl-status) for the pages, or send webhook to be told as each one finishes.</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `goal` | string | What you are looking for, such as sqlite performance. Pages about it are read first, and the crawl stops once new pages stop mentioning it. |
-| `includePaths` | string[] | Read only pages whose path matches one of these, such as /blog/*. Accepts up to 20 values. |
-| `excludePaths` | string[] | Skip pages whose path matches one of these, such as /tag/*. Accepts up to 20 values. |
-| `maxDepth` | integer | The number of links away from the start page to go. Must be between 1 and 10. If unset, defaults to `3`. |
-| `maxPages` | integer | Stop after reading this many pages in total, across every call. Must be between 1 and 1000. If unset, defaults to `100`. |
-| `entireSite` | boolean | Read the whole site, not only pages under the start page's path. If unset, defaults to `false`. |
-| `includeSubdomains` | boolean | Also read pages on subdomains, such as docs.bun.com for bun.com. If unset, defaults to `false`. |
-| `onlyMainContent` | boolean | Keep only each page's main content, without menus, headers and footers. If unset, defaults to `true`. |
+| `includePaths` | string[] | Read only pages whose path matches one of these, such as /blog/*. Up to 20 values. |
+| `excludePaths` | string[] | Skip pages whose path matches one of these, such as /tag/*. Up to 20 values. |
+| `maxDepth` | integer | How many links away from the start page to go. From 1 to 10. Defaults to `3`. |
+| `maxPages` | integer | Stop after reading this many pages in total, across every call. From 1 to 1000. Defaults to `100`. |
+| `entireSite` | boolean | Read the whole site, not only pages under the start page's path. Defaults to `false`. |
+| `includeSubdomains` | boolean | Also read pages on subdomains, such as docs.bun.com for bun.com. Defaults to `false`. |
+| `onlyMainContent` | boolean | Keep only each page's main content, without menus, headers and footers. Defaults to `true`. |
 | `webhook` | string | A public address that gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit a page for most pages, 2 credits when a page takes more work to load, and 5 credits for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free, up to 5000 credits. Requests that fail, or that return no items, are not billed.
+$0.0015 a page for most pages, $0.003 when a page takes more work to load, and $0.0075 for the hardest pages to reach. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free. A call costs at most $7.50. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

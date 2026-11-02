@@ -1,9 +1,9 @@
 ---
-title: 'Google google Trends Related API'
+title: 'Google Trends Related API'
 sidebarTitle: 'Google Trends Related'
-description: 'Scrape Google Trends related searches. Call the Google google Trends Related API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Trends Related API | Stophy'
-og:description: 'Scrape Google Trends related searches. Call the Google google Trends Related API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google Trends related searches. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Trends Related API | Stophy'
+og:description: 'Scrape Google Trends related searches. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/trends/related'
 ---
 
@@ -18,7 +18,7 @@ Scrape Google Trends related searches.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Google Trends related searches.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the related searches, each with a score.
+`data.results` lists the related searches, each with a score.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -51,29 +51,27 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `value` | number | The relative popularity of the related search. The maximum is 100. |
-
-For every field, see the response schema on this page.
+| `value` | number | How popular the related search is. 100 is the most popular. |
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `time` | string | Specifies the time range. Acceptable values are `pastHour`, `past4Hours`, `pastDay`, `past7Days`, `past30Days`, `past90Days`, `past12Months`, `past5Years` and `since2004`. If unset, defaults to `past12Months`. |
-| `searchType` | string | Specifies the Google property the searches were made on. Acceptable values are `web`, `images`, `news`, `shopping` and `youtube`. If unset, defaults to `web`. |
-| `category` | string | Restricts results to searches in this category. Accepts one of 25 values, such as `artsEntertainment`, `autosVehicles` and `beautyFitness`. |
+| `country` | string | Two-letter country code, like `us`. |
+| `time` | string | How far back to look. One of `pastHour`, `past4Hours`, `pastDay`, `past7Days`, `past30Days`, `past90Days`, `past12Months`, `past5Years` or `since2004`. Defaults to `past12Months`. |
+| `searchType` | string | Where the searches were made. One of `web`, `images`, `news`, `shopping` or `youtube`. Defaults to `web`. |
+| `category` | string | Only searches in this category. One of 25 values, like `artsEntertainment`, `autosVehicles` and `beautyFitness`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Google Trends interest over time](/api-reference/endpoint/google-trends-interest): Accepts queries from `results` as `queries`. Scrape Google Trends interest over time.
-- [Google Trends by region](/api-reference/endpoint/google-trends-regions): Accepts queries from `results` as `queries`. Scrape Google Trends interest by region.
-- [Google google Search](/api-reference/endpoint/google-search): Accepts a related search as `query`. Scrape Google Search results.
+- [Google Trends interest over time](/api-reference/endpoint/google-trends-interest): Takes queries from `results` as `queries`. Scrape Google Trends interest over time.
+- [Google Trends by region](/api-reference/endpoint/google-trends-regions): Takes queries from `results` as `queries`. Scrape Google Trends interest by region.
+- [Google Search](/api-reference/endpoint/google-search): Takes a related search as `query`. Scrape Google Search results.

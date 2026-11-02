@@ -1,13 +1,13 @@
 ---
 title: "Logs"
-description: "List your recent paid Stophy API calls, newest first, with the endpoint, credits used and time of each call. Filter by days, endpoint and API key."
+description: "List your recent paid Stophy API calls, newest first, with the endpoint, what each call cost and when. Filter by days, endpoint and API key."
 og:title: "Logs API | Stophy"
-og:description: "List your recent paid Stophy API calls, newest first, with the endpoint, credits used and time of each call. Filter by days, endpoint and API key."
+og:description: "List your recent paid Stophy API calls, newest first, with the endpoint, what each call cost and when. Filter by days, endpoint and API key."
 api: "GET https://api.stophy.dev/v1/logs"
 authMethod: "bearer"
 ---
 
-See what your key has spent credits on. Needs an API key, and the call is free.
+Send your key and get back what it spent, call by call. The call is free.
 
 ```bash
 curl "https://api.stophy.dev/v1/logs?days=7&page=0&endpoint=google.search" \
@@ -39,7 +39,7 @@ You get your recent paid calls, 50 per page, newest first. Only paid calls are l
     <ResponseField name="requestId" type="string">The `requestId` the call returned.</ResponseField>
     <ResponseField name="createdAt" type="string">When the call was made, as an ISO 8601 time.</ResponseField>
     <ResponseField name="endpoint" type="string">The endpoint id, such as `google.search`.</ResponseField>
-    <ResponseField name="credits" type="integer">Credits the call used.</ResponseField>
+    <ResponseField name="credits" type="integer">What the call cost, in [cost units](/billing#cost-units).</ResponseField>
     <ResponseField name="apiKeyId" type="string | null">The API key used.</ResponseField>
     <ResponseField name="apiKeyName" type="string | null">That key's name.</ResponseField>
     <ResponseField name="method" type="string">Always `POST`.</ResponseField>

@@ -1,9 +1,9 @@
 ---
-title: 'Google google News API'
+title: 'Google News API'
 sidebarTitle: 'Google News'
-description: 'Scrape Google News results and headlines. Call the Google google News API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google News API | Stophy'
-og:description: 'Scrape Google News results and headlines. Call the Google google News API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google News results and headlines. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google News API | Stophy'
+og:description: 'Scrape Google News results and headlines. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/news'
 ---
 
@@ -20,7 +20,7 @@ Scrape Google News results and headlines.
 
 Exactly one of `query` or `topic` is required.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Exactly one of `query` or `topic` is required.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the articles, each with its publisher and time.
+`data.results` lists the articles, each with its publisher and time.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -63,26 +63,24 @@ The following example is a real response, truncated: each list shows one item an
 | `position` | integer | The 1-based position of the result in the list. |
 | `publishedAt` | string (ISO 8601) | When the article was published. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | Words to search for. Mutually exclusive: set either `query` or `topic`. |
-| `topic` | string | The top 10 headlines in one section, instead of a search. Mutually exclusive: set either `query` or `topic`. Acceptable values are `world`, `nation`, `business`, `technology`, `entertainment`, `sports`, `science` and `health`. |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `language` | string | The language of the results, as a two-letter ISO 639-1 code such as `en`. |
-| `includeDomains` | string[] | Restricts results to results from these domains. Accepts up to 10 values. |
-| `excludeDomains` | string[] | Leave out results from these domains. Accepts up to 10 values. |
-| `time` | string | Restricts results to results from this period. Leave it out for any time. Acceptable values are `pastHour`, `past24Hours`, `pastWeek`, `pastMonth` and `pastYear`. |
-| `sort` | string | By relevance, or newest first. Acceptable values are `relevance` and `newest`. If unset, defaults to `relevance`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 10. If unset, defaults to `1`. |
+| `query` | string | Words to search for. Send `query` or `topic`, not both. |
+| `topic` | string | The top 10 headlines in one section, instead of a search. Send `query` or `topic`, not both. One of `world`, `nation`, `business`, `technology`, `entertainment`, `sports`, `science` or `health`. |
+| `country` | string | Two-letter country code, like `us`. |
+| `language` | string | Two-letter language code, like `en` or `pt`. |
+| `includeDomains` | string[] | Only results from these domains. Up to 10 values. |
+| `excludeDomains` | string[] | Leave out results from these domains. Up to 10 values. |
+| `time` | string | Only results from this period. Leave it out for any time. One of `pastHour`, `past24Hours`, `pastWeek`, `pastMonth` or `pastYear`. |
+| `sort` | string | By relevance, or newest first. One of `relevance` or `newest`. Defaults to `relevance`. |
+| `page` | integer | Page number, starting at 1. From 1 to 10. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 10.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 10.

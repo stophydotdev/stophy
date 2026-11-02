@@ -1,9 +1,9 @@
 ---
-title: 'Indeed indeed Search API'
+title: 'Indeed Search API'
 sidebarTitle: 'Indeed Search'
-description: 'Scrape Indeed job search results. Call the Indeed indeed Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Indeed indeed Search API | Stophy'
-og:description: 'Scrape Indeed job search results. Call the Indeed indeed Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Indeed job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Indeed Search API | Stophy'
+og:description: 'Scrape Indeed job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/indeed/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Indeed job search results.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the jobs, each with its company, pay, location and posting date.
+`data.results` lists the jobs, each with its company, pay, location and posting date.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -85,35 +85,33 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Words to search for. |
-| `location` | string | City, region or postal code, such as Kansas City, MO. |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. Accepts one of 62 values, such as `us`, `gb` and `ca`. If unset, defaults to `us`. |
-| `distanceMiles` | integer | The search radius around `location`, in miles. `0` is the exact location only. Acceptable values are `0`, `5`, `10`, `15`, `25`, `35`, `50` and `100`. If unset, defaults to `25`. |
-| `datePosted` | string | Restricts results to jobs posted in this period. A relisted job keeps its first `publishedAt` and shows the new date in `indexedAt`. Acceptable values are `last24Hours`, `last3Days`, `last7Days` and `last14Days`. |
-| `remote` | string | Restricts results to remote or hybrid jobs. Acceptable values are `remote` and `hybrid`. |
-| `jobType` | string | Restricts results to this type of job. Acceptable values are `fullTime`, `partTime`, `contract`, `temporary` and `internship`. |
-| `experienceLevel` | string | Restricts results to jobs for this level. Acceptable values are `noExperience`, `entry`, `mid` and `senior`. |
-| `education` | string | Restricts results to jobs that ask for this education. Acceptable values are `highSchool`, `associate`, `bachelor` and `master`. |
-| `sort` | string | Specifies the order of the jobs. Acceptable values are `relevance` and `newest`. If unset, defaults to `relevance`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `location` | string | City, region or postal code, like Kansas City, MO. |
+| `country` | string | Two-letter country code, like `us`. One of 62 values, like `us`, `gb` and `ca`. Defaults to `us`. |
+| `distanceMiles` | integer | How far from the location to look, in miles. `0` is the exact location only. One of `0`, `5`, `10`, `15`, `25`, `35`, `50` or `100`. Defaults to `25`. |
+| `datePosted` | string | Only jobs posted in this period. A relisted job keeps its first `publishedAt` and shows the new date in `indexedAt`. One of `last24Hours`, `last3Days`, `last7Days` or `last14Days`. |
+| `remote` | string | Only remote or hybrid jobs. One of `remote` or `hybrid`. |
+| `jobType` | string | Only this type of job. One of `fullTime`, `partTime`, `contract`, `temporary` or `internship`. |
+| `experienceLevel` | string | Only jobs for this level. One of `noExperience`, `entry`, `mid` or `senior`. |
+| `education` | string | Only jobs that ask for this education. One of `highSchool`, `associate`, `bachelor` or `master`. |
+| `sort` | string | How to order the jobs. One of `relevance` or `newest`. Defaults to `relevance`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Indeed indeed Job](/api-reference/endpoint/indeed-job): Accepts `jobUrl`. Scrape an Indeed job page.
+- [Indeed Job](/api-reference/endpoint/indeed-job): Takes `jobUrl`. Scrape an Indeed job page.

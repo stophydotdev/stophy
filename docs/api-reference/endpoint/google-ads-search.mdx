@@ -1,9 +1,9 @@
 ---
-title: 'Google google Ads Search API'
+title: 'Google Ads Search API'
 sidebarTitle: 'Google Ads Search'
-description: 'Scrape ads from the Google ads library. Call the Google google Ads Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Ads Search API | Stophy'
-og:description: 'Scrape ads from the Google ads library. Call the Google google Ads Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape ads from the Google ads library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Ads Search API | Stophy'
+og:description: 'Scrape ads from the Google ads library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/ads/search'
 ---
 
@@ -20,7 +20,7 @@ Scrape ads from the Google ads library.
 
 At least one of `query`, `advertiser` or `domain` is required.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ At least one of `query`, `advertiser` or `domain` is required.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the ads, each with its advertiser and the days it ran.
+`data.results` lists the ads, each with its advertiser and the days it ran.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -65,38 +65,36 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `totalMin` | integer | With `totalMax`, the range for the number of matching ads. |
 | `firstShownAt` | string (ISO 8601) | When Google first showed the ad. |
 | `lastShownAt` | string (ISO 8601) | The last day the ad was shown. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `query` | string | A domain such as `nike.com`. |
+| `query` | string | A domain like `nike.com`. |
 | `advertiser` | string | An advertiser id from Google ads advertisers. |
-| `domain` | string | A domain such as `nike.com`. |
-| `country` | string | Two-letter country code, such as `de`. Only ads shown there are returned. |
-| `mediaType` | string | Restricts results to ads of this type. Acceptable values are `text`, `image` and `video`. |
-| `platform` | string | Google's own Platform filter: where the ad was shown. Google leaves out ads shown before 4 September 2023 when it is set. Acceptable values are `search`, `youtube`, `play`, `maps` and `shopping`. |
-| `shownFrom` | string (date) | Restricts results to ads shown on or after this day. Format: `YYYY-MM-DD`. |
-| `shownTo` | string (date) | Restricts results to ads shown on or before this day. Format: `YYYY-MM-DD`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `domain` | string | A domain like `nike.com`. |
+| `country` | string | Two-letter country code, like `de`. Only ads shown there are returned. |
+| `mediaType` | string | Only ads of this type. One of `text`, `image` or `video`. |
+| `platform` | string | Google's own Platform filter: where the ad was shown. Google leaves out ads shown before 4 September 2023 when it is set. One of `search`, `youtube`, `play`, `maps` or `shopping`. |
+| `shownFrom` | string (date) | Only ads shown on or after this day. Format: `YYYY-MM-DD`. |
+| `shownTo` | string (date) | Only ads shown on or before this day. Format: `YYYY-MM-DD`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
 <Note>The Google ad library does not support keyword search. To search by advertiser name, first resolve the advertiser ID with [Google advertisers](/api-reference/endpoint/google-ads-advertisers).</Note>
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Google ads search](/api-reference/endpoint/google-ads-search): Accepts an `advertiserId` as `advertiser`. Scrape ads from the Google ads library.
-- [Google ad details](/api-reference/endpoint/google-ads-ad): Accepts `adUrl`. Scrape a Google ad's details.
+- [Google ads search](/api-reference/endpoint/google-ads-search): Takes an `advertiserId` as `advertiser`. Scrape ads from the Google ads library.
+- [Google ad details](/api-reference/endpoint/google-ads-ad): Takes `adUrl`. Scrape a Google ad's details.

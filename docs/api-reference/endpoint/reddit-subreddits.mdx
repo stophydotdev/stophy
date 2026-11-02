@@ -1,9 +1,9 @@
 ---
-title: 'Reddit reddit Communities API'
+title: 'Reddit Communities API'
 sidebarTitle: 'Reddit Communities'
-description: 'Scrape Reddit''s popular communities. Call the Reddit reddit Communities API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Reddit reddit Communities API | Stophy'
-og:description: 'Scrape Reddit''s popular communities. Call the Reddit reddit Communities API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Reddit''s popular communities. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Reddit Communities API | Stophy'
+og:description: 'Scrape Reddit''s popular communities. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/reddit/subreddits'
 ---
 
@@ -18,7 +18,7 @@ Scrape Reddit's popular communities.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the communities.
+`data.results` lists the communities.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -58,27 +58,25 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `type` | string | The kind of item: `subreddit`. |
 | `createdAt` | string (ISO 8601) | The creation time, in UTC. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `sort` | string | Specifies which communities are returned first. Acceptable values are `popular`. If unset, defaults to `popular`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `sort` | string | Which communities come first. One of `popular`. Defaults to `popular`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Reddit reddit Subreddit](/api-reference/endpoint/reddit-subreddit): Accepts `subreddit`. Scrape a subreddit and its posts.
+- [Reddit Subreddit](/api-reference/endpoint/reddit-subreddit): Takes `subreddit`. Scrape a subreddit and its posts.

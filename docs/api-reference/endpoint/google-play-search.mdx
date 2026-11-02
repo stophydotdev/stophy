@@ -1,9 +1,9 @@
 ---
-title: 'Google google Play Search API'
+title: 'Google Play Search API'
 sidebarTitle: 'Google Play Search'
-description: 'Scrape Google Play search results. Call the Google google Play Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Play Search API | Stophy'
-og:description: 'Scrape Google Play search results. Call the Google google Play Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google Play search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Play Search API | Stophy'
+og:description: 'Scrape Google Play search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/play/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Google Play search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Google Play search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the matching apps, each with its developer, installs and rating.
+`data.results` lists the matching apps, each with its developer, installs and rating.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -63,25 +63,23 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `rating` | number | The average star rating, on a scale of 1 to 5. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. If unset, defaults to `us`. |
-| `language` | string | The language of the results, as a BCP 47 tag such as `en` or `pt-BR`. If unset, defaults to `en`. |
-| `limit` | integer | The maximum number of apps to return. Billed at 1 credit per 10 returned. Must be between 1 and 50. |
+| `country` | string | Two-letter country code, like `us`. Defaults to `us`. |
+| `language` | string | Language code, like `en` or `pt-BR`. Defaults to `en`. |
+| `limit` | integer | Return at most this many apps. You pay $0.0015 per 10 returned. From 1 to 50. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit per 10 apps, up to 5 credits. Requests that fail, or that return no items, are not billed. Set `limit` to cap the number of items returned and billed.
+$0.0015 per 10 apps. A call costs at most $0.0075. A call that fails or finds nothing is free. Send a smaller `limit` to get fewer items and pay less. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Google google Play App](/api-reference/endpoint/google-play-app): Accepts `appUrl`. Scrape a Google Play app page.
-- [Google google Play Reviews](/api-reference/endpoint/google-play-reviews): Accepts `appUrl`. Scrape a Google Play app's reviews.
+- [Google Play App](/api-reference/endpoint/google-play-app): Takes `appUrl`. Scrape a Google Play app page.
+- [Google Play Reviews](/api-reference/endpoint/google-play-reviews): Takes `appUrl`. Scrape a Google Play app's reviews.

@@ -1,9 +1,9 @@
 ---
-title: 'Airbnb airbnb Search API'
+title: 'Airbnb Search API'
 sidebarTitle: 'Airbnb Search'
-description: 'Scrape Airbnb search results with prices. Call the Airbnb airbnb Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Airbnb airbnb Search API | Stophy'
-og:description: 'Scrape Airbnb search results with prices. Call the Airbnb airbnb Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Airbnb search results with prices. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Airbnb Search API | Stophy'
+og:description: 'Scrape Airbnb search results with prices. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/airbnb/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Airbnb search results with prices.
 
 ## Request
 
-`location`, `checkIn` and `checkOut` are required.
+Send `location`, `checkIn` and `checkOut`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Airbnb search results with prices.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the stays, each with its total price, price per night, rating and photos.
+`data.results` lists the stays, each with its total price, price per night, rating and photos.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -66,32 +66,30 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `rating` | number | The average star rating, on a scale of 1 to 5. |
-| `reviews` | integer | Number of reviews Airbnb shows for the stay, the same as total in [Airbnb airbnb Reviews](/api-reference/endpoint/airbnb-reviews). A room in a larger property shares the property's reviews. |
-
-For every field, see the response schema on this page.
+| `reviews` | integer | Number of reviews Airbnb shows for the stay, the same as total in [Airbnb Reviews](/api-reference/endpoint/airbnb-reviews). A room in a larger property shares the property's reviews. |
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `guests` | integer | Number of guests. Only stays that fit this many. Must be between 1 and 16. If unset, defaults to `1`. |
+| `guests` | integer | Number of guests. Only stays that fit this many. From 1 to 16. Defaults to `1`. |
 | `minPrice` | integer | Airbnb's own price range minimum: the nightly price after discounts and before taxes, in currency. |
 | `maxPrice` | integer | Airbnb's own price range maximum: the nightly price after discounts and before taxes, in currency. |
-| `roomType` | string | Airbnb's own Type of place filter: `entireHome` (Entire home) or `privateRoom` (Room). Acceptable values are `entireHome` and `privateRoom`. |
-| `currency` | string | Currency of every price in the answer and of `minPrice` and `maxPrice`. Acceptable values are `USD`, `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `MXN` and `BRL`. If unset, defaults to `USD`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `roomType` | string | Airbnb's own Type of place filter: `entireHome` (Entire home) or `privateRoom` (Room). One of `entireHome` or `privateRoom`. |
+| `currency` | string | Currency of every price in the answer and of `minPrice` and `maxPrice`. One of `USD`, `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `MXN` or `BRL`. Defaults to `USD`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Airbnb airbnb Listing](/api-reference/endpoint/airbnb-listing): Accepts `listingUrl`. Scrape an Airbnb listing's details, host, amenities, ratings and price.
-- [Airbnb airbnb Reviews](/api-reference/endpoint/airbnb-reviews): Accepts `listingUrl`. Scrape an Airbnb listing's guest reviews.
+- [Airbnb Listing](/api-reference/endpoint/airbnb-listing): Takes `listingUrl`. Scrape an Airbnb listing's details, host, amenities, ratings and price.
+- [Airbnb Reviews](/api-reference/endpoint/airbnb-reviews): Takes `listingUrl`. Scrape an Airbnb listing's guest reviews.

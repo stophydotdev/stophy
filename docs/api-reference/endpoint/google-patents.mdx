@@ -1,9 +1,9 @@
 ---
-title: 'Google google Patents API'
+title: 'Google Patents API'
 sidebarTitle: 'Google Patents'
-description: 'Scrape Google Patents search results. Call the Google google Patents API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Patents API | Stophy'
-og:description: 'Scrape Google Patents search results. Call the Google google Patents API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google Patents search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Patents API | Stophy'
+og:description: 'Scrape Google Patents search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/patents'
 ---
 
@@ -18,9 +18,9 @@ Scrape Google Patents search results.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the patents, each with its owner, inventor, dates and link.
+`data.results` lists the patents, each with its owner, inventor, dates and link.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -65,38 +65,36 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `patentId` | string | Publication number, such as US11993294B2. |
+| `patentId` | string | Publication number, like US11993294B2. |
 | `page` | integer | The page number of this response. |
 | `position` | integer | The 1-based position of the result in the list. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Words to search for. |
-| `inventor` | string | Restricts results to patents by this inventor. |
-| `assignee` | string | Restricts results to patents owned by this company or person. |
-| `office` | string | Patent office, such as `US`, `EP`, `WO`, `CN` or `JP`. |
-| `language` | string | The language of the patents. Accepts one of 16 values, such as `english`, `german` and `chinese`. |
-| `dateType` | string | Specifies the date that `before` and `after` are compared against. Acceptable values are `priority`, `filing` and `publication`. If unset, defaults to `priority`. |
-| `after` | string (date) | Restricts results to patents dated after this day. `dateType` picks which date counts. Format: `YYYY-MM-DD`. |
-| `before` | string (date) | Restricts results to patents dated before this day. `dateType` picks which date counts. Format: `YYYY-MM-DD`. |
-| `status` | string | Granted patents or applications. Acceptable values are `grant` and `application`. |
-| `type` | string | Patents or designs. Acceptable values are `patent` and `design`. |
-| `litigation` | string | Restricts results to patents with related litigation (`has`), or with none known (`none`). Acceptable values are `has` and `none`. |
-| `sort` | string | Specifies the order of the patents. Acceptable values are `relevance`, `newest` and `oldest`. If unset, defaults to `relevance`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `inventor` | string | Only patents by this inventor. |
+| `assignee` | string | Only patents owned by this company or person. |
+| `office` | string | Patent office, like `US`, `EP`, `WO`, `CN` or `JP`. |
+| `language` | string | The language of the patents. One of 16 values, like `english`, `german` and `chinese`. |
+| `dateType` | string | Which date `before` and `after` compare to. One of `priority`, `filing` or `publication`. Defaults to `priority`. |
+| `after` | string (date) | Only patents dated after this day. `dateType` picks which date counts. Format: `YYYY-MM-DD`. |
+| `before` | string (date) | Only patents dated before this day. `dateType` picks which date counts. Format: `YYYY-MM-DD`. |
+| `status` | string | Granted patents or applications. One of `grant` or `application`. |
+| `type` | string | Patents or designs. One of `patent` or `design`. |
+| `litigation` | string | Only patents with related litigation (`has`), or with none known (`none`). One of `has` or `none`. |
+| `sort` | string | How to order the patents. One of `relevance`, `newest` or `oldest`. Defaults to `relevance`. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100.
 
-## Related methods
+## Related endpoints
 
-- [Google google Patents](/api-reference/endpoint/google-patents): Accepts an `assignee` or `inventor` from `results`. Scrape Google Patents search results.
+- [Google Patents](/api-reference/endpoint/google-patents): Takes an `assignee` or `inventor` from `results`. Scrape Google Patents search results.

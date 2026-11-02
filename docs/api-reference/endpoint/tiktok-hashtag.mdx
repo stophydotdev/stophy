@@ -1,9 +1,9 @@
 ---
-title: 'TikTok tikTok Hashtag API'
+title: 'TikTok Hashtag API'
 sidebarTitle: 'TikTok Hashtag'
-description: 'Scrape TikTok videos for a hashtag. Call the TikTok tikTok Hashtag API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'TikTok tikTok Hashtag API | Stophy'
-og:description: 'Scrape TikTok videos for a hashtag. Call the TikTok tikTok Hashtag API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape TikTok videos for a hashtag. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'TikTok Hashtag API | Stophy'
+og:description: 'Scrape TikTok videos for a hashtag. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/tiktok/hashtag'
 ---
 
@@ -18,7 +18,7 @@ Scrape TikTok videos for a hashtag.
 
 ## Request
 
-`hashtag` is required.
+Send `hashtag`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape TikTok videos for a hashtag.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains a page of videos for the hashtag.
+`data.results` lists a page of videos for the hashtag.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -75,31 +75,29 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `type` | string | The kind of item: `video` or `photo`. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
 | `durationSeconds` | number | The duration, in seconds. |
 | `likes` | integer | The number of likes. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token from the previous response. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [TikTok tikTok Video](/api-reference/endpoint/tiktok-video): Accepts `videoUrl`. Scrape a TikTok video.
-- [TikTok tikTok Sound](/api-reference/endpoint/tiktok-sound): Accepts `audioId`. Scrape a TikTok sound and its videos.
-- [TikTok tikTok Comments](/api-reference/endpoint/tiktok-comments): Accepts `videoUrl`. Scrape the comments of a TikTok video.
-- [TikTok tikTok Transcript](/api-reference/endpoint/tiktok-transcript): Accepts `videoUrl`. Scrape a TikTok video's transcript.
+- [TikTok Video](/api-reference/endpoint/tiktok-video): Takes `videoUrl`. Scrape a TikTok video.
+- [TikTok Sound](/api-reference/endpoint/tiktok-sound): Takes `audioId`. Scrape a TikTok sound and its videos.
+- [TikTok Comments](/api-reference/endpoint/tiktok-comments): Takes `videoUrl`. Scrape the comments of a TikTok video.
+- [TikTok Transcript](/api-reference/endpoint/tiktok-transcript): Takes `videoUrl`. Scrape a TikTok video's transcript.

@@ -1,9 +1,9 @@
 ---
-title: 'Google google Ads Advertisers API'
+title: 'Google Ads Advertisers API'
 sidebarTitle: 'Google Ads Advertisers'
-description: 'Scrape advertisers from the Google ads library. Call the Google google Ads Advertisers API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Google google Ads Advertisers API | Stophy'
-og:description: 'Scrape advertisers from the Google ads library. Call the Google google Ads Advertisers API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape advertisers from the Google ads library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Ads Advertisers API | Stophy'
+og:description: 'Scrape advertisers from the Google ads library. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/ads/advertisers'
 ---
 
@@ -18,7 +18,7 @@ Scrape advertisers from the Google ads library.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape advertisers from the Google ads library.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the advertisers that match, each with a range for how many ads it runs.
+`data.results` lists the advertisers that match, each with a range for how many ads it runs.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -58,25 +58,23 @@ The following example is a real response, truncated: each list shows one item an
 | Field | Type | Description |
 | --- | --- | --- |
 | `adsMin` | integer | With `adsMax`, the range for how many ads the advertiser runs. |
-| `domains` | string[] | Domains that match the query. |
-
-For every field, see the response schema on this page.
+| `domains` | string[] | Domains that match your query. |
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `country` | string | Country code like de. Advertisers are matched on ads shown in this country, wherever the advertiser is based, and `adsMin` and `adsMax` count only the ads shown there. |
-| `limit` | integer | The number of advertisers to ask Google for, 1 to 100. Google ranks the list for the count you ask, so a larger limit is not the same list with more rows added, and there are no further pages. Fewer come back when Google has fewer matches. Must be between 1 and 100. If unset, defaults to `10`. |
+| `limit` | integer | How many advertisers to ask Google for, 1 to 100. Google ranks the list for the count you ask, so a larger limit is not the same list with more rows added, and there are no further pages. Fewer come back when Google has fewer matches. From 1 to 100. Defaults to `10`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed. Set `limit` to cap the number of items returned and billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Send a smaller `limit` to get fewer items. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Google ads search](/api-reference/endpoint/google-ads-search): Accepts an `advertiserId` as `advertiser`, or a domain from `domains` as `domain`,. Scrape ads from the Google ads library.
+- [Google ads search](/api-reference/endpoint/google-ads-search): Takes an `advertiserId` as `advertiser`, or a domain from `domains` as `domain`,. Scrape ads from the Google ads library.

@@ -1,9 +1,9 @@
 ---
-title: 'Booking.com booking.com Search API'
+title: 'Booking.com Search API'
 sidebarTitle: 'Booking.com Search'
-description: 'Scrape Booking.com search results with prices. Call the Booking.com booking.com Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'Booking.com booking.com Search API | Stophy'
-og:description: 'Scrape Booking.com search results with prices. Call the Booking.com booking.com Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape Booking.com search results with prices. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Booking.com Search API | Stophy'
+og:description: 'Scrape Booking.com search results with prices. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/booking/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Booking.com search results with prices.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Booking.com search results with prices.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the hotels, each with its price, taxes, review score and address.
+`data.results` lists the hotels, each with its price, taxes, review score and address.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -73,12 +73,10 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `cursor` | string | The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page. |
+| `cursor` | string | Send it back as `cursor` for the next page. The last page has none. |
 | `total` | integer | The total number of matching results, across all pages. |
 | `position` | integer | The 1-based position of the result in the list. |
 | `reviews` | integer | The number of reviews the rating is based on. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
@@ -86,21 +84,21 @@ For every field, see the response schema on this page.
 | --- | --- | --- |
 | `checkIn` | string (date) | The check-in date. Defaults to tomorrow. Format: `YYYY-MM-DD`. |
 | `checkOut` | string (date) | The check-out date. Defaults to one night after `checkIn`. Format: `YYYY-MM-DD`. |
-| `adults` | integer | Adults across all rooms. Prices are for the whole group. Must be between 1 and 30. If unset, defaults to `2`. |
-| `rooms` | integer | Rooms to book, at most one per adult. Prices are for all rooms together. Must be between 1 and 30. If unset, defaults to `1`. |
-| `currency` | string | Three-letter currency code, such as `USD`. If unset, defaults to `USD`. |
-| `sort` | string | Booking.com's own Sort by: relevance (Our top picks) or distance (closest to the center of the place first). Acceptable values are `relevance` and `distance`. If unset, defaults to `relevance`. |
-| `cursor` | string | The pagination token from the previous response. |
+| `adults` | integer | Adults across all rooms. Prices are for the whole group. From 1 to 30. Defaults to `2`. |
+| `rooms` | integer | Rooms to book, at most one per adult. Prices are for all rooms together. From 1 to 30. Defaults to `1`. |
+| `currency` | string | Three-letter currency code, like `USD`. Defaults to `USD`. |
+| `sort` | string | Booking.com's own Sort by: relevance (Our top picks) or distance (closest to the center of the place first). One of `relevance` or `distance`. Defaults to `relevance`. |
+| `cursor` | string | The `cursor` from the previous response. Send it back unchanged. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, pass the value of `data.cursor` as `cursor` in a subsequent request. A response that omits `cursor` is the last page.
+Each call returns one page. For the next one, send `data.cursor` back as `cursor`. The last page has no `cursor`.
 
-## Related methods
+## Related endpoints
 
-- [Booking.com booking.com Hotel](/api-reference/endpoint/booking-hotel): Accepts `hotelUrl`. Scrape a Booking.com hotel page.
-- [Booking.com booking.com Hotel Reviews](/api-reference/endpoint/booking-hotel-reviews): Accepts `hotelUrl`. Scrape a Booking.com hotel's guest reviews.
+- [Booking.com Hotel](/api-reference/endpoint/booking-hotel): Takes `hotelUrl`. Scrape a Booking.com hotel page.
+- [Booking.com Hotel Reviews](/api-reference/endpoint/booking-hotel-reviews): Takes `hotelUrl`. Scrape a Booking.com hotel's guest reviews.

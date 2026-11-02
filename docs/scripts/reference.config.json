@@ -503,11 +503,11 @@
     "web.contacts": "`data` has the emails, phone numbers and social profiles the site publishes.",
     "web.crawl": "`data.results` lists the pages read, each with its depth and its text as markdown.",
     "web.crawl.start": "`data` has the crawl's id and status, to follow with `web.crawl.status`.",
-    "web.crawl.status": "`data` has the crawl's progress and credits used, and `results` lists the pages read so far.",
-    "web.crawl.cancel": "`data` has the crawl's progress and credits used when it stopped.",
+    "web.crawl.status": "`data` has the crawl's progress and its cost so far in `creditsUsed`, and `results` lists the pages read so far.",
+    "web.crawl.cancel": "`data` has the crawl's progress when it stopped, and its cost in `creditsUsed`.",
     "web.batch": "`data` has the batch's id and status, to follow with `web.batch.status`.",
-    "web.batch.status": "`data` has the batch's progress and credits used, and `results` lists the pages read so far.",
-    "web.batch.cancel": "`data` has the batch's progress and credits used when it stopped.",
+    "web.batch.status": "`data` has the batch's progress and its cost so far in `creditsUsed`, and `results` lists the pages read so far.",
+    "web.batch.cancel": "`data` has the batch's progress when it stopped, and its cost in `creditsUsed`.",
     "chatgpt.search": "`data` has the answer, the pages it cites in `sources` and the searches it ran in `searchQueries`.",
     "gemini.search": "`data` has the answer and the pages it cites in `sources`.",
     "glassdoor.company": "`data` has the company's ratings, size, industry and headquarters.",
@@ -528,8 +528,8 @@
     "youtube.channel": 6
   },
   "fields": {
-    "cursor": "The pagination token. Pass it as `cursor` to retrieve the next page. Omitted on the last page.",
-    "repliesCursor": "A token. Pass it as `comment` to retrieve the replies to this comment.",
+    "cursor": "Send it back as `cursor` for the next page. The last page has none.",
+    "repliesCursor": "Send it as `comment` to get the replies to this comment.",
     "page": "The page number of this response.",
     "totalPages": "The number of pages that match the request.",
     "total": "The total number of matching results, across all pages.",
@@ -560,7 +560,7 @@
     "increasePercent": "The growth in search volume, as a percentage.",
     "isBest": "`true` for the options Google marks as best.",
     "openStatus": "The current opening status, as displayed by Google.",
-    "aiOverview": "The Google AI Overview. Omitted when Google does not display one.",
+    "aiOverview": "The Google AI Overview. Left out when Google shows none.",
     "peopleAlsoAsk": "The questions Google displays below the results.",
     "relatedSearches": "The searches Google suggests.",
     "answer": "The answer text returned by Google.",
@@ -767,7 +767,7 @@
   "optionValues": {
     "google.flights.returnDate": "Format: `YYYY-MM-DD`.",
     "linkedin.jobs.search.company": "Accepts a string or an array of 1 to 5 strings.",
-    "indeed.search.distanceMiles": "Acceptable values are `0`, `5`, `10`, `15`, `25`, `35`, `50` and `100`. If unset, defaults to `25`.",
+    "indeed.search.distanceMiles": "One of `0`, `5`, `10`, `15`, `25`, `35`, `50` or `100`. Defaults to `25`.",
     "google.flights.departureTime": "An object with `earliest` and `latest`, each an hour from 0 to 24.",
     "google.flights.arrivalTime": "An object with `earliest` and `latest`, each an hour from 0 to 24.",
     "repliesCursor": ""
@@ -1151,9 +1151,9 @@
   },
   "bestWhenNotes": {
     "instagram.comments": "",
-    "instagram.post": "The reply count of a comment can be absent in this response. To retrieve the exact count and the replies, pass the comment ID to instagram.comments.",
+    "instagram.post": "This response can leave out a comment's reply count. For the exact count and the replies, send the comment ID to instagram.comments.",
     "linkedin.posts": "Returns the most recent public posts that LinkedIn displays for the page, including reposts. This is typically at most 10 posts. Older posts are not available, and this method is not paginated.",
-    "linkedin.ads.search": "Run dates, impressions and the paying entity are returned only by linkedin.ads.ad, and only for ads shown in the EU. To retrieve them, set an EU country.",
+    "linkedin.ads.search": "Only linkedin.ads.ad returns run dates, impressions and who paid, and only for ads shown in the EU. To get them, set an EU country.",
     "upwork.search": "`workload`, `duration` and the hourly rate filters apply to hourly jobs only."
   },
   "pagingNotes": {

@@ -1,13 +1,13 @@
 ---
 title: "Usage"
-description: "Get your Stophy credit balance and lifetime usage with one call: credits left in micros, credits used and how many paid requests you have made."
+description: "Get your Stophy balance and lifetime usage in one free call: your balance in millionths of a dollar, the units spent and how many paid calls you made."
 og:title: "Usage API | Stophy"
-og:description: "Get your Stophy credit balance and lifetime usage with one call: credits left in micros, credits used and how many paid requests you have made."
+og:description: "Get your Stophy balance and lifetime usage in one free call: your balance in millionths of a dollar, the units spent and how many paid calls you made."
 api: "GET https://api.stophy.dev/v1/usage"
 authMethod: "bearer"
 ---
 
-Check your balance and totals. Needs an API key, and the call is free.
+Send your key and get back your balance and lifetime totals. The call is free.
 
 ```bash
 curl https://api.stophy.dev/v1/usage \
@@ -15,11 +15,11 @@ curl https://api.stophy.dev/v1/usage \
 ```
 
 <ResponseField name="balanceMicros" type="integer" required>
-  Your balance in millionths of a dollar. One credit is `1500`, so divide by 1,500 to get credits.
+  Your balance in millionths of a dollar. Divide by 1,000,000 for dollars, so `1200000` is $1.20.
 </ResponseField>
 
 <ResponseField name="creditsUsed" type="integer" required>
-  Credits used by all your calls so far.
+  What all your calls have cost so far, in [cost units](/billing#cost-units).
 </ResponseField>
 
 <ResponseField name="requestCount" type="integer" required>
@@ -43,4 +43,4 @@ curl https://api.stophy.dev/v1/usage \
 ```
 </ResponseExample>
 
-This response is not wrapped in `success` and `data`. Without a valid key it returns `401` with code `unauthorized`.
+This response is not wrapped in `success` and `data`. Without a valid key it returns `401` with code `apiKeyRequired`.

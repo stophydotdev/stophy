@@ -1,9 +1,9 @@
 ---
-title: 'Google google Search API'
+title: 'Google Search API'
 sidebarTitle: 'Google Search'
-description: 'Scrape Google Search results. Call the Google google Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Search API | Stophy'
-og:description: 'Scrape Google Search results. Call the Google google Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google Search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Search API | Stophy'
+og:description: 'Scrape Google Search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/search'
 ---
 
@@ -18,9 +18,9 @@ Scrape Google Search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Scrape Google Search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the web results in `results`, Google's AI Overview when it shows one, related questions and related searches.
+`data` has the web results in `results`, Google's AI Overview when it shows one, related questions and related searches.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -76,13 +76,11 @@ The following example is a real response, truncated: each list shows one item an
 | Field | Type | Description |
 | --- | --- | --- |
 | `type` | string | The kind of item: `web`, `news`, `video`, `post` or `place`. |
-| `site` | string | Where the result was found, such as YouTube or Reddit. |
+| `site` | string | Where the result was found, like YouTube or Reddit. |
 | `publishedAt` | string (ISO 8601) | When it was published. For videos it is approximate, because Google shows only how long ago. |
 | `page` | integer | The page number of this response. |
 | `position` | integer | The 1-based position of the result in the list. |
-| `aiOverview` | object | The Google AI Overview. Omitted when Google does not display one. |
-
-For every field, see the response schema on this page.
+| `aiOverview` | object | The Google AI Overview. Left out when Google shows none. |
 
 <Note>Turn on scrapeResults to get the text of the top pages in the same call.</Note>
 
@@ -90,24 +88,24 @@ For every field, see the response schema on this page.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `language` | string | The language of the results, as a two-letter ISO 639-1 code such as `en`. |
-| `includeDomains` | string[] | Restricts results to results from these domains. Accepts up to 10 values. |
-| `excludeDomains` | string[] | Leave out results from these domains. Accepts up to 10 values. |
-| `time` | string | Restricts results to results from this period. Leave it out for any time. Acceptable values are `pastHour`, `past24Hours`, `pastWeek`, `pastMonth` and `pastYear`. |
-| `safeSearch` | boolean | Hide explicit results. If unset, defaults to `false`. |
-| `scrapeResults` | boolean | Also read the top results and add each page's text as markdown. Costs 1 more credit for each result that comes back with its text. If unset, defaults to `false`. |
-| `scrapeLimit` | integer | The number of of the top results to read when `scrapeResults` is on. Must be between 1 and 5. If unset, defaults to `3`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `country` | string | Two-letter country code, like `us`. |
+| `language` | string | Two-letter language code, like `en` or `pt`. |
+| `includeDomains` | string[] | Only results from these domains. Up to 10 values. |
+| `excludeDomains` | string[] | Leave out results from these domains. Up to 10 values. |
+| `time` | string | Only results from this period. Leave it out for any time. One of `pastHour`, `past24Hours`, `pastWeek`, `pastMonth` or `pastYear`. |
+| `safeSearch` | boolean | Hide explicit results. Defaults to `false`. |
+| `scrapeResults` | boolean | Also read the top results and add each page's text as markdown. Costs $0.0015 more for each result that comes back with its text. Defaults to `false`. |
+| `scrapeLimit` | integer | How many of the top results to read when `scrapeResults` is on. From 1 to 5. Defaults to `3`. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-A successful request consumes 1 credit per call, plus 1 credit for each result that comes back with its page text when scrapeResults is on, up to 6 credits. Requests that fail, or that return no items, are not billed.
+$0.0015 per call, plus $0.0015 for each result that comes back with its page text when scrapeResults is on. A call costs at most $0.009. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100. Requests without an API key return the first page only.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100. Requests without an API key return the first page only.
 
-## Related methods
+## Related endpoints
 
-- [Google google Search](/api-reference/endpoint/google-search): Accepts an entry from `relatedSearches` as `query`. Scrape Google Search results.
+- [Google Search](/api-reference/endpoint/google-search): Takes an entry from `relatedSearches` as `query`. Scrape Google Search results.

@@ -1,9 +1,9 @@
 ---
-title: 'LinkedIn linkedIn Jobs Search API'
+title: 'LinkedIn Jobs Search API'
 sidebarTitle: 'LinkedIn Jobs Search'
-description: 'Scrape LinkedIn job search results. Call the LinkedIn linkedIn Jobs Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'LinkedIn linkedIn Jobs Search API | Stophy'
-og:description: 'Scrape LinkedIn job search results. Call the LinkedIn linkedIn Jobs Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape LinkedIn job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'LinkedIn Jobs Search API | Stophy'
+og:description: 'Scrape LinkedIn job search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/linkedin/jobs/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape LinkedIn job search results.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the jobs, each with its company, location and posting date.
+`data.results` lists the jobs, each with its company, location and posting date.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -62,8 +62,6 @@ The following example is a real response, truncated: each list shows one item an
 | `page` | integer | The page number of this response. |
 | `publishedAt` | string (ISO 8601) | The publication time, in UTC. |
 
-For every field, see the response schema on this page.
-
 <Note>When nothing matches your words, LinkedIn shows other jobs.</Note>
 
 ## Optional parameters
@@ -72,22 +70,22 @@ For every field, see the response schema on this page.
 | --- | --- | --- |
 | `query` | string | Words to search for. |
 | `location` | string | The city or area to search in. |
-| `datePosted` | string | Restricts results to jobs posted in this period. Acceptable values are `anyTime`, `pastMonth`, `pastWeek` and `past24Hours`. If unset, defaults to `anyTime`. |
-| `company` | object | One company, or up to five. Use LinkedIn links, slugs such as `google`, or company ids. Accepts a string or an array of 1 to 5 strings. |
-| `easyApply` | boolean | Restricts results to Easy Apply jobs. If unset, defaults to `false`. |
-| `fewApplicants` | boolean | Restricts results to jobs with fewer than 10 applicants. If unset, defaults to `false`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 100. If unset, defaults to `1`. |
+| `datePosted` | string | Only jobs posted in this period. One of `anyTime`, `pastMonth`, `pastWeek` or `past24Hours`. Defaults to `anyTime`. |
+| `company` | object | One company, or up to five. Use LinkedIn links, slugs like `google`, or company ids. Accepts a string or an array of 1 to 5 strings. |
+| `easyApply` | boolean | Only Easy Apply jobs. Defaults to `false`. |
+| `fewApplicants` | boolean | Only jobs with fewer than 10 applicants. Defaults to `false`. |
+| `page` | integer | Page number, starting at 1. From 1 to 100. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 100.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 100.
 
-## Related methods
+## Related endpoints
 
-- [LinkedIn job](/api-reference/endpoint/linkedin-jobs-job): Accepts `jobUrl`. Scrape a LinkedIn job page.
-- [LinkedIn linkedIn Company](/api-reference/endpoint/linkedin-company): Accepts `companyUrl`. Scrape a LinkedIn company page.
-- [LinkedIn linkedIn Posts](/api-reference/endpoint/linkedin-posts): Accepts `companyUrl`. Scrape a person's or company's public LinkedIn posts.
+- [LinkedIn job](/api-reference/endpoint/linkedin-jobs-job): Takes `jobUrl`. Scrape a LinkedIn job page.
+- [LinkedIn Company](/api-reference/endpoint/linkedin-company): Takes `companyUrl`. Scrape a LinkedIn company page.
+- [LinkedIn Posts](/api-reference/endpoint/linkedin-posts): Takes `companyUrl`. Scrape a person's or company's public LinkedIn posts.

@@ -1,9 +1,9 @@
 ---
-title: 'Tripadvisor tripadvisor Search API'
+title: 'Tripadvisor Search API'
 sidebarTitle: 'Tripadvisor Search'
-description: 'Scrape Tripadvisor search results. Call the Tripadvisor tripadvisor Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Tripadvisor tripadvisor Search API | Stophy'
-og:description: 'Scrape Tripadvisor search results. Call the Tripadvisor tripadvisor Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Tripadvisor search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Tripadvisor Search API | Stophy'
+og:description: 'Scrape Tripadvisor search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/tripadvisor/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Tripadvisor search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape Tripadvisor search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the places, each with its type, address and link.
+`data.results` lists the places, each with its type, address and link.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -59,26 +59,24 @@ The following example is a real response, truncated: each list shows one item an
 | Field | Type | Description |
 | --- | --- | --- |
 | `type` | string | The kind of place. |
-| `placeUrl` | string (URL) | A token. Pass it as `placeUrl` to retrieve the place's details or reviews. |
-
-For every field, see the response schema on this page.
+| `placeUrl` | string (URL) | Send it as `placeUrl` to get the place's details or reviews. |
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `type` | string | The kind of place. Acceptable values are `all`, `hotels`, `restaurants`, `attractions` and `geos`. If unset, defaults to `all`. |
+| `type` | string | The kind of place. One of `all`, `hotels`, `restaurants`, `attractions` or `geos`. Defaults to `all`. |
 | `location` | string | Narrow the search to this place. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
 
-## Related methods
+## Related endpoints
 
-- [Tripadvisor tripadvisor Place](/api-reference/endpoint/tripadvisor-place): Accepts `placeUrl`. Scrape a Tripadvisor place page.
-- [Tripadvisor tripadvisor Reviews](/api-reference/endpoint/tripadvisor-reviews): Accepts `placeUrl`. Scrape a Tripadvisor place's reviews.
+- [Tripadvisor Place](/api-reference/endpoint/tripadvisor-place): Takes `placeUrl`. Scrape a Tripadvisor place page.
+- [Tripadvisor Reviews](/api-reference/endpoint/tripadvisor-reviews): Takes `placeUrl`. Scrape a Tripadvisor place's reviews.

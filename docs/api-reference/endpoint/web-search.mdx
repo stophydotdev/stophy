@@ -1,9 +1,9 @@
 ---
-title: 'Web web Search API'
+title: 'Web Search API'
 sidebarTitle: 'Web Search'
-description: 'Scrape web search results. Call the Web web Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
-og:title: 'Web web Search API | Stophy'
-og:description: 'Scrape web search results. Call the Web web Search API and get JSON back in one request. From 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape web search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
+og:title: 'Web Search API | Stophy'
+og:description: 'Scrape web search results. Send one JSON request and get JSON back. From $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
 openapi: 'api-reference/openapi.json POST /v1/web/search'
 ---
 
@@ -18,9 +18,9 @@ Scrape web search results.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
-<Note>This endpoint can be called without an API key, subject to per-address limits. Pagination requires a key.</Note>
+<Note>Works without an API key, for the first page only, up to 10 calls a minute and 50 a day.</Note>
 
 <CodeGroup>
 <TsExample />
@@ -31,9 +31,9 @@ Scrape web search results.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the pages, each with its title and description, and its text when `scrapeResults` is on.
+`data.results` lists the pages, each with its title and description, and its text when `scrapeResults` is on.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -57,32 +57,30 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `position` | integer | The 1-based position of the result in the list. |
 
-For every field, see the response schema on this page.
-
 <Note>Turn on scrapeResults to get the text of the top pages in the same call.</Note>
 
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. |
-| `language` | string | Restricts results to pages written in this language. Two-letter code like en or fr. |
-| `includeDomains` | string[] | Restricts results to results from these domains. Accepts up to 10 values. |
-| `excludeDomains` | string[] | Leave out results from these domains. Accepts up to 10 values. |
-| `time` | string | Restricts results to pages from the past week, month or year. Leave out for any time. Not with after or before. Acceptable values are `pastWeek`, `pastMonth` and `pastYear`. |
-| `after` | string (date) | Restricts results to pages published on or after this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
-| `before` | string (date) | Restricts results to pages published on or before this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
-| `safeSearch` | boolean | Hide explicit results. If unset, defaults to `false`. |
-| `limit` | integer | The maximum number of results to return. Billed at 1 credit per 10 returned. Must be between 1 and 100. If unset, defaults to `10`. |
-| `scrapeResults` | boolean | Also read the top results and add each page's text as markdown. Costs 1 more credit for each result that comes back with its text. If unset, defaults to `false`. |
-| `scrapeLimit` | integer | The number of of the top results to read when `scrapeResults` is on. Must be between 1 and 5. If unset, defaults to `3`. |
+| `country` | string | Two-letter country code, like `us`. |
+| `language` | string | Only pages written in this language. Two-letter code like en or fr. |
+| `includeDomains` | string[] | Only results from these domains. Up to 10 values. |
+| `excludeDomains` | string[] | Leave out results from these domains. Up to 10 values. |
+| `time` | string | Only pages from the past week, month or year. Leave out for any time. Not with after or before. One of `pastWeek`, `pastMonth` or `pastYear`. |
+| `after` | string (date) | Only pages published on or after this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
+| `before` | string (date) | Only pages published on or before this day, as YYYY-MM-DD. Format: `YYYY-MM-DD`. |
+| `safeSearch` | boolean | Hide explicit results. Defaults to `false`. |
+| `limit` | integer | Return at most this many results. You pay $0.0015 per 10 returned. From 1 to 100. Defaults to `10`. |
+| `scrapeResults` | boolean | Also read the top results and add each page's text as markdown. Costs $0.0015 more for each result that comes back with its text. Defaults to `false`. |
+| `scrapeLimit` | integer | How many of the top results to read when `scrapeResults` is on. From 1 to 5. Defaults to `3`. |
 
 <Note>Use `after` and `before` together or alone. `time` cannot be sent with either, and `after` cannot be later than `before`. Both fail with `invalidRequest`.</Note>
 
-## Billing
+## Price
 
-A successful request consumes 1 credit per 10 results, plus 1 credit for each result that comes back with its page text when scrapeResults is on, up to 15 credits. Requests that fail, or that return no items, are not billed. Set `limit` to cap the number of items returned and billed.
+$0.0015 per 10 results, plus $0.0015 for each result that comes back with its page text when scrapeResults is on. A call costs at most $0.0225. A call that fails or finds nothing is free. Send a smaller `limit` to get fewer items and pay less. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.

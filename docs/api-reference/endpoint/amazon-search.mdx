@@ -1,9 +1,9 @@
 ---
-title: 'Amazon amazon Search API'
+title: 'Amazon Search API'
 sidebarTitle: 'Amazon Search'
-description: 'Scrape Amazon search results. Call the Amazon amazon Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Amazon amazon Search API | Stophy'
-og:description: 'Scrape Amazon search results. Call the Amazon amazon Search API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Amazon search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
+og:title: 'Amazon Search API | Stophy'
+og:description: 'Scrape Amazon search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing. Examples in TypeScript, Python and cURL.'
 openapi: 'api-reference/openapi.json POST /v1/amazon/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape Amazon search results.
 
 ## Request
 
-This method has no required parameters.
+Every field is optional.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ This method has no required parameters.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the products, each with its price, rating and review count.
+`data.results` lists the products, each with its price, rating and review count.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -67,31 +67,29 @@ The following example is a real response, truncated: each list shows one item an
 | `rating` | number | The average star rating, on a scale of 1 to 5. |
 | `reviews` | integer | The number of reviews the rating is based on. |
 
-For every field, see the response schema on this page.
-
 ## Optional parameters
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `query` | string | Words to search for. |
 | `category` | string | The category to search in, by name or id. |
-| `minPrice` | number | The minimum price. |
-| `maxPrice` | number | The maximum price. |
-| `minRating` | number | Restricts results to products rated at least this high. |
-| `brand` | string | Restricts results to products from this brand. |
-| `sort` | string | Specifies the order of the products. `avgCustomerReview` puts the highest rated first, not the most reviewed. Acceptable values are `relevance`, `priceLow`, `priceHigh`, `avgCustomerReview`, `newest` and `bestSelling`. If unset, defaults to `relevance`. |
-| `country` | string | The country to query, as a two-letter ISO 3166-1 code such as `us`. Accepts one of 21 values, such as `us`, `gb` and `de`. If unset, defaults to `us`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 20. If unset, defaults to `1`. |
+| `minPrice` | number | Lowest price. |
+| `maxPrice` | number | Highest price. |
+| `minRating` | number | Only products rated at least this high. |
+| `brand` | string | Only products from this brand. |
+| `sort` | string | How to order the products. `avgCustomerReview` puts the highest rated first, not the most reviewed. One of `relevance`, `priceLow`, `priceHigh`, `avgCustomerReview`, `newest` or `bestSelling`. Defaults to `relevance`. |
+| `country` | string | Two-letter country code, like `us`. One of 21 values, like `us`, `gb` and `de`. Defaults to `us`. |
+| `page` | integer | Page number, starting at 1. From 1 to 20. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 20.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 20.
 
-## Related methods
+## Related endpoints
 
-- [Amazon amazon Product](/api-reference/endpoint/amazon-product): Accepts `productUrl`. Scrape an Amazon product page.
-- [Amazon amazon Reviews](/api-reference/endpoint/amazon-reviews): Accepts `productUrl`. Scrape an Amazon product's US reviews.
+- [Amazon Product](/api-reference/endpoint/amazon-product): Takes `productUrl`. Scrape an Amazon product page.
+- [Amazon Reviews](/api-reference/endpoint/amazon-reviews): Takes `productUrl`. Scrape an Amazon product's US reviews.

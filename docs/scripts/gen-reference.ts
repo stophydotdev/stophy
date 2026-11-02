@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { z } from "zod";
-import { type Json, type JsonObject, fetchCatalog, isObject, jsonObject, schemaProperties } from "./catalog";
+import { type Json, type JsonObject, dollars, fetchCatalog, isObject, jsonObject, schemaProperties } from "./catalog";
 import { body, exampleResponse, problems, textConfig } from "./page-text";
 import { readSpec, requestJson, responseData } from "./spec";
 
@@ -73,18 +73,17 @@ function operations(): Operation[] {
   return list;
 }
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
-
 const isVariable = (op: Operation) =>
   op.credits !== undefined && op.creditsMax !== undefined && op.creditsMax > op.credits;
 
 function cost(op: Operation): string {
-  if (op.credits === undefined) return "Free";
-  return isVariable(op) ? `From ${plural(op.credits, "credit")}` : plural(op.credits, "credit");
+  if (op.credits === 0 && isVariable(op)) return `Up to ${dollars(op.creditsMax ?? 0)}`;
+  if (op.credits === undefined || op.credits === 0) return "Free";
+  return isVariable(op) ? `From ${dollars(op.credits)}` : dollars(op.credits);
 }
 
 const CATALOG_DESCRIPTION =
-  "List every Stophy endpoint with its input schema, credit cost, and whether it works without a key. Use it to pick the right call.";
+  "List every Stophy endpoint with its input schema, its price, and whether it works without a key. Use it to pick the right call.";
 
 const quote = (text: string) => text.replaceAll("'", "''");
 
@@ -107,9 +106,11 @@ const lowerFirst = (text: string) =>
     ? text[0].toLowerCase() + text.slice(1)
     : text;
 
+const sourceTitle = (source: string, title: string) =>
+  title.toLowerCase().startsWith(source.toLowerCase()) ? title : `${source} ${lowerFirst(title)}`;
+
 function seoTitle(op: Operation): string {
-  if (sourceName(op).toLowerCase() === endpointTitle(op).toLowerCase()) return `${sourceName(op)} API`;
-  return `${sourceName(op)} ${lowerFirst(endpointTitle(op))} API`;
+  return `${sourceTitle(sourceName(op), endpointTitle(op))} API`;
 }
 
 function propertiesOf(schema: Json | undefined): string[] {
@@ -123,11 +124,13 @@ function propertiesOf(schema: Json | undefined): string[] {
 }
 
 function seoDescription(op: Operation): string {
-  const price = `${cost(op)} per call.`;
-  const parts = [`${op.summary.replace(/\.$/, "")}.`, `Call the ${seoTitle(op)} and get JSON back in one request.`, price, "Failed calls cost nothing."];
+  const price = cost(op) === "Free" ? "Free to call." : `${cost(op)} per call.`;
+  const parts = [`${op.summary.replace(/\.$/, "")}.`, "Send one JSON request and get JSON back.", price, "A failed call costs nothing."];
   let text = parts.join(" ");
-  if (text.length > 160) text = [parts[0], `Call the ${seoTitle(op)} for JSON.`, price].join(" ");
-  if (text.length < 120) text = `${text} Every call returns the same flat shape.`;
+  if (text.length > 160) text = [parts[0], "Get JSON back.", price].join(" ");
+  const pads = [" Examples in TypeScript, Python, cURL and the CLI.", " Examples in TypeScript, Python and cURL.", " Call it from any language."];
+  const padded = pads.map((pad) => `${text}${pad}`).find((line) => line.length <= 160);
+  if (text.length < 120 && padded !== undefined) text = padded;
   return text;
 }
 
@@ -138,7 +141,7 @@ function linkLabel(id: string): string {
   const source = config.sources[sourceOf(id.split("."))] ?? id;
   const title = config.titles[id] ?? id;
   const proper = source === "Google" && GOOGLE_PRODUCTS.some((product) => title.startsWith(product));
-  return `${source} ${proper ? title : lowerFirst(title)}`;
+  return proper ? `${source} ${title}` : sourceTitle(source, title);
 }
 
 function endpointPage(op: Operation): string {

@@ -1,9 +1,9 @@
 ---
-title: 'Google google Scholar API'
+title: 'Google Scholar API'
 sidebarTitle: 'Google Scholar'
-description: 'Scrape Google Scholar search results. Call the Google google Scholar API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
-og:title: 'Google google Scholar API | Stophy'
-og:description: 'Scrape Google Scholar search results. Call the Google google Scholar API and get JSON back in one request. 1 credit per call. Failed calls cost nothing.'
+description: 'Scrape Google Scholar search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'Google Scholar API | Stophy'
+og:description: 'Scrape Google Scholar search results. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/google/scholar'
 ---
 
@@ -29,9 +29,9 @@ At least one of `query` or `citesId` is required. Set `citesId` to list the work
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data.results[]` contains the papers, books and cases, each with its authors, year and the number of works that cite it.
+`data.results` lists the papers, books and cases, each with its authors, year and the number of works that cite it.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -63,14 +63,12 @@ The following example is a real response, truncated: each list shows one item an
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `citesId` | string | Pass it as `citesId` to list the works that cite this one. |
-| `citations` | integer | The number of works cite this one. |
-| `format` | string | Scholar's tag, such as [PDF] or [BOOK]. |
+| `citesId` | string | Send as `citesId` to list the works that cite this one. |
+| `citations` | integer | How many works cite this one. |
+| `format` | string | Scholar's tag, like [PDF] or [BOOK]. |
 | `publication` | string | Journal or venue; the case citation for case law. |
 | `page` | integer | The page number of this response. |
 | `position` | integer | The 1-based position of the result in the list. |
-
-For every field, see the response schema on this page.
 
 ## Optional parameters
 
@@ -78,22 +76,22 @@ For every field, see the response schema on this page.
 | --- | --- | --- |
 | `query` | string | Words to search for. |
 | `citesId` | string | A result's `citesId`. Lists the works that cite it. |
-| `yearFrom` | integer | Restricts results to works from this year on. Must be between 1700 and 2027. |
-| `yearTo` | integer | Restricts results to works up to this year. Must be between 1700 and 2027. |
-| `sort` | string | Specifies the order of the results. `newest` lists recent additions first. Acceptable values are `relevance` and `newest`. If unset, defaults to `relevance`. |
-| `type` | string | Any type, review articles or case law. Acceptable values are `any`, `reviewArticles` and `caseLaw`. If unset, defaults to `any`. |
-| `includePatents` | boolean | Include patents in the results. If unset, defaults to `false`. |
-| `includeCitations` | boolean | Include works that Scholar knows only from citations. If unset, defaults to `true`. |
-| `page` | integer | The page to return. Pages are numbered from 1. Must be between 1 and 20. If unset, defaults to `1`. |
+| `yearFrom` | integer | Only works from this year on. From 1700 to 2027. |
+| `yearTo` | integer | Only works up to this year. From 1700 to 2027. |
+| `sort` | string | How to order the results. `newest` lists recent additions first. One of `relevance` or `newest`. Defaults to `relevance`. |
+| `type` | string | Any type, review articles or case law. One of `any`, `reviewArticles` or `caseLaw`. Defaults to `any`. |
+| `includePatents` | boolean | Include patents in the results. Defaults to `false`. |
+| `includeCitations` | boolean | Include works that Scholar knows only from citations. Defaults to `true`. |
+| `page` | integer | Page number, starting at 1. From 1 to 20. Defaults to `1`. |
 
-## Billing
+## Price
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-## Pagination
+## Pages
 
-Results are paginated. To retrieve the next page, increment `page`. An empty `data.results` indicates the last page. The maximum value of `page` is 20.
+Each call returns one page. Send `page: 2` for the next one. An empty `data.results` means you are past the last page. `page` goes up to 20.
 
-## Related methods
+## Related endpoints
 
-- [Google google Scholar](/api-reference/endpoint/google-scholar): Accepts a result's `citesId` as `citesId`. Scrape Google Scholar search results.
+- [Google Scholar](/api-reference/endpoint/google-scholar): Takes a result's `citesId` as `citesId`. Scrape Google Scholar search results.

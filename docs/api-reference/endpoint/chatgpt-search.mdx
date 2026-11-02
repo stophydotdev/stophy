@@ -1,9 +1,9 @@
 ---
-title: 'ChatGPT chatGPT Search API'
+title: 'ChatGPT Search API'
 sidebarTitle: 'ChatGPT Search'
-description: 'Scrape ChatGPT''s answer and the pages it cites. Call the ChatGPT chatGPT Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
-og:title: 'ChatGPT chatGPT Search API | Stophy'
-og:description: 'Scrape ChatGPT''s answer and the pages it cites. Call the ChatGPT chatGPT Search API for JSON. 1 credit per call. Every call returns the same flat shape.'
+description: 'Scrape ChatGPT''s answer and the pages it cites. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
+og:title: 'ChatGPT Search API | Stophy'
+og:description: 'Scrape ChatGPT''s answer and the pages it cites. Send one JSON request and get JSON back. $0.0015 per call. A failed call costs nothing.'
 openapi: 'api-reference/openapi.json POST /v1/chatgpt/search'
 ---
 
@@ -18,7 +18,7 @@ Scrape ChatGPT's answer and the pages it cites.
 
 ## Request
 
-`query` is required.
+Send `query`.
 
 <CodeGroup>
 <TsExample />
@@ -29,9 +29,9 @@ Scrape ChatGPT's answer and the pages it cites.
 
 ## Response
 
-If successful, the response body contains the standard envelope. `data` contains the answer, the pages it cites in `sources` and the searches it ran in `searchQueries`.
+`data` has the answer, the pages it cites in `sources` and the searches it ran in `searchQueries`.
 
-The following example is a real response, truncated: each list shows one item and long strings are cut.
+This real response is cut to one item per list.
 
 ```json
 {
@@ -57,12 +57,10 @@ The following example is a real response, truncated: each list shows one item an
 | --- | --- | --- |
 | `answer` | string | The answer text returned by Google. |
 
-For every field, see the response schema on this page.
+## Price
 
-## Billing
+Each call costs $0.0015, however many items come back. A call that fails or finds nothing is free. Top-ups of $100 or more cost less. See [Pricing](/billing).
 
-Each successful request consumes 1 credit, regardless of the number of items returned. Requests that fail, or that return no items, are not billed.
+## Pages
 
-## Pagination
-
-This method is not paginated. A single request returns the complete result.
+One call returns everything. There are no more pages.
