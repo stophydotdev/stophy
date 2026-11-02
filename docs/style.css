@@ -13,6 +13,33 @@ html.dark {
   --stophy-yellow-soft: rgba(245, 217, 10, 0.08);
 }
 
+:root:not(#_) {
+  --rounded: 0px;
+  --rounded-sm: 0px;
+  --rounded-md: 0px;
+  --rounded-lg: 0px;
+  --rounded-xl: 0px;
+  --rounded-2xl: 0px;
+  --rounded-3xl: 0px;
+  --rounded-full: 0px;
+  --rounded-search: 0px;
+  --radius-xl: 0px;
+}
+
+:root:not(#_) *,
+:root:not(#_) *::before,
+:root:not(#_) *::after {
+  border-radius: 0 !important;
+}
+
+:root:not(#_) .rounded-full:empty:not(.w-full, .h-0\.5),
+:root:not(#_) .animate-spin,
+:root:not(#_) img.rounded-full,
+:root:not(#_) [class*="avatar"],
+:root:not(#_) input[type="radio"] {
+  border-radius: 9999px !important;
+}
+
 html.dark,
 html.dark body {
   background: #000;
@@ -177,7 +204,6 @@ html.dark #content-area .stophy-mcp-panel p {
 .stophy-mcp-code {
   overflow: hidden;
   border: 1px solid var(--stophy-border);
-  border-radius: 8px;
   background: var(--stophy-subtle);
 }
 
@@ -245,7 +271,6 @@ html.dark #content-area .stophy-mcp-panel p {
   gap: 6px;
   padding: 0 9px;
   border: 0;
-  border-radius: 6px;
   background: transparent;
   color: var(--stophy-muted);
   cursor: pointer;
