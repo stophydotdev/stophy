@@ -1,10 +1,19 @@
-import { Stophy } from "../../packages/typescript/src/index";
+import {
+  Stophy,
+  type WebSearchData,
+  type WebSearchResponse,
+} from "../../packages/typescript/src/index";
 
 const client = new Stophy({ apiKey: "st_test" });
 
 type Expect<T extends true> = T;
 type SearchBody = Parameters<Stophy["youtube"]["search"]>[0];
 type _QueryRequired = Expect<SearchBody extends { query: string } ? true : false>;
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type _WebSearchBody = Expect<Same<WebSearchData["body"], Parameters<Stophy["web"]["search"]>[0]>>;
+type _WebSearchResponse = Expect<
+  Same<WebSearchResponse, Awaited<ReturnType<Stophy["web"]["search"]>>>
+>;
 
 export async function typedCalls(): Promise<void> {
   const result = await client.youtube.search({
