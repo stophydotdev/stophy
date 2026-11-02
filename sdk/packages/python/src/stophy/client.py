@@ -11,7 +11,7 @@ from .transport import DEFAULT_BASE_URL, SyncTransport, compact, default_headers
 
 
 class Stophy(SyncSurface):
-    """Synchronous client for the Stophy web scraping API."""
+    """Calls the Stophy API and returns each response as a dict."""
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class Stophy(SyncSurface):
         return self._transport.request(method, path, json={} if body is None else body)
 
     def usage(self) -> Usage:
-        """Current balance and lifetime usage. Requires an API key."""
+        """Returns your balance and lifetime usage. Needs an API key."""
         return parse_usage(self._transport.get("/v1/usage"))
 
     def logs(
@@ -61,7 +61,7 @@ class Stophy(SyncSurface):
         api_key_id: str | None = None,
         endpoint: str | None = None,
     ) -> Logs:
-        """Recent metered requests. Requires an API key."""
+        """Returns your recent paid calls, newest first. Needs an API key."""
         return parse_logs(
             self._transport.get(
                 "/v1/logs",

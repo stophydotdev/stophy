@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class StophyError(Exception):
-    """Raised when the Stophy API responds with a non-success status."""
+    """Raised when a call fails. Read code, retryable and request_id to decide what to do."""
 
     def __init__(
         self,
