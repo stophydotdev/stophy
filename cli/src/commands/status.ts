@@ -62,7 +62,7 @@ async function getStatus(): Promise<StatusResult> {
 export function registerStatusCommand(program: Command) {
   program
     .command("status")
-    .description("Show CLI version, auth status, and balance")
+    .description("Show your login, balance and CLI version")
     .option("--json", "Print raw JSON")
     .action(async (options) => {
       const status = await getStatus();

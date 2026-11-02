@@ -6,7 +6,7 @@ import { writeOutput } from "../output.js";
 export function registerEndpointsCommand(program: Command, endpoints: readonly CatalogEndpoint[]) {
   program
     .command("endpoints")
-    .description("List every command with its cost")
+    .description("List every command with its price")
     .argument("[term]", "Only show commands that contain this text")
     .addHelpText(
       "after",

@@ -76,7 +76,7 @@ async function doApiKeyLogin() {
 
 export async function promptLogin() {
   err(`  @stophy/cli v${packageJson.version}`);
-  err("  The web scraping API for AI agents, from your terminal");
+  err("  Give your agents the live web from your terminal");
   err("");
   err("Welcome! To get started, authenticate with your Stophy account.");
   err("");

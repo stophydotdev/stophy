@@ -5,7 +5,7 @@ import { resolveRuntimeConfig } from "../config.js";
 export function registerVersionCommand(program: Command) {
   program
     .command("version")
-    .description("Show the CLI version and authentication status")
+    .description("Show the CLI version and whether you are logged in")
     .option("--json", "Print raw JSON")
     .action(async (options) => {
       const { apiKey, apiKeySource, sessionCookie } = await resolveRuntimeConfig();
