@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 2.1.0
+
+### Minor Changes
+
+- The MCP Registry entry points at github.com/stophydotdev/stophy and reads "Give your agents the live web." This version is above the old 2.0.9 entry, so the registry shows it as the latest.
+
 ## 1.2.1
 
 ### Patch Changes

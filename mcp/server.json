@@ -3,7 +3,7 @@
   "name": "io.github.stophydotdev/mcp",
   "title": "Stophy",
   "description": "Give your agents the live web.",
-  "version": "1.2.0",
+  "version": "2.1.0",
   "repository": {
     "url": "https://github.com/stophydotdev/stophy.git",
     "source": "github",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@stophy/mcp",
-      "version": "1.2.0",
+      "version": "2.1.0",
       "transport": {
         "type": "stdio"
       },
