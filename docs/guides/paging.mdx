@@ -154,6 +154,6 @@ Set your own stop, like the 5 pages or 100 results above. Some sources have many
 
 ## Keep fewer results
 
-`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. On `google.images`, `appstore.search`, `appstore.top` and `google.play.search`, 10 results cost 1 credit, so fewer results cost less.
+`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. All of them except `google.ads.advertisers` charge $0.0015 per 10 results, so fewer results cost less.
 
 On every other endpoint, `limit` returns a `400`. To keep a model's context small, take the rows you need from `data.results`, or use `fields` through the [MCP server](/mcp-server) to keep only some keys.

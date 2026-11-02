@@ -7,7 +7,7 @@ og:title: "TypeScript SDK | Stophy"
 og:description: "Install the Stophy TypeScript SDK, make your first call with no key, then add a key to page through results, handle errors and read your usage."
 ---
 
-The `stophy` package gives you typed calls to Stophy from Node.js, Bun, Deno and the browser.
+Call Stophy from Node.js, Bun, Deno or the browser and get typed results back.
 
 ```bash
 npm install stophy
@@ -20,7 +20,7 @@ No account, no key.
 ```ts
 import { Stophy } from "stophy";
 
-const result = await new Stophy().google.search({ query: "bun runtime" });
+const result = await new Stophy().google.search({ query: "postgres jsonb index" });
 console.log(result.data.results);
 ```
 
@@ -29,19 +29,19 @@ console.log(result.data.results);
 {
   "success": true,
   "data": {
-    "engine": "google",
     "results": [
       {
         "type": "web",
-        "url": "https://bun.com/",
-        "title": "Bun — A fast all-in-one JavaScript runtime",
-        "description": "Bun is a fast JavaScript runtime & toolkit. All in one. Runtime, package manager, test runner and bundler in a single binary. Use bun install or bun test in an ...",
+        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
+        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
+        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
         "position": 1
       }
-    ]
+    ],
+    "page": 1
   },
   "creditsUsed": 0,
-  "requestId": "9532e2f9-ea3d-4ba4-8bc2-8ee5685668ee"
+  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
 }
 ```
 </Accordion>
@@ -52,7 +52,7 @@ Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, 
 
 ## Use a key
 
-Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `unauthorized`.
+Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `apiKeyRequired`.
 
 Set `STOPHY_API_KEY` and `new Stophy()` picks it up. Or pass it in:
 
@@ -150,7 +150,7 @@ import { Stophy } from "stophy";
 const stophy = new Stophy();
 
 const usage = await stophy.usage();
-console.log(usage.balanceMicros / 1500, usage.creditsUsed, usage.requestCount);
+console.log(usage.balanceMicros / 1_000_000, usage.creditsUsed, usage.requestCount);
 
 const logs = await stophy.logs({ days: 7, endpoint: "reddit.search" });
 for (const entry of logs.logs) {
@@ -158,4 +158,4 @@ for (const entry of logs.logs) {
 }
 ```
 
-`balanceMicros` is your balance in millionths of a dollar. One credit is 1,500, so divide by 1,500 to get credits. See [Usage](/api-reference/usage) and [Logs](/api-reference/logs).
+`balanceMicros` is your balance in millionths of a dollar, so divide by 1,000,000 for dollars. See [Usage](/api-reference/usage) and [Logs](/api-reference/logs).
