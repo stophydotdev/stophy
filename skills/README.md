@@ -3,7 +3,7 @@
 [![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call. You pay only for answers that come back. This repo is a plugin with two parts:
+Give your agents the live web. This repo is a plugin with two parts:
 
 - The hosted Stophy MCP server, `https://mcp.stophy.dev/mcp`. It signs you in with your browser.
 - Agent skills for each kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
@@ -76,7 +76,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results. TikTok transcripts cost 1 credit when the video has captions. Instagram transcripts, and TikTok videos without captions, cost 2 credits plus 1 per 10 seconds of audio.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Every call returns one page from the site for a fixed price. Get the next page with `--page` or with the `--cursor` from the last output. Most calls cost $0.0015, long lists cost $0.0015 per 10 results, and a few cost more. A TikTok transcript costs $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio without. An Instagram transcript costs $0.0015 plus $0.0015 per 30 seconds of audio.
 
 ## Docs
 

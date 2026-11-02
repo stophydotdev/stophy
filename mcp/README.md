@@ -2,13 +2,13 @@
 
 [![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
-Web scraping API for AI agents, as an MCP server. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers. Your agent reaches every Stophy endpoint through three MCP tools.
+Give your agents the live web over MCP. Your agent reaches every Stophy endpoint through three tools.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=stophy&config=eyJ1cmwiOiJodHRwczovL21jcC5zdG9waHkuZGV2L21jcCJ9)
 
 ## Connect to the hosted server
 
-Most apps can connect to the hosted server directly. There is nothing to install.
+Most apps connect to the hosted server directly, with nothing to install.
 
 | URL                          | How you connect                      | What your agent can use                                                                                                   |
 | ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
@@ -117,11 +117,11 @@ The package needs Node.js 18 or later.
 | `stophy_describe_endpoint` | Shows the input an endpoint takes and what it returns                       |
 | `stophy_call`              | Runs an endpoint with `id`, `input` and optional `fields`, and returns JSON |
 
-Your agent usually searches, then describes, then calls. Endpoint ids are camelCase, such as `googleSearch` or `youtubeSearch`. Lists come back as `results`, and `fields` keeps only the keys you name on each row. Each result says how many credits it used.
+Your agent usually searches, then describes, then calls. Endpoint ids are camelCase, such as `googleSearch` or `youtubeSearch`. Lists come back as `results`, and `fields` keeps only the keys you name on each row. Each result says what it cost.
 
 To point at one thing, send its link or its id, never both: `videoUrl` or `videoId`, `placeUrl` or `placeId`, `userUrl` or `username`. The endpoint description lists the pair.
 
-One call returns one page from the site at the price shown for that endpoint. Most calls cost 1 credit, some cost 2, and long lists cost 1 credit per 10 results. Some list endpoints take `page` and return `page`: ask for the next number, and stop when `results` comes back empty. Others return a `cursor` when there is more: pass it back unchanged as `cursor` to get the next page.
+One call returns one page from the site. Most calls cost $0.0015, long lists cost $0.0015 per 10 results, and a few cost more. See [pricing](https://docs.stophy.dev/billing). Some list endpoints take `page` and return `page`: ask for the next number, and stop when `results` comes back empty. Others return a `cursor` when there is more: pass it back unchanged as `cursor` to get the next page.
 
 ## Network and credentials
 
