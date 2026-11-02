@@ -9,6 +9,7 @@ on:
       - sdk/packages/python/pyproject.toml
       - cli/package.json
       - mcp/package.json
+      - sdk/packages/ai-sdk/package.json
       - .github/workflows/publish.yml
 
 permissions:
@@ -37,6 +38,32 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           if npm view "stophy@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.version.outputs.exists == 'false'
+        run: npm publish --access public --tag latest
+
+  ai-sdk-npm:
+    name: AI SDK tools on npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/packages/ai-sdk
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run build
+        working-directory: sdk/packages/typescript
+      - id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@stophy/ai-sdk@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          if grep -qx "## ${VERSION}" CHANGELOG.md 2>/dev/null; then echo "released=true" >> "$GITHUB_OUTPUT"; else echo "released=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.version.outputs.exists == 'false' && steps.version.outputs.released == 'true'
         run: npm publish --access public --tag latest
 
   sdk-python:
