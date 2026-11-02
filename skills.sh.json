@@ -2,8 +2,8 @@
   "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
   "groupings": [
     {
-      "title": "Stophy | Web Scraping API for AI Agents",
-      "description": "Web scraping API for AI agents. Search, video, social, jobs, places, shopping, apps, property and ads behind one key, with a price shown before every call.",
+      "title": "Stophy | Give your agents the live web",
+      "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
       "skills": [
         "stophy",
         "stophy-web",

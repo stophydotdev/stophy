@@ -1,5 +1,5 @@
 class Stophy < Formula
-  desc "Web scraping API for AI agents, from your terminal"
+  desc "Give your agents the live web from your terminal"
   homepage "https://stophy.dev"
   version "1.0.8"
   license "MIT"

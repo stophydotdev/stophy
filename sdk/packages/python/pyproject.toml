@@ -1,7 +1,7 @@
 [project]
 name = "stophy"
 version = "1.2.1"
-description = "Web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes."
+description = "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
