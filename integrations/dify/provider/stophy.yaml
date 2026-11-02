@@ -1,0 +1,33 @@
+identity:
+  author: stophy
+  name: stophy
+  label:
+    en_US: Stophy
+  description:
+    en_US: Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.
+  icon: icon.svg
+  tags:
+    - search
+    - productivity
+credentials_for_provider:
+  api_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: Stophy API key
+    placeholder:
+      en_US: Paste your Stophy API key
+    help:
+      en_US: Get a key at stophy.dev. New accounts start with $1.50 free.
+    url: https://stophy.dev/signup
+tools:
+  - tools/web_search.yaml
+  - tools/read_page.yaml
+  - tools/reddit_search.yaml
+  - tools/place_search.yaml
+  - tools/product_search.yaml
+  - tools/job_search.yaml
+  - tools/home_search.yaml
+extra:
+  python:
+    source: provider/stophy.py

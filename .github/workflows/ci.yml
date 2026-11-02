@@ -90,6 +90,21 @@ jobs:
       - run: uv run pytest
       - run: uv build
 
+  dify:
+    name: Dify plugin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/dify
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run pytest
+
   cli:
     name: CLI
     runs-on: ubuntu-latest

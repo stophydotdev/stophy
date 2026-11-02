@@ -1,0 +1,56 @@
+identity:
+  name: reddit_search
+  author: stophy
+  label:
+    en_US: Reddit Search
+description:
+  human:
+    en_US: Search Reddit posts to read what people say about a product, place or topic.
+  llm: Search Reddit posts to read what people say about a product, place or topic. Returns posts with title, url, score and comment count.
+parameters:
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query
+    human_description:
+      en_US: Words to find.
+    llm_description: Words to find.
+    form: llm
+  - name: subreddit
+    type: string
+    required: false
+    label:
+      en_US: Subreddit
+    human_description:
+      en_US: Only this subreddit, such as typescript.
+    llm_description: Only this subreddit, such as typescript.
+    form: llm
+  - name: sort
+    type: select
+    required: false
+    options:
+      - value: relevance
+        label:
+          en_US: Relevance
+      - value: hot
+        label:
+          en_US: Hot
+      - value: top
+        label:
+          en_US: Top
+      - value: newest
+        label:
+          en_US: Newest
+      - value: mostComments
+        label:
+          en_US: Most comments
+    label:
+      en_US: Sort
+    human_description:
+      en_US: How to order the posts.
+    llm_description: How to order the posts.
+    form: llm
+extra:
+  python:
+    source: tools/reddit_search.py

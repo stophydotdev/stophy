@@ -1,0 +1,22 @@
+identity:
+  name: read_page
+  author: stophy
+  label:
+    en_US: Read Page
+description:
+  human:
+    en_US: Read a web page or PDF and get its text as markdown.
+  llm: Read a web page or PDF and return its text as markdown.
+parameters:
+  - name: url
+    type: string
+    required: true
+    label:
+      en_US: URL
+    human_description:
+      en_US: The full address of the page or PDF to read, starting with https.
+    llm_description: The full address of the page or PDF to read, starting with https.
+    form: llm
+extra:
+  python:
+    source: tools/read_page.py
