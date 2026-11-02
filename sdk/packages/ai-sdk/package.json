@@ -1,0 +1,62 @@
+{
+  "name": "@stophy/ai-sdk",
+  "version": "0.1.0",
+  "description": "Give your agents the live web. Stophy tools for the Vercel AI SDK: search the web, read pages, and call any of Stophy's endpoints.",
+  "keywords": [
+    "ai",
+    "ai-agents",
+    "ai-sdk",
+    "stophy",
+    "tools",
+    "vercel",
+    "web-scraping",
+    "web-search"
+  ],
+  "homepage": "https://stophy.dev",
+  "bugs": {
+    "url": "https://github.com/stophydotdev/stophy/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stophydotdev/stophy.git",
+    "directory": "sdk/packages/ai-sdk"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test",
+    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.tests.json",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "stophy": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "ai": "^7.0.159",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.0",
+    "zod": "^4.6.7"
+  },
+  "peerDependencies": {
+    "ai": "^6.0.0 || ^7.0.0",
+    "zod": "^4.1.8"
+  }
+}
