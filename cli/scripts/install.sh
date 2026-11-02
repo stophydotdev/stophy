@@ -5,7 +5,8 @@ set -euo pipefail
 # Usage: curl -fsSL https://stophy.dev/install.sh | bash
 #
 # Detects OS/arch, downloads the correct binary from GitHub Releases,
-# verifies checksum, and installs to ~/.local/bin.
+# verifies checksum, and installs to ~/.local/bin. When it finds an agent
+# folder in your home directory, it also adds the Stophy skills for your agents.
 #
 # Environment variables:
 #   STOPHY_INSTALL_DIR  - Override install directory (default: ~/.local/bin)
@@ -13,6 +14,8 @@ set -euo pipefail
 
 REPO="stophydotdev/stophy"
 BINARY_NAME="stophy"
+AGENT_DIRS=".claude .codex .cursor .gemini .config/opencode"
+INIT_ARGS="init --all --skip-auth --skip-mcp"
 
 if [ -t 1 ]; then
   RED='\033[0;31m'
@@ -152,6 +155,28 @@ ensure_path() {
   warn "Open a new terminal or run: export PATH=\"$dir:\$PATH\""
 }
 
+has_agent() {
+  local dir
+  for dir in $AGENT_DIRS; do
+    [ -d "$HOME/$dir" ] && return 0
+  done
+  return 1
+}
+
+teach_agents() {
+  local install_dir="$1"
+  local log="$tmp_dir/init.log"
+
+  if ! has_agent; then
+    echo "  Skills  not added, no agent folder found. Run '$BINARY_NAME $INIT_ARGS' once you use an agent."
+  elif "$install_dir/$BINARY_NAME" $INIT_ARGS > "$log" 2>&1 < /dev/null; then
+    echo "  Skills  added for your agents"
+  else
+    cat "$log" >&2
+    echo "  Skills  not added. Run '$BINARY_NAME $INIT_ARGS' to retry."
+  fi
+}
+
 main() {
   local os arch version install_dir current_path
 
@@ -228,11 +253,16 @@ main() {
   ensure_path "$install_dir"
 
   echo ""
-  success "Stophy CLI v${version} installed successfully!"
-  echo "  Installed binary: ${install_dir}/stophy"
+  success "Stophy CLI v${version} installed."
   echo ""
-  echo "  Run 'stophy --help' to get started."
-  echo "  Run 'stophy login' to authenticate."
+  echo "  Binary  ${install_dir}/stophy"
+  teach_agents "$install_dir"
+  echo ""
+  echo "Next, run this. It needs no key."
+  echo "  stophy google search \"latest bun release\""
+  echo ""
+  echo "  stophy --help           list every command"
+  echo "  stophy login --browser  get a key for the rest"
   echo ""
 }
 
