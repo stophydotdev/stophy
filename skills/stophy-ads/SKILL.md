@@ -48,7 +48,7 @@ Run `stophy <platform> ads --help` for every command. The platforms are `meta`, 
 
 ## Tips
 
-- Every command here costs 1 credit per call.
+- Every command here costs $0.0015 a call.
 - Each platform has its own `ads search`, `ads ad` and, for Google, `ads advertisers`. Search first, then run `ads ad` on a result. To point at one ad, give its link or its id, never both: `--adUrl` or `--adId`.
 - The platform decides what a search accepts. Meta needs a keyword, and takes `--mediaType` (`image`, `video` or `text`), `--platforms`, `--language`, `--status`, `--shownFrom` and `--shownTo`. Google takes a domain such as `nike.com` (or `--advertiser`) and `--platform`, `--mediaType`, `--shownFrom` and `--shownTo`. To search Google by name, find the advertiser with `google ads advertisers` first. TikTok and LinkedIn take a keyword, an advertiser, or both. LinkedIn honours `--within`.
 - TikTok publishes ads for European countries only. Pick a country from that list.

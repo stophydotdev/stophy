@@ -60,7 +60,7 @@ Run `stophy <source> --help` for every command. The sources here are `google` (M
 ## Tips
 
 - `google maps search` needs both `--query` and `--location`. `google maps place` and `google maps reviews` take the `placeId` from a search result, or the place link, not the name. To point at one place, give its link or its id, never both: `--placeUrl` or `--placeId`. `google maps reviews` ends with a `cursor` when there are more; pass it as `--cursor`.
-- Every command here costs 1 credit per call, including `google flights`, `google maps search`, `google hotels` and all of Tripadvisor, Airbnb, Booking.com, Expedia and Luma.
+- Every command here costs $0.0015 a call, including `google flights`, `google maps search`, `google hotels` and all of Tripadvisor, Airbnb, Booking.com, Expedia and Luma.
 - `google maps search` takes `--openNow` and `--minRating` (`2` to `4.5`), and `--page 2` for the next page. Each result has its `hours`, `phone` and `website`.
 - `tripadvisor search` takes `--type` (`all`, `hotels`, `restaurants`, `attractions` or `geos`). `tripadvisor place` and `tripadvisor reviews` take the `placeId` or the link from a search result. `tripadvisor reviews` takes `--language`, `--ratings` (a list such as `1,2`), `--travelerTypes`, `--months` and `--sort`, and `--page 2` for the next page.
 - `google hotels` takes `--minRating`, `--hotelClass`, `--amenities`, `--propertyTypes`, `--freeCancellation` and `--sort`. It returns `price` per night and `totalPrice` for the stay. Page it with `--cursor`.

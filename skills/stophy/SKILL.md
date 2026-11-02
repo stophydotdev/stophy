@@ -49,7 +49,7 @@ stophy google ads advertisers nike
 stophy meta ads search nike
 ```
 
-One call returns one page for a fixed price. Most commands cost 1 credit. `zillow search` costs 2. A few long lists cost 1 credit per 10 results: `google images`, `web search`, `web news`, `web images`, `appstore search`, `appstore top`, `google play search` and `craigslist search`. TikTok transcripts cost 1 credit when the video has captions. Instagram transcripts, and TikTok videos without captions, cost 2 credits plus 1 per 10 seconds of audio. Run `stophy endpoints` to see each price, and `stophy describe <command>` for the terms. Errors and empty results cost nothing.
+One call returns one page for a fixed price. Most commands cost $0.0015, and `zillow search` costs $0.003. These long lists cost $0.0015 per 10 results: `google images`, `web search`, `web news`, `web images`, `appstore search`, `appstore top`, `google play search` and `craigslist search`. A TikTok transcript costs $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio without. An Instagram transcript costs $0.0015 plus $0.0015 per 30 seconds of audio. `stophy endpoints` shows each price, and `stophy describe <command>` the terms. Errors and empty results cost nothing.
 
 By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. Each call returns one page, as the site shows it. Some commands take a page number: the output shows `page`, and you run the same command with `--page 2` for the next page, until a page has no results. Others end with a `cursor` when there is more: run the same command with `--cursor <cursor>`, and keep the other options the same.
 
@@ -57,8 +57,9 @@ By default, lists print one row per result with its title and link, and other re
 
 ## Errors
 
-- **Not logged in:** run `stophy login --browser`.
-- **Out of credits:** send the user to https://stophy.dev/billing.
+- **`apiKeyRequired` or not logged in:** run `stophy login --browser`.
+- **`freeLimit`:** the free calls without a key are used up. Log in, or wait for the delay in the message.
+- **`insufficientCredits`:** the balance is too low, and nothing was charged. Send the user to https://stophy.dev/billing.
 - **Rate limited or source failed:** wait for any delay the message gives, then retry once. Do not loop.
 - **Invalid input:** read the command's `--help`.
 - **Not found:** the message is the source's own, such as "YouTube says: This video is unavailable". Check the link or ID. Do not retry.

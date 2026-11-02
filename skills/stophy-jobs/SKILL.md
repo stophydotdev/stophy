@@ -44,7 +44,7 @@ Run `stophy <source> --help` for every command. The sources here are `linkedin`,
 ## Tips
 
 - Search first to get a job ID or link, then run `job` on it for the full description and requirements. To point at one posting, give its link or its id, never both: `--jobUrl` or `--jobId`.
-- Every command here costs 1 credit per call, including `upwork search`, `linkedin jobs search` and all of Indeed, careers and Glassdoor.
+- Every command here costs $0.0015 a call, including `upwork search`, `linkedin jobs search` and all of Indeed, careers and Glassdoor.
 - `indeed search` takes `--location`, `--country`, `--remote` (`remote` or `hybrid`) and `--datePosted` (`last24Hours`, `last3Days`, `last7Days` or `last14Days`). Use `--cursor` for the next page.
 - `upwork search` takes `--sort` (`newest` or `relevance`), `--experienceLevel`, `--minHourlyRate` and `--maxHourlyRate`, and `--page 2` for the next page.
 - `linkedin jobs search` takes `--company` to keep jobs at up to five companies, and `--page 2` for the next page.

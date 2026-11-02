@@ -55,10 +55,10 @@ Run `stophy <source> --help` for every command. The sources here are `amazon`, `
 
 ## Tips
 
-- Every Amazon, TikTok Shop, eBay, Facebook Marketplace and Trustpilot command costs 1 credit per call. `craigslist search` costs 1 credit per 10 listings returned. Run a search only when you need the list.
+- Every Amazon, TikTok Shop, eBay, Facebook Marketplace and Trustpilot command costs $0.0015 a call. `craigslist search` costs $0.0015 per 10 listings returned. Run a search only when you need the list.
 - `--sort` on `amazon search` takes `relevance`, `priceLow`, `priceHigh`, `avgCustomerReview`, `newest` or `bestSelling`. `avgCustomerReview` puts the highest rated first. It does not mean most reviewed. `--minPrice`, `--maxPrice`, `--minRating`, `--brand` and `--category` narrow the results. `--country` picks the store.
 - Search first to get a product ID or link, then run `product` on it for the full details. To point at one product, give its link or its id, never both: `--productUrl` or `--productId`.
-- Search returns one page. Run the same command with `--page 2`, `--page 3` and so on, until a page has no results, and keep the other options the same. Each page costs 1 credit again.
+- Search returns one page. Run the same command with `--page 2`, `--page 3` and so on, until a page has no results, and keep the other options the same. Each page costs $0.0015 again.
 - `tiktok shop product` and `tiktok shop reviews` take a product link or id, and `tiktok shop products` lists a seller's products by `--shopUrl` or `--shopId`. TikTok Shop search and seller lists page with `--cursor`.
 - `ebay search` takes `--condition`, `--auctionsOnly`, `--minPrice`, `--maxPrice` and `--sort`. `--sort priceLow` puts the lowest `totalPrice`, the price plus shipping, first. Page it with `--page`.
 - `facebook marketplace search` needs `--query` and `--location`, a city or ZIP code, and takes `--minPrice`, `--maxPrice` and `--sort`. It returns one page.

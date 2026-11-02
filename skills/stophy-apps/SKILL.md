@@ -41,7 +41,7 @@ Run `stophy <source> --help` for every command. The sources here are `appstore` 
 
 ## Tips
 
-- `appstore app`, `appstore reviews`, `google play app` and `google play reviews` cost 1 credit per call. `appstore search`, `appstore top` and `google play search` cost 1 credit per 10 apps, and `--limit` returns fewer.
+- `appstore app`, `appstore reviews`, `google play app` and `google play reviews` cost $0.0015 a call. `appstore search`, `appstore top` and `google play search` cost $0.0015 per 10 apps, and `--limit` returns fewer.
 - Search first to get an app ID, then run `app` or `reviews` on it. To point at one app, give its link or its id, never both: `--appUrl` or `--appId`.
 - App Store IDs are numbers (`284882215`). Google Play IDs are package names (`com.spotify.music`).
 - `--country` picks the storefront, so prices, ratings and charts can differ by country. Google Play also takes `--language`.

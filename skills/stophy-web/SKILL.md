@@ -50,7 +50,7 @@ Narrow a search with `--time`, `--country` and `--language`. Run `stophy google 
 ## Tips
 
 - Search first, then open the pages that matter. Quote the result's `url`.
-- `google search` and `google news` cost 1 credit and work without a key within a free limit. `google images` costs 1 credit per 10 images, and `--limit` returns fewer. Every other command here costs 1 credit.
+- `google search` and `google news` cost $0.0015 and work without a key within a free limit. `google images`, `web search`, `web news` and `web images` cost $0.0015 per 10 results, and `--limit` returns fewer. `web scrape` costs $0.0015 a page, $0.003 or $0.0075 on pages that are harder to load, and more with a screenshot, actions or `--waitFor`. Every other command here costs $0.0015.
 - One call returns one page of results. Run the same command with the next `--page`, until a page has no results.
 - `google news` takes `--topic` to read headlines by topic, and `--sort relevance` or `--sort newest`.
 - `google scholar` takes `--sort relevance` or `--sort newest`, `--yearFrom` and `--yearTo`. Each result has a `citesId` you can pass back as `--citesId`.
