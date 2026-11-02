@@ -1,8 +1,10 @@
 import { Command } from "commander";
 import packageJson from "../package.json" with { type: "json" };
+import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
 import { type Catalog, catalogFilePath, fetchCatalog, loadCatalog } from "./catalog.js";
 import { registerAccountCommands } from "./commands/account.js";
+import { registerClaimCommand, signUp } from "./commands/claim.js";
 import { registerDescribeCommand } from "./commands/describe.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
 import { commandPath, registerDynamicCommands } from "./commands/dynamic.js";
@@ -14,7 +16,8 @@ import { registerStatusCommand } from "./commands/status.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
-import { CliError, toCliError } from "./errors.js";
+import { toCliError } from "./errors.js";
+import { writeFailure } from "./output.js";
 import { promptLogin } from "./prompt-login.js";
 import { maybeShowUpdateNotice } from "./update-notice.js";
 
@@ -59,6 +62,7 @@ Examples:
 
   registerInitCommand(program);
   registerLoginCommand(program);
+  registerClaimCommand(program);
   registerAccountCommands(program);
   registerEndpointsCommand(program, endpoints);
   registerDescribeCommand(program, endpoints);
@@ -71,16 +75,15 @@ Examples:
 
   program.hook("preAction", async (_thisCommand, actionCommand) => {
     const id = commandPath(actionCommand);
+    setCommand(id ?? actionCommand.name());
     const endpoint = id === undefined ? undefined : byId.get(id);
     if (endpoint?.keyless) return;
     if (!endpoint && actionCommand.commands.length > 0) return;
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) return;
-    if (!process.stdin.isTTY) {
-      throw new CliError("No API key. Set STOPHY_API_KEY or run `stophy login`.");
-    }
-    await promptLogin();
+    if (process.stdin.isTTY) await promptLogin();
+    else await signUp();
   });
 
   program.configureOutput({
@@ -122,6 +125,7 @@ async function main() {
 
 main().catch((error) => {
   const cliError = toCliError(error);
-  console.error(cliError.message);
+  if (isAgentMode()) writeFailure(cliError);
+  else console.error(cliError.message);
   process.exit(cliError.exitCode);
 });

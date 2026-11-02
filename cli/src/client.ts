@@ -1,4 +1,6 @@
 import { z } from "zod";
+import packageJson from "../package.json" with { type: "json" };
+import { agentName, currentCommand } from "./agent.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, type ErrorDetails } from "./errors.js";
 import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
@@ -11,14 +13,31 @@ const errorObject = z.object({
   requestId: z.string().optional(),
 });
 
+export interface Failure {
+  readonly code: string;
+  readonly message: string;
+  readonly retryable: boolean;
+  readonly retryAfterSeconds?: number | undefined;
+  readonly requestId?: string | undefined;
+}
+
 const failureSchema = z.union([
-  z.object({ error: z.string() }).transform(({ error }) => ({
+  z.object({ error: z.string() }).transform(({ error }): Failure => ({
+    code: "requestFailed",
     message: error,
-    requestId: undefined,
-    retryAfterSeconds: undefined,
+    retryable: false,
   })),
-  z.object({ error: errorObject }).transform(({ error }) => error),
+  z.object({ error: errorObject }).transform(({ error }): Failure => error),
 ]);
+
+export class RequestError extends CliError {
+  readonly failure: Failure;
+
+  constructor(message: string, failure: Failure, details?: ErrorDetails) {
+    super(message, 1, details);
+    this.failure = failure;
+  }
+}
 
 export interface RequestOptions {
   readonly method: "GET" | "POST" | "DELETE";
@@ -51,7 +70,14 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
     if (value) url.searchParams.set(key, value);
   }
 
-  const headers = new Headers({ Accept: options.accept });
+  const headers = new Headers({
+    Accept: options.accept,
+    "User-Agent": `stophy-cli/${packageJson.version}`,
+  });
+  const agent = agentName();
+  if (agent) headers.set("x-stophy-agent", agent);
+  const command = currentCommand();
+  if (command) headers.set("x-stophy-command", command);
   if (apiKey) headers.set("Authorization", `Bearer ${apiKey}`);
   if (sessionCookie) headers.set("Cookie", sessionCookie);
   if (options.method === "POST") headers.set("Content-Type", "application/json");
@@ -63,19 +89,25 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
     response = await fetch(url, init);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "network error";
-    throw new CliError(`Network request failed for ${url.toString()}: ${reason}`);
+    const message = `Network request failed for ${url.toString()}: ${reason}`;
+    throw new RequestError(message, { code: "networkError", message, retryable: true });
   }
 
   const text = await response.text();
   const json = parseJsonBody(text, response.headers.get("content-type"));
   const retryAfter = response.headers.get("Retry-After");
   if (!response.ok) {
-    const requestId = response.headers.get("X-Request-ID") ?? requestIdFrom(json);
-    const message = failureMessage(json, response.status, retryAfter);
+    const failure = failureOf(json, response.status, retryAfter);
+    const requestId = response.headers.get("X-Request-ID") ?? failure.requestId ?? null;
+    const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
       ? { status: response.status, retryAfter }
       : { status: response.status };
-    throw new CliError(withRequestId(message, requestId), 1, details);
+    throw new RequestError(
+      withRequestId(message, requestId),
+      { ...failure, requestId: requestId ?? undefined },
+      details,
+    );
   }
 
   return {
@@ -104,23 +136,33 @@ function parseJsonBody(text: string, contentType: string | null): JsonValue | un
   }
 }
 
-function requestIdFrom(body: JsonValue | undefined): string | null {
-  const parsed = failureSchema.safeParse(body);
-  return parsed.success ? (parsed.data.requestId ?? null) : null;
-}
-
 export function withRequestId(message: string, requestId: string | null): string {
   return requestId === null ? message : `${message}\nRequest id: ${requestId}`;
 }
 
-function failureMessage(
+function failureOf(
   body: JsonValue | undefined,
   status: number,
   retryAfter: string | null,
-): string {
+): Failure {
   const parsed = failureSchema.safeParse(body);
-  const retryFromBody = parsed.success ? parsed.data.retryAfterSeconds : undefined;
-  const retry = retryAfter ?? (retryFromBody === undefined ? null : String(retryFromBody));
-  const message = parsed.success ? parsed.data.message : `Request failed with status ${status}.`;
-  return retry === null ? message : `${message} Retry after ${retry}s.`;
+  const failure: Failure = parsed.success
+    ? parsed.data
+    : {
+        code: "requestFailed",
+        message: `Request failed with status ${status}.`,
+        retryable: status >= 500,
+      };
+  const header = retryAfter === null ? Number.NaN : Number(retryAfter);
+  if (failure.retryAfterSeconds === undefined && Number.isInteger(header) && header >= 0) {
+    return { ...failure, retryAfterSeconds: header };
+  }
+  return failure;
+}
+
+function failureMessage(failure: Failure, retryAfter: string | null): string {
+  const retry =
+    retryAfter ??
+    (failure.retryAfterSeconds === undefined ? null : String(failure.retryAfterSeconds));
+  return retry === null ? failure.message : `${failure.message} Retry after ${retry}s.`;
 }
