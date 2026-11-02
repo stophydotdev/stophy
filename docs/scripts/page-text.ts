@@ -76,23 +76,6 @@ function linkIds(text: string, input: PageInput): string {
   return text.replace(pattern, (id) => `[${input.label(id)}](/api-reference/endpoint/${input.slug(id)})`);
 }
 
-function whenToUse(op: CatalogEndpoint): string {
-  const one = sendOne(op);
-  if (one.length === 0) return "";
-  const kinds = new Map(Object.entries({ Url: "URL", Id: "ID", Code: "code" }));
-  const things: string[] = [];
-  const forms: string[] = [];
-  for (const field of one) {
-    const suffix = field.match(/(Url|Id|Code)$/)?.[1];
-    const thing = suffix === undefined ? field.replace(/name$/, "") : field.slice(0, -suffix.length);
-    if (!things.includes(thing)) things.push(thing);
-    const form = suffix === undefined ? field : (kinds.get(suffix) ?? field);
-    if (!forms.includes(form)) forms.push(form);
-  }
-  if (things.join() === forms.join()) return "";
-  return `Pick the ${list(things, "or")} by its ${list(forms, "or")}.`;
-}
-
 function bestWhenNotes(op: CatalogEndpoint, config: TextConfig): string[] {
   const reworded = config.bestWhenNotes[op.id];
   if (reworded !== undefined) return reworded === "" ? [] : [reworded];
@@ -456,10 +439,6 @@ function nextSection(input: PageInput): string[] {
   return lines.length === 0 ? [] : ["## Related endpoints", "", ...lines];
 }
 
-export function opening(op: CatalogEndpoint): string {
-  return [sentence(op.summary), whenToUse(op)].filter((part) => part !== "").join(" ");
-}
-
 export function requestIntro(op: CatalogEndpoint, config: TextConfig): string {
   const keyless =
     op.keyless === true
@@ -473,8 +452,6 @@ export function body(input: PageInput, example: string[]): string[] {
   const options = optionsSection(input);
   const next = nextSection(input);
   return [
-    opening(endpoint),
-    "",
     "## Request",
     "",
     requestIntro(endpoint, config),

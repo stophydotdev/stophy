@@ -1,6 +1,6 @@
 # Stophy for Python
 
-Web scraping API for AI agents, in Python. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers. Every method and result is typed.
+Give your agents the live web from Python. Every method and result is typed.
 
 ## Install
 
@@ -17,7 +17,7 @@ result = Stophy().google.search(query="bun runtime")
 print(result["data"]["results"])
 ```
 
-Some searches and lookups work without a key, within a small free allowance. The [endpoint list](https://api.stophy.dev/v1/endpoints) marks them with `keyless: true`. Every other method raises a `StophyError` with the code `unauthorized`.
+Some searches and lookups work without a key, within a small free allowance. The [endpoint list](https://api.stophy.dev/v1/endpoints) marks them with `keyless: true`. Every other method raises a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 

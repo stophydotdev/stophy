@@ -4,6 +4,7 @@
   "workspaces": [
     "sdk",
     "sdk/packages/typescript",
+    "sdk/packages/ai-sdk",
     "cli",
     "docs",
     "mcp"
