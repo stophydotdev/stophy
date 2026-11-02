@@ -58,7 +58,12 @@ done
 
 cat > "$destination/stophy-linux-x64" <<'BINARY'
 #!/usr/bin/env bash
-echo "1.0.9"
+if [ "${1:-}" = "init" ]; then
+  echo "$*" > "$HOME/init-args"
+  [ ! -e "$HOME/init-fails" ]
+else
+  echo "1.0.9"
+fi
 BINARY
 chmod +x "$destination/stophy-linux-x64"
 EOF
@@ -94,5 +99,26 @@ test ! -e "$HOME_DIR/.local/bin/stophy"
 test ! -e "$HOME_DIR/.bashrc"
 grep -Fq "Updating existing installation: $OLD_BIN_DIR/stophy" "$TEST_DIR/output.txt"
 grep -Fq "Replacing the package-managed launcher" "$TEST_DIR/output.txt"
+
+test ! -e "$HOME_DIR/init-args"
+grep -Fq "Skills  not added, no agent folder found" "$TEST_DIR/output.txt"
+
+run_install() {
+  PATH="$TOOLS_DIR:$OLD_BIN_DIR:/usr/bin:/bin:$HOME_DIR/.local/bin" \
+    HOME="$HOME_DIR" \
+    SHELL="/bin/bash" \
+    STOPHY_VERSION="1.0.9" \
+    bash "$ROOT_DIR/scripts/install.sh" > "$TEST_DIR/output.txt" 2> "$TEST_DIR/errors.txt"
+}
+
+mkdir "$HOME_DIR/.claude"
+run_install
+test "$(cat "$HOME_DIR/init-args")" = "init --all --skip-auth --skip-mcp"
+grep -Fq "Skills  added for your agents" "$TEST_DIR/output.txt"
+
+touch "$HOME_DIR/init-fails"
+run_install
+grep -Fq "Skills  not added. Run 'stophy init --all --skip-auth --skip-mcp' to retry." "$TEST_DIR/output.txt"
+grep -Fq "Next, run this" "$TEST_DIR/output.txt"
 
 echo "install.sh upgrade test passed"
