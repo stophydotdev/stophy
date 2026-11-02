@@ -71,7 +71,7 @@ stophy youtube transcript --videoUrl https://youtu.be/M4TufsFlv_o
 
 To point at one thing, use its link or its id with the matching option, like `--videoUrl` or `--videoId`. Send one, not both.
 
-Run `stophy <source> --help` to see what a source can do, and `stophy <source> <command> --help` for every option on one command. `stophy endpoints reddit` lists the commands for a source with their cost, and `stophy describe reddit.search` shows one command's options and an example. If a value is not one the option accepts, the CLI stops before it calls Stophy and lists the values that work.
+`stophy <source> --help` lists what a source can do, and `stophy <source> <command> --help` lists every option. A value the option doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
 
 ## Read the output
 
@@ -116,13 +116,11 @@ stophy usage
 stophy logs --days 7
 ```
 
-`status` shows your login, balance and CLI version. `usage` shows your balance and all-time usage. `logs` shows your recent requests.
-
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `stophy init` | Log in, install the agent skills, and add the MCP server |
+| `stophy init` | Set up Stophy in your coding agents |
 | `stophy login` | Log in with your browser or an API key |
 | `stophy logout` | Log out and revoke this computer's key |
 | `stophy <source> <command>` | Get data, for example `stophy youtube search` |

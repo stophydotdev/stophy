@@ -26,34 +26,6 @@ curl -fsSL https://stophy.dev/install | bash
 
 </CodeGroup>
 
-## Make a call
-
-No account, no key.
-
-<CodeGroup>
-
-```ts TypeScript icon="/images/icons/typescript.svg"
-import { Stophy } from "stophy";
-
-const result = await new Stophy().google.search({ query: "postgres jsonb index" });
-console.log(result.data.results);
-```
-
-```python Python icon="python"
-from stophy import Stophy
-
-result = Stophy().google.search(query="postgres jsonb index")
-print(result["data"]["results"])
-```
-
-```bash CLI icon="square-terminal"
-stophy google search "postgres jsonb index"
-```
-
-</CodeGroup>
-
-You get page 1 of Google results, and `creditsUsed: 0` means it cost nothing. A key opens every endpoint and every page.
-
 ## Pick one
 
 <CardGroup cols={3}>
@@ -68,4 +40,4 @@ You get page 1 of Google results, and `creditsUsed: 0` means it cost nothing. A 
   </Card>
 </CardGroup>
 
-`npx -y @stophy/cli init --all` adds Stophy's skills and MCP server to your coding agent. See [Quickstart](/quickstart) to get a key.
+Get a key in the [Quickstart](/quickstart).

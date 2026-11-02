@@ -5,7 +5,7 @@ og:title: "Find the right endpoint | Stophy"
 og:description: "Search the live Stophy catalog by keyword, browse it by category, or read one endpoint's full input before you write a call. No key needed to look."
 ---
 
-Search the catalog for any word. No key needed.
+## Search by keyword
 
 <CodeGroup>
 
@@ -67,12 +67,10 @@ stophy youtube transcript --help
 ```
 </Accordion>
 
-The `example` field is a call you can send as it is. `sendOne` lists the fields where you send one and not both. A field not in `input` returns a `400`.
+The `example` field is a call you can send as it is. `sendOne` lists the fields where you send one and not both.
 
-## Browse by category
-
-Each page under [What you can get](/sources/web) lists the endpoints for one category, with the price and a call you can copy. The [API reference](/api-reference/introduction) has the same input for every endpoint.
+## From your agent
 
 Over [MCP](/mcp-server), the `stophy_search_endpoints` tool runs this same search for your agent.
 
-<Tip>Try a call in the [playground](https://stophy.dev/playground) before you write any code.</Tip>
+<Tip>Try a call in the [playground](https://stophy.dev/app/playground) before you write any code.</Tip>

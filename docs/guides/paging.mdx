@@ -38,7 +38,7 @@ curl -X POST https://api.stophy.dev/v1/google/search \
 
 One call returns one page, the way the site shows it. Page 2 continues page 1 with no repeats. A page holds what the site puts on it, so the number of results changes from call to call.
 
-Each endpoint pages in one of three ways. Its page in the [API reference](/api-reference/introduction) says which.
+Each endpoint pages in one of three ways.
 
 | The endpoint takes | How to get the next page | Examples |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ Each endpoint pages in one of three ways. Its page in the [API reference](/api-r
 | `cursor` | Send the same input with the `cursor` from the last response, until a response has no `cursor`. | `youtube.search`, `reddit.search`, `tiktok.search`, `instagram.comments` |
 | neither | There is no next page. One call returns everything for that input. | `google.maps.place`, `appstore.search`, `google.images` |
 
-Keep the rest of the input the same between pages. Each page is a normal call and costs its normal price.
+Keep the rest of the input the same between pages.
 
 ## Loop through numbered pages
 
@@ -154,6 +154,6 @@ Set your own stop, like the 5 pages or 100 results above. Some sources have many
 
 ## Keep fewer results
 
-`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. All of them except `google.ads.advertisers` charge $0.0015 per 10 results, so fewer results cost less.
+`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. Except on `google.ads.advertisers`, fewer results [cost less](/billing).
 
 On every other endpoint, `limit` returns a `400`. To keep a model's context small, take the rows you need from `data.results`, or use `fields` through the [MCP server](/mcp-server) to keep only some keys.

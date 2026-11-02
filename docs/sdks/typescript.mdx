@@ -24,35 +24,11 @@ const result = await new Stophy().google.search({ query: "postgres jsonb index" 
 console.log(result.data.results);
 ```
 
-<Accordion title="Response">
-```json
-{
-  "success": true,
-  "data": {
-    "results": [
-      {
-        "type": "web",
-        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
-        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
-        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
-        "position": 1
-      }
-    ],
-    "page": 1
-  },
-  "creditsUsed": 0,
-  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
-}
-```
-</Accordion>
-
-Every response has `success`, `data`, `creditsUsed` and `requestId`. A list is in `data.results`.
-
-Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The inputs and results are typed, so a missing required field is a compile error. The [API reference](/api-reference/introduction) lists every endpoint.
+Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The inputs and results are typed, so a missing required field is a compile error.
 
 ## Use a key
 
-Without a key you can call the endpoints marked `keyless: true` in the catalog, and you get the first page only. Every other call throws a `StophyError` with code `apiKeyRequired`.
+A call that needs a key throws a `StophyError` with code `apiKeyRequired`.
 
 Set `STOPHY_API_KEY` and `new Stophy()` picks it up. Or pass it in:
 
@@ -78,7 +54,7 @@ console.log(catalog.endpoints.length, free.length);
 
 ## Page through results
 
-A list call returns one page. When there is more, `data.cursor` is set. Pass it back to get the next page. This needs a key.
+When there is more, `data.cursor` is set. Pass it back for the next page. Paging needs a key.
 
 ```ts
 import { Stophy } from "stophy";
@@ -110,7 +86,7 @@ try {
 }
 ```
 
-The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it throws at once with `retryAfterSeconds` set. A failed call costs nothing. See [Errors](/api-reference/errors) for every code.
+The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it throws at once with `retryAfterSeconds` set. [Errors](/api-reference/errors) lists every code.
 
 ## Options
 
@@ -158,4 +134,3 @@ for (const entry of logs.logs) {
 }
 ```
 
-`balanceMicros` is your balance in millionths of a dollar, so divide by 1,000,000 for dollars. See [Usage](/api-reference/usage) and [Logs](/api-reference/logs).
