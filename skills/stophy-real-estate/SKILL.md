@@ -40,7 +40,7 @@ Run `stophy <source> --help` for every command. The sources here are `zillow` an
 ## Tips
 
 - Search first to get a property link or ID, then run `property` on it for the full details. To point at one home, give its link or its id, never both: `--propertyUrl` or `--propertyId`.
-- `zillow search` costs 2 credits per call. `zillow property`, `realtor search` and `realtor property` cost 1.
+- `zillow search` costs $0.003 a call. `zillow property`, `realtor search` and `realtor property` cost $0.0015.
 - `zillow search` takes `--status` (`forSale`, `forRent` or `sold`), price, bedroom, bathroom, size and lot filters, `--homeTypes`, `--daysOnZillow`, `--keywords` and `--sort`. It also takes yes-or-no filters such as `--hasPool`, `--hasGarage`, `--priceReduced` and `--openHouse`. Run `stophy zillow search --help` for every option.
 - Search returns one page. Run the same command with `--page 2` and so on, until a page has no results. Each page costs the same again.
 - `realtor search` takes `--status`, `--minPrice`, `--maxPrice`, bedroom, bathroom and size filters, `--homeTypes` and `--sort` (`relevance`, `newest`, `priceLow` or `priceHigh`), and `--page 2` for the next page.
