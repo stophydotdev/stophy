@@ -9,11 +9,9 @@ mode: "wide"
 
 import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
 
-Connect your agent to Stophy in one command. Pick your client and run it.
+Pick your client and run its command.
 
 <McpClientSelector showSeeAll={false} />
-
-This needs no key. Your agent can use the free endpoints right away.
 
 ## Choose how to connect
 
@@ -34,8 +32,6 @@ This needs no key. Your agent can use the free endpoints right away.
 | No key or API key | `https://api.stophy.dev/mcp` |
 | Browser sign-in | `https://mcp.stophy.dev/mcp` |
 
-Both are server URLs for your client, not pages to open in a browser.
-
 ## What your agent sees
 
 Three tools. `stophy_search_endpoints` finds an endpoint, `stophy_describe_endpoint` shows its inputs, and `stophy_call` runs it. `stophy_call` takes `id`, `input` and optional `fields`, which keeps only the keys you name on each result.
@@ -47,12 +43,3 @@ To get one tool per endpoint for some sources, add `toolsets` to the URL.
 ```text
 https://api.stophy.dev/mcp?toolsets=reddit,youtube
 ```
-
-## Client guides
-
-<CardGroup cols={2}>
-  <Card title="Claude Code" icon="terminal" href="/quickstarts/claude-code" />
-  <Card title="Claude Desktop" icon="desktop" href="/quickstarts/claude-desktop" />
-  <Card title="Cursor" icon="arrow-pointer" href="/quickstarts/cursor" />
-  <Card title="Codex" icon="code" href="/quickstarts/codex" />
-</CardGroup>

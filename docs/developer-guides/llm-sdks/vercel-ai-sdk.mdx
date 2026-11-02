@@ -9,7 +9,7 @@ Give any AI SDK model live web search. The model asks for a search, `execute` ca
 
 ## The search tool
 
-Save this as `stophy.ts`. It calls Google search and returns the top 5 results as JSON. It works with no key. Set `STOPHY_API_KEY` to lift the free limit.
+Save this as `stophy.ts`. When `execute` calls it, it returns the top 5 Google results as JSON.
 
 ```ts stophy.ts
 export async function stophySearch(query: string): Promise<string> {
@@ -32,7 +32,7 @@ export async function stophySearch(query: string): Promise<string> {
 npm install ai @ai-sdk/openai zod
 ```
 
-Set `OPENAI_API_KEY` in your environment.
+Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
 Wrap the search in `tool()`. `stopWhen` lets the model search, read the results and answer in up to five steps. Any AI SDK model works, so swap `openai(...)` for another provider.
 

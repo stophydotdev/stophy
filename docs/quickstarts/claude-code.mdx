@@ -5,13 +5,13 @@ og:title: "Claude Code | Stophy"
 og:description: "Add Stophy to Claude Code with one command. Start with no key, sign in with your browser, or use an API key to open every endpoint."
 ---
 
-Add Stophy to [Claude Code](https://code.claude.com) with one command.
+Run this in your terminal. It adds Stophy to [Claude Code](https://code.claude.com) with the free endpoints.
 
 ```bash
 claude mcp add --transport http stophy https://api.stophy.dev/mcp
 ```
 
-Your agent can use the free endpoints right away. Run `claude mcp get stophy` to check it.
+Run `claude mcp get stophy` to check it.
 
 ## Sign in with your browser
 
@@ -35,4 +35,4 @@ Set `STOPHY_API_KEY` first. [Get a key](https://stophy.dev/signup). Your shell f
 Use Stophy to find the top Reddit posts about Bun this week and summarize them.
 ```
 
-If you see two `stophy` servers, run `claude mcp remove stophy` and add the one you want. To get one tool per endpoint for some sources, see [toolsets](/mcp-server#what-your-agent-sees).
+If you see two `stophy` servers, run `claude mcp remove stophy` and add the one you want.
