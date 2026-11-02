@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.stophydotdev/mcp",
   "title": "Stophy",
-  "description": "Web scraping API for AI agents.",
+  "description": "Give your agents the live web.",
   "version": "1.2.0",
   "repository": {
     "url": "https://github.com/stophydotdev/stophy.git",
