@@ -11,7 +11,7 @@ from .transport import DEFAULT_BASE_URL, AsyncTransport, compact, default_header
 
 
 class AsyncStophy(AsyncSurface):
-    """Asynchronous client for the Stophy web scraping API."""
+    """Calls the Stophy API with async methods that return dicts."""
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class AsyncStophy(AsyncSurface):
         return await self._transport.request(method, path, json={} if body is None else body)
 
     async def usage(self) -> Usage:
-        """Current balance and lifetime usage. Requires an API key."""
+        """Returns your balance and lifetime usage. Needs an API key."""
         return parse_usage(await self._transport.get("/v1/usage"))
 
     async def logs(
@@ -61,7 +61,7 @@ class AsyncStophy(AsyncSurface):
         api_key_id: str | None = None,
         endpoint: str | None = None,
     ) -> Logs:
-        """Recent metered requests. Requires an API key."""
+        """Returns your recent paid calls, newest first. Needs an API key."""
         return parse_logs(
             await self._transport.get(
                 "/v1/logs",
