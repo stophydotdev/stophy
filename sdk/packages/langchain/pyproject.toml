@@ -1,0 +1,46 @@
+[project]
+name = "langchain-stophy"
+version = "0.1.0"
+description = "Give your agents the live web. Stophy tools for LangChain: search the web, read pages, and look up products, places, jobs and homes."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Stophy" }]
+keywords = ["stophy", "langchain", "tools", "web-search", "scraping", "ai-agents", "llm"]
+dependencies = ["langchain-core>=1.2.0,<2.0.0", "stophy>=1.2.1"]
+
+[project.urls]
+Homepage = "https://stophy.dev"
+Repository = "https://github.com/stophydotdev/stophy"
+Documentation = "https://github.com/stophydotdev/stophy/tree/main/sdk/packages/langchain"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.5", "pyright>=1.1.400", "langchain-tests==1.1.9"]
+
+[tool.uv.sources]
+stophy = { path = "../python", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/langchain_stophy"]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pyright]
+include = ["src"]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit_tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
