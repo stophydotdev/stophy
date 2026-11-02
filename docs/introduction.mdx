@@ -1,20 +1,18 @@
 ---
 title: "Introduction"
-description: "Stophy is a web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes."
+description: "Give your agents the live web. Send a JSON request to search the web, read what people say, or look up products, places, jobs and homes."
 og:title: "Introduction | Stophy"
-og:description: "Stophy is a web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes."
+og:description: "Give your agents the live web. Send a JSON request to search the web, read what people say, or look up products, places, jobs and homes."
 ---
 
-Stophy is a web scraping API for AI agents. One API to search the web, read what people say, and look up products, places, jobs and homes. Pay only for answers.
+Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.
 
-## Try it now
-
-No account, no key. Run this.
+You send a JSON request and get JSON back. Most calls cost $1.50 per 1,000. The call below needs no key.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/google/search \
   -H "content-type: application/json" \
-  -d '{"query":"bun runtime"}'
+  -d '{"query":"postgres jsonb index"}'
 ```
 
 <Accordion title="Response">
@@ -25,20 +23,21 @@ curl -X POST https://api.stophy.dev/v1/google/search \
     "results": [
       {
         "type": "web",
-        "url": "https://bun.com/",
-        "title": "Bun — A fast all-in-one JavaScript runtime",
-        "description": "Bun is a fast JavaScript runtime & toolkit. All in one. Runtime, package manager, test runner and bundler in a single binary.",
+        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
+        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
+        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
         "position": 1
       }
-    ]
+    ],
+    "page": 1
   },
   "creditsUsed": 0,
-  "requestId": "5d8fa22c-6ed4-4690-b20f-5b6b92b160a6"
+  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
 }
 ```
 </Accordion>
 
-You get Google results with `creditsUsed: 0`. A key lifts the free limit, and a failed call costs nothing.
+That is page 1 of Google results, and `creditsUsed: 0` means it cost nothing. Without a key you get the first page only, up to 10 calls a minute and 50 a day. A key opens every endpoint and every page.
 
 ## Connect your agent
 
@@ -52,7 +51,7 @@ codex mcp add stophy --url https://api.stophy.dev/mcp
 ```
 </CodeGroup>
 
-Your agent can use the free endpoints right away. To use every endpoint, sign in with your browser at `https://mcp.stophy.dev/mcp`. Every other client has its own page in [MCP server](/mcp-server).
+Your agent can call the free endpoints right away. To use every endpoint, sign in with your browser at `https://mcp.stophy.dev/mcp`. Every other client has its own page under [MCP server](/mcp-server).
 
 ## What your agent can get
 
@@ -88,15 +87,15 @@ Your agent can use the free endpoints right away. To use every endpoint, sign in
 
 ## Search, then read
 
-Find posts with `reddit.search`, then open one with `reddit.post` to read its comments. Most sites work this way. Each call returns one page, and the response tells you how to get the next. `reddit.search` is free to try, and `reddit.post` needs a key. See [Page through results](/guides/paging).
+Most sites take two calls. Find posts with `reddit.search`, then open one with `reddit.post` to read its comments. Each call returns one page, and the response tells you how to get the next. `reddit.search` works without a key and `reddit.post` needs one. See [Page through results](/guides/paging).
 
 ## What it costs
 
-- Most calls cost 1 credit.
-- New accounts get 1,000 free credits.
+- Most calls cost $0.0015, which is $1.50 per 1,000. Top up $100 or more and they cost $1.20 per 1,000, or $0.80 from $500.
+- New accounts start with $1.50 free, enough for 1,000 calls.
 - A call that fails or finds nothing costs nothing.
 
-See [Credits and billing](/billing) for the few that cost more.
+A few endpoints cost more. [Pricing](/billing) lists them.
 
 ## Next
 

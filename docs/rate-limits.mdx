@@ -1,21 +1,24 @@
 ---
 title: "Rate limits"
-description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
+description: "Stophy allows 600 requests a minute per account. Without a key, free calls stop at 10 a minute and 50 a day for each IP address."
 og:title: "Rate limits | Stophy"
-og:description: "Stophy allows 600 requests a minute per account, lower free limits without a key, and a clear way to handle a 429."
+og:description: "Stophy allows 600 requests a minute per account. Without a key, free calls stop at 10 a minute and 50 a day for each IP address."
 ---
+
+With a key you can send 600 requests a minute per account. Without one, you get 10 a minute and 50 a day for each IP address.
 
 | | Limit |
 | --- | --- |
-| Requests | 600 a minute per account |
+| With a key | 600 requests a minute per account |
+| Without a key | 10 requests a minute and 50 a day per IP address |
 
-Every call answers or fails within 25 seconds, or up to 62 seconds when it reads a site you pick or asks ChatGPT or Gemini.
+Most calls answer within 15 seconds. A few take up to a minute, like reading a page you pick, transcribing audio, or asking ChatGPT or Gemini. Set your client timeout to at least 65 seconds.
 
 ## Without a key
 
-Endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work with no key, over HTTP and [MCP](/mcp-server/keyless). Without a key you get the first page only. Free calls are limited to 10 a minute and 50 a day for each IP address, and going over returns a `429`.
+Endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work with no key, over HTTP and [MCP](/mcp-server/keyless). You get the first page only.
 
-[Sign up](https://stophy.dev/signup) for 1,000 free credits, higher limits and every endpoint.
+[Sign up](https://stophy.dev/signup) for $1.50 free, the higher limit and every endpoint.
 
 ## Headers
 
@@ -25,6 +28,7 @@ Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 
 | Code | Status | What to do |
 | --- | --- | --- |
-| `rateLimited` | `429` | Wait for the `Retry-After` header, which is also `retryAfterSeconds` in the body, then retry. |
+| `rateLimited` | `429` | You sent more than 600 requests this minute with a key. Wait for the `Retry-After` header, which is also `retryAfterSeconds` in the body, then retry. |
+| `freeLimit` | `429` | You used the free calls without a key. Get a key at `signupUrl`, or wait for `retryAfterSeconds`. |
 
-It is marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.
+Both are marked `retryable: true`. See [Errors and retries](/guides/errors-and-retries) for a retry loop.

@@ -1,44 +1,44 @@
 ---
-title: "Credits and billing"
-description: "Stophy credits start at $0.80 per 1,000. New accounts get 1,000 free, most calls cost 1 credit, and a call that fails or finds nothing costs nothing."
-og:title: "Credits and billing | Stophy"
-og:description: "Stophy credits start at $0.80 per 1,000. New accounts get 1,000 free, most calls cost 1 credit, and a call that fails or finds nothing costs nothing."
+title: "Pricing"
+description: "Most Stophy calls cost $1.50 per 1,000, $1.20 from $100 and $0.80 from $500. New accounts start with $1.50 free, and a failed call costs nothing."
+og:title: "Pricing | Stophy"
+og:description: "Most Stophy calls cost $1.50 per 1,000, $1.20 from $100 and $0.80 from $500. New accounts start with $1.50 free, and a failed call costs nothing."
 ---
 
-Most calls cost 1 credit, new accounts get 1,000 free, and a call that fails or finds nothing costs nothing.
+Most calls cost $1.50 per 1,000, $1.20 from $100 and $0.80 from $500. New accounts start with $1.50 free, and a call that fails or finds nothing costs nothing.
 
 ## Price
 
-| You add | Price per 1,000 credits |
-| --- | --- |
-| Less than $100 | $1.50 |
-| $100 or more | $1.20 |
-| $500 or more | $0.80 |
+| You top up | Most calls cost | Per 1,000 calls |
+| --- | --- | --- |
+| Less than $100 | $0.0015 | $1.50 |
+| $100 or more | $0.0012 | $1.20 |
+| $500 or more | $0.0008 | $0.80 |
 
-Top up at [stophy.dev](https://stophy.dev). The smallest top-up is $10. Credits never expire.
+Top up at [stophy.dev](https://stophy.dev), from $10 to $10,000 at a time. Your balance never expires.
 
 ## What a call costs
 
-Of the 137 endpoints, 117 cost 1 credit and 1 costs 2. Fifteen are priced per unit and 4 are free.
+Of the 137 endpoints, 117 cost $0.0015 and 1 costs $0.003. Fifteen are priced per unit and 4 are free. These prices are for top-ups under $100, and the larger tiers cut each one by the same share.
 
 | Cost | Endpoints |
 | --- | --- |
-| 2 credits | `zillow.search` |
-| 1 credit per 10 images | `google.images`, `web.images` |
-| 1 credit per 10 articles | `web.news` |
-| 1 credit per 10 listings | `craigslist.search` |
-| 1 credit per 10 apps | `appstore.search`, `appstore.top`, `google.play.search` |
-| 1 credit, plus 1 for each result read in full | `google.search`, when `scrapeResults` is on |
-| 1 credit per 10 results, plus 1 for each result read in full | `web.search`, when `scrapeResults` is on |
-| 1 credit a page, 2 when a page takes more work to load, 5 on the hardest pages to reach | `web.scrape`, `web.crawl`, `web.crawl.start`, `web.batch` |
-| 2 credits, or 5 on the hardest pages to reach, for a screenshot, actions or `waitFor` | `web.scrape`, `web.batch` |
+| $0.003 | `zillow.search` |
+| $0.0015 per 10 images | `google.images`, `web.images` |
+| $0.0015 per 10 articles | `web.news` |
+| $0.0015 per 10 listings | `craigslist.search` |
+| $0.0015 per 10 apps | `appstore.search`, `appstore.top`, `google.play.search` |
+| $0.0015, plus $0.0015 for each result read in full | `google.search`, when `scrapeResults` is on |
+| $0.0015 per 10 results, plus $0.0015 for each result read in full | `web.search`, when `scrapeResults` is on |
+| $0.0015 a page, $0.003 when a page takes more work to load, $0.0075 on the hardest pages to reach | `web.scrape`, `web.crawl`, `web.crawl.start`, `web.batch` |
+| $0.003, or $0.0075 on the hardest pages to reach, for a screenshot, actions or `waitFor` | `web.scrape`, `web.batch` |
 | Free | `web.crawl.status`, `web.crawl.cancel`, `web.batch.status`, `web.batch.cancel` |
-| 2 credits, plus 1 per 10 seconds of audio | `instagram.transcript` |
-| 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio | `tiktok.transcript` |
+| $0.0015, plus $0.0015 per 30 seconds of audio | `instagram.transcript` |
+| $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio | `tiktok.transcript` |
 
-Every other endpoint costs 1 credit, however many results come back.
+Every other endpoint costs $0.0015, however many results come back. Starting a `web.crawl.start` or `web.batch` job is free, and each page is charged when it finishes. A `web.scrape` answer from a stored copy costs $0.0015.
 
-Each endpoint's price is on its page in the [API reference](/api-reference/introduction). The catalog has it too, as `credits` and, when the price varies, `pricing`.
+Each endpoint's price is on its page in the [API reference](/api-reference/introduction). The catalog has it too, as `credits` and, when the price varies, `pricing`. One unit of `credits` is $0.0015 at the base price.
 
 ```bash
 curl https://api.stophy.dev/v1/endpoints
@@ -46,13 +46,13 @@ curl https://api.stophy.dev/v1/endpoints
 
 ## Transcripts
 
-`youtube.transcript` costs 1 credit. For `instagram.transcript` and `tiktok.transcript`, audio is rounded up to the next 10 seconds. Instagram goes up to 30 minutes, which is 182 credits at most. TikTok goes up to 3 minutes, which is 20 credits at most. A longer video is refused and costs nothing.
+`youtube.transcript` costs $0.0015. Audio is rounded up to the next 30 seconds for `instagram.transcript` and the next 10 seconds for `tiktok.transcript`. Instagram takes videos up to 5 minutes, which is $0.0165 at most. TikTok takes up to 3 minutes, which is $0.03 at most. A longer video is refused and costs nothing.
 
 When audio was transcribed, the response has `transcribedSeconds`.
 
 ## Limit the cost of a long list
 
-`google.images`, `google.ads.advertisers`, `appstore.search`, `appstore.top`, `google.play.search` and `craigslist.search` take `limit`. On the priced ones, a smaller `limit` costs fewer credits.
+`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. On the ones priced per 10, a smaller `limit` costs less.
 
 ## Pages
 
@@ -60,8 +60,8 @@ One call returns one page. The next page is a new call and costs the same again.
 
 ## See what a call cost
 
-Every successful response has `creditsUsed` in the body and an `x-credits-used` header. For your balance and history, use [`GET /v1/usage`](/api-reference/usage) and [`GET /v1/logs`](/api-reference/logs).
+Every successful response has `creditsUsed` in the body and an `x-credits-used` header. Each unit is $0.0015 at the base price, so `creditsUsed: 2` is $0.003. For your balance and history, use [`GET /v1/usage`](/api-reference/usage) and [`GET /v1/logs`](/api-reference/logs).
 
 ## Running out
 
-When your balance is too low, the call answers `402` with code `insufficientCredits` and charges nothing. The error says how many credits the call needs and how many you have.
+When your balance is too low, the call answers `402` with code `insufficientCredits` and charges nothing. The error has `requiredCredits` and `availableCredits`, in the same units as `creditsUsed`, and a `billingUrl` to top up.
