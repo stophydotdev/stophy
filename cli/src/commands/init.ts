@@ -222,7 +222,7 @@ export async function runInit(
 export function registerInitCommand(program: Command) {
   program
     .command("init")
-    .description("Log in, install the agent skills, and add the MCP server")
+    .description("Set up Stophy in your coding agents")
     .option("--all", "Run every step without asking")
     .option("--agent <name>", "Set up one agent, such as claude-code or codex")
     .option("--skip-auth", "Do not log in")

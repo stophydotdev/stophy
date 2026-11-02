@@ -12,7 +12,7 @@ type LoginMode = "api-key" | "browser";
 
 async function promptForLoginMode(): Promise<LoginMode> {
   err(`  @stophy/cli v${packageJson.version}`);
-  err("  The web scraping API for AI agents, from your terminal");
+  err("  Give your agents the live web from your terminal");
   err("");
   err("Welcome! To get started, authenticate with your Stophy account.");
   err("");
@@ -54,9 +54,9 @@ async function handleApiKeyLogin(apiKeyOption?: boolean | string) {
 export function registerLoginCommand(program: Command) {
   program
     .command("login")
-    .description("Log in to your Stophy account")
-    .option("--browser", "Open the Stophy login page in your browser")
-    .option("--api-key [key]", "Store an API key directly")
+    .description("Log in with your browser or an API key")
+    .option("--browser", "Log in with your browser")
+    .option("--api-key [key]", "Save an API key on this computer")
     .action(async (options: { apiKey?: boolean | string; browser?: boolean }) => {
       const mode = await resolveLoginMode(options);
       if (mode === "browser") {

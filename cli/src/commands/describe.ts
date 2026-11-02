@@ -8,7 +8,7 @@ export function registerDescribeCommand(program: Command, endpoints: readonly Ca
   const byId = new Map(endpoints.map((endpoint) => [endpoint.id, endpoint]));
   program
     .command("describe")
-    .description("Show a command's options, cost and an example")
+    .description("Show a command's options, price and an example")
     .argument("<id>", "Endpoint id, for example youtube.search")
     .addHelpText(
       "after",

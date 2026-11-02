@@ -37,7 +37,7 @@ function formatApiKeySource(source?: "env" | "stored") {
 export function registerAccountCommands(program: Command) {
   program
     .command("view-config")
-    .description("Show your current config and auth status")
+    .description("Show your config and login")
     .action(async () => {
       const stored = await loadConfig();
       const runtime = await resolveRuntimeConfig();
@@ -72,7 +72,7 @@ export function registerAccountCommands(program: Command) {
 
   program
     .command("logout")
-    .description("Log out and revoke this machine's key")
+    .description("Log out and revoke this computer's key")
     .action(async () => {
       process.stderr.write(await logout(revokeKey));
     });

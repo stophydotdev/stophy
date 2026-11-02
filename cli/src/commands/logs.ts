@@ -17,7 +17,7 @@ export function registerLogsCommand(program: Command) {
     .description("Show your recent requests")
     .option("--days <days>", "How many days back to include, from 1 to 90", "7")
     .option("--page <page>", "Page number, starting at 0", "0")
-    .option("--endpoint <endpoint>", "Only show one command, e.g. youtube.search")
+    .option("--endpoint <endpoint>", "Only show one command, like youtube.search")
     .option("--json", "Print raw JSON")
     .option("-o, --output <file>", "Write output to a file")
     .addHelpText(

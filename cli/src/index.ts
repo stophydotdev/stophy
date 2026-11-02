@@ -38,7 +38,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
   program
     .name("stophy")
     .version(packageJson.version)
-    .description("The web scraping API for AI agents, from your terminal.")
+    .description("Give your agents the live web from your terminal.")
     .showHelpAfterError()
     .addHelpText(
       "after",

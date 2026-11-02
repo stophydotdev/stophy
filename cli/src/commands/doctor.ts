@@ -288,7 +288,7 @@ function renderChecks(checks: CheckResult[]): void {
 export function registerDoctorCommand(program: Command) {
   program
     .command("doctor")
-    .description("Run diagnostics on your CLI install, auth, and API connectivity")
+    .description("Check your install, login and connection")
     .option("--json", "Print raw JSON")
     .action(async (options) => {
       const checks = await runChecks();
