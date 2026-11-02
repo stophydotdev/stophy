@@ -4,7 +4,7 @@ Mintlify site for docs.stophy.dev. Pages are MDX with YAML frontmatter. Configur
 
 ## Layout
 
-- Documentation tab: `introduction`, `quickstart`, `mcp-server` (overview) with `mcp-server/{keyless,oauth}`, `ai-onboarding`, `advanced-guide`, `billing`, `rate-limits`, the "What you can get" category pages `sources/*`, `guides/*`.
+- Documentation tab: `introduction`, `quickstart`, `mcp-server` (overview) with `mcp-server/{keyless,oauth}`, `ai-onboarding`, `billing`, `rate-limits`, the "What you can get" category pages `sources/*`, `guides/*`.
 - API Reference tab: `api-reference/{introduction,errors,usage,logs}` (hand-written) and `api-reference/endpoint/*` (generated), grouped by category, then source.
 - Build with AI tab: `ai-onboarding`, the MCP pages, `quickstarts/{claude-code,claude-desktop,cursor,codex}`, `developer-guides/llm-sdks/*`.
 - SDKs tab: `sdks/{overview,typescript,python,cli}`.

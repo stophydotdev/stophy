@@ -5,14 +5,12 @@ og:title: "Quickstart | Stophy"
 og:description: "Make your first Stophy call with no key, then add a key to use all 137 endpoints from TypeScript, Python, cURL or the CLI."
 ---
 
-Send a search with no key and get Google results as JSON. Then add a key to use all 137 endpoints.
-
-## Try it with no key
+## Call it with no key
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/google/search \
   -H "content-type: application/json" \
-  -d '{"query":"postgres jsonb index"}'
+  -d '{"query":"typescript release notes"}'
 ```
 
 <Accordion title="Response">
@@ -23,31 +21,25 @@ curl -X POST https://api.stophy.dev/v1/google/search \
     "results": [
       {
         "type": "web",
-        "url": "https://www.postgresql.org/docs/9.6/functions-json.html",
-        "title": "PostgreSQL: Documentation: 9.6: JSON Functions and Operators",
-        "description": "August 12, 2021 - Some further operators also exist only for jsonb, as shown in Table 9-43. Many of these operators can be indexed by jsonb operator classes.",
+        "url": "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html",
+        "title": "TypeScript: Documentation - TypeScript 6.0",
+        "description": "6 days ago - While TypeScript 6.0 maintains full compatibility with your existing TypeScript knowledge and continues to be API compatible with TypeScript 5.9, this release introduces a number of breaking changes and deprecations.",
         "position": 1
       }
     ],
     "page": 1
   },
   "creditsUsed": 0,
-  "requestId": "e4395adf-cdd4-4bd3-97cb-329e60df032c"
+  "requestId": "e9eadb92-1a19-4127-b5e0-217da75f4b37"
 }
 ```
 </Accordion>
 
-`data.results` is page 1 of Google results, and `creditsUsed: 0` means it cost nothing. The endpoints marked `keyless: true` in the [endpoint catalog](https://api.stophy.dev/v1/endpoints) work this way, for the first page only. Past 10 calls a minute or 50 a day, you get `429` with code `freeLimit` and a `signupUrl`.
+That is page 1 of Google results, and it cost nothing. 27 endpoints answer like this with no key. [Rate limits](/rate-limits) has the free limits.
 
 ## Get a key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $1.50 free, enough for 1,000 calls. Create a key and save it as `STOPHY_API_KEY`.
-
-To use the CLI, install it. It reads `STOPHY_API_KEY`, or you can run `stophy login`.
-
-```bash
-curl -fsSL https://stophy.dev/install | bash
-```
+Sign up at [stophy.dev/signup](https://stophy.dev/signup) and your account starts with $1.50. Create a key and save it as `STOPHY_API_KEY`.
 
 ## Call it with your key
 
@@ -63,23 +55,17 @@ import WebSearchCli from '/snippets/examples/google.search/cli.mdx';
   <WebSearchCli />
 </CodeGroup>
 
-The response has the same shape and costs $0.0015. Send `page: 2` for the next page.
+The CLI reads `STOPHY_API_KEY` too. Install it with `curl -fsSL https://stophy.dev/install | bash`.
 
-Every endpoint is a `POST` to `https://api.stophy.dev/v1/` and its id with dots as slashes. `youtube.transcript` is `/v1/youtube/transcript`.
+Send `page: 2` for the next page of results.
 
 ## Next
 
 <CardGroup cols={2}>
   <Card title="Find an endpoint" icon="compass" href="/guides/find-endpoint">
-    Pick the right endpoint for what you need.
+    Pick the right call for your task.
   </Card>
   <Card title="Page through results" icon="list" href="/guides/paging">
     Get past the first page.
-  </Card>
-  <Card title="Pricing" icon="coins" href="/billing">
-    What each call costs, in dollars.
-  </Card>
-  <Card title="Connect over MCP" icon="plug" href="/mcp-server">
-    Let your agent call Stophy.
   </Card>
 </CardGroup>

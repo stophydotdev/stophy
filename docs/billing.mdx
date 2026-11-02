@@ -5,9 +5,7 @@ og:title: "Pricing | Stophy"
 og:description: "Most Stophy calls cost $1.50 per 1,000, $1.20 from $100 and $0.80 from $500. New accounts start with $1.50 free, and a failed call costs nothing."
 ---
 
-Most calls cost $1.50 per 1,000, $1.20 from $100 and $0.80 from $500. New accounts start with $1.50 free, and a call that fails or finds nothing costs nothing.
-
-## Price
+## Top-ups
 
 | You top up | Most calls cost | Per 1,000 calls |
 | --- | --- | --- |
@@ -19,7 +17,7 @@ Top up at [stophy.dev](https://stophy.dev), from $10 to $10,000 at a time. Your 
 
 ## What a call costs
 
-Of the 137 endpoints, 117 cost $0.0015 and 1 costs $0.003. Fifteen are priced per unit and 4 are free. These prices are for top-ups under $100, and the larger tiers cut each one by the same share.
+117 of the 137 endpoints cost $0.0015 a call, however many results come back. A call that fails or finds nothing is free, and every next page is a new call. The rest are below, at the under-$100 price. Larger top-ups cut each one by the same share.
 
 | Cost | Endpoints |
 | --- | --- |
@@ -36,32 +34,18 @@ Of the 137 endpoints, 117 cost $0.0015 and 1 costs $0.003. Fifteen are priced pe
 | $0.0015, plus $0.0015 per 30 seconds of audio | `instagram.transcript` |
 | $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio | `tiktok.transcript` |
 
-Every other endpoint costs $0.0015, however many results come back. Starting a `web.crawl.start` or `web.batch` job is free, and each page is charged when it finishes. A `web.scrape` answer from a stored copy costs $0.0015.
+Starting a `web.crawl.start` or `web.batch` job is free, and each page is charged when it finishes. A `web.scrape` answer from a stored copy costs $0.0015. Each endpoint's reference page and the [catalog](https://api.stophy.dev/v1/endpoints) show its price.
 
-Each endpoint's price is on its page in the [API reference](/api-reference/introduction). The catalog has it too, as `credits` and, when the price varies, `pricing`.
-
-```bash
-curl https://api.stophy.dev/v1/endpoints
-```
+On the endpoints priced per 10, send a smaller `limit` to pay less.
 
 ## Transcripts
 
-`youtube.transcript` costs $0.0015. Audio is rounded up to the next 30 seconds for `instagram.transcript` and the next 10 seconds for `tiktok.transcript`. Instagram takes videos up to 5 minutes, which is $0.0165 at most. TikTok takes up to 3 minutes, which is $0.03 at most. A longer video is refused and costs nothing.
-
-When audio was transcribed, the response has `transcribedSeconds`.
-
-## Limit the cost of a long list
-
-`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. On the ones priced per 10, a smaller `limit` costs less.
-
-## Pages
-
-One call returns one page. The next page is a new call and costs the same again. See [Page through results](/guides/paging).
+Audio is rounded up to the next 30 seconds for Instagram and the next 10 seconds for TikTok. Instagram takes videos up to 5 minutes, so at most $0.0165. TikTok takes up to 3 minutes, so at most $0.03. A longer video is refused and costs nothing. The response has `transcribedSeconds` when audio was transcribed.
 
 ## Cost units
 
-Every successful response has `creditsUsed` in the body and an `x-credits-used` header. They count what the call cost in units of $0.0015, so `creditsUsed: 2` is $0.003. Top up $100 or more and each unit costs you $0.0012, or $0.0008 from $500. The catalog's `credits`, the usage totals and the `insufficientCredits` error use the same unit. For your balance and history, use [`GET /v1/usage`](/api-reference/usage) and [`GET /v1/logs`](/api-reference/logs).
+Every successful response has `creditsUsed` in the body and an `x-credits-used` header. They count what the call cost in units of $0.0015, so `creditsUsed: 2` is $0.003. Top up $100 or more and each unit costs you $0.0012, or $0.0008 from $500. The catalog's `credits`, the [usage](/api-reference/usage) totals and the `insufficientCredits` error use the same unit.
 
 ## Running out
 
-When your balance is too low, the call answers `402` with code `insufficientCredits` and charges nothing. The error has `requiredCredits` and `availableCredits`, in the same units as `creditsUsed`, and a `billingUrl` to top up.
+A call your balance can't cover answers `402` with code `insufficientCredits` and charges nothing. The error has `requiredCredits`, `availableCredits` and a `billingUrl` to top up.
