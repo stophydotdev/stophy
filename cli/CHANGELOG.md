@@ -1,5 +1,11 @@
 # @stophy/cli
 
+## 2.1.0
+
+### Patch Changes
+
+- The version is above every version npm has had, so installs of 2.0.9 or older see this release as the latest. No code changes since 1.2.2.
+
 ## 1.2.2
 
 ### Patch Changes

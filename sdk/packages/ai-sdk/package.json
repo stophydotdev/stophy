@@ -46,7 +46,7 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "stophy": "^1.2.2"
+    "stophy": "^3.2.0"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",
