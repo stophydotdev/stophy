@@ -1,9 +1,9 @@
 import type { Command } from "commander";
 import { z } from "zod";
-import { isAgentMode } from "../agent.js";
-import { request } from "../client.js";
+import { agentName, isAgentMode } from "../agent.js";
+import { request, RequestError } from "../client.js";
 import { CliError } from "../errors.js";
-import { setStoredApiKey } from "../config.js";
+import { resolveRuntimeConfig, setStoredApiKey } from "../config.js";
 import { handleOutput, writeOutput } from "../output.js";
 
 const claimResponse = z.object({
@@ -42,6 +42,23 @@ export async function signUp(): Promise<void> {
     expiresAt,
     notice: `Signed up with ${credits} free credits. This key expires on ${expiresAt} unless a person claims it. Run \`stophy claim\` and give them the link.`,
   };
+}
+
+export const canPrompt = (): boolean => Boolean(process.stdin.isTTY) && agentName() === undefined;
+
+const NEEDS_KEY = new Set(["apiKeyRequired", "freeLimit"]);
+
+export async function withSignup<Value>(send: () => Promise<Value>): Promise<Value> {
+  try {
+    return await send();
+  } catch (error) {
+    if (!(error instanceof RequestError) || !NEEDS_KEY.has(error.failure.code)) throw error;
+    if (canPrompt()) throw error;
+    const { apiKey, sessionCookie } = await resolveRuntimeConfig();
+    if (apiKey || sessionCookie) throw error;
+    await signUp();
+    return send();
+  }
 }
 
 export function registerClaimCommand(program: Command) {

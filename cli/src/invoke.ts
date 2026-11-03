@@ -2,7 +2,7 @@ import { isAgentMode } from "./agent.js";
 import { currentArgs, flagTokens } from "./argv.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { request } from "./client.js";
-import { signupResult } from "./commands/claim.js";
+import { signupResult, withSignup } from "./commands/claim.js";
 import { CliError } from "./errors.js";
 import { parseCall } from "./flags.js";
 import { handleOutput, writeOutput } from "./output.js";
@@ -15,12 +15,14 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
   if (!parsed.ok) throw new CliError(parsed.message);
 
   const send = () =>
-    request({
-      method: "POST",
-      path: endpoint.path,
-      body: parsed.call.body,
-      accept: "application/json",
-    });
+    withSignup(() =>
+      request({
+        method: "POST",
+        path: endpoint.path,
+        body: parsed.call.body,
+        accept: "application/json",
+      }),
+    );
   const response = isAgentMode()
     ? await send()
     : await withSpinner(`Calling ${endpoint.id.split(".").join(" ")}…`, send);

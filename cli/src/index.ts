@@ -4,7 +4,7 @@ import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
 import { type Catalog, catalogFilePath, fetchCatalog, loadCatalog } from "./catalog.js";
 import { registerAccountCommands } from "./commands/account.js";
-import { registerClaimCommand, signUp } from "./commands/claim.js";
+import { canPrompt, registerClaimCommand, signUp } from "./commands/claim.js";
 import { registerDescribeCommand } from "./commands/describe.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
 import { commandPath, registerDynamicCommands } from "./commands/dynamic.js";
@@ -47,6 +47,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
       "after",
       `
 Run stophy <source> --help to see what it can do.
+Some calls need no key. Output is JSON when piped, or with --json.
 
 Examples:
   $ stophy google search "bun runtime" --page 2
@@ -82,7 +83,7 @@ Examples:
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) return;
-    if (process.stdin.isTTY) await promptLogin();
+    if (canPrompt()) await promptLogin();
     else await signUp();
   });
 

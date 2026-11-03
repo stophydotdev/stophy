@@ -2,9 +2,11 @@ import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
 import { z } from "zod";
 import { green } from "../color.js";
-import { setStoredApiKey, validateApiKey } from "../config.js";
+import { resolveRuntimeConfig, setStoredApiKey, validateApiKey } from "../config.js";
 import { CliError } from "../errors.js";
+import { handleOutput } from "../output.js";
 import { doBrowserLogin, prompt } from "../prompt-login.js";
+import { canPrompt, signUp, signupResult } from "./claim.js";
 
 const err = (msg: string) => process.stderr.write(`${msg}\n`);
 
@@ -51,6 +53,17 @@ async function handleApiKeyLogin(apiKeyOption?: boolean | string) {
   err(green("✓ Login successful!"));
 }
 
+async function loginWithoutPrompt(apiKey: boolean | string | undefined) {
+  const given = z.string().safeParse(apiKey);
+  if (given.success) await setStoredApiKey(validateApiKey(given.data));
+  else {
+    const { apiKey: current, sessionCookie } = await resolveRuntimeConfig();
+    if (!current && !sessionCookie) await signUp();
+  }
+  const signup = signupResult();
+  handleOutput({ success: true, data: { authenticated: true, ...(signup && { signup }) } });
+}
+
 export function registerLoginCommand(program: Command) {
   program
     .command("login")
@@ -58,6 +71,10 @@ export function registerLoginCommand(program: Command) {
     .option("--browser", "Log in with your browser")
     .option("--api-key [key]", "Save an API key on this computer")
     .action(async (options: { apiKey?: boolean | string; browser?: boolean }) => {
+      if (!canPrompt()) {
+        await loginWithoutPrompt(options.apiKey);
+        return;
+      }
       const mode = await resolveLoginMode(options);
       if (mode === "browser") {
         await doBrowserLogin();

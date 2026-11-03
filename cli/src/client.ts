@@ -5,7 +5,7 @@ import { resolveRuntimeConfig } from "./config.js";
 import { CliError, type ErrorDetails } from "./errors.js";
 import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
 
-const errorObject = z.object({
+const errorObject = z.looseObject({
   code: z.string(),
   message: z.string(),
   retryable: z.boolean(),
@@ -13,13 +13,7 @@ const errorObject = z.object({
   requestId: z.string().optional(),
 });
 
-export interface Failure {
-  readonly code: string;
-  readonly message: string;
-  readonly retryable: boolean;
-  readonly retryAfterSeconds?: number | undefined;
-  readonly requestId?: string | undefined;
-}
+export type Failure = z.infer<typeof errorObject>;
 
 const failureSchema = z.union([
   z.object({ error: z.string() }).transform(({ error }): Failure => ({
