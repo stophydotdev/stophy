@@ -19,7 +19,17 @@ Give your agents the live web. This repo is a plugin with two parts:
 
 ### Cursor
 
-Install the Stophy plugin from the [Cursor Marketplace](https://cursor.com/marketplace). Sign in when Cursor opens the browser.
+Stophy isn't in the Cursor Marketplace yet. Click **Add to Cursor** on [cursor.directory](https://cursor.directory/plugins/stophy), or add the server to `~/.cursor/mcp.json` yourself:
+
+```json
+{
+  "mcpServers": {
+    "stophy": { "url": "https://mcp.stophy.dev/mcp" }
+  }
+}
+```
+
+Sign in when Cursor opens the browser.
 
 ### Gemini CLI
 
