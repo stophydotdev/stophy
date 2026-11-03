@@ -42,3 +42,12 @@ test("the Claude Desktop page uses the connector, not the local package", () => 
   ).toHaveLength(1);
   expect(findings("mcp/README.md", '"args": ["-y", "@stophy/mcp"]')).toEqual([]);
 });
+
+test("the dead Smithery badge does not come back", () => {
+  expect(
+    findings(
+      "a.md",
+      "[![smithery](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)",
+    ),
+  ).toHaveLength(1);
+});
