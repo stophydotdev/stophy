@@ -1,7 +1,6 @@
 # Stophy skills
 
 [![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
-[![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
 Give your agents the live web. This repo is a plugin with two parts:
 
@@ -63,9 +62,11 @@ Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header
 ## Authentication
 
 ```bash
-stophy login --browser           # opens the browser
-export STOPHY_API_KEY=st_xxx     # env var also works
+stophy login --browser    # opens the browser
+stophy login --api-key    # asks for the key, so it stays out of shell history
 ```
+
+In CI, set `STOPHY_API_KEY` from your secret store.
 
 Treat the API key as a secret. Do not commit it, print it, or paste it into a shared log.
 

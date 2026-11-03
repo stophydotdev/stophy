@@ -43,11 +43,10 @@ stophy login --browser
 
 The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then click **Approve**. On a server with no browser, open the printed link on any other device.
 
-To use an API key from the [dashboard](https://stophy.dev/dashboard) instead:
+To use an API key from the [dashboard](https://stophy.dev/dashboard) instead, run this and paste the key when it asks, so it stays out of your shell history. In CI, set `STOPHY_API_KEY` from your secret store.
 
 ```bash
-stophy login --api-key st_...
-export STOPHY_API_KEY="st_..."
+stophy login --api-key
 ```
 
 Each computer gets its own key, and logging in again replaces it. `stophy logout` logs out and revokes the key.
