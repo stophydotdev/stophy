@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.3.1
+
+### Patch Changes
+
+- 71e96c3: Every request from the MCP server now sends `stophy-mcp/<version>` as its User-Agent, so Stophy can tell this package apart from other MCP clients.
+
 ## 1.3.0
 
 ### Minor Changes
