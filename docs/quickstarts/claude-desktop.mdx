@@ -1,54 +1,30 @@
 ---
 title: "Claude Desktop"
-description: "Add Stophy to Claude Desktop with the local MCP package. Use it with no key for free endpoints, or add an API key to open every endpoint."
+description: "Add Stophy to Claude Desktop as a custom connector. Paste one URL, sign in with your browser, and every Stophy endpoint works in your chats."
 og:title: "Claude Desktop | Stophy"
-og:description: "Add Stophy to Claude Desktop with the local MCP package. Use it with no key for free endpoints, or add an API key to open every endpoint."
+og:description: "Add Stophy to Claude Desktop as a custom connector. Paste one URL, sign in with your browser, and every Stophy endpoint works in your chats."
 ---
 
-Add Stophy to [Claude Desktop](https://claude.ai/download). It needs Node.js 18 or later.
+## Add the connector
 
-Claude Desktop runs a local package that forwards calls to Stophy. Open `claude_desktop_config.json`.
+1. In [Claude Desktop](https://claude.ai/download), open **Customize > Connectors**.
+2. Click **+ Add**, then **Add custom connector**.
+3. Name it `Stophy` and paste this URL, then click **Continue**.
 
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-Add this to `mcpServers`.
-
-```json
-{
-  "mcpServers": {
-    "stophy": {
-      "command": "npx",
-      "args": ["-y", "@stophy/mcp"]
-    }
-  }
-}
+```text
+https://mcp.stophy.dev/mcp
 ```
 
-Quit Claude Desktop and open it again. The free endpoints now work in any chat.
+4. Keep the sign-in settings Claude detects and click **Add**. Claude opens stophy.dev, where you sign in or sign up and approve the connection.
 
-## Use an API key
-
-[Get a key](https://stophy.dev/signup) to open every endpoint. Add `env` to the same entry.
-
-```json
-{
-  "mcpServers": {
-    "stophy": {
-      "command": "npx",
-      "args": ["-y", "@stophy/mcp"],
-      "env": { "STOPHY_API_KEY": "your key" }
-    }
-  }
-}
-```
+The same connector works in Claude on the web and on mobile. On the Free plan, Claude allows one custom connector.
 
 ## Try it
 
-Open a new chat and check that `stophy` lists its three tools. Then ask this.
+In a new chat, click **+**, then **Connectors**, and turn on Stophy. Then ask this.
 
 ```text
 Use Stophy to find the top Reddit posts about Bun this week and summarize them.
 ```
 
-If `stophy` is missing, check the file is valid JSON and quit Claude Desktop fully. If calls say `apiKeyRequired`, check the key has no extra spaces.
+If Stophy doesn't answer, check that the connector is on for this chat. If it asks you to sign in again, you signed out of stophy.dev, which disconnects the app.

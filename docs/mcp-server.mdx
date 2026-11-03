@@ -1,42 +1,86 @@
 ---
 title: "MCP server"
 sidebarTitle: "Overview"
-description: "Connect Claude Code, Codex, Cursor or any MCP client to Stophy with no key, with your browser, or with an API key. One command per client."
+description: "Connect Claude Code, Codex, Cursor, VS Code, Windsurf, Gemini CLI, Claude or Grok to Stophy with one command or one URL, and sign in with your browser."
 og:title: "MCP server | Stophy"
-og:description: "Connect Claude Code, Codex, Cursor or any MCP client to Stophy with no key, with your browser, or with an API key. One command per client."
+og:description: "Connect Claude Code, Codex, Cursor, VS Code, Windsurf, Gemini CLI, Claude or Grok to Stophy with one command or one URL, and sign in with your browser."
 mode: "wide"
 ---
 
-import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
+## Add Stophy to your client
 
-Pick your client and run its command.
+Each of these connects to `https://mcp.stophy.dev/mcp` and opens your browser to sign in, so your agent can use every endpoint.
 
-<McpClientSelector showSeeAll={false} />
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
+# then run /mcp in Claude Code, choose stophy and pick Authenticate
+```
+
+```bash Codex
+codex mcp add stophy --url https://mcp.stophy.dev/mcp
+codex mcp login stophy
+```
+
+```bash Gemini CLI
+gemini extensions install https://github.com/stophydotdev/stophy
+# then run /mcp auth stophy in Gemini CLI
+```
+
+```json Cursor (~/.cursor/mcp.json)
+{
+  "mcpServers": {
+    "stophy": { "url": "https://mcp.stophy.dev/mcp" }
+  }
+}
+```
+
+```json Windsurf (~/.codeium/windsurf/mcp_config.json)
+{
+  "mcpServers": {
+    "stophy": { "serverUrl": "https://mcp.stophy.dev/mcp" }
+  }
+}
+```
+
+```json OpenCode (opencode.json)
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "stophy": {
+      "type": "remote",
+      "url": "https://mcp.stophy.dev/mcp",
+      "enabled": true
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+VS Code connects with no key or an API key. See [No key and API key](/mcp-server/keyless).
+
+## Add Stophy to a chat app
+
+- **Claude** on the web, desktop or mobile: open **Customize > Connectors**, click **+ Add**, then **Add custom connector**, and paste `https://mcp.stophy.dev/mcp`. See [Claude Desktop](/quickstarts/claude-desktop).
+- **Grok** on grok.com: open [grok.com/connectors](https://grok.com/connectors), click **New Connector**, then **Custom**, paste `https://mcp.stophy.dev/mcp` and sign in.
 
 ## Choose how to connect
 
-<CardGroup cols={3}>
-  <Card title="No key" icon="bolt" href="/mcp-server/keyless">
-    Free endpoints only. Nothing to set up.
-  </Card>
-  <Card title="Browser sign-in" icon="right-to-bracket" href="/mcp-server/oauth">
-    Every endpoint. Approve the app in your browser.
-  </Card>
-  <Card title="API key" icon="key" href="/mcp-server/keyless#add-an-api-key">
-    Every endpoint. Your key goes in the client config.
-  </Card>
-</CardGroup>
+| | URL | Endpoints |
+| --- | --- | --- |
+| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every endpoint |
+| API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every endpoint |
+| No key | `https://api.stophy.dev/mcp` | The free ones, first page only |
 
-| | URL |
-| --- | --- |
-| No key or API key | `https://api.stophy.dev/mcp` |
-| Browser sign-in | `https://mcp.stophy.dev/mcp` |
+Both are server URLs for your client, not pages to open in a browser. [Browser sign-in](/mcp-server/oauth) explains what happens when you approve the app.
 
 ## What your agent sees
 
 Three tools. `stophy_search_endpoints` finds an endpoint, `stophy_describe_endpoint` shows its inputs, and `stophy_call` runs it. `stophy_call` takes `id`, `input` and optional `fields`, which keeps only the keys you name on each result.
 
-Ask *"What are people saying about Bun on Reddit?"* and your agent finds `reddit.search`, calls it, and answers. A call costs the same as over HTTP. See [Pricing](/billing).
+Ask *"What are people saying about Bun on Reddit?"* and your agent finds `redditSearch`, calls it, and answers. Over MCP, endpoint ids are camelCase. A call costs the same as over HTTP. See [Pricing](/billing).
 
 To get one tool per endpoint for some sources, add `toolsets` to the URL.
 
