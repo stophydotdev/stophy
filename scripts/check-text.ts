@@ -3,9 +3,16 @@ import { $ } from "bun";
 interface Rule {
   pattern: RegExp;
   message: string;
+  paths?: RegExp;
 }
 
 export const RULES: readonly Rule[] = [
+  {
+    message: "Over MCP, endpoint ids are camelCase, like redditSearch, not reddit.search.",
+    paths: /^(docs\/mcp-server|mcp\/README)/u,
+    pattern:
+      /`(airbnb|amazon|appstore|booking|careers|chatgpt|craigslist|ebay|expedia|facebook|gemini|glassdoor|google|indeed|instagram|linkedin|luma|meta|pinterest|realtor|reddit|threads|tiktok|tripadvisor|trustpilot|upwork|web|x|yelp|youtube|zillow)(\.[a-z]+)+`/u,
+  },
   {
     message:
       "Use https://mcp.stophy.dev/mcp (sign in) or https://api.stophy.dev/mcp (key or no key).",
@@ -24,7 +31,7 @@ export const findings = (path: string, text: string) =>
   text
     .split("\n")
     .flatMap((line, index) =>
-      RULES.filter((rule) => rule.pattern.test(line)).map(
+      RULES.filter((rule) => (rule.paths?.test(path) ?? true) && rule.pattern.test(line)).map(
         (rule) => `${path}:${index + 1}: ${rule.message}`,
       ),
     );
