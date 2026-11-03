@@ -29,3 +29,16 @@ test("file names on MCP pages are not endpoint ids", () => {
     ),
   ).toEqual([]);
 });
+
+test("a key never appears on a command line", () => {
+  expect(findings("a.md", "stophy login --api-key st_...")).toHaveLength(1);
+  expect(findings("a.md", 'export STOPHY_API_KEY="st_..."')).toHaveLength(1);
+  expect(findings("a.md", "stophy login --api-key")).toEqual([]);
+});
+
+test("the Claude Desktop page uses the connector, not the local package", () => {
+  expect(
+    findings("docs/quickstarts/claude-desktop.mdx", '"args": ["-y", "@stophy/mcp"]'),
+  ).toHaveLength(1);
+  expect(findings("mcp/README.md", '"args": ["-y", "@stophy/mcp"]')).toEqual([]);
+});

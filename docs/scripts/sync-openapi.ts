@@ -1,4 +1,5 @@
 import { type Json, isObject, isString, jsonObject } from "./catalog";
+import { pathDrift } from "./spec";
 
 const source = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
 const target = new URL("../api-reference/openapi.json", import.meta.url);
@@ -38,5 +39,17 @@ for (const item of Object.values(paths)) {
   }
 }
 
-await Bun.write(target, `${JSON.stringify(spec, null, 2)}\n`);
-console.log(`Wrote ${target.pathname} from ${source}`);
+if (process.argv.includes("--check")) {
+  const saved = jsonObject.parse(await Bun.file(target).json()).paths;
+  const drift = pathDrift(Object.keys(paths), isObject(saved) ? Object.keys(saved) : []);
+  for (const path of drift.missing) console.error(`api-reference/openapi.json is missing ${path}`);
+  for (const path of drift.extra) console.error(`api-reference/openapi.json has ${path}, which the live API no longer has`);
+  if (drift.missing.length + drift.extra.length > 0) {
+    console.error("Run bun scripts/sync-openapi.ts in docs/ and commit the result.");
+    process.exit(1);
+  }
+  console.log(`api-reference/openapi.json has every path in ${source}`);
+} else {
+  await Bun.write(target, `${JSON.stringify(spec, null, 2)}\n`);
+  console.log(`Wrote ${target.pathname} from ${source}`);
+}
