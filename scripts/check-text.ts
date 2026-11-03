@@ -34,6 +34,10 @@ export const RULES: readonly Rule[] = [
       "Stophy isn't listed in the Cursor Marketplace. Link cursor.directory/plugins/stophy instead.",
     pattern: /cursor\.com\/marketplace/u,
   },
+  {
+    message: "Stophy isn't listed on Smithery. smithery.ai/servers/stophy/mcp is a 404.",
+    pattern: /smithery\.ai\/(servers|badge)\/stophy/u,
+  },
 ];
 
 const SKIPPED = /(^|\/)(CHANGELOG\.md|node_modules\/|bun\.lock)|^scripts\/check-text/u;

@@ -1,7 +1,6 @@
 # Stophy skills
 
 [![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
-[![smithery badge](https://smithery.ai/badge/stophy/mcp)](https://smithery.ai/servers/stophy/mcp)
 
 Give your agents the live web. This repo is a plugin with two parts:
 
