@@ -155,41 +155,6 @@ test("an agent sees every field the server sent with an error", async () => {
   });
 });
 
-test("an agent with no key signs up through /v1/signup and sends a keyless call again once", async () => {
-  process.env.CLAUDECODE = "1";
-  delete process.env.STOPHY_API_KEY;
-  const { request } = await import("../src/client.ts");
-  const { withSignup } = await import("../src/commands/claim.ts");
-  const seen: string[] = [];
-  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
-    const path = new URL(String(input)).pathname;
-    const key = new Headers(init?.headers).get("authorization");
-    seen.push(`${path} ${key ?? "no key"}`);
-    if (path === "/v1/signup") {
-      return reply(201, {
-        success: true,
-        data: { apiKey: `st_${"a".repeat(40)}`, expiresAt: "2026-11-10T00:00:00Z", credits: 100 },
-      });
-    }
-    return key === null
-      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
-      : reply(200, { success: true, data: {}, creditsUsed: 1, requestId: "req-2" });
-  });
-  try {
-    const response = await withSignup(() =>
-      request({ method: "POST", path: "/v1/web/search", accept: "application/json" }),
-    );
-    expect(response.status).toBe(200);
-  } finally {
-    fetched.mockRestore();
-  }
-  expect(seen).toEqual([
-    "/v1/web/search no key",
-    "/v1/signup no key",
-    `/v1/web/search Bearer st_${"a".repeat(40)}`,
-  ]);
-});
-
 const captureStdout = async (run: () => Promise<void>) => {
   const written: string[] = [];
   const write = spyOn(process.stdout, "write").mockImplementation((chunk) => {
@@ -204,12 +169,124 @@ const captureStdout = async (run: () => Promise<void>) => {
   return written.join("");
 };
 
+const CODE = "code-never-printed-0123456789abcdefghijklmnopq";
+const CLAIM_URL = "https://stophy.dev/claim/abc123";
+const KEY = `st_${"a".repeat(40)}`;
+const EXPIRES_AT = "2099-01-01T00:00:00.000Z";
+
+type Poll = "waiting" | "approved" | "gone";
+
+const fakeServer = (poll: Poll) => {
+  const seen: string[] = [];
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    const key = new Headers(init?.headers).get("authorization");
+    seen.push(`${path}${key === null ? "" : " with key"}`);
+    if (path === "/v1/signup") {
+      return reply(201, {
+        success: true,
+        data: { claimUrl: CLAIM_URL, code: CODE, expiresAt: EXPIRES_AT },
+      });
+    }
+    if (path === "/v1/signup/poll") {
+      if (poll === "gone") {
+        return reply(404, { error: { ...apiKeyRequired.error, code: "notFound" }, success: false });
+      }
+      return poll === "approved"
+        ? reply(200, { success: true, data: { apiKey: KEY } })
+        : reply(202, { success: true, data: { status: "waiting", claimUrl: CLAIM_URL } });
+    }
+    return key === null
+      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
+      : reply(200, { success: true, data: {}, creditsUsed: 1, requestId: "req-2" });
+  });
+  return { seen, fetched };
+};
+
+const callWithSignup = async () => {
+  const { request } = await import("../src/client.ts");
+  const { withSignup } = await import("../src/signup.ts");
+  return withSignup(() =>
+    request({ method: "POST", path: "/v1/web/search", accept: "application/json" }),
+  );
+};
+
+const agentWithoutKey = async () => {
+  process.env.CLAUDECODE = "1";
+  delete process.env.STOPHY_API_KEY;
+  const { clearStoredAuth } = await import("../src/config.ts");
+  await clearStoredAuth();
+};
+
+const claimRequired = {
+  failure: {
+    code: "claimRequired",
+    claimUrl: CLAIM_URL,
+    expiresAt: EXPIRES_AT,
+    retryable: true,
+  },
+};
+
+test("an agent with no key gets the claim link, and the code stays on disk", async () => {
+  await agentWithoutKey();
+  const { seen, fetched } = fakeServer("waiting");
+  const { loadConfig } = await import("../src/config.ts");
+  try {
+    const failed = callWithSignup();
+    await expect(failed).rejects.toMatchObject(claimRequired);
+    await expect(failed).rejects.not.toHaveProperty("message", expect.stringContaining(CODE));
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search", "/v1/signup"]);
+  expect((await loadConfig()).pendingSignup?.code).toBe(CODE);
+});
+
+test("the next run polls the saved code once and gives the same link while it waits", async () => {
+  const { seen, fetched } = fakeServer("waiting");
+  try {
+    await expect(callWithSignup()).rejects.toMatchObject(claimRequired);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search", "/v1/signup/poll"]);
+});
+
+test("once a person approves, the key is saved and the call goes through", async () => {
+  const { seen, fetched } = fakeServer("approved");
+  const { loadConfig } = await import("../src/config.ts");
+  try {
+    expect((await callWithSignup()).status).toBe(200);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search", "/v1/signup/poll", "/v1/web/search with key"]);
+  expect(await loadConfig()).toMatchObject({ apiKey: KEY, pendingSignup: undefined });
+});
+
+test("an expired link is dropped and the agent signs up again", async () => {
+  await agentWithoutKey();
+  const first = fakeServer("waiting");
+  try {
+    await expect(callWithSignup()).rejects.toMatchObject(claimRequired);
+  } finally {
+    first.fetched.mockRestore();
+  }
+  const second = fakeServer("gone");
+  try {
+    await expect(callWithSignup()).rejects.toMatchObject(claimRequired);
+  } finally {
+    second.fetched.mockRestore();
+  }
+  expect(second.seen).toEqual(["/v1/web/search", "/v1/signup/poll", "/v1/signup"]);
+});
+
 test("a failed signup is the answer, with no second try", async () => {
   process.env.CLAUDECODE = "1";
   delete process.env.STOPHY_API_KEY;
   const { clearStoredAuth } = await import("../src/config.ts");
   const { request, RequestError } = await import("../src/client.ts");
-  const { withSignup } = await import("../src/commands/claim.ts");
+  const { withSignup } = await import("../src/signup.ts");
   await clearStoredAuth();
   const seen: string[] = [];
   const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input) => {
@@ -235,12 +312,9 @@ test("a failed signup is the answer, with no second try", async () => {
 });
 
 test("login and status never wait for a person when an agent runs them", async () => {
-  process.env.CLAUDECODE = "1";
-  delete process.env.STOPHY_API_KEY;
-  const { clearStoredAuth } = await import("../src/config.ts");
+  await agentWithoutKey();
   const { registerLoginCommand } = await import("../src/commands/login.ts");
   const { registerStatusCommand } = await import("../src/commands/status.ts");
-  await clearStoredAuth();
   const program = new Command();
   registerLoginCommand(program);
   registerStatusCommand(program);
@@ -252,17 +326,15 @@ test("login and status never wait for a person when an agent runs them", async (
     next: expect.stringContaining("stophy login"),
   });
 
-  const seen: string[] = [];
-  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input) => {
-    seen.push(new URL(String(input)).pathname);
-    return reply(201, {
-      success: true,
-      data: { apiKey: `st_${"b".repeat(40)}`, expiresAt: "2026-11-10T00:00:00Z", credits: 100 },
-    });
-  });
+  const { seen, fetched } = fakeServer("waiting");
   try {
-    const out = await captureStdout(() => program.parseAsync(["login"], { from: "user" }));
-    expect(JSON.parse(out)).toMatchObject({ success: true, data: { authenticated: true } });
+    await expect(program.parseAsync(["login"], { from: "user" })).rejects.toMatchObject(
+      claimRequired,
+    );
+    const saved = await captureStdout(() =>
+      program.parseAsync(["login", "--api-key", KEY], { from: "user" }),
+    );
+    expect(JSON.parse(saved)).toEqual({ success: true, data: { authenticated: true } });
   } finally {
     fetched.mockRestore();
   }

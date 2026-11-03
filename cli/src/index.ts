@@ -4,7 +4,6 @@ import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
 import { type Catalog, catalogFilePath, fetchCatalog, loadCatalog } from "./catalog.js";
 import { registerAccountCommands } from "./commands/account.js";
-import { canPrompt, registerClaimCommand, signUp } from "./commands/claim.js";
 import { registerDescribeCommand } from "./commands/describe.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
 import { commandPath, registerDynamicCommands } from "./commands/dynamic.js";
@@ -18,7 +17,7 @@ import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { toCliError } from "./errors.js";
 import { writeFailure } from "./output.js";
-import { promptLogin } from "./prompt-login.js";
+import { ensureKey } from "./signup.js";
 import { maybeShowUpdateNotice } from "./update-notice.js";
 
 const NO_AUTH_COMMANDS = new Set([
@@ -63,7 +62,6 @@ Examples:
 
   registerInitCommand(program);
   registerLoginCommand(program);
-  registerClaimCommand(program);
   registerAccountCommands(program);
   registerEndpointsCommand(program, endpoints);
   registerDescribeCommand(program, endpoints);
@@ -83,8 +81,7 @@ Examples:
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) return;
-    if (canPrompt()) await promptLogin();
-    else await signUp();
+    await ensureKey();
   });
 
   program.configureOutput({

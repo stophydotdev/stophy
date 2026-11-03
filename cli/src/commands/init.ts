@@ -7,7 +7,7 @@ import { green } from "../color.js";
 import { resolveRuntimeConfig } from "../config.js";
 import { CliError } from "../errors.js";
 import { doBrowserLogin } from "../prompt-login.js";
-import { canPrompt, signUp } from "./claim.js";
+import { canPrompt, ensureKey } from "../signup.js";
 import type { InitOptions } from "../types/init.js";
 
 const MCP_URL = "https://mcp.stophy.dev/mcp";
@@ -83,7 +83,7 @@ const defaultDependencies: InitDependencies = {
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     return Boolean(apiKey || sessionCookie);
   },
-  browserLogin: () => (canPrompt() ? doBrowserLogin({ promptBeforeOpen: false }) : signUp()),
+  browserLogin: () => (canPrompt() ? doBrowserLogin({ promptBeforeOpen: false }) : ensureKey()),
   runCommand,
   commandExists,
   confirm,

@@ -1,17 +1,9 @@
 import open from "open";
 import prompts from "prompts";
 import { z } from "zod";
-import packageJson from "../package.json" with { type: "json" };
 import { startBrowserLogin } from "./browser-login.js";
 import { green } from "./color.js";
-import {
-  getBrowserLoginUrl,
-  loadConfig,
-  resolveRuntimeConfig,
-  saveConfig,
-  setStoredApiKey,
-  validateApiKey,
-} from "./config.js";
+import { getBrowserLoginUrl, loadConfig, resolveRuntimeConfig, saveConfig } from "./config.js";
 import { loginCode } from "./login-code.js";
 
 const answerSchema = z.string();
@@ -65,40 +57,4 @@ export async function doBrowserLogin(options?: { promptBeforeOpen?: boolean }) {
     frontendUrl,
   });
   err(green("✓ Login successful!"));
-}
-
-async function doApiKeyLogin() {
-  const value = await prompt("Paste your Stophy API key: ");
-  const apiKey = validateApiKey(value);
-  await setStoredApiKey(apiKey);
-  err(green("✓ Login successful!"));
-}
-
-export async function promptLogin() {
-  err(`  @stophy/cli v${packageJson.version}`);
-  err("  Give your agents the live web from your terminal");
-  err("");
-  err("Welcome! To get started, authenticate with your Stophy account.");
-  err("");
-  err("Tip: You can also set the STOPHY_API_KEY environment variable.");
-  err("");
-
-  const { mode } = await prompts({
-    type: "select",
-    name: "mode",
-    message: "How do you want to authenticate?",
-    choices: [
-      { title: "Login with browser (recommended)", value: "browser" },
-      { title: "Enter API key manually", value: "api-key" },
-    ],
-    initial: 0,
-  });
-
-  if (mode === "browser") {
-    await doBrowserLogin();
-  } else if (mode === "api-key") {
-    await doApiKeyLogin();
-  }
-
-  return resolveRuntimeConfig();
 }

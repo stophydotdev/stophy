@@ -43,7 +43,10 @@ async function getStatus(): Promise<StatusResult> {
   };
 
   if (!authenticated) {
-    return { ...result, next: "Run stophy login. With no terminal it signs up and saves a key." };
+    return {
+      ...result,
+      next: "Run stophy login. It prints a link for a person to approve, then saves the key.",
+    };
   }
 
   try {

@@ -6,7 +6,7 @@ import { resolveRuntimeConfig, setStoredApiKey, validateApiKey } from "../config
 import { CliError } from "../errors.js";
 import { handleOutput } from "../output.js";
 import { doBrowserLogin, prompt } from "../prompt-login.js";
-import { canPrompt, signUp, signupResult } from "./claim.js";
+import { canPrompt, ensureKey } from "../signup.js";
 
 const err = (msg: string) => process.stderr.write(`${msg}\n`);
 
@@ -58,10 +58,9 @@ async function loginWithoutPrompt(apiKey: boolean | string | undefined) {
   if (given.success) await setStoredApiKey(validateApiKey(given.data));
   else {
     const { apiKey: current, sessionCookie } = await resolveRuntimeConfig();
-    if (!current && !sessionCookie) await signUp();
+    if (!current && !sessionCookie) await ensureKey();
   }
-  const signup = signupResult();
-  handleOutput({ success: true, data: { authenticated: true, ...(signup && { signup }) } });
+  handleOutput({ success: true, data: { authenticated: true } });
 }
 
 export function registerLoginCommand(program: Command) {
