@@ -22,7 +22,7 @@ Web Search costs $0.0015 per 10 results. Read Page costs more on pages that are 
 
 ## Setup
 
-1. Get an API key at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $1.50 free.
+1. Get an API key at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $5 free, about 3,333 calls.
 2. In Dify, open **Plugins**, find **Stophy** in the Marketplace and install it.
 3. Open the plugin, click **Authorize** and paste your API key. Dify checks the key before saving it.
 

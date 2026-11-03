@@ -43,3 +43,8 @@ export const requestJson = (op: SpecOperation) => op.requestBody?.content["appli
 
 export const responseData = (op: SpecOperation) =>
   op.responses["200"]?.content?.["application/json"]?.schema?.properties?.data;
+
+export const pathDrift = (live: readonly string[], saved: readonly string[]) => ({
+  extra: saved.filter((path) => !live.includes(path)),
+  missing: live.filter((path) => !saved.includes(path)),
+});

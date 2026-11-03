@@ -1,24 +1,106 @@
 ---
 title: "No key and API key"
-description: "Add Stophy to Claude Code, Codex, Cursor or OpenCode with no key to use the free endpoints, then add an API key to use every endpoint."
+description: "Add Stophy to Claude Code, Codex, Cursor, VS Code, Windsurf or OpenCode with no key for the free endpoints, then add an API key to use every endpoint."
 og:title: "No key and API key | Stophy"
-og:description: "Add Stophy to Claude Code, Codex, Cursor or OpenCode with no key to use the free endpoints, then add an API key to use every endpoint."
+og:description: "Add Stophy to Claude Code, Codex, Cursor, VS Code, Windsurf or OpenCode with no key for the free endpoints, then add an API key to use every endpoint."
 mode: "wide"
 ---
 
-import { McpClientSelector } from "/snippets/mcp-client-selector.jsx";
+## No key
 
-<McpClientSelector showSeeAll={false} />
+<CodeGroup>
 
-The free endpoints are the ones marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints). Google search, YouTube search and Reddit search are among them.
+```bash Claude Code
+claude mcp add --transport http stophy https://api.stophy.dev/mcp
+```
+
+```bash Codex
+codex mcp add stophy --url https://api.stophy.dev/mcp
+```
+
+```bash VS Code
+code --add-mcp '{"name":"stophy","type":"http","url":"https://api.stophy.dev/mcp"}'
+```
+
+```json Cursor (~/.cursor/mcp.json)
+{
+  "mcpServers": {
+    "stophy": { "url": "https://api.stophy.dev/mcp" }
+  }
+}
+```
+
+```json Windsurf (~/.codeium/windsurf/mcp_config.json)
+{
+  "mcpServers": {
+    "stophy": { "serverUrl": "https://api.stophy.dev/mcp" }
+  }
+}
+```
+
+```json OpenCode (opencode.json)
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "stophy": {
+      "type": "remote",
+      "url": "https://api.stophy.dev/mcp",
+      "enabled": true
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+The free endpoints are the ones marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), first page only. Google search, YouTube search and Reddit search are among them.
 
 ## Add an API key
 
-For every endpoint, [create a key](https://stophy.dev/signup) and use the same URL with it.
+For every endpoint, [create a key](https://stophy.dev/signup) and send it to the same URL. Keep it in `STOPHY_API_KEY` or your client's secret settings, never in a file you commit.
 
-<McpClientSelector variant="key" showSeeAll={false} />
+<CodeGroup>
 
-A key that is wrong is refused. Remove the header to go back to the free endpoints.
+```bash Claude Code
+claude mcp add --transport http stophy https://api.stophy.dev/mcp --header "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```bash Codex
+codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
+```
+
+```json VS Code (.vscode/mcp.json)
+{
+  "inputs": [
+    { "type": "promptString", "id": "stophy-key", "description": "Stophy API key", "password": true }
+  ],
+  "servers": {
+    "stophy": {
+      "type": "http",
+      "url": "https://api.stophy.dev/mcp",
+      "headers": { "Authorization": "Bearer ${input:stophy-key}" }
+    }
+  }
+}
+```
+
+```json OpenCode (opencode.json)
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "stophy": {
+      "type": "remote",
+      "url": "https://api.stophy.dev/mcp",
+      "enabled": true,
+      "headers": { "Authorization": "Bearer {env:STOPHY_API_KEY}" }
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+VS Code asks for the key the first time the server starts and stores it securely. A key that is wrong is refused. Remove the header to go back to the free endpoints. In Cursor, Windsurf and Gemini CLI, use [browser sign-in](/mcp-server) instead of a key.
 
 ## Check it
 
@@ -28,4 +110,4 @@ Ask your agent this.
 Search YouTube for "rust tutorial" and summarize the top three videos.
 ```
 
-If `stophy` shows no tools, restart your client. Prefer not to paste a key? [Sign in with your browser](/mcp-server/oauth).
+If `stophy` shows no tools, restart your client.

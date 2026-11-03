@@ -60,6 +60,7 @@
                   "invalidCliSession",
                   "invalidCliVerifier",
                   "invalidRequest",
+                  "methodNotAllowed",
                   "notFound",
                   "rateLimited",
                   "sourceChanged",
@@ -315,6 +316,356 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/v1/limits": {
+      "get": {
+        "operationId": "getLimits",
+        "summary": "See your plan, balance, rate limit and key expiry.",
+        "description": "Free. Counts as one call toward the per-minute rate limit. Needs an API key: without one the answer is 401, and the keyless limits are 10 requests a minute and 50 a day per IP.",
+        "responses": {
+          "200": {
+            "description": "Your limits.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "tier",
+                        "balanceCredits",
+                        "rateLimit",
+                        "keyExpiresAt",
+                        "billingUrl"
+                      ],
+                      "properties": {
+                        "tier": {
+                          "type": "string",
+                          "enum": [
+                            "free",
+                            "paid"
+                          ],
+                          "description": "paid once the account has topped up, free before that."
+                        },
+                        "balanceCredits": {
+                          "type": "number",
+                          "description": "Credits left on the account."
+                        },
+                        "rateLimit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "description": "Calls allowed per minute with this key and how many are left, counting this request. Null when the counter is unavailable.",
+                          "properties": {
+                            "limitPerMinute": {
+                              "type": "integer"
+                            },
+                            "remaining": {
+                              "type": "integer"
+                            },
+                            "resetsAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        },
+                        "keyExpiresAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time",
+                          "description": "When this key stops working. Null when it does not expire."
+                        },
+                        "billingUrl": {
+                          "type": "string",
+                          "const": "https://stophy.dev/billing",
+                          "description": "Where a person adds credits."
+                        }
+                      }
+                    },
+                    "creditsUsed": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "operationId": "getUsage",
+        "summary": "See your balance and what you have used.",
+        "description": "Free. The balance is in micro-credits. Use /v1/limits for credits.",
+        "responses": {
+          "200": {
+            "description": "Your usage.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "balanceMicros",
+                    "creditsUsed",
+                    "requestCount"
+                  ],
+                  "properties": {
+                    "balanceMicros": {
+                      "type": "integer"
+                    },
+                    "creditsUsed": {
+                      "type": "number",
+                      "description": "Credits used across all calls."
+                    },
+                    "requestCount": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/logs": {
+      "get": {
+        "operationId": "getLogs",
+        "summary": "List your recent calls, 50 per page.",
+        "description": "Free.",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "How far back to look, 1 to 90.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 7
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number, from 0.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "apiKeyId",
+            "in": "query",
+            "description": "Only calls made with this key.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endpoint",
+            "in": "query",
+            "description": "Only calls to this endpoint id, such as reddit.search.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your calls, newest first.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "endpoints",
+                    "logs",
+                    "page",
+                    "pageSize",
+                    "total",
+                    "totalPages"
+                  ],
+                  "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "logs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "requestId": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "endpoint": {
+                            "type": "string"
+                          },
+                          "credits": {
+                            "type": "number"
+                          },
+                          "durationMs": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "apiKeyId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "apiKeyName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/key": {
+      "delete": {
+        "operationId": "revokeKey",
+        "summary": "Revoke the key you are calling with.",
+        "description": "Free. The key stops working at once. Needs an API key, not a signed-in session.",
+        "responses": {
+          "200": {
+            "description": "The key is revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
           }
         }
       }
@@ -2201,6 +2552,244 @@
                           "required": []
                         }
                       ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/web/extract": {
+      "post": {
+        "operationId": "webExtract",
+        "summary": "Pull the fields you name from any public page as JSON, each checked against the page",
+        "description": "Costs $0.0045 for most pages: the page's own price plus $0.003. A call that finds none of the fields costs only the page's own price.",
+        "x-credits": 3,
+        "x-credits-max": 7,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "description": "The page to read, such as https://bun.com/blog/bun-v1.3.",
+                    "type": "string"
+                  },
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "object"
+                      },
+                      "properties": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+                        },
+                        "additionalProperties": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "string",
+                                    "number",
+                                    "integer",
+                                    "boolean"
+                                  ]
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "maxLength": 300
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "array"
+                                },
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "string",
+                                        "number",
+                                        "integer",
+                                        "boolean"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "maxLength": 300
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "items"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "properties"
+                    ],
+                    "description": "The fields to fill, as a JSON Schema object with up to 20 properties of type string, number, integer, boolean, or an array of those."
+                  },
+                  "prompt": {
+                    "description": "What to pull from the page in plain words, such as the version and the release date.",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "fields": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "confidence": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        }
+                      },
+                      "required": []
                     },
                     "creditsUsed": {
                       "type": "integer"
@@ -21954,7 +22543,7 @@
               "example": {
                 "origin": "JFK",
                 "destination": "LAX",
-                "departDate": "2026-12-17"
+                "departDate": "2026-12-18"
               }
             }
           }
@@ -22361,7 +22950,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-17"
+                "checkIn": "2026-12-18"
               }
             }
           }
@@ -22605,7 +23194,7 @@
               },
               "example": {
                 "query": "Lisbon",
-                "checkIn": "2026-12-17"
+                "checkIn": "2026-12-18"
               }
             }
           }
@@ -31340,8 +31929,8 @@
               },
               "example": {
                 "location": "Lisbon, Portugal",
-                "checkIn": "2026-12-14",
-                "checkOut": "2026-12-17",
+                "checkIn": "2026-12-15",
+                "checkOut": "2026-12-18",
                 "guests": 2,
                 "maxPrice": 200,
                 "roomType": "entireHome"

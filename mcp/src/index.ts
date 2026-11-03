@@ -22,7 +22,8 @@ const hostedUrl = (): URL => {
 
 const headers = (): Record<string, string> => {
   const key = process.env["STOPHY_API_KEY"]?.trim();
-  return key ? { Authorization: `Bearer ${key}` } : {};
+  const userAgent = { "User-Agent": `stophy-mcp/${packageJson.version}` };
+  return key ? { ...userAgent, Authorization: `Bearer ${key}` } : userAgent;
 };
 
 const connectHosted = async (url: URL): Promise<Client> => {

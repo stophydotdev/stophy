@@ -49,12 +49,13 @@ stophy login --browser
 
 The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then approve it. On a server with no browser, open the printed link on any other device. The CLI logs in once you approve there.
 
-To use an API key instead, pass it to `login` or set it in the environment.
+To use an API key instead, run this and paste the key when it asks. It never lands in your shell history.
 
 ```bash
-stophy login --api-key st_...
-export STOPHY_API_KEY="st_..."
+stophy login --api-key
 ```
+
+In CI, set `STOPHY_API_KEY` from your secret store.
 
 `stophy logout` logs out and revokes this computer's key.
 
