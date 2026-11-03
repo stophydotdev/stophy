@@ -15,6 +15,17 @@ export const RULES: readonly Rule[] = [
   },
   {
     message:
+      "Claude Desktop connects to https://mcp.stophy.dev/mcp as a custom connector, not the local package.",
+    paths: /^docs\/quickstarts\/claude-desktop\.mdx$/u,
+    pattern: /@stophy\/mcp/u,
+  },
+  {
+    message:
+      "Never show a key on a command line. Use stophy login --api-key, which asks for it, or STOPHY_API_KEY from a secret store.",
+    pattern: /--api-key\s+st_|STOPHY_API_KEY=["']?st_/u,
+  },
+  {
+    message:
       "Use https://mcp.stophy.dev/mcp (sign in) or https://api.stophy.dev/mcp (key or no key).",
     pattern: /stophy\.dev\/mcp-oauth/u,
   },
