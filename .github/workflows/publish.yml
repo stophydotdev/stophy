@@ -36,7 +36,7 @@ jobs:
       - id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "stophy@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          bun "$GITHUB_WORKSPACE/scripts/npm-version.ts" "stophy" "$VERSION" >> "$GITHUB_OUTPUT"
       - if: steps.version.outputs.exists == 'false'
         run: npm publish --access public --tag latest
 
@@ -61,7 +61,7 @@ jobs:
       - id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "@stophy/ai-sdk@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          bun "$GITHUB_WORKSPACE/scripts/npm-version.ts" "@stophy/ai-sdk" "$VERSION" >> "$GITHUB_OUTPUT"
           if grep -qx "## ${VERSION}" CHANGELOG.md 2>/dev/null; then echo "released=true" >> "$GITHUB_OUTPUT"; else echo "released=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.version.outputs.exists == 'false' && steps.version.outputs.released == 'true'
         run: npm publish --access public --tag latest
@@ -111,7 +111,7 @@ jobs:
       - id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "@stophy/cli@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          bun "$GITHUB_WORKSPACE/scripts/npm-version.ts" "@stophy/cli" "$VERSION" >> "$GITHUB_OUTPUT"
       - if: steps.version.outputs.exists == 'false'
         run: npm publish --access public --tag latest
 
@@ -244,7 +244,7 @@ jobs:
       - id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "@stophy/mcp@${VERSION}" version > /dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          bun "$GITHUB_WORKSPACE/scripts/npm-version.ts" "@stophy/mcp" "$VERSION" >> "$GITHUB_OUTPUT"
       - if: steps.version.outputs.exists == 'false'
         run: npm publish --access public --tag latest
       - id: registry

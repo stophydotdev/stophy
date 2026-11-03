@@ -13,7 +13,7 @@
     },
     "cli": {
       "name": "@stophy/cli",
-      "version": "1.2.1",
+      "version": "2.1.0",
       "bin": {
         "stophy": "dist/index.js",
       },
@@ -42,7 +42,7 @@
     },
     "mcp": {
       "name": "@stophy/mcp",
-      "version": "1.2.1",
+      "version": "2.1.1",
       "bin": {
         "stophy-mcp": "dist/index.js",
       },
@@ -60,9 +60,9 @@
     },
     "sdk/packages/ai-sdk": {
       "name": "@stophy/ai-sdk",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
-        "stophy": "^1.2.1",
+        "stophy": "^3.2.0",
       },
       "devDependencies": {
         "@types/bun": "^1.1.14",
@@ -73,12 +73,12 @@
       },
       "peerDependencies": {
         "ai": "^6.0.0 || ^7.0.0",
-        "zod": "^3.25.0 || ^4.0.0",
+        "zod": "^4.1.8",
       },
     },
     "sdk/packages/typescript": {
       "name": "stophy",
-      "version": "1.2.1",
+      "version": "3.2.0",
       "devDependencies": {
         "@hey-api/client-fetch": "^0.10.2",
         "@hey-api/openapi-ts": "^0.64.0",

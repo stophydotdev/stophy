@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 2.1.1
+
+### Patch Changes
+
+- The version is above 2.1.0, the highest npm still has, so installs of 2.1.0 see this release as the latest. No code changes since 1.3.0.
+
 ## 1.3.0
 
 ### Minor Changes
