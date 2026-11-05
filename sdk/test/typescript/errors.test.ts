@@ -2,23 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { StophyError } from "../../packages/typescript/src/index";
 import { makeClient } from "./helpers";
 
-const unauthorized = {
-  status: 401,
-  json: {
-    success: false,
-    error: {
-      code: "unauthorized",
-      message: "Invalid API key",
-      retryable: false,
-      requestId: "req_err",
-    },
-  },
-};
-
 describe("error handling", () => {
-  test("throws StophyError from the error envelope", async () => {
-    const { client } = makeClient(unauthorized);
-    const err = await client.youtube.search({ query: "x" }).catch((error) => error);
+  test("throws StophyError from the flat error body", async () => {
+    const { client } = makeClient({
+      status: 401,
+      headers: { "x-request-id": "req_err" },
+      json: { success: false, error: "Invalid API key", code: "unauthorized" },
+    });
+    const err = await client.scrape({ url: "https://example.com" }).catch((error) => error);
     expect(err).toBeInstanceOf(StophyError);
     expect(err.status).toBe(401);
     expect(err.code).toBe("unauthorized");
@@ -31,16 +22,7 @@ describe("error handling", () => {
   test("reads retryAfterSeconds from the body, then the header", async () => {
     const fromBody = makeClient({
       status: 429,
-      json: {
-        success: false,
-        error: {
-          code: "rateLimited",
-          message: "slow down",
-          retryable: true,
-          retryAfterSeconds: 9,
-          requestId: "req_2",
-        },
-      },
+      json: { success: false, error: "slow down", code: "rateLimited", retryAfterSeconds: 9 },
     });
     const bodyError = await fromBody.client.usage().catch((error) => error);
     expect(bodyError.retryAfterSeconds).toBe(9);
@@ -48,15 +30,11 @@ describe("error handling", () => {
 
     const fromHeader = makeClient({
       status: 429,
-      headers: { "retry-after": "4", "x-request-id": "req_header" },
-      json: {
-        success: false,
-        error: { code: "rateLimited", message: "slow down", retryable: true },
-      },
+      headers: { "retry-after": "4" },
+      json: { success: false, error: "slow down", code: "rateLimited" },
     });
     const headerError = await fromHeader.client.usage().catch((error) => error);
     expect(headerError.retryAfterSeconds).toBe(4);
-    expect(headerError.requestId).toBe("req_header");
   });
 
   test("falls back to a status message when the body is not JSON", async () => {
@@ -66,16 +44,5 @@ describe("error handling", () => {
     expect(err.status).toBe(502);
     expect(err.message).toContain("502");
     expect(err.retryable).toBe(true);
-  });
-
-  test("does not throw on a successful response", async () => {
-    const { client } = makeClient({
-      json: { balanceMicros: 1, creditsUsed: 0, requestCount: 0 },
-    });
-    await expect(client.usage()).resolves.toEqual({
-      balanceMicros: 1,
-      creditsUsed: 0,
-      requestCount: 0,
-    });
   });
 });

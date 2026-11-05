@@ -5,9 +5,9 @@ from typing import Any, Mapping
 
 import httpx
 
-from .account import Logs, Usage, parse_logs, parse_usage
+from .generated.models import ParserName, ScrapeResponse
 from .generated.namespaces import SyncSurface
-from .transport import DEFAULT_BASE_URL, SyncTransport, compact, default_headers
+from .transport import DEFAULT_BASE_URL, SyncTransport, default_headers, request_args
 
 
 class Stophy(SyncSurface):
@@ -39,41 +39,17 @@ class Stophy(SyncSurface):
         )
         super().__init__(self._request)
 
-    def _request(
-        self,
-        method: str,
-        path: str,
-        body: Mapping[str, Any] | None,
-    ) -> Any:
-        if method == "GET":
-            return self._transport.request(method, path)
-        return self._transport.request(method, path, json={} if body is None else body)
+    def _request(self, method: str, path: str, values: Mapping[str, Any]) -> Any:
+        url, kwargs = request_args(method, path, values)
+        return self._transport.request(method, url, **kwargs)
 
-    def usage(self) -> Usage:
-        """Returns your balance and lifetime usage. Needs an API key."""
-        return parse_usage(self._transport.get("/v1/usage"))
-
-    def logs(
-        self,
-        *,
-        days: int | None = None,
-        page: int | None = None,
-        api_key_id: str | None = None,
-        endpoint: str | None = None,
-    ) -> Logs:
-        """Returns your recent paid calls, newest first. Needs an API key."""
-        return parse_logs(
-            self._transport.get(
-                "/v1/logs",
-                compact(
-                    {
-                        "days": days,
-                        "page": page,
-                        "apiKeyId": api_key_id,
-                        "endpoint": endpoint,
-                    }
-                ),
-            )
+    def parsed(self, parser: ParserName, url: str, **options: Any) -> ScrapeResponse:
+        """Reads url with a parser from GET /v1/parsers. The data is in data.json."""
+        return self.scrape(
+            url=url,
+            formats=[{"type": "json", "parser": parser, "options": options}]
+            if options
+            else [{"type": "json", "parser": parser}],
         )
 
     def close(self) -> None:

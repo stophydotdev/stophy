@@ -1,6 +1,6 @@
 import type { _Error } from "./generated/types.gen";
 
-export type StophyErrorCode = _Error["error"]["code"];
+export type StophyErrorCode = _Error["code"];
 
 export class StophyError extends Error {
   readonly code?: string;
