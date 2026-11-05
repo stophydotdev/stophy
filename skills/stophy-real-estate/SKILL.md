@@ -4,7 +4,7 @@ description: |
   Get homes for sale, for rent or sold from Zillow and Realtor.com: search by place, price, bedrooms and more, and read one home's details, estimate, history, taxes and schools. Use for "find homes for sale in", "what is this house worth", "apartments for rent in this city", "recently sold homes near", "homes with a pool", "what are the taxes on this house". For hotels, stays and attractions use stophy-places. For local classifieds use stophy-shopping.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

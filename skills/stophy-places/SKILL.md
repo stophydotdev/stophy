@@ -4,7 +4,7 @@ description: |
   Get places, hotels, flights and events: Google Maps, Tripadvisor and Yelp search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, Expedia hotel prices, Google Flights prices, and upcoming Luma events in a city. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX", "what tech events are in San Francisco". Google Maps search and reviews work without an API key. For homes for sale or rent use stophy-real-estate.
 metadata:
   author: stophy
-  version: "4.0.8"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
