@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/map",
+    "body": {
+      "url": "https://bun.com",
+      "search": "sqlite"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "links": [
+      {
+        "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE"
+      }
+    ]
+  }
+}

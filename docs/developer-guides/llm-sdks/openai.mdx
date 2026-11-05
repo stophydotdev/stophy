@@ -9,20 +9,20 @@ Give an OpenAI model live web search. The model asks for a search, your code cal
 
 ## The search tool
 
-Save this as `stophy.ts`. When the model calls it, it returns the top 5 Google results as JSON.
+Save this as `stophy.ts`. When the model calls it, it returns the top 5 web results as JSON.
 
 ```ts stophy.ts
 export async function stophySearch(query: string): Promise<string> {
-  const headers: Record<string, string> = { "content-type": "application/json" };
-  if (process.env.STOPHY_API_KEY) headers.authorization = `Bearer ${process.env.STOPHY_API_KEY}`;
-  const response = await fetch("https://api.stophy.dev/v1/google/search", {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (process.env.STOPHY_API_KEY) headers.Authorization = `Bearer ${process.env.STOPHY_API_KEY}`;
+  const response = await fetch("https://api.stophy.dev/v1/search", {
     method: "POST",
     headers,
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, limit: 5 }),
   });
   const body = await response.json();
-  if (!body.success) throw new Error(body.error.message);
-  return JSON.stringify(body.data.results.slice(0, 5));
+  if (!body.success) throw new Error(body.error);
+  return JSON.stringify(body.data.web);
 }
 ```
 

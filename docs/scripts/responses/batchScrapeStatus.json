@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/batch/scrape/job_385XD5MMpQfsXsGFdTO9vQ"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "status": "completed",
+    "total": 2,
+    "completed": 2,
+    "creditsUsed": 1,
+    "createdAt": "2026-11-05T23:35:30.889Z",
+    "completedAt": "2026-11-05T23:35:32.943Z",
+    "duration": 2.054,
+    "expiresAt": "2026-11-06T23:35:30.889Z",
+    "data": [
+      {
+        "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's configuration…",
+        "metadata": {
+          "viewport": "width=device-width, initial-scale=1",
+          "theme-color": [
+            "#ffffff",
+            "#0d0a0c"
+          ],
+          "og:type": "website",
+          "og:image": "https://bun.com/og/docs/runtime/bunfig.png",
+          "twitter:site": "@bunjavascript",
+          "twitter:card": "summary_large_image",
+          "ogTitle": "bunfig.toml | Bun Docs",
+          "ogDescription": "Configure Bun's behavior using its configuration file bunfig.toml",
+          "ogUrl": "https://bun.com/docs/runtime/bunfig",
+          "ogLocale": "en_US",
+          "ogSiteName": "Bun",
+          "favicon": "https://bun.com/favicon.ico",
+          "title": "bunfig.toml | Bun Docs",
+          "description": "Configure Bun's behavior using its configuration file bunfig.toml",
+          "language": "en",
+          "ogImage": "https://bun.com/og/docs/runtime/bunfig.png",
+          "sourceURL": "https://bun.com/docs/runtime/bunfig",
+          "url": "https://bun.com/docs/runtime/bunfig",
+          "statusCode": 200,
+          "contentType": "text/html",
+          "cacheState": "hit",
+          "cachedAt": "2026-11-05T19:33:09.837Z",
+          "scrapeId": "job_385XD5MMpQfsXsGFdTO9vQ",
+          "creditsUsed": 0
+        }
+      }
+    ]
+  }
+}

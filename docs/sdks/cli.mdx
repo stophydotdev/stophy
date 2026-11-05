@@ -1,29 +1,23 @@
 ---
 title: "CLI"
-description: "Install the Stophy CLI, run your first command with no login, then log in to page through results, save output, script it and check your usage."
 sidebarTitle: "CLI"
-icon: "terminal"
-og:title: "Stophy CLI | Stophy"
-og:description: "Install the Stophy CLI, run your first command with no login, then log in to page through results, save output, script it and check your usage."
+description: "Install the Stophy CLI, search and scrape with no login, then log in to read sites through parsers, crawl, extract and set up your agents."
+og:title: "CLI | Stophy"
+og:description: "Install the Stophy CLI, search and scrape with no login, then log in to read sites through parsers, crawl, extract and set up your agents."
 ---
 
-Run `stophy` with a source and a command, and it prints what comes back. It works in your terminal, your scripts and any agent that runs shell commands.
+Give your agents the live web from your terminal. Try it with no key:
 
 ```bash
 curl -fsSL https://stophy.dev/install | bash
-stophy google search "postgres jsonb index"
+stophy search "bun runtime"
 ```
 
-No account, no login.
+Results print as rows, or as JSON with `--json`.
 
-```text
-1. Documentation: 18: 8.14. JSON Types - PostgreSQL
-   https://www.postgresql.org/docs/current/datatype-json.html
-2. Indexing JSONB in Postgres | Crunchy Data Blog
-   https://www.crunchydata.com/blog/indexing-jsonb-in-postgres
-```
+## Install
 
-The installer puts the binary in `~/.local/bin`. On Windows, run this in PowerShell.
+The installer puts the binary in `~/.local/bin`. On Windows, use PowerShell:
 
 ```powershell
 irm https://stophy.dev/install.ps1 | iex
@@ -34,101 +28,86 @@ With Node.js 20 or later, `npm install -g @stophy/cli` works too.
 ## Set up your agent
 
 ```bash
-npx -y @stophy/cli init --all
+stophy init --all
 ```
 
-This logs you in, adds Stophy's skills to your coding agents, and adds the Stophy MCP server.
+`init` logs you in with your browser, installs the Stophy skills with `npx -y skills add stophydotdev/stophy`, and adds the MCP server. With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the command or snippet to use, and leaves your config files alone.
+
+| Option           | What it does                                       |
+| ---------------- | -------------------------------------------------- |
+| `--all`          | Run every step without asking                      |
+| `--agent <name>` | Set up one agent, such as `claude-code` or `codex` |
+| `--skip-auth`    | Do not log in                                      |
+| `--skip-skills`  | Do not install the skills                          |
+| `--skip-mcp`     | Do not add the MCP server                          |
 
 ## Log in
-
-Without a login you can run the commands marked `free` in `stophy endpoints`. To run the rest, log in with your browser.
 
 ```bash
 stophy login --browser
 ```
 
-The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then approve it. On a server with no browser, open the printed link on any other device. The CLI logs in once you approve there.
+The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then click **Approve**. On a server with no browser, open the printed link on any other device.
 
-To use an API key instead, run this and paste the key when it asks. It never lands in your shell history.
+To use an API key from the [dashboard](https://stophy.dev/dashboard) instead, run this and paste the key when it asks, so it stays out of your shell history. In CI, set `STOPHY_API_KEY` from your secret store.
 
 ```bash
 stophy login --api-key
 ```
 
-In CI, set `STOPHY_API_KEY` from your secret store.
+Each computer gets its own key, and logging in again replaces it. `stophy logout` logs out and revokes the key.
 
-`stophy logout` logs out and revokes this computer's key.
+Without a login you can run the commands `stophy endpoints` marks `free`, within a small free allowance.
 
-## Make a call
-
-Name the source, then the command.
+## Get data
 
 ```bash
-stophy youtube search "bun runtime"
-stophy reddit subreddit rust
-stophy google maps search --query dentist --location Berlin
-stophy youtube transcript --videoUrl https://youtu.be/M4TufsFlv_o
+stophy search "bun runtime" --limit 5
+stophy scrape https://bun.com/docs
+stophy map https://bun.com --limit 50
+stophy crawl https://bun.com/docs --limit 20
+stophy crawl status <id>
+stophy extract --urls https://bun.com --prompt "the latest version"
+stophy extract status <id>
 ```
 
-To point at one thing, use its link or its id with the matching option, like `--videoUrl` or `--videoId`. Send one, not both.
+`stophy <command> --help` lists every option.
 
-`stophy <source> --help` lists what a source can do, and `stophy <source> <command> --help` lists every option. A value the option doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
+- Give a list as `--urls a,b` or `--urls a --urls b`.
+- Turn a yes-or-no option on with `--flag` and off with `--no-flag`.
+- Options that take JSON, like `--formats '["markdown","links"]'`, take it as one quoted argument.
+- A value the command doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
 
-## Read the output
+`crawl`, `batch scrape` and `extract` answer with an id. Read the result with `status <id>` and stop a running job with `cancel <id>`. When a status answer has a `next` link, run it again with `--cursor` and the cursor from that link.
 
-Lists print one row per result with its title and link. Other results print as `name: value` lines. Add `--json` for the data as JSON, with the cost on stderr. `--raw` prints the full response, including `requestId`.
+## Read a site with a parser
+
+A parser returns a site's own data as JSON: posts, videos, places, products, jobs, listings and more. `stophy parsers [word]` lists them, with the kind of page each one takes:
 
 ```bash
-stophy reddit search "bun runtime" --json
+stophy parsers reddit
+stophy scrape "https://www.reddit.com/r/rust/" --parser reddit-subreddit
+stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
 ```
 
-`-o <path>` writes the output to a file.
+If the output ends with a `cursor`, get the next page with `--parserOptions '{"cursor":"<cursor>"}'`.
 
-```bash
-stophy youtube search "bun runtime" --json -o results.json
-```
-
-## Page through results
-
-When a command has more, its output ends with a `cursor`. Pass it back with `--cursor`. This needs a login.
-
-```bash
-stophy reddit search "bun runtime" --cursor "<cursor from the last output>"
-```
-
-Commands for sites with numbered pages take `--page`, like `stophy google search "bun runtime" --page 2`. See [Page through results](/guides/paging).
-
-## Use it in a script
-
-A failed call exits non-zero and writes its message to stderr. The message ends with the request id, and with `Retry after Ns.` when the API says to wait. The CLI does not retry for you.
-
-```bash
-if ! stophy reddit search "bun runtime" --json -o out.json 2>err.txt; then
-  cat err.txt
-  exit 1
-fi
-```
-
-## Check your usage
-
-```bash
-stophy status
-stophy usage
-stophy logs --days 7
-```
+`--json` prints the data as JSON and the cost to stderr. `--raw` prints the full response. `-o <path>` writes the output to a file. A failed call ends with `Request id: <id>`, which support will ask for.
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `stophy init` | Set up Stophy in your coding agents |
-| `stophy login` | Log in with your browser or an API key |
-| `stophy logout` | Log out and revoke this computer's key |
-| `stophy <source> <command>` | Get data, for example `stophy youtube search` |
-| `stophy endpoints [word]` | List every command and its cost |
-| `stophy describe <id>` | Show one command's options, cost and an example |
-| `stophy status` | Show your login, balance and CLI version |
-| `stophy usage` | Show your balance and all-time usage |
-| `stophy logs` | Show your recent requests |
-| `stophy doctor` | Check your install, login and connection |
-| `stophy version` | Show the CLI version |
+| Command                   | What it does                             |
+| ------------------------- | ---------------------------------------- |
+| `stophy init`             | Set up Stophy in your coding agents      |
+| `stophy login`            | Log in with your browser or an API key   |
+| `stophy logout`           | Log out and revoke this computer's key   |
+| `stophy <command>`        | Get data, for example `stophy search`    |
+| `stophy parsers [word]`   | List the parsers `scrape --parser` takes |
+| `stophy endpoints [word]` | List every command and its price         |
+| `stophy status`           | Show your login, balance and CLI version |
+| `stophy usage`            | Show your balance and all-time usage     |
+| `stophy logs --days 7`    | Show your recent requests                |
+| `stophy doctor`           | Check your install, login and connection |
+| `stophy version`          | Show the CLI version                     |
+
+The CLI tells you when a newer version is out. Set `STOPHY_NO_UPDATE_CHECK=1` to turn that off.
