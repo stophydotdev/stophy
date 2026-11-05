@@ -9,12 +9,15 @@ import { commandPath, registerDynamicCommands } from "./commands/dynamic.js";
 import { registerEndpointsCommand } from "./commands/endpoints.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerLoginCommand } from "./commands/login.js";
+import { registerParsersCommand } from "./commands/parsers.js";
 import { registerLogsCommand } from "./commands/logs.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
+import { withJobEndpoints } from "./jobs.js";
+import { withParserFlags } from "./parsers.js";
 import { promptLogin } from "./prompt-login.js";
 import { maybeShowUpdateNotice } from "./update-notice.js";
 
@@ -28,6 +31,7 @@ const NO_AUTH_COMMANDS = new Set([
   "status",
   "endpoints",
   "describe",
+  "parsers",
   "help",
 ]);
 
@@ -43,14 +47,14 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
     .addHelpText(
       "after",
       `
-Run stophy <source> --help to see what it can do.
+Run stophy <command> --help to see its options.
 
 Examples:
-  $ stophy google search "bun runtime" --page 2
-  $ stophy youtube search "bun runtime"
-  $ stophy youtube transcript https://youtu.be/M4TufsFlv_o
-  $ stophy tiktok profile tiktok
-  $ stophy reddit subreddit rust
+  $ stophy search "bun runtime" --limit 5
+  $ stophy scrape https://bun.com/docs
+  $ stophy map https://bun.com --limit 20
+  $ stophy parsers youtube
+  $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
 `,
     )
     .action(() => {
@@ -63,6 +67,7 @@ Examples:
   registerEndpointsCommand(program, endpoints);
   registerDescribeCommand(program, endpoints);
   registerDynamicCommands(program, endpoints, undefined, sources);
+  registerParsersCommand(program);
   registerUsageCommand(program);
   registerLogsCommand(program);
   registerStatusCommand(program);
@@ -106,7 +111,7 @@ async function main() {
           process.stderr.write(`${message}\n`);
         },
       });
-      catalog = loaded;
+      catalog = { ...loaded, endpoints: withJobEndpoints(withParserFlags(loaded.endpoints)) };
     } catch (error) {
       if (!catalogOptional(args)) throw error;
       const message =
