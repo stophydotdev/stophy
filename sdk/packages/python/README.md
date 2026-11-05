@@ -61,14 +61,17 @@ Paging needs an API key.
 
 ## Crawl a site
 
-`crawl` answers at once with an id. Cancel it with the id, or stop it when you have enough:
+`crawl` answers at once with an id. Ask `crawl.status` for the pages:
 
 ```python
 job = stophy.crawl(url="https://bun.com/docs", limit=20)
-stophy.crawl.cancel(id=job["id"])
+status = stophy.crawl.status(id=job["id"])
+print(status["status"], status["completed"], status["total"], status.get("data"))
 ```
 
-`stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way.
+`status` is `scraping` until the crawl is `completed`. When the answer has a `cursor`, send it back with the same id to get the pages finished since. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+
+`stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 
 ## Extract fields from pages
 
