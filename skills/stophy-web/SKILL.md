@@ -30,6 +30,8 @@ stophy map "https://bun.com" --search sqlite --limit 5 --no-includeSubdomains
 # pull named fields from a page, and read a few pages of a site (key needed)
 stophy extract --urls "https://bun.com" --prompt "the current Bun version and its release date"
 stophy crawl "https://bun.com/docs" --limit 3
+stophy crawl status <id>
+stophy extract status <id>
 
 # papers, patents and trends
 stophy scrape "https://scholar.google.com/scholar?q=malaria+vaccine+efficacy&scisbd=1" --parser google-scholar
@@ -58,7 +60,7 @@ stophy scrape "https://www.hetzner.com/legal/legal-notice/" --parser emails
 - `search --sources` takes `web`, `news` and `images`. `--tbs` filters by time: `qdr:h`, `qdr:d`, `qdr:w`, `qdr:m` or `qdr:y`. `--categories '["research"]'` keeps academic sites and `'["pdf"]'` PDF files. `--includeDomains` and `--excludeDomains` take up to 10 sites.
 - `scrape --formats '["links"]'` picks what comes back: `markdown` (the default), `summary`, `links`, `html`, `screenshot` and more.
 - `map --search` keeps the addresses that match, best first.
-- `crawl` and `extract` print an `id` and finish in the background. `crawl --limit` caps the pages read.
+- `crawl` and `extract` print an `id` and finish in the background. Read the result with `crawl status <id>` or `extract status <id>`. `crawl --limit` caps the pages read, and `crawl cancel <id>` stops a crawl.
 - A search costs $0.003 per 10 results from each source. A scrape, a map or a parser call costs $0.0015. `extract` costs about $0.01 a page, and nothing when it finds none of the fields. `crawl` costs $0.0015 a page.
 
 ## See also
