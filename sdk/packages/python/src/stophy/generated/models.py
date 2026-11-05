@@ -58,7 +58,7 @@ ScrapeFormatsItemOption1Type = Literal[
     "branding",
 ]
 
-ScrapeSchema1Option0Type = Literal[
+ScrapeInputSchema1Option0Type = Literal[
     "string",
     "number",
     "integer",
@@ -117,6 +117,13 @@ MapSitemap = Literal[
     "skip",
     "include",
     "only",
+]
+
+CrawlStatusResponseStatus = Literal[
+    "scraping",
+    "completed",
+    "failed",
+    "cancelled",
 ]
 
 ParserName = Literal[
@@ -475,18 +482,18 @@ class ScrapeFormatsItemOption4(TypedDict):
     count: NotRequired[int]
 
 
-class ScrapeSchema1Option0(TypedDict):
-    type: ScrapeSchema1Option0Type
+class ScrapeInputSchema1Option0(TypedDict):
+    type: ScrapeInputSchema1Option0Type
     description: NotRequired[str]
 
 
-class ScrapeSchema1Option1(TypedDict):
+class ScrapeInputSchema1Option1(TypedDict):
     type: Literal["array"]
     items: Any
     description: NotRequired[str]
 
 
-class ScrapeSchema1Option2(TypedDict):
+class ScrapeInputSchema1Option2(TypedDict):
     type: Literal["object"]
     properties: dict[str, Any]
     description: NotRequired[str]
@@ -494,7 +501,9 @@ class ScrapeSchema1Option2(TypedDict):
 
 class ScrapeFormatsItemOption5Schema(TypedDict):
     type: Literal["object"]
-    properties: dict[str, ScrapeSchema1Option0 | ScrapeSchema1Option1 | ScrapeSchema1Option2]
+    properties: dict[
+        str, ScrapeInputSchema1Option0 | ScrapeInputSchema1Option1 | ScrapeInputSchema1Option2
+    ]
 
 
 class ScrapeFormatsItemOption5(TypedDict):
@@ -673,13 +682,13 @@ class ScrapeResponse(TypedDict):
     data: ScrapeResponseData
 
 
-class ExtractSchema0Option1(TypedDict):
+class ExtractInputSchema0Option1(TypedDict):
     type: Literal["array"]
     items: Any
     description: NotRequired[str]
 
 
-class ExtractSchema0Option2(TypedDict):
+class ExtractInputSchema0Option2(TypedDict):
     type: Literal["object"]
     properties: dict[str, Any]
     description: NotRequired[str]
@@ -687,7 +696,9 @@ class ExtractSchema0Option2(TypedDict):
 
 class ExtractSchema(TypedDict):
     type: Literal["object"]
-    properties: dict[str, ScrapeSchema1Option0 | ExtractSchema0Option1 | ExtractSchema0Option2]
+    properties: dict[
+        str, ScrapeInputSchema1Option0 | ExtractInputSchema0Option1 | ExtractInputSchema0Option2
+    ]
 
 
 class ExtractScrapeOptionsFormatsItemOption5(TypedDict):
@@ -762,13 +773,13 @@ class ExtractResponse(TypedDict):
     invalidURLs: list[str]
 
 
-class BrowserTaskSchema0Option1(TypedDict):
+class BrowserTaskInputSchema0Option1(TypedDict):
     type: Literal["array"]
     items: Any
     description: NotRequired[str]
 
 
-class BrowserTaskSchema0Option2(TypedDict):
+class BrowserTaskInputSchema0Option2(TypedDict):
     type: Literal["object"]
     properties: dict[str, Any]
     description: NotRequired[str]
@@ -777,7 +788,8 @@ class BrowserTaskSchema0Option2(TypedDict):
 class BrowserTaskSchema(TypedDict):
     type: Literal["object"]
     properties: dict[
-        str, ScrapeSchema1Option0 | BrowserTaskSchema0Option1 | BrowserTaskSchema0Option2
+        str,
+        ScrapeInputSchema1Option0 | BrowserTaskInputSchema0Option1 | BrowserTaskInputSchema0Option2,
     ]
 
 
@@ -849,13 +861,13 @@ class MapResponse(TypedDict):
     links: list[MapResponseLinksItem]
 
 
-class CrawlSchema1Option1(TypedDict):
+class CrawlInputSchema1Option1(TypedDict):
     type: Literal["array"]
     items: Any
     description: NotRequired[str]
 
 
-class CrawlSchema1Option2(TypedDict):
+class CrawlInputSchema1Option2(TypedDict):
     type: Literal["object"]
     properties: dict[str, Any]
     description: NotRequired[str]
@@ -863,7 +875,9 @@ class CrawlSchema1Option2(TypedDict):
 
 class CrawlScrapeOptionsFormatsItemOption5Schema(TypedDict):
     type: Literal["object"]
-    properties: dict[str, ScrapeSchema1Option0 | CrawlSchema1Option1 | CrawlSchema1Option2]
+    properties: dict[
+        str, ScrapeInputSchema1Option0 | CrawlInputSchema1Option1 | CrawlInputSchema1Option2
+    ]
 
 
 class CrawlScrapeOptionsFormatsItemOption5(TypedDict):
@@ -945,17 +959,61 @@ class CrawlResponse(TypedDict):
     url: NotRequired[str]
 
 
+class CrawlStatusResponseDataItemActionsJavascriptReturnsItem(TypedDict):
+    type: NotRequired[str]
+    value: NotRequired[str | float | bool | None | list[Any] | dict[str, Any]]
+
+
+class CrawlStatusResponseDataItemActions(TypedDict):
+    screenshots: NotRequired[list[str]]
+    scrapes: NotRequired[list[ScrapeResponseDataActionsScrapesItem]]
+    javascriptReturns: NotRequired[list[CrawlStatusResponseDataItemActionsJavascriptReturnsItem]]
+    pdfs: NotRequired[list[str]]
+
+
+class CrawlStatusResponseDataItem(TypedDict):
+    markdown: NotRequired[str]
+    summary: NotRequired[str]
+    html: NotRequired[str]
+    rawHtml: NotRequired[str]
+    links: NotRequired[list[str]]
+    images: NotRequired[list[str]]
+    attributes: NotRequired[list[ScrapeResponseDataAttributesItem]]
+    screenshot: NotRequired[str]
+    json: NotRequired[str | float | bool | None | list[Any] | dict[str, Any]]
+    highlights: NotRequired[str]
+    changeTracking: NotRequired[ScrapeResponseDataChangeTracking]
+    branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
+    actions: NotRequired[CrawlStatusResponseDataItemActions]
+    warning: NotRequired[str]
+    metadata: ScrapeResponseDataMetadata
+
+
+class CrawlStatusResponse(TypedDict):
+    success: Literal[True]
+    status: CrawlStatusResponseStatus
+    total: int
+    completed: int
+    creditsUsed: int
+    createdAt: NotRequired[str]
+    completedAt: NotRequired[str]
+    duration: NotRequired[float]
+    expiresAt: NotRequired[str]
+    next: NotRequired[str]
+    data: list[CrawlStatusResponseDataItem]
+
+
 class CrawlCancelResponse(TypedDict):
     status: Literal["cancelled"]
 
 
-class BatchScrapeSchema1Option1(TypedDict):
+class BatchScrapeInputSchema1Option1(TypedDict):
     type: Literal["array"]
     items: Any
     description: NotRequired[str]
 
 
-class BatchScrapeSchema1Option2(TypedDict):
+class BatchScrapeInputSchema1Option2(TypedDict):
     type: Literal["object"]
     properties: dict[str, Any]
     description: NotRequired[str]
@@ -964,7 +1022,8 @@ class BatchScrapeSchema1Option2(TypedDict):
 class BatchScrapeFormatsItemOption5Schema(TypedDict):
     type: Literal["object"]
     properties: dict[
-        str, ScrapeSchema1Option0 | BatchScrapeSchema1Option1 | BatchScrapeSchema1Option2
+        str,
+        ScrapeInputSchema1Option0 | BatchScrapeInputSchema1Option1 | BatchScrapeInputSchema1Option2,
     ]
 
 
@@ -983,3 +1042,49 @@ class BatchScrapeResponse(TypedDict):
     id: NotRequired[str]
     url: NotRequired[str]
     invalidURLs: list[str]
+
+
+class BatchScrapeStatusResponseDataItemActionsJavascriptReturnsItem(TypedDict):
+    type: NotRequired[str]
+    value: NotRequired[str | float | bool | None | list[Any] | dict[str, Any]]
+
+
+class BatchScrapeStatusResponseDataItemActions(TypedDict):
+    screenshots: NotRequired[list[str]]
+    scrapes: NotRequired[list[ScrapeResponseDataActionsScrapesItem]]
+    javascriptReturns: NotRequired[
+        list[BatchScrapeStatusResponseDataItemActionsJavascriptReturnsItem]
+    ]
+    pdfs: NotRequired[list[str]]
+
+
+class BatchScrapeStatusResponseDataItem(TypedDict):
+    markdown: NotRequired[str]
+    summary: NotRequired[str]
+    html: NotRequired[str]
+    rawHtml: NotRequired[str]
+    links: NotRequired[list[str]]
+    images: NotRequired[list[str]]
+    attributes: NotRequired[list[ScrapeResponseDataAttributesItem]]
+    screenshot: NotRequired[str]
+    json: NotRequired[str | float | bool | None | list[Any] | dict[str, Any]]
+    highlights: NotRequired[str]
+    changeTracking: NotRequired[ScrapeResponseDataChangeTracking]
+    branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
+    actions: NotRequired[BatchScrapeStatusResponseDataItemActions]
+    warning: NotRequired[str]
+    metadata: ScrapeResponseDataMetadata
+
+
+class BatchScrapeStatusResponse(TypedDict):
+    success: Literal[True]
+    status: CrawlStatusResponseStatus
+    total: int
+    completed: int
+    creditsUsed: int
+    createdAt: NotRequired[str]
+    completedAt: NotRequired[str]
+    duration: NotRequired[float]
+    expiresAt: NotRequired[str]
+    next: NotRequired[str]
+    data: list[BatchScrapeStatusResponseDataItem]

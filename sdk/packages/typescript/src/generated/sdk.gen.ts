@@ -58,12 +58,18 @@ import type {
   CrawlCancelData,
   CrawlCancelResponse,
   CrawlCancelError,
+  CrawlStatusData,
+  CrawlStatusResponse,
+  CrawlStatusError,
   BatchScrapeData,
   BatchScrapeResponse,
   BatchScrapeError,
   BatchScrapeCancelData,
   BatchScrapeCancelResponse,
   BatchScrapeCancelError,
+  BatchScrapeStatusData,
+  BatchScrapeStatusResponse,
+  BatchScrapeStatusError,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -512,6 +518,29 @@ export const crawlCancel = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Check a background crawl and read the finished pages
+ * Costs 0 credits per call. Pages with cursor.
+ */
+export const crawlStatus = <ThrowOnError extends boolean = false>(
+  options: Options<CrawlStatusData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    CrawlStatusResponse,
+    CrawlStatusError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/crawl/{id}",
+    ...options,
+  });
+};
+
+/**
  * Scrape many pages in the background
  * Costs 1 credit a page, however it is reached. json with a schema or a prompt, summary and highlights add 4 credits each when they return something. CSS rules and attributes add nothing. A PDF adds 1 credit for each page read. Each perform action adds 2 credits. An answer from a stored copy within maxAge is free. A page that comes back with a 404 or 410 status is charged like any page. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
  */
@@ -548,6 +577,29 @@ export const batchScrapeCancel = <ThrowOnError extends boolean = false>(
   return (options.client ?? _heyApiClient).delete<
     BatchScrapeCancelResponse,
     BatchScrapeCancelError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/batch/scrape/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Check a batch scrape and read the finished pages
+ * Costs 0 credits per call. Pages with cursor.
+ */
+export const batchScrapeStatus = <ThrowOnError extends boolean = false>(
+  options: Options<BatchScrapeStatusData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    BatchScrapeStatusResponse,
+    BatchScrapeStatusError,
     ThrowOnError
   >({
     security: [

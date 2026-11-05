@@ -7,12 +7,14 @@ from typing import Any, Literal, Mapping, Protocol
 from .models import (
     BatchScrapeFormatsItemOption5,
     BatchScrapeResponse,
+    BatchScrapeStatusResponse,
     BrowserTaskResponse,
     BrowserTaskSchema,
     BrowserTaskStatusResponse,
     CrawlCancelResponse,
     CrawlResponse,
     CrawlScrapeOptions,
+    CrawlStatusResponse,
     CrawlWebhook,
     EndpointCatalog,
     ExtractResponse,
@@ -534,6 +536,27 @@ class SyncMap:
         return self._call("POST", "/v1/map", values)
 
 
+class SyncCrawlStatus:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        max_text_length: int | None = None,
+        id: str,
+        cursor: str | None = None,
+    ) -> CrawlStatusResponse:
+        values = _omit_none(
+            {
+                "maxTextLength": max_text_length,
+                "id": id,
+                "cursor": cursor,
+            }
+        )
+        return self._call("GET", "/v1/crawl/{id}", values)
+
+
 class SyncCrawlCancel:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
@@ -554,10 +577,12 @@ class SyncCrawlCancel:
 
 
 class SyncCrawl:
+    status: SyncCrawlStatus
     cancel: SyncCrawlCancel
 
     def __init__(self, call: SyncCall) -> None:
         self._call = call
+        self.status = SyncCrawlStatus(call)
         self.cancel = SyncCrawlCancel(call)
 
     def __call__(
@@ -609,6 +634,27 @@ class SyncCrawl:
         return self._call("POST", "/v1/crawl", values)
 
 
+class SyncBatchScrapeStatus:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        max_text_length: int | None = None,
+        id: str,
+        cursor: str | None = None,
+    ) -> BatchScrapeStatusResponse:
+        values = _omit_none(
+            {
+                "maxTextLength": max_text_length,
+                "id": id,
+                "cursor": cursor,
+            }
+        )
+        return self._call("GET", "/v1/batch/scrape/{id}", values)
+
+
 class SyncBatchScrapeCancel:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
@@ -629,10 +675,12 @@ class SyncBatchScrapeCancel:
 
 
 class SyncBatchScrape:
+    status: SyncBatchScrapeStatus
     cancel: SyncBatchScrapeCancel
 
     def __init__(self, call: SyncCall) -> None:
         self._call = call
+        self.status = SyncBatchScrapeStatus(call)
         self.cancel = SyncBatchScrapeCancel(call)
 
     def __call__(
@@ -1230,6 +1278,27 @@ class AsyncMap:
         return await self._call("POST", "/v1/map", values)
 
 
+class AsyncCrawlStatus:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        max_text_length: int | None = None,
+        id: str,
+        cursor: str | None = None,
+    ) -> CrawlStatusResponse:
+        values = _omit_none(
+            {
+                "maxTextLength": max_text_length,
+                "id": id,
+                "cursor": cursor,
+            }
+        )
+        return await self._call("GET", "/v1/crawl/{id}", values)
+
+
 class AsyncCrawlCancel:
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
@@ -1250,10 +1319,12 @@ class AsyncCrawlCancel:
 
 
 class AsyncCrawl:
+    status: AsyncCrawlStatus
     cancel: AsyncCrawlCancel
 
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
+        self.status = AsyncCrawlStatus(call)
         self.cancel = AsyncCrawlCancel(call)
 
     async def __call__(
@@ -1305,6 +1376,27 @@ class AsyncCrawl:
         return await self._call("POST", "/v1/crawl", values)
 
 
+class AsyncBatchScrapeStatus:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        max_text_length: int | None = None,
+        id: str,
+        cursor: str | None = None,
+    ) -> BatchScrapeStatusResponse:
+        values = _omit_none(
+            {
+                "maxTextLength": max_text_length,
+                "id": id,
+                "cursor": cursor,
+            }
+        )
+        return await self._call("GET", "/v1/batch/scrape/{id}", values)
+
+
 class AsyncBatchScrapeCancel:
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
@@ -1325,10 +1417,12 @@ class AsyncBatchScrapeCancel:
 
 
 class AsyncBatchScrape:
+    status: AsyncBatchScrapeStatus
     cancel: AsyncBatchScrapeCancel
 
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
+        self.status = AsyncBatchScrapeStatus(call)
         self.cancel = AsyncBatchScrapeCancel(call)
 
     async def __call__(

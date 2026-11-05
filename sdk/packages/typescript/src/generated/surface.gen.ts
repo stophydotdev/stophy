@@ -6,6 +6,8 @@ import type {
 	BatchScrapeCancelResponse,
 	BatchScrapeData,
 	BatchScrapeResponse,
+	BatchScrapeStatusData,
+	BatchScrapeStatusResponse,
 	BrowserTaskData,
 	BrowserTaskResponse,
 	BrowserTaskStatusData,
@@ -14,6 +16,8 @@ import type {
 	CrawlCancelResponse,
 	CrawlData,
 	CrawlResponse,
+	CrawlStatusData,
+	CrawlStatusResponse,
 	ExtractData,
 	ExtractResponse,
 	ExtractResultData,
@@ -66,10 +70,12 @@ function bindSurface(call: Caller) {
 		parse: post<ParseData["body"], ParseResponse>("/v1/parse", call),
 		map: post<MapData["body"], MapResponse>("/v1/map", call),
 		crawl: Object.assign(post<CrawlData["body"], CrawlResponse>("/v1/crawl", call), {
+				status: send<CrawlStatusData["path"] & NonNullable<CrawlStatusData["query"]>, CrawlStatusResponse>("GET", "/v1/crawl/{id}", call),
 				cancel: send<CrawlCancelData["path"] & NonNullable<CrawlCancelData["query"]>, CrawlCancelResponse>("DELETE", "/v1/crawl/{id}", call),
 			}),
 		batch: {
 			scrape: Object.assign(post<BatchScrapeData["body"], BatchScrapeResponse>("/v1/batch/scrape", call), {
+					status: send<BatchScrapeStatusData["path"] & NonNullable<BatchScrapeStatusData["query"]>, BatchScrapeStatusResponse>("GET", "/v1/batch/scrape/{id}", call),
 					cancel: send<BatchScrapeCancelData["path"] & NonNullable<BatchScrapeCancelData["query"]>, BatchScrapeCancelResponse>("DELETE", "/v1/batch/scrape/{id}", call),
 				}),
 		},
