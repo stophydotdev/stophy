@@ -1,10 +1,10 @@
 ---
 name: stophy-real-estate
 description: |
-  Get homes for sale, for rent, or sold from Zillow and Realtor.com: search by place, price, bedrooms and more, and read one home's details, estimate, history, taxes and schools. Use for "find homes for sale in", "what is this house worth", "apartments for rent in this city", "recently sold homes near", "homes with a pool", "what are the taxes on this house". For hotels, stays, and attractions use stophy-places. For local classifieds, including apartments and housing, use stophy-shopping.
+  Get homes for sale, for rent or sold from Zillow and Realtor.com: search by place, price, bedrooms and more, and read one home's details, estimate, history, taxes and schools. Use for "find homes for sale in", "what is this house worth", "apartments for rent in this city", "recently sold homes near", "homes with a pool", "what are the taxes on this house". For hotels, stays and attractions use stophy-places. For local classifieds use stophy-shopping.
 metadata:
   author: stophy
-  version: "4.0.2"
+  version: "4.0.3"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,41 +12,37 @@ allowed-tools:
 
 # stophy real estate
 
-Search homes for sale, for rent, or sold on Zillow and Realtor.com.
+Find homes and read their details.
 
-**Prerequisite:** every command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# US homes for sale, with filters
-stophy zillow search "Austin, TX" --status forSale --minBedrooms 3 --hasPool --json -o .stophy/zillow.json
+# homes for sale in a city, on each site
+stophy scrape "https://www.zillow.com/homes/San-Francisco,-CA_rb/" --parser zillow-search --json -o .stophy/homes.json
+stophy scrape "https://www.realtor.com/realestateandhomes-search/Austin_TX" --parser realtor-search
 
-# rentals, newest first
-stophy zillow search "Brooklyn, NY" --status forRent --sort newest --petsAllowed --json -o .stophy/rentals.json
-
-# one home's price, details, and estimate, by ID or link from a search result
-stophy zillow property "https://www.zillow.com/homedetails/123-Main-St-New-York-NY-10001/12345678_zpid/" --json -o .stophy/property.json
-
-# Realtor.com homes for sale under a price, and one home's history, taxes and schools
-stophy realtor search "Austin, TX" --maxPrice 600000 --minBedrooms 3 --json -o .stophy/realtor.json
-stophy realtor property --propertyId 9916205223 --json -o .stophy/realtor-property.json
+# one home's details, estimate, history, taxes and schools
+stophy scrape "https://www.zillow.com/homedetails/157-28th-Ave-San-Francisco-CA-94121/15088840_zpid/" --parser zillow-property
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `zillow` and `realtor`.
+**Done when:** you list each home with its price, address and link as the output gives them.
 
-**Done when:** you name the specific address, price, and listing link. A generic price range for the area is not enough.
+## Parsers
+
+| Parser | Page to scrape | Options |
+|---|---|---|
+| `zillow-search` | zillow.com/homes/place_rb/ | status, minPrice, maxPrice, minBedrooms, page |
+| `zillow-property` | zillow.com/homedetails/.../id_zpid/ | |
+| `realtor-search` | realtor.com/realestateandhomes-search/City_ST | status, minPrice, maxPrice, minBedrooms, homeTypes, sort, page |
+| `realtor-property` | realtor.com/realestateandhomes-detail/... | |
 
 ## Tips
 
-- Search first to get a property link or ID, then run `property` on it for the full details. To point at one home, give its link or its id, never both: `--propertyUrl` or `--propertyId`.
-- `zillow search` costs $0.003 a call. `zillow property`, `realtor search` and `realtor property` cost $0.0015.
-- `zillow search` takes `--status` (`forSale`, `forRent` or `sold`), price, bedroom, bathroom, size and lot filters, `--homeTypes`, `--daysOnZillow`, `--keywords` and `--sort`. It also takes yes-or-no filters such as `--hasPool`, `--hasGarage`, `--priceReduced` and `--openHouse`. Run `stophy zillow search --help` for every option.
-- Search returns one page. Run the same command with `--page 2` and so on, until a page has no results. Each page costs the same again.
-- `realtor search` takes `--status`, `--minPrice`, `--maxPrice`, bedroom, bathroom and size filters, `--homeTypes` and `--sort` (`relevance`, `newest`, `priceLow` or `priceHigh`), and `--page 2` for the next page.
-- `realtor property` takes the `propertyId` or link from a search result: `--propertyUrl` or `--propertyId`, never both. It returns the home's history, taxes and schools.
+- Send filters as options, like `--parserOptions '{"status":"forRent","maxPrice":3000}'`. `stophy parsers zillow --json` lists every option.
+- `zillow-search` costs $0.003. Every other call here costs $0.0015.
 
 ## See also
 
-- [stophy-places](../stophy-places/SKILL.md): hotels and attractions
-- [stophy-shopping](../stophy-shopping/SKILL.md): Craigslist apartments and housing
+- [stophy-places](../stophy-places/SKILL.md): hotels, stays and places nearby

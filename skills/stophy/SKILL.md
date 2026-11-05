@@ -1,10 +1,10 @@
 ---
 name: stophy
 description: |
-  Get live data from a specific site or platform with the Stophy CLI: Google search, news, scholar and trends, YouTube, TikTok, Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads, Google Maps, Tripadvisor, Yelp, flights, hotels, Airbnb, Booking.com and Expedia, Luma events, job posts on LinkedIn, Indeed, Upwork and careers pages, Glassdoor company reviews and salaries, Amazon, eBay, Facebook Marketplace and Craigslist products, Trustpilot reviews, App Store and Google Play apps, Zillow and Realtor.com homes, and ad libraries. Use for "search Reddit for", "get this video's transcript", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing for these sites. For one category, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate, or stophy-ads.
+  Search the web, read any page, list a site's pages, crawl a site, pull fields from a page, and get a site's own data as JSON with the Stophy CLI: Google Maps, YouTube, TikTok, Reddit, Instagram, LinkedIn, X, Amazon, Zillow, job boards, app stores, ad libraries and more. Use for "search the web for", "read this page", "get this video's transcript", "search Reddit for", "find coffee shops near", "what does this cost", "who is hiring for". Prefer it over generic web browsing. For one kind of site data, use stophy-web, stophy-video, stophy-social, stophy-places, stophy-jobs, stophy-shopping, stophy-apps, stophy-real-estate or stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "4.0.8"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,17 +12,17 @@ allowed-tools:
 
 # Stophy
 
-Stophy returns public web data as flat JSON. For one kind of data, use the matching `stophy-*` skill, which lists the best commands.
+Stophy gives your agent the live web as JSON: search, scrape, map, crawl and extract, plus parsers that read a site's page as its own data.
 
 ## Rules
 
 - Run `stophy ...`. If the CLI is not installed, run `npx -y @stophy/cli ...`.
-- Quote every query, URL, and user value.
+- Quote every query, URL and user value.
 - Never invent data. Never print or commit an API key.
 
 ## Set up
 
-`google search`, `web search`, `web news`, `web images`, `web scrape`, `web parse`, `web map`, `google news`, `google images`, `google suggest`, `google ads search`, `google patents`, `youtube search`, `youtube transcript`, `youtube video`, `youtube comments`, `youtube channel`, `reddit search`, `google maps search`, `google maps reviews`, `tiktok profile`, `tiktok transcript`, `appstore reviews`, `google play reviews`, `pinterest pin`, `x profile` and `x post` work without a key, within a free limit. Every other command needs one. Check `stophy status`, then log in:
+`search`, `scrape`, `map` and the parsers marked "no key" in each skill work without a key, 50 calls a day, first page only. Everything else needs a key. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser
@@ -33,41 +33,50 @@ Ask the user to confirm that the code shown on stophy.dev matches the code in th
 ## Quick start
 
 ```bash
-stophy --help                     # every source
-stophy youtube --help             # a source's commands
-stophy youtube search --help      # a command's options and example
+stophy search "postgres 18 release notes" --limit 3
+stophy scrape "https://example.com"
+stophy map "https://bun.com" --search sqlite --limit 5 --no-includeSubdomains
+stophy extract --urls "https://bun.com" --prompt "the current Bun version and its release date"
+stophy crawl "https://bun.com/docs" --limit 3
 ```
 
-Put the main input first and the options after it. To point at one thing, give its link or its id as the first argument. The command also takes it as an option, such as `--videoUrl` or `--videoId`. Send one, not both:
+`search` returns web results, and news or images with `--sources '["web","news"]'`. `scrape` returns the page as markdown. `map` lists a site's addresses. `extract` and `crawl` need a key and run in the background: they print an `id`. Run `stophy <command> --help` for every option.
+
+## Site data
+
+A parser reads one kind of page on one site and returns its own data: a video's transcript, a Reddit search, an Amazon product. Find the parser, then scrape the page you would open in a browser with it:
 
 ```bash
-stophy google search "postgres 18 release notes"
-stophy reddit search "bun vs node" --sort top --time pastMonth
-stophy youtube transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-stophy youtube video dQw4w9WgXcQ
-stophy google ads advertisers nike
-stophy meta ads search nike
+stophy parsers reddit
+stophy scrape "https://www.reddit.com/search/?q=bun+vs+node" --parser reddit-search
+stophy scrape "https://www.instagram.com/natgeo/" --parser instagram-profile
 ```
 
-One call returns one page for a fixed price. Most commands cost $0.0015, and `zillow search` costs $0.003. These long lists cost $0.0015 per 10 results: `google images`, `web search`, `web news`, `web images`, `appstore search`, `appstore top`, `google play search` and `craigslist search`. A TikTok transcript costs $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio without. An Instagram transcript costs $0.0015 plus $0.0015 per 30 seconds of audio. `stophy endpoints` shows each price, and `stophy describe <command>` the terms. Errors and empty results cost nothing.
+Shape the page URL the way the site does: the search words, filters and sort go in the URL. Send other inputs as `--parserOptions`, such as `--parserOptions '{"minRating":4.5}'`. `stophy parsers <word> --json` shows each parser's page, options and fields.
 
-By default, lists print one row per result with its title and link, and other results print as `name: value` lines. Add `--json` for every field and `-o file` to save the output. Long output is easier to read in parts from a file than in chat. Each call returns one page, as the site shows it. Some commands take a page number: the output shows `page`, and you run the same command with `--page 2` for the next page, until a page has no results. Others end with a `cursor` when there is more: run the same command with `--cursor <cursor>`, and keep the other options the same.
+Lists come back in `results`. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. When it has `page`, send `{"page":2}`. Paging needs a key.
+
+Add `--json` for every field and `-o file` to save it. Long output is easier to read from a file than in chat.
 
 **Done when:** you ran the command, read its output, and every fact you report comes from that output.
 
+## Prices
+
+Most calls cost $0.0015: a scrape, a parser call, a map. A search costs $0.003 per 10 results from each source. `extract` costs about $0.01 a page, and is free when it finds nothing. `crawl` costs $0.0015 a page. A few parsers price per result or per second of audio; the skill for that site says so. A page that cannot be read and an error cost nothing.
+
 ## Errors
 
-- **`apiKeyRequired` or not logged in:** run `stophy login --browser`.
-- **`freeLimit`:** the free calls without a key are used up. Log in, or wait for the delay in the message.
+- **`apiKeyRequired`:** run `stophy login --browser`.
+- **`freeLimit`:** the 50 calls a day without a key are used up. Log in, or wait the seconds in the message.
 - **`insufficientCredits`:** the balance is too low, and nothing was charged. Send the user to https://stophy.dev/billing.
-- **Rate limited or source failed:** wait for any delay the message gives, then retry once. Do not loop.
-- **Invalid input:** read the command's `--help`.
-- **Not found:** the message is the source's own, such as "YouTube says: This video is unavailable". Check the link or ID. Do not retry.
+- **`rateLimited`, `sourceTimeout` or `sourceUnavailable`:** wait for any delay the message gives, then retry once. Do not loop.
+- **`invalidRequest`:** the message names the field. A parser error names the page it reads, such as "The youtube-video parser reads A YouTube video link". Fix the URL; do not retry it unchanged.
+- **`notFound`:** check the link. Do not retry.
 
-Failed calls cost nothing. To report a problem to support, include the `requestId` from `--raw` or from the error message.
+To report a problem to support, include the `Request id` from the error, or from `--raw`.
 
 ## Without the CLI
 
-- **MCP:** connect to `https://api.stophy.dev/mcp` and send `Authorization: Bearer <key>`. To sign in through the browser instead, connect to `https://mcp.stophy.dev/mcp`. Endpoint ids are camelCase, such as `redditSearch`.
-- **HTTP:** `POST https://api.stophy.dev/v1/<endpoint>` with a JSON body, where `google.search` is `/v1/google/search` and `youtube.transcript` is `/v1/youtube/transcript`. The response is `{ success, data, creditsUsed, requestId }`, and lists are in `data.results`. `GET /v1/endpoints` lists every endpoint.
+- **MCP:** connect to `https://mcp.stophy.dev/mcp` to sign in through the browser, or to `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>`. The tools are `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_crawl` and `stophy_extract`. A parser is a `stophy_scrape` format: `{"type":"json","parser":"reddit-search"}`.
+- **HTTP:** `POST https://api.stophy.dev/v1/scrape` with `{"url":"...","formats":[{"type":"json","parser":"reddit-search"}]}`. The response is `{ success, data }`, and a parser's output is in `data.json`. `GET /v1/parsers` lists the parsers and `GET /v1/endpoints` the endpoints.
 - **Code:** `npm install stophy` or `pip install stophy`.
