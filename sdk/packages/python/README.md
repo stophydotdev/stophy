@@ -13,77 +13,72 @@ pip install stophy
 ```python
 from stophy import Stophy
 
-result = Stophy().google.search(query="bun runtime")
-print(result["data"]["results"])
+stophy = Stophy()
+
+page = stophy.scrape(url="https://example.com", formats=["markdown"])
+print(page["data"]["markdown"])
+
+results = stophy.search(query="bun runtime", limit=3)
+print(results["data"]["web"])
 ```
 
-Some searches and lookups work without a key, within a small free allowance. The [endpoint list](https://api.stophy.dev/v1/endpoints) marks them with `keyless: true`. Every other method raises a `StophyError` with the code `apiKeyRequired`.
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method raises a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 
-Get a key from the [dashboard](https://stophy.dev/dashboard). Keys start with `st_`. Set it as `STOPHY_API_KEY`, or pass it in:
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in:
 
 ```python
 stophy = Stophy(api_key="st_...")
-
-videos = stophy.youtube.search(query="bun runtime")
-print(videos["data"]["results"])
 ```
 
-Methods follow the source and the command: `stophy.google.maps.search(...)`, `stophy.reddit.subreddit(...)`, `stophy.meta.ads.search(...)`.
-
-To point at one thing, send its link or its id, never both: `stophy.youtube.video(video_url=...)` or `stophy.youtube.video(video_id=...)`. Methods that take a person send `user_url` or `username`.
-
-Every response is a dict with `success`, `data`, `creditsUsed`, and `requestId`. `data` is one flat dict. Lists are in `data["results"]`.
+Each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`.
 
 Arguments are keyword-only and snake_case.
 
 For async code, use `AsyncStophy`. It has the same methods, and you `await` each call.
 
-## More data
+## Read a site with a parser
 
-A YouTube transcript, Reddit posts, Google Maps reviews, a TikTok profile and Meta ads:
-
-```python
-stophy = Stophy(api_key="st_...")
-
-transcript = stophy.youtube.transcript(video_url="https://youtu.be/dQw4w9WgXcQ", include_timestamps=True)
-print(transcript["data"].get("text"), transcript["data"].get("segments"))
-
-posts = stophy.reddit.search(query="bun runtime", sort="top", within="month")
-print(posts["data"]["results"])
-
-places = stophy.google.maps.search(query="coffee", location="Austin, TX")
-place_id = places["data"]["results"][0].get("placeId")
-if place_id:
-    reviews = stophy.google.maps.reviews(place_id=place_id)
-    print(reviews["data"]["results"])
-
-profile = stophy.tiktok.profile(username="tiktok")
-print(profile["data"].get("followers"), profile["data"].get("results"))
-
-ads = stophy.meta.ads.search(query="running shoes")
-print(ads["data"]["results"])
-```
-
-## Get the next page
-
-Each call returns one page of results, as the site shows it. List methods page in one of two ways.
-
-Some take a page number. They return `data["page"]`. Ask for the next number to continue, and stop when `results` comes back empty:
+A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the parser's name and the page URL:
 
 ```python
-first = stophy.google.search(query="bun runtime")
-second = stophy.google.search(query="bun runtime", page=first["data"]["page"] + 1)
+places = stophy.parsed("google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana")
+print(places["data"]["json"])
 ```
 
-Others return `data["cursor"]` when there is more. Pass it back as is:
+`parsed` calls `scrape` with the format `{"type": "json", "parser": ...}`. The parser name is typed as `ParserName`. `stophy.parsers()` returns each parser with the page it reads and what it returns.
+
+Extra keyword arguments are the parser's options, such as the next page:
 
 ```python
-first = stophy.youtube.search(query="bun runtime")
-if first["data"].get("cursor"):
-    next_page = stophy.youtube.search(query="bun runtime", cursor=first["data"]["cursor"])
+next_page = stophy.parsed(
+    "google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana", page=2
+)
 ```
+
+Paging needs an API key.
+
+## Crawl a site
+
+`crawl` answers at once with an id. Cancel it with the id, or stop it when you have enough:
+
+```python
+job = stophy.crawl(url="https://bun.com/docs", limit=20)
+stophy.crawl.cancel(id=job["id"])
+```
+
+`stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way.
+
+## Extract fields from pages
+
+```python
+job = stophy.extract(urls=["https://example.com"], prompt="What is this page for?")
+result = stophy.extract.result(id=job["id"])
+print(result["data"], result["confidence"])
+```
+
+`extract.result` raises a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
 
 ## Handle errors
 
@@ -91,12 +86,12 @@ if first["data"].get("cursor"):
 from stophy import StophyError
 
 try:
-    stophy.reddit.search(query="bun")
+    stophy.scrape(url="not a url")
 except StophyError as error:
-    print(error.code, error.retryable, error.retry_after_seconds)
+    print(error.code, str(error), error.retryable)
 ```
 
-`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, and `request_id`. The message is `str(error)`.
+`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
 
 The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
 
@@ -112,11 +107,12 @@ The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504
 ## Check your account
 
 ```python
+limits = stophy.limits()
 usage = stophy.usage()
-logs = stophy.logs(days=7, page=0)
+logs = stophy.logs(days=7)
 ```
 
-`usage` returns your balance and your all-time usage. `logs` returns your recent requests. Both need an API key.
+`limits` returns your balance and rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.
 
 ## License
 
