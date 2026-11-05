@@ -11,7 +11,7 @@ import type { InitOptions } from "../types/init.js";
 
 const MCP_URL = "https://mcp.stophy.dev/mcp";
 const SKILLS_PACKAGE = "stophydotdev/stophy";
-const NEXT_STEP = 'stophy google search "latest bun release"';
+const NEXT_STEP = 'stophy search "latest bun release"';
 
 const err = (message: string) => process.stderr.write(`${message}\n`);
 

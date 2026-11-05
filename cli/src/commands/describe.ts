@@ -9,12 +9,12 @@ export function registerDescribeCommand(program: Command, endpoints: readonly Ca
   program
     .command("describe")
     .description("Show a command's options, price and an example")
-    .argument("<id>", "Endpoint id, for example youtube.search")
+    .argument("<id>", "Endpoint id, for example crawl.status")
     .addHelpText(
       "after",
       `
 Example:
-  $ stophy describe youtube.search
+  $ stophy describe crawl.status
 `,
     )
     .action((id: string) => {

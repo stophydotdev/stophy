@@ -4,7 +4,7 @@ Give your agents the live web from your terminal. Try it with no key:
 
 ```bash
 curl -fsSL https://stophy.dev/install | bash
-stophy google search "bun runtime"
+stophy search "bun runtime"
 ```
 
 Results print as rows, or as JSON with `--json`.
@@ -55,44 +55,54 @@ Without a login you can run the commands `stophy endpoints` marks `free`, within
 
 ## Get data
 
-Name the source, then the command:
-
 ```bash
-stophy google search "bun runtime" --page 2
-stophy linkedin profile satyanadella
-stophy google maps search --query dentist --location Berlin
-stophy reddit subreddit rust
-stophy youtube transcript https://youtu.be/M4TufsFlv_o
-stophy meta ads search nike
-stophy careers jobs https://boards.greenhouse.io/figma
-stophy trustpilot company --companyDomain stripe.com
+stophy search "bun runtime" --limit 5
+stophy scrape https://bun.com/docs
+stophy map https://bun.com --limit 50
+stophy crawl https://bun.com/docs --limit 20
+stophy crawl status <id>
+stophy extract --urls https://bun.com --prompt "the latest version"
+stophy extract status <id>
 ```
 
-`stophy <source> --help` lists what a source can do, and `stophy <source> <command> --help` lists every option.
+`stophy <command> --help` lists every option.
 
-- Give a list as `--features live,hd` or `--features live --features hd`.
+- Give a list as `--urls a,b` or `--urls a --urls b`.
 - Turn a yes-or-no option on with `--flag` and off with `--no-flag`.
-- Point at one thing with its link or its id, like `stophy youtube video https://youtu.be/M4TufsFlv_o` or `stophy youtube video M4TufsFlv_o`. Send one, not both.
+- Options that take JSON, like `--formats '["markdown","links"]'`, take it as one quoted argument.
 - A value the command doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
 
-Each command returns one page. If the output shows `page`, run the same command with `--page 2`, and stop when a page is empty. If it ends with a `cursor`, run it again with `--cursor <cursor>`.
+`crawl`, `batch scrape` and `extract` answer with an id. Read the result with `status <id>` and stop a running job with `cancel <id>`. When a status answer has a `next` link, run it again with `--cursor` and the cursor from that link.
+
+## Read a site with a parser
+
+A parser returns a site's own data as JSON: posts, videos, places, products, jobs, listings and more. `stophy parsers [word]` lists them, with the kind of page each one takes:
+
+```bash
+stophy parsers reddit
+stophy scrape "https://www.reddit.com/r/rust/" --parser reddit-subreddit
+stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
+```
+
+If the output ends with a `cursor`, get the next page with `--parserOptions '{"cursor":"<cursor>"}'`.
 
 `--json` prints the data as JSON and the cost to stderr. `--raw` prints the full response. `-o <path>` writes the output to a file. A failed call ends with `Request id: <id>`, which support will ask for.
 
 ## Commands
 
-| Command                     | What it does                                  |
-| --------------------------- | --------------------------------------------- |
-| `stophy init`               | Set up Stophy in your coding agents           |
-| `stophy login`              | Log in with your browser or an API key        |
-| `stophy logout`             | Log out and revoke this computer's key        |
-| `stophy <source> <command>` | Get data, for example `stophy youtube search` |
-| `stophy endpoints [word]`   | List every command and its price              |
-| `stophy status`             | Show your login, balance and CLI version      |
-| `stophy usage`              | Show your balance and all-time usage          |
-| `stophy logs --days 7`      | Show your recent requests                     |
-| `stophy doctor`             | Check your install, login and connection      |
-| `stophy version`            | Show the CLI version                          |
+| Command                   | What it does                             |
+| ------------------------- | ---------------------------------------- |
+| `stophy init`             | Set up Stophy in your coding agents      |
+| `stophy login`            | Log in with your browser or an API key   |
+| `stophy logout`           | Log out and revoke this computer's key   |
+| `stophy <command>`        | Get data, for example `stophy search`    |
+| `stophy parsers [word]`   | List the parsers `scrape --parser` takes |
+| `stophy endpoints [word]` | List every command and its price         |
+| `stophy status`           | Show your login, balance and CLI version |
+| `stophy usage`            | Show your balance and all-time usage     |
+| `stophy logs --days 7`    | Show your recent requests                |
+| `stophy doctor`           | Check your install, login and connection |
+| `stophy version`          | Show the CLI version                     |
 
 The CLI tells you when a newer version is out. Set `STOPHY_NO_UPDATE_CHECK=1` to turn that off.
 
