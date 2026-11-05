@@ -1,6 +1,6 @@
 # Stophy MCP
 
-Give your agents the live web over MCP. Your agent reaches every Stophy endpoint through three tools.
+Give your agents the live web over MCP. Your agent can search, scrape, map, crawl and extract, and read a site's own data through a parser.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=stophy&config=eyJ1cmwiOiJodHRwczovL21jcC5zdG9waHkuZGV2L21jcCJ9)
 
@@ -109,17 +109,32 @@ The package needs Node.js 18 or later.
 
 ## Tools
 
-| Tool                       | What it does                                                                |
-| -------------------------- | --------------------------------------------------------------------------- |
-| `stophy_search_endpoints`  | Finds the endpoint for a task, with its cost                                |
-| `stophy_describe_endpoint` | Shows the input an endpoint takes and what it returns                       |
-| `stophy_call`              | Runs an endpoint with `id`, `input` and optional `fields`, and returns JSON |
+| Tool                       | What it does                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `stophy_search`            | Searches the web, news and images                                                                             |
+| `stophy_scrape`            | Reads a page as markdown, HTML, links, a screenshot or JSON                                                   |
+| `stophy_map`               | Lists the pages on a site                                                                                     |
+| `stophy_crawl`             | Starts a crawl of a site in the background and returns its `id`                                               |
+| `stophy_extract`           | Pulls the fields you name from pages as JSON                                                                  |
+| `stophy_search_endpoints`  | Finds the endpoint for a task, with its cost. Free                                                            |
+| `stophy_describe_endpoint` | Shows an endpoint's inputs, an example and what it returns. Free                                              |
+| `stophy_call`              | Runs any endpoint by `id` with `input`, and optional `fields` and `maxTextLength`                             |
+| `stophy_signup`            | Gets your agent an API key: it returns a link for you to approve, then the key once you call it with the code |
 
-Your agent usually searches, then describes, then calls. Endpoint ids are camelCase, such as `googleSearch` or `youtubeSearch`. Lists come back as `results`, and `fields` keeps only the keys you name on each row. Each result says what it cost.
+To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser:
 
-To point at one thing, send its link or its id, never both: `videoUrl` or `videoId`, `placeUrl` or `placeId`, `userUrl` or `username`. The endpoint description lists the pair.
+```json
+{
+  "url": "https://www.reddit.com/search/?q=bun+runtime",
+  "formats": [{ "type": "json", "parser": "reddit-search" }]
+}
+```
 
-One call returns one page from the site. Most calls cost $0.0015, long lists cost $0.0015 per 10 results, and a few cost more. See [pricing](https://docs.stophy.dev/billing). Some list endpoints take `page` and return `page`: ask for the next number, and stop when `results` comes back empty. Others return a `cursor` when there is more: pass it back unchanged as `cursor` to get the next page.
+The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
+
+Endpoint ids are camelCase, such as `crawlStatus` or `batchScrape`. A crawl runs in the background: call `crawlStatus` through `stophy_call` with the crawl's `id`. While the crawl runs, the result has a `next` link: send the `cursor` value from that link as `cursor` to get the pages finished since. `fields` keeps only the keys you name on each row. Each result shows its cost in `creditsUsed`. Most calls cost $0.002. See [pricing](https://docs.stophy.dev/billing).
+
+To give each endpoint its own tool, add `toolsets` to the URL with a source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets `scrape`, `crawlStatus`, `batchScrape` and every other web endpoint as tools.
 
 ## Network and credentials
 
