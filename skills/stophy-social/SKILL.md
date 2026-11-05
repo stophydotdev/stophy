@@ -4,7 +4,7 @@ description: |
   Get posts, profiles, comments and threads from Reddit, Instagram, LinkedIn, Pinterest, Facebook, X and Threads. Use for "search Reddit for", "what does this profile post about", "read this thread's replies", "what is this company posting on LinkedIn", "find pins about", "what is this page posting on Facebook", "how many views did this X post get". Reddit search, X profiles and posts, and Pinterest pins work without an API key. For YouTube or TikTok videos use stophy-video. For ad libraries use stophy-ads. For LinkedIn job posts use stophy-jobs.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

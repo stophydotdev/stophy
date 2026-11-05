@@ -4,7 +4,7 @@ description: |
   Search the public ad libraries of Meta (Facebook and Instagram), Google, TikTok and LinkedIn. Use for "what ads is this brand running", "find ads for this competitor", "what is this company advertising on Facebook", "get this ad's details", "find advertisers in this ad library". Google's ad library works without an API key. For a brand's own posts, not ads, use stophy-social or stophy-video.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

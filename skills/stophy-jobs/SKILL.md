@@ -4,7 +4,7 @@ description: |
   Get job postings from LinkedIn, Indeed, Upwork and company careers pages, and Glassdoor company reviews and salaries: search by keyword, location or rate, and read one posting in full. Use for "find jobs for", "who is hiring for this role", "find freelance work for", "what does this job pay", "remote jobs in this field", "what roles is this company hiring for". For a company's LinkedIn profile or posts, not its job listings, use stophy-social.
 metadata:
   author: stophy
-  version: "4.0.5"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

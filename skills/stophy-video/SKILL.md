@@ -4,7 +4,7 @@ description: |
   Get videos, transcripts, comments, channels and playlists from YouTube, TikTok and Instagram. Use for "get this video's transcript", "summarize this video", "what are people saying in the comments", "find videos about", "what does this channel post", "what is trending on this hashtag". YouTube search, videos, transcripts, comments and channels, TikTok transcripts and TikTok profiles work without an API key. For social posts that aren't videos use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

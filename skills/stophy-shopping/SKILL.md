@@ -4,7 +4,7 @@ description: |
   Get product data: search Amazon by keyword and price range, read one product's price and details and its reviews, see Amazon best sellers, search TikTok Shop, eBay, Facebook Marketplace and Craigslist, and read a store's Trustpilot reviews. Use for "find the cheapest", "how much does this cost on Amazon", "best selling air fryers", "compare prices for", "what is this product's rating", "find a used one on eBay", "find one on Craigslist near", "is this store legit". For homes for sale use stophy-real-estate. For web results about a product use stophy-web.
 metadata:
   author: stophy
-  version: "4.0.6"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)

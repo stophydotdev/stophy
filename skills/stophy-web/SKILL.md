@@ -4,7 +4,7 @@ description: |
   Search the web, news and images, read any page as markdown, list and crawl a site's pages, pull named fields from pages, and read Google Scholar, Google Patents and Google Trends. Use for "search the web for", "find sources on", "latest news about", "read this page", "find every page on this site about", "find papers on", "what is trending on Google", "find the contact email on this site". Search, scrape and map work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
