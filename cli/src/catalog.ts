@@ -13,6 +13,7 @@ export const endpointSchema = z.object({
   title: z.string().min(1).optional(),
   summary: z.string().min(1).optional(),
   bestWhen: z.string().min(1).nullish(),
+  method: z.enum(["GET", "POST", "DELETE"]).catch("POST"),
   path: z.string().min(1),
   credits: z.number().nonnegative().optional().catch(undefined),
   pricing: z.string().min(1).nullish().catch(undefined),

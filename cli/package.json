@@ -42,7 +42,7 @@
     "start": "node ./dist/index.js",
     "dev": "tsc --watch",
     "check-types": "tsc --noEmit",
-    "test": "bun test ./tests/account.test.ts ./tests/login.test.ts ./tests/flags.test.ts ./tests/catalog.test.ts ./tests/commands.test.ts ./tests/init.test.ts ./tests/render.test.ts",
+    "test": "bun test ./tests/account.test.ts ./tests/login.test.ts ./tests/flags.test.ts ./tests/catalog.test.ts ./tests/commands.test.ts ./tests/init.test.ts ./tests/render.test.ts ./tests/v1.test.ts",
     "build:binary": "bash scripts/build-binaries.sh",
     "build:binary:darwin": "bash scripts/build-binaries.sh darwin",
     "build:binary:linux": "bash scripts/build-binaries.sh linux",
