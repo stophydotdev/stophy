@@ -1,10 +1,10 @@
 ---
 name: stophy-places
 description: |
-  Get places, hotels, flights, and events: Google Maps, Tripadvisor and Yelp search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, Expedia hotel prices, Google Flights prices, and upcoming Luma events in a city. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX", "what tech events are in San Francisco". Google Maps search works without an API key. For homes for sale or rent use stophy-real-estate.
+  Get places, hotels, flights and events: Google Maps, Tripadvisor and Yelp search and reviews, Google Hotels, Airbnb and Booking.com prices and reviews, Expedia hotel prices, Google Flights prices, and upcoming Luma events in a city. Use for "find coffee shops near", "what do reviews say about this restaurant", "what is the best hotel in", "find a hotel in", "find an Airbnb in", "what do guests say about this hotel", "flights from JFK to LAX", "what tech events are in San Francisco". Google Maps search and reviews work without an API key. For homes for sale or rent use stophy-real-estate.
 metadata:
   author: stophy
-  version: "4.0.7"
+  version: "4.0.8"
 allowed-tools:
   - Bash(stophy *)
   - Bash(npx -y @stophy/cli *)
@@ -12,64 +12,56 @@ allowed-tools:
 
 # stophy places
 
-Search places on Google Maps, Tripadvisor and Yelp, stays on Google Hotels, Airbnb, Booking.com and Expedia, flights on Google Flights, and upcoming events on Luma.
+Find places, stays, flights and events, with prices and reviews.
 
-**Prerequisite:** `google maps search` and `google maps reviews` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** `google-maps` and `google-maps-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# places by keyword and location, open now and rated 4 or more
-stophy google maps search --query coffee --location "Austin, TX" --openNow --minRating 4 --json -o .stophy/maps.json
+# no key needed: places near somewhere, and a place's reviews
+stophy scrape "https://www.google.com/maps/search/coffee+shops+near+Union+Square+San+Francisco" --parser google-maps --json -o .stophy/places.json
+stophy scrape "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z/data=!3m1!4b1!4m6!3m5!1s0x47e66e2964e34e2d:0x8ddca9ee380ef7e0" --parser google-maps-reviews
 
-# one place's details, and its reviews
-stophy google maps place "ChIJrTLr-GyuEmsRBfy61i59si0" --json
-stophy google maps reviews "ChIJrTLr-GyuEmsRBfy61i59si0" --sort newest --json -o .stophy/reviews.json
-
-# hotels, restaurants and attractions on Tripadvisor, one place's details, and its reviews
-stophy tripadvisor search "Eiffel Tower" --type attractions --json -o .stophy/tripadvisor.json
-stophy tripadvisor place 188151 --json
-stophy tripadvisor reviews 188151 --ratings 1,2 --travelerTypes families --sort mostRecent --json -o .stophy/tripadvisor-reviews.json
-
-# hotels with prices for a date range
-stophy google hotels --query Lisbon --checkIn 2026-11-10 --checkOut 2026-11-15 --json -o .stophy/hotels.json
-
-# flight prices and times
-stophy google flights --origin JFK --destination LAX --departDate 2026-11-01 --json -o .stophy/flights.json
-
-# Airbnb stays with prices for your dates, and one listing's reviews
-stophy airbnb search --location "Lisbon, Portugal" --checkIn 2026-11-20 --checkOut 2026-11-23 --guests 2 --json -o .stophy/airbnb.json
-stophy airbnb reviews 53888412 --json
-
-# Booking.com hotels with prices, and one hotel's newest reviews
-stophy booking search Lisbon --checkIn 2026-11-20 --checkOut 2026-11-23 --json -o .stophy/booking.json
-stophy booking hotel reviews 15781550 --json
-
-# Expedia hotels with nightly and total prices for exact dates
-stophy expedia hotels "Seattle, Washington" --checkIn 2026-11-20 --checkOut 2026-11-23 --sort priceLow --json -o .stophy/expedia.json
-
-# upcoming events in a city, then one event with its tickets
-stophy luma events "San Francisco" --category tech --json -o .stophy/luma.json
-stophy luma event "https://luma.com/nighthack" --json
+# key needed: restaurants, reviews, stays, flights and events
+stophy scrape "https://www.yelp.com/search?find_desc=pizza&find_loc=Austin%2C+TX" --parser yelp-search
+stophy scrape "https://www.tripadvisor.com/Hotel_Review-g186338-d187591-Reviews-The_Ritz_London_Hotel-London_England.html" --parser tripadvisor-reviews
+stophy scrape "https://www.google.com/travel/search?q=hotels%20in%20Lisbon" --parser google-hotels --parserOptions '{"checkIn":"2026-12-10","checkOut":"2026-12-12"}'
+stophy scrape "https://www.airbnb.com/s/Lisbon--Portugal/homes?checkin=2026-12-10&checkout=2026-12-12&adults=2" --parser airbnb-search
+stophy scrape "https://www.booking.com/searchresults.html?ss=Lisbon&checkin=2026-12-10&checkout=2026-12-12&group_adults=2&no_rooms=1" --parser booking-search
+stophy scrape "https://www.google.com/travel/flights?q=Flights%20to%20JFK%20from%20LHR%20on%202026-12-15" --parser google-flights
+stophy scrape "https://luma.com/sf" --parser luma-events
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `google` (Maps, Hotels and Flights), `tripadvisor`, `yelp`, `airbnb`, `booking`, `expedia`, and `luma`.
+**Done when:** you report each place, stay or flight with its name, price or rating, and link, as the output gives them.
 
-**Done when:** you name the specific place, rating, price, flight, or event, with its source. A generic "there are several options" is not enough.
+## Parsers
+
+| Parser | Page to scrape | Options |
+|---|---|---|
+| `google-maps` (no key) | google.com/maps/search/ with a place after in, near or around | minRating, openNow, page |
+| `google-maps-place` | a Google Maps place page | |
+| `google-maps-reviews` (no key) | a Google Maps place page | sort, limit, cursor |
+| `yelp-search` | yelp.com/search with both `find_desc` and `find_loc` | |
+| `yelp-business`, `yelp-reviews` | yelp.com/biz/name | page |
+| `tripadvisor-search` | tripadvisor.com/Search?q=... | location |
+| `tripadvisor-place`, `tripadvisor-reviews` | a hotel, restaurant or attraction page | ratings, sort, page |
+| `google-hotels` | google.com/travel/search?q=hotels in a place | checkIn, checkOut, adults, maxPrice, sort, cursor |
+| `google-flights` | google.com/travel/flights?q=Flights to JFK from LHR on 2026-12-15 | returnDate, adults, cabin, stops, maxPrice |
+| `airbnb-search` | airbnb.com/s/place/homes with checkin and checkout | minPrice, maxPrice, roomType, cursor |
+| `airbnb-listing`, `airbnb-reviews` | airbnb.com/rooms/id | checkIn, checkOut, page |
+| `booking-search` | booking.com/searchresults.html?ss=place | sort, cursor |
+| `booking-hotel`, `booking-reviews` | booking.com/hotel/... | sort, cursor |
+| `expedia-hotels` | expedia.com/Hotel-Search?destination=place | sort, page |
+| `luma-events` | a city page, like luma.com/sf | category, cursor |
+| `luma-event` | an event page, like luma.com/nighthack | |
 
 ## Tips
 
-- `google maps search` needs both `--query` and `--location`. `google maps place` and `google maps reviews` take the `placeId` from a search result, or the place link, not the name. To point at one place, give its link or its id, never both: `--placeUrl` or `--placeId`. `google maps reviews` ends with a `cursor` when there are more; pass it as `--cursor`.
-- Every command here costs $0.0015 a call, including `google flights`, `google maps search`, `google hotels` and all of Tripadvisor, Airbnb, Booking.com, Expedia and Luma.
-- `google maps search` takes `--openNow` and `--minRating` (`2` to `4.5`), and `--page 2` for the next page. Each result has its `hours`, `phone` and `website`.
-- `tripadvisor search` takes `--type` (`all`, `hotels`, `restaurants`, `attractions` or `geos`). `tripadvisor place` and `tripadvisor reviews` take the `placeId` or the link from a search result. `tripadvisor reviews` takes `--language`, `--ratings` (a list such as `1,2`), `--travelerTypes`, `--months` and `--sort`, and `--page 2` for the next page.
-- `google hotels` takes `--minRating`, `--hotelClass`, `--amenities`, `--propertyTypes`, `--freeCancellation` and `--sort`. It returns `price` per night and `totalPrice` for the stay. Page it with `--cursor`.
-- `google flights` takes `--cabin`, `--adults`, `--stops` and an optional `--returnDate`. Results show `cabin` and `tripType`. `price` is the total for all adults, both directions.
-- `airbnb search` needs `--location`, `--checkIn` and `--checkOut`, and takes `--guests`, `--minPrice`, `--maxPrice`, `--roomType` and `--currency`. `airbnb listing` and `airbnb reviews` take the `listingId` or link from a search result. Search pages with `--cursor`, and reviews with `--page`.
-- `booking search` takes a place, and dates that default to tomorrow for one night. `--adults` counts everyone across `--rooms`, at most one room per adult. `booking hotel` and `booking hotel reviews` take the `hotelId` or link from a search result. Both page with `--cursor`.
-- `expedia hotels` takes a place, and `--checkIn` and `--checkOut` as `YYYY-MM-DD`, which default to tomorrow for one night. It takes `--adults`, `--sort` (`relevance`, `priceLow` or `rating`), and `--page 2` for the next page.
-- `luma events` takes a city Luma lists and lists the soonest events first. Luma has no keyword search, so narrow with `--category` (`ai`, `arts`, `books`, `climate`, `crypto`, `family`, `fitness`, `food`, `games`, `running`, `tech` or `wellness`). Page it with `--cursor`. `luma event` takes the event link from a result, and returns its details, tickets and description.
+- Put dates, guests and filters in the page URL the way the site does.
+- Every call here costs $0.0015, except `google-maps-reviews`, which costs $0.0015 per 10 reviews.
 
 ## See also
 
-- [stophy-real-estate](../stophy-real-estate/SKILL.md): homes for sale or rent
+- [stophy-real-estate](../stophy-real-estate/SKILL.md): homes for sale and rent
+- [stophy-social](../stophy-social/SKILL.md): what people post about a place
