@@ -13,80 +13,78 @@ npm install stophy
 ```ts
 import { Stophy } from "stophy";
 
-const result = await new Stophy().google.search({ query: "bun runtime" });
-console.log(result.data.results);
+const stophy = new Stophy();
+
+const page = await stophy.scrape({ url: "https://example.com", formats: ["markdown"] });
+console.log(page.data.markdown);
+
+const results = await stophy.search({ query: "bun runtime", limit: 3 });
+console.log(results.data.web);
 ```
 
-Some searches and lookups work without a key, within a small free allowance. The [endpoint list](https://api.stophy.dev/v1/endpoints) marks them with `keyless: true`. Every other method throws a `StophyError` with the code `apiKeyRequired`.
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method throws a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 
-Get a key from the [dashboard](https://stophy.dev/dashboard). Keys start with `st_`. Set it as `STOPHY_API_KEY`, or pass it in:
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in:
 
 ```ts
 const stophy = new Stophy({ apiKey: "st_..." });
-
-const videos = await stophy.youtube.search({ query: "bun runtime" });
-console.log(videos.data.results);
 ```
 
 `new Stophy("st_...")` works too.
 
-Methods follow the source and the command: `stophy.google.maps.search(...)`, `stophy.reddit.subreddit(...)`, `stophy.meta.ads.search(...)`.
+Each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as is. `scrape` returns `{ success, data }`, and `map` returns `{ success, links }`.
 
-To point at one thing, send its link or its id, never both: `stophy.youtube.video({ videoUrl })` or `stophy.youtube.video({ videoId })`. Methods that take a person send `userUrl` or `username`.
+## Read a site with a parser
 
-Every response is `{ success, data, creditsUsed, requestId }`. `data` is one flat object. Lists are in `data.results`.
-
-## More data
-
-A YouTube transcript, Reddit posts, Google Maps reviews, a TikTok profile and Meta ads:
+A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the page URL and the parser's name:
 
 ```ts
-const stophy = new Stophy({ apiKey: "st_..." });
+const places = await stophy.parsed(
+  "google-maps",
+  "https://www.google.com/maps/search/dentists+in+Ljubljana",
+);
+console.log(places.data.json);
+```
 
-const transcript = await stophy.youtube.transcript({
-  videoUrl: "https://youtu.be/dQw4w9WgXcQ",
-  includeTimestamps: true,
+`parsed` calls `scrape` with the format `{ type: "json", parser }`. The parser name is typed, so your editor lists every parser. `await stophy.parsers()` returns each parser with the page it reads and what it returns.
+
+The third argument sends the parser's options, such as the next page:
+
+```ts
+const next = await stophy.parsed(
+  "google-maps",
+  "https://www.google.com/maps/search/dentists+in+Ljubljana",
+  { page: 2 },
+);
+```
+
+Paging needs an API key.
+
+## Crawl a site
+
+`crawl` answers at once with an id. Cancel it with the id, or stop it when you have enough:
+
+```ts
+const job = await stophy.crawl({ url: "https://bun.com/docs", limit: 20 });
+await stophy.crawl.cancel({ id: job.id });
+```
+
+`batch.scrape` takes a list of URLs and works the same way.
+
+## Extract fields from pages
+
+```ts
+const job = await stophy.extract({
+  urls: ["https://example.com"],
+  prompt: "What is this page for?",
 });
-console.log(transcript.data.text, transcript.data.segments);
-
-const posts = await stophy.reddit.search({ query: "bun runtime", sort: "top", within: "month" });
-console.log(posts.data.results);
-
-const places = await stophy.google.maps.search({ query: "coffee", location: "Austin, TX" });
-const placeId = places.data.results[0]?.placeId;
-if (placeId) {
-  const reviews = await stophy.google.maps.reviews({ placeId });
-  console.log(reviews.data.results);
-}
-
-const profile = await stophy.tiktok.profile({ username: "tiktok" });
-console.log(profile.data.followers, profile.data.results);
-
-const ads = await stophy.meta.ads.search({ query: "running shoes" });
-console.log(ads.data.results);
+const result = await stophy.extract.result({ id: job.id });
+console.log(result.data, result.confidence);
 ```
 
-## Get the next page
-
-Each call returns one page of results, as the site shows it. List methods page in one of two ways.
-
-Some take a page number. They return `data.page`. Ask for the next number to continue, and stop when `results` comes back empty:
-
-```ts
-const first = await stophy.google.search({ query: "bun runtime" });
-const second = await stophy.google.search({ query: "bun runtime", page: first.data.page + 1 });
-```
-
-Others return `data.cursor` when there is more. Pass it back as is:
-
-```ts
-const first = await stophy.youtube.search({ query: "bun runtime" });
-if (first.data.cursor) {
-  const next = await stophy.youtube.search({ query: "bun runtime", cursor: first.data.cursor });
-}
-```
+`extract.result` throws a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
 
 ## Handle errors
 
@@ -94,15 +92,15 @@ if (first.data.cursor) {
 import { StophyError } from "stophy";
 
 try {
-  await stophy.reddit.search({ query: "bun" });
+  await stophy.scrape({ url: "not a url" });
 } catch (error) {
   if (error instanceof StophyError) {
-    console.log(error.code, error.retryable, error.retryAfterSeconds);
+    console.log(error.code, error.message, error.retryable);
   }
 }
 ```
 
-`StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, and `requestId`.
+`StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, and `requestId`. The message says what went wrong and what to do next.
 
 The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
 
@@ -120,11 +118,12 @@ Each method also takes `signal` to cancel the request.
 ## Check your account
 
 ```ts
+const limits = await stophy.limits();
 const usage = await stophy.usage();
-const logs = await stophy.logs({ days: 7, page: 0 });
+const logs = await stophy.logs({ days: 7 });
 ```
 
-`usage` returns your balance and your all-time usage. `logs` returns your recent requests. Both need an API key.
+`limits` returns your balance and rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.
 
 ## License
 
