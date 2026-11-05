@@ -1,70 +1,42 @@
 import {
   Stophy,
-  type WebSearchData,
-  type WebSearchResponse,
+  type ScrapeData,
+  type ScrapeResponse,
+  type StophyErrorCode,
 } from "../../packages/typescript/src/index";
 
 const client = new Stophy({ apiKey: "st_test" });
 
 type Expect<T extends true> = T;
-type SearchBody = Parameters<Stophy["youtube"]["search"]>[0];
-type _QueryRequired = Expect<SearchBody extends { query: string } ? true : false>;
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-type _WebSearchBody = Expect<Same<WebSearchData["body"], Parameters<Stophy["web"]["search"]>[0]>>;
-type _WebSearchResponse = Expect<
-  Same<WebSearchResponse, Awaited<ReturnType<Stophy["web"]["search"]>>>
->;
+type _ScrapeBody = Expect<Same<ScrapeData["body"], Parameters<Stophy["scrape"]>[0]>>;
+type _ScrapeResponse = Expect<Same<ScrapeResponse, Awaited<ReturnType<Stophy["scrape"]>>>>;
+type _FlatErrorCode = Expect<"apiKeyRequired" extends StophyErrorCode ? true : false>;
 
 export async function typedCalls(): Promise<void> {
-  const result = await client.youtube.search({
-    query: "bun runtime",
-    cursor: "next",
+  const page = await client.scrape({ url: "https://example.com", formats: ["markdown"] });
+  const markdown: string | undefined = page.data.markdown;
+  if (markdown === "") throw new Error("unreachable");
+  const mapped = await client.map({ url: "https://bun.sh" });
+  const first: string | undefined = mapped.links[0]?.url;
+  if (first === "") throw new Error("unreachable");
+  const parsed = await client.parsed("google-maps", "https://www.google.com/maps/search/dentists", {
+    minRating: 4.5,
   });
-  const first = result.data.results[0];
-  if (first?.type === "video") {
-    const url: string = first.videoUrl;
-    if (url.length < 0) throw new Error(url);
-  }
-  const credits: number = result.creditsUsed;
-  if (credits < 0) throw new Error("unreachable");
-  const transcript = await client.youtube.transcript({
-    videoUrl: "https://youtu.be/abc",
-  });
-  const seconds: number | undefined = transcript.data.transcribedSeconds;
-  if (seconds !== undefined && seconds < 0) throw new Error("unreachable");
-  await client.amazon.search({ query: "tv", sort: "priceLow" });
-  const google = await client.google.search({ query: "bun", page: 2 });
-  const page: number | undefined = google.data.page;
-  if (page === 0) throw new Error("unreachable");
-  await client.meta.ads.page({ advertiser: "nike" });
-  await client.meta.ads.search({ query: "shoes" });
-  await client.google.ads.search({ domain: "example.com" });
-  const profile = await client.tiktok.profile({ username: "bun" });
-  const videos = profile.data.results ?? [];
-  if (videos.length < 0) throw new Error("unreachable");
-  const instagram = await client.instagram.profile({ username: "bun" });
-  const postTotal: number = instagram.data.posts ?? 0;
-  const rows = instagram.data.results ?? [];
-  if (postTotal < 0 || rows.length < 0) throw new Error("unreachable");
+  void parsed.data.json;
+  await client.crawl.cancel({ id: "job_1" });
+  await client.extract.result({ id: "ext_1" });
+  await client.logs({ days: 7 });
+  await client.usage();
 
-  // @ts-expect-error query is required
-  await client.youtube.search({});
-  // @ts-expect-error limit is gone, results come one page at a time
-  await client.youtube.search({ query: "bun", limit: 2 });
-  // @ts-expect-error google.search pages by number, not cursor
-  await client.google.search({ query: "bun", cursor: "next" });
-  // @ts-expect-error the page is named advertiser
-  await client.meta.ads.page({ page: "nike" });
-  // @ts-expect-error profile is now username or userUrl
-  await client.tiktok.profile({ profile: "bun" });
-  // @ts-expect-error the sort is named sort
-  await client.amazon.search({ query: "tv", sortBy: "priceLow" });
-  // @ts-expect-error the video list is results
-  void profile.data.posts;
-  // @ts-expect-error the post count is posts
-  void instagram.data.postCount;
-  // @ts-expect-error retired endpoints are not in the client
-  await client.walmart.search({ query: "tv" });
-  // @ts-expect-error format is gone
-  await client.youtube.search({ query: "bun" }, { format: "markdown" });
+  // @ts-expect-error url is required
+  await client.scrape({});
+  // @ts-expect-error parsers are named by GET /v1/parsers
+  await client.parsed("not-a-parser", "https://example.com");
+  // @ts-expect-error cancel needs the job id
+  await client.crawl.cancel({});
+  // @ts-expect-error site endpoints are parsers now
+  await client.youtube.search({ query: "bun" });
+  // @ts-expect-error map answers with links, not data
+  void mapped.data;
 }

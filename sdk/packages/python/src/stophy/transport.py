@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import random
+import re
 import time
 from email.utils import parsedate_to_datetime
 from importlib.metadata import version
 from typing import Any, Mapping
+from urllib.parse import quote
 
 import httpx
 
@@ -24,17 +26,14 @@ def default_headers(api_key: str, headers: Mapping[str, str] | None) -> dict[str
     return {**defaults, **(headers or {})}
 
 
-def compact(values: Mapping[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in values.items() if value is not None}
+def request_args(method: str, path: str, values: Mapping[str, Any]) -> tuple[str, dict[str, Any]]:
+    rest = dict(values)
+    filled = re.sub(r"\{(\w+)\}", lambda match: quote(str(rest.pop(match[1])), safe=""), path)
+    return filled, {"json": rest} if method == "POST" else {"params": rest}
 
 
 def _error_object(payload: Any) -> dict[str, Any]:
-    if not isinstance(payload, dict):
-        return {}
-    error = payload.get("error")
-    if not isinstance(error, dict):
-        return {}
-    return error
+    return payload if isinstance(payload, dict) else {}
 
 
 def _header_retry_after(response: httpx.Response) -> int | None:
@@ -70,24 +69,17 @@ def handle_response(response: httpx.Response) -> Any:
         return payload
 
     error = _error_object(payload)
-    message = error.get("message")
+    message = error.get("error")
     if not isinstance(message, str) or not message:
         message = f"Stophy request failed with status {response.status_code}"
     code = error.get("code")
-    retryable = error.get("retryable")
-    retry_after = _retry_after(response, error)
-    request_id = error.get("requestId")
-    if not isinstance(request_id, str):
-        request_id = response.headers.get("x-request-id")
     raise StophyError(
         message,
         status=response.status_code,
         code=code if isinstance(code, str) else None,
-        retryable=retryable
-        if isinstance(retryable, bool)
-        else response.status_code in RETRYABLE_STATUS,
-        retry_after_seconds=retry_after,
-        request_id=request_id,
+        retryable=response.status_code in RETRYABLE_STATUS,
+        retry_after_seconds=_retry_after(response, error),
+        request_id=response.headers.get("x-request-id"),
     )
 
 
@@ -139,12 +131,6 @@ class SyncTransport(_RetryConfig):
             time.sleep(wait)
             attempt += 1
 
-    def get(self, path: str, params: Mapping[str, Any] | None = None) -> Any:
-        return self.request("GET", path, params=compact(params or {}))
-
-    def post(self, path: str, body: Mapping[str, Any]) -> Any:
-        return self.request("POST", path, json=compact(body))
-
 
 class AsyncTransport(_RetryConfig):
     def __init__(
@@ -173,9 +159,3 @@ class AsyncTransport(_RetryConfig):
                 return handle_response(response)
             await asyncio.sleep(wait)
             attempt += 1
-
-    async def get(self, path: str, params: Mapping[str, Any] | None = None) -> Any:
-        return await self.request("GET", path, params=compact(params or {}))
-
-    async def post(self, path: str, body: Mapping[str, Any]) -> Any:
-        return await self.request("POST", path, json=compact(body))

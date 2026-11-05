@@ -1,6 +1,6 @@
 import { version } from "../package.json";
 import { StophyError } from "./errors";
-import { isBoolean, isNumber, isRecord, isString, type JsonValue } from "./json";
+import { isNumber, isRecord, isString, type JsonValue } from "./json";
 
 const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
@@ -12,11 +12,15 @@ export interface CallOptions {
   signal?: AbortSignal;
 }
 
+export type Method = "GET" | "POST" | "DELETE";
+
+export type Query = Record<string, string | number | undefined>;
+
 export interface RequestSpec {
-  method: "GET" | "POST";
+  method: Method;
   path: string;
   body?: unknown;
-  query?: Record<string, string | number | undefined>;
+  query?: Query;
   options?: CallOptions;
 }
 
@@ -150,9 +154,8 @@ async function errorFrom(response: Response): Promise<StophyError> {
   const retryAfterSeconds = error.retryAfterSeconds ?? headerRetryAfter(response);
   return failed(response, error.message ?? `Stophy request failed with status ${response.status}`, {
     code: error.code,
-    retryable: error.retryable ?? RETRYABLE_STATUS.has(response.status),
+    retryable: RETRYABLE_STATUS.has(response.status),
     retryAfterSeconds,
-    requestId: error.requestId ?? headerRequestId(response),
   });
 }
 
@@ -178,9 +181,7 @@ function failed(
 interface ErrorFields {
   code?: string;
   message?: string;
-  retryable?: boolean;
   retryAfterSeconds?: number;
-  requestId?: string;
 }
 
 function parseJson(text: string): JsonValue {
@@ -192,14 +193,11 @@ function parseJson(text: string): JsonValue {
 }
 
 function readError(body: JsonValue): ErrorFields {
-  if (!isRecord(body) || !isRecord(body.error)) return {};
-  const error = body.error;
+  if (!isRecord(body)) return {};
   return {
-    code: isString(error.code) ? error.code : undefined,
-    message: isString(error.message) ? error.message : undefined,
-    retryable: isBoolean(error.retryable) ? error.retryable : undefined,
-    retryAfterSeconds: isNumber(error.retryAfterSeconds) ? error.retryAfterSeconds : undefined,
-    requestId: isString(error.requestId) ? error.requestId : undefined,
+    code: isString(body.code) ? body.code : undefined,
+    message: isString(body.error) ? body.error : undefined,
+    retryAfterSeconds: isNumber(body.retryAfterSeconds) ? body.retryAfterSeconds : undefined,
   };
 }
 
@@ -217,10 +215,7 @@ function headerRetryAfter(response: Response): number | undefined {
   return Math.max(0, Math.ceil((date - Date.now()) / 1000));
 }
 
-function withQuery(
-  url: string,
-  query: Record<string, string | number | undefined> | undefined,
-): string {
+function withQuery(url: string, query: Query | undefined): string {
   if (!query) return url;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {

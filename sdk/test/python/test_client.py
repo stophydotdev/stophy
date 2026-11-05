@@ -9,20 +9,20 @@ def test_no_api_key_sends_no_authorization(monkeypatch):
     client, calls = make_client(
         {"json": {"success": True, "data": {"results": []}}}, api_key=""
     )
-    client.web.search(query="bun")
+    client.search(query="bun")
     assert "authorization" not in calls[0].headers
     assert "authorization" not in AsyncStophy().client.headers
 
 
 def test_sends_user_agent():
     client, calls = make_client({"json": {"success": True, "data": {"results": []}}})
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert calls[0].headers["user-agent"] == f"stophy-python/{__version__}"
 
 
 def test_defaults_to_production_base_url():
     client, calls = make_client({"json": {"success": True, "data": {"results": []}}})
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert str(calls[0].url).startswith("https://api.stophy.dev/")
 
 
@@ -31,13 +31,13 @@ def test_honors_custom_base_url():
         {"json": {"success": True, "data": {"results": []}}},
         base_url="https://staging.stophy.dev",
     )
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert str(calls[0].url).startswith("https://staging.stophy.dev/")
 
 
 def test_sends_bearer_token():
     client, calls = make_client({"json": {"success": True, "data": {"results": []}}})
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert calls[0].headers["authorization"] == "Bearer st_test"
 
 
@@ -46,7 +46,7 @@ def test_includes_custom_headers():
         {"json": {"success": True, "data": {"results": []}}},
         headers={"x-app": "my-app"},
     )
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert calls[0].headers["x-app"] == "my-app"
 
 
@@ -82,7 +82,7 @@ def test_reads_api_key_and_base_url_from_environment(monkeypatch):
         )
 
     client = Stophy(transport=httpx.MockTransport(handler), max_retries=0)
-    client.youtube.search(query="bun")
+    client.search(query="bun")
     assert calls[0].headers["authorization"] == "Bearer st_env"
     assert str(calls[0].url).startswith("https://env.stophy.dev/")
     client.close()

@@ -4,23 +4,20 @@ from helpers import make_client
 from stophy import StophyError
 
 
-def test_error_envelope_becomes_stophy_error():
+def test_flat_error_body_becomes_stophy_error():
     client, _calls = make_client(
         {
             "status": 401,
+            "headers": {"x-request-id": "req_err"},
             "json": {
                 "success": False,
-                "error": {
-                    "code": "unauthorized",
-                    "message": "Invalid API key",
-                    "retryable": False,
-                    "requestId": "req_err",
-                },
+                "error": "Invalid API key",
+                "code": "unauthorized",
             },
         }
     )
     with pytest.raises(StophyError) as info:
-        client.youtube.search(query="x")
+        client.scrape(url="https://example.com")
     err = info.value
     assert err.status == 401
     assert err.code == "unauthorized"
@@ -35,13 +32,9 @@ def test_retry_after_comes_from_body_then_header():
             "status": 429,
             "json": {
                 "success": False,
-                "error": {
-                    "code": "rateLimited",
-                    "message": "slow down",
-                    "retryable": True,
-                    "retryAfterSeconds": 9,
-                    "requestId": "req_2",
-                },
+                "error": "slow down",
+                "code": "rateLimited",
+                "retryAfterSeconds": 9,
             },
         }
     )
@@ -53,21 +46,13 @@ def test_retry_after_comes_from_body_then_header():
     client, _calls = make_client(
         {
             "status": 429,
-            "headers": {"retry-after": "4", "x-request-id": "req_header"},
-            "json": {
-                "success": False,
-                "error": {
-                    "code": "rateLimited",
-                    "message": "slow down",
-                    "retryable": True,
-                },
-            },
+            "headers": {"retry-after": "4"},
+            "json": {"success": False, "error": "slow down", "code": "rateLimited"},
         }
     )
     with pytest.raises(StophyError) as info:
         client.usage()
     assert info.value.retry_after_seconds == 4
-    assert info.value.request_id == "req_header"
 
 
 def test_non_json_error_uses_the_status():
@@ -77,10 +62,3 @@ def test_non_json_error_uses_the_status():
     assert info.value.status == 502
     assert "502" in str(info.value)
     assert info.value.retryable is True
-
-
-def test_success_does_not_raise():
-    client, _calls = make_client(
-        {"json": {"balanceMicros": 1, "creditsUsed": 0, "requestCount": 0}}
-    )
-    assert client.usage()["requestCount"] == 0

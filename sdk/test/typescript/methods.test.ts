@@ -1,166 +1,96 @@
 import { describe, expect, test } from "bun:test";
-import { endpointAt, makeClient, queryOf, specPaths } from "./helpers";
+import { makeClient, queryOf, specOperations } from "./helpers";
 
-const envelope = {
-  success: true,
-  data: {
-    results: [
-      {
-        type: "video",
-        videoId: "abc",
-        videoUrl: "https://youtu.be/abc",
-        channelName: "Bun",
-      },
-    ],
-  },
-  creditsUsed: 1,
-  requestId: "req_1",
-};
+const ok = { success: true, data: {}, creditsUsed: 1, requestId: "req_1" };
 
-describe("namespaced operations", () => {
-  test("posts the input to the path derived from the spec", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    const result = await client.youtube.search({
-      query: "bun runtime",
-      cursor: "next",
-    });
-    const first = result.data.results[0];
-    expect(first?.type === "video" && first.videoUrl).toBe("https://youtu.be/abc");
-    expect(calls[0]?.method).toBe("POST");
-    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/youtube/search");
-    expect(calls[0]?.body).toEqual({ query: "bun runtime", cursor: "next" });
+describe("v1 operations", () => {
+  test("posts the input to the path from the spec", async () => {
+    const { client, calls } = makeClient({ json: ok });
+    await client.scrape({ url: "https://example.com", formats: ["markdown"] });
+    await client.batch.scrape({ urls: ["https://example.com"] });
+    expect(calls.map((call) => `${call.method} ${new URL(call.url).pathname}`)).toEqual([
+      "POST /v1/scrape",
+      "POST /v1/batch/scrape",
+    ]);
+    expect(calls[0]?.body).toEqual({ url: "https://example.com", formats: ["markdown"] });
     expect(calls[0]?.headers.get("accept")).toBe("application/json");
   });
 
-  test("sends page numbers and the advertiser", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    await client.google.search({ query: "bun", page: 2 });
-    await client.meta.ads.page({ advertiser: "nike" });
-    expect(calls[0]?.body).toEqual({ query: "bun", page: 2 });
-    expect(new URL(calls[1]?.url ?? "").pathname).toBe("/v1/meta/ads/page");
-    expect(calls[1]?.body).toEqual({ advertiser: "nike" });
-  });
-
-  test("calls a single-segment operation", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    await client.youtube.transcript({ videoUrl: "https://youtu.be/abc" });
-    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/youtube/transcript");
-    expect(calls[0]?.body).toEqual({ videoUrl: "https://youtu.be/abc" });
-  });
-
-  test("calls the app, jobs, places and shopping endpoints", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    await client.appstore.search({ query: "notes" });
-    await client.google.play.reviews({
-      appId: "com.example.app",
-      cursor: "c1",
+  test("reads a page with a parser through scrape's json format", async () => {
+    const { client, calls } = makeClient({ json: ok });
+    await client.parsed("reddit-search", "https://www.reddit.com/search/?q=bun", { page: 2 });
+    await client.parsed("reddit-search", "https://www.reddit.com/search/?q=bun");
+    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/scrape");
+    expect(calls[0]?.body).toEqual({
+      url: "https://www.reddit.com/search/?q=bun",
+      formats: [{ type: "json", parser: "reddit-search", options: { page: 2 } }],
     });
-    await client.indeed.search({ query: "designer" });
-    await client.tripadvisor.place({ placeId: "d1234" });
-    await client.amazon.search({ query: "tv", sort: "priceLow" });
-    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
-      "/v1/appstore/search",
-      "/v1/google/play/reviews",
-      "/v1/indeed/search",
-      "/v1/tripadvisor/place",
-      "/v1/amazon/search",
-    ]);
-    expect(calls[1]?.body).toEqual({ appId: "com.example.app", cursor: "c1" });
+    expect(calls[1]?.body).toEqual({
+      url: "https://www.reddit.com/search/?q=bun",
+      formats: [{ type: "json", parser: "reddit-search" }],
+    });
   });
 
-  test("calls the ads endpoints of each network", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    await client.meta.ads.search({ query: "shoes" });
-    await client.google.ads.search({ domain: "example.com" });
-    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
-      "/v1/meta/ads/search",
-      "/v1/google/ads/search",
+  test("puts the id in the path and the rest in the query", async () => {
+    const { client, calls } = makeClient({ json: { status: "cancelled" } });
+    await client.crawl.cancel({ id: "job/1", maxTextLength: 100 });
+    expect(calls[0]?.method).toBe("DELETE");
+    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/crawl/job%2F1");
+    expect(queryOf(calls[0]?.url ?? "")).toEqual({ maxTextLength: "100" });
+    expect(calls[0]?.body).toBeUndefined();
+  });
+
+  test("sends GET query parameters and bare calls", async () => {
+    const { client, calls } = makeClient({ json: ok });
+    await client.logs({ days: 7, endpoint: "scrape" });
+    await client.limits();
+    await client.key.revoke();
+    expect(calls.map((call) => `${call.method} ${new URL(call.url).pathname}`)).toEqual([
+      "GET /v1/logs",
+      "GET /v1/limits",
+      "DELETE /v1/key",
     ]);
-    expect(calls[1]?.body).toEqual({ domain: "example.com" });
+    expect(queryOf(calls[0]?.url ?? "")).toEqual({ days: "7", endpoint: "scrape" });
+  });
+
+  test("sends an empty body when every field is optional", async () => {
+    const { client, calls } = makeClient({ json: ok });
+    await client.signup();
+    expect(calls[0]?.body).toEqual({});
   });
 
   test("forwards the abort signal", async () => {
-    const { client, calls } = makeClient({ json: envelope });
+    const { client, calls } = makeClient({ json: ok });
     const controller = new AbortController();
     controller.abort();
-    await client.google.maps
-      .search({ query: "cairo", location: "Cairo" }, { signal: controller.signal })
-      .catch(() => undefined);
+    await client.search({ query: "bun" }, { signal: controller.signal }).catch(() => undefined);
     expect(calls[0]?.signal?.aborted).toBe(true);
   });
 
-  test("omits an empty optional body", async () => {
-    const { client, calls } = makeClient({ json: envelope });
-    await client.upwork.search();
-    expect(calls[0]?.body).toEqual({});
-    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/upwork/search");
-  });
-
-  test("lists endpoints with GET", async () => {
-    const { client, calls } = makeClient({ json: { endpoints: [] } });
-    const catalog = await client.endpoints();
-    expect(catalog.endpoints).toEqual([]);
-    expect(calls[0]?.method).toBe("GET");
-    expect(new URL(calls[0]?.url ?? "").pathname).toBe("/v1/endpoints");
-  });
-
-  test("loads usage and logs with an API key", async () => {
-    const { client, calls } = makeClient([
-      {
-        json: { balanceMicros: 1000, creditsUsed: 2, requestCount: 1 },
-      },
-      {
-        json: {
-          endpoints: ["youtube.search"],
-          logs: [
-            {
-              apiKeyId: null,
-              apiKeyName: null,
-              createdAt: "2026-09-28T00:00:00.000Z",
-              credits: 1,
-              durationMs: null,
-              endpoint: "youtube.search",
-              id: "log_1",
-              method: "POST",
-              response: "success",
-              status: 200,
-            },
-          ],
-          page: 0,
-          pageSize: 50,
-          total: 1,
-          totalPages: 1,
-        },
-      },
-    ]);
-    expect((await client.usage()).creditsUsed).toBe(2);
-    const logs = await client.logs({
-      days: 7,
-      page: 0,
-      endpoint: "youtube.search",
-    });
-    expect(logs.logs[0]?.endpoint).toBe("youtube.search");
-    expect(queryOf(calls[1]?.url ?? "")).toEqual({
-      days: "7",
-      page: "0",
-      endpoint: "youtube.search",
-    });
-  });
-
-  test("keeps web.search and web.news working after the rename", () => {
-    const { client } = makeClient({ json: envelope });
-    expect(endpointAt(client, "/v1/web/search")).toBeFunction();
-    expect(endpointAt(client, "/v1/web/news")).toBeFunction();
-  });
-
   test("exposes every operation in the spec", async () => {
-    const { client } = makeClient({ json: envelope });
-    const paths = await specPaths();
-    expect(paths).toContain("/v1/google/search");
-    expect(paths).toContain("/v1/amazon/product");
-    expect(paths).not.toContain("/v1/walmart/product");
-    for (const path of paths) {
-      expect(endpointAt(client, path)).toBeFunction();
-    }
+    const { client, calls } = makeClient({ json: ok });
+    const id = "x";
+    await client.endpoints();
+    await client.parsers();
+    await client.limits();
+    await client.usage();
+    await client.logs();
+    await client.key.revoke();
+    await client.signup();
+    await client.signup.poll({ code: id });
+    await client.search({ query: "bun" });
+    await client.scrape({ url: "https://example.com" });
+    await client.map({ url: "https://example.com" });
+    await client.parse({ file: "JVBERi0=" });
+    await client.extract({ urls: ["https://example.com"] });
+    await client.extract.result({ id });
+    await client.crawl({ url: "https://example.com" });
+    await client.crawl.cancel({ id });
+    await client.batch.scrape({ urls: ["https://example.com"] });
+    await client.batch.scrape.cancel({ id });
+    await client.browser.task({ url: "https://example.com", goal: "Read the title" });
+    await client.browser.task.status({ id });
+    const called = new Set(calls.map((call) => `${call.method} ${new URL(call.url).pathname}`));
+    expect([...called].sort()).toEqual(await specOperations());
   });
 });

@@ -16,6 +16,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "openapi.json"
+PARSERS_PATH = ROOT / "parsers.json"
 OUT_DIR = ROOT / "packages" / "python" / "src" / "stophy" / "generated"
 
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -24,6 +25,28 @@ IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 def pascal(value: str) -> str:
     parts = re.split(r"[^A-Za-z0-9]+", value)
     return "".join(part[:1].upper() + part[1:] for part in parts if part) or "Model"
+
+
+def words(value: str) -> list[str]:
+    return [word for word in re.split(r"[^a-z0-9]+", snake(value)) if word]
+
+
+def leaf_name(operation_id: str, segments: list[str]) -> str:
+    parts = words(operation_id)
+    node = [word for segment in segments for word in words(segment)]
+    if parts[: len(node)] == node:
+        rest = parts[len(node) :]
+    elif parts[len(parts) - len(node) :] == node:
+        rest = parts[: len(parts) - len(node)]
+    else:
+        rest = []
+    if not rest:
+        raise SystemExit(f"Cannot name {operation_id} under {'.'.join(segments)}.")
+    return "_".join(rest)
+
+
+def natural(value: str) -> list[int | str]:
+    return [int(part) if part.isdigit() else part.casefold() for part in re.split(r"(\d+)", value)]
 
 
 def snake(value: str) -> str:
@@ -58,6 +81,7 @@ class Emitter:
         self.components = components
         self.cache: dict[str, str] = {}
         self.used: set[str] = set()
+        self.resolving: set[str] = set()
         self.aliases: list[tuple[str, list[Any]]] = []
         self.models: list[tuple[str, list[tuple[str, str, bool]]]] = []
 
@@ -92,7 +116,7 @@ class Emitter:
                 if part not in parts:
                     parts.append(part)
             return parts[0] if len(parts) == 1 else " | ".join(parts)
-        if isinstance(schema.get("enum"), list):
+        if isinstance(schema.get("enum"), list) and schema["enum"]:
             return self.literal_alias(hint, schema["enum"])
         if "const" in schema:
             return f"Literal[{literal(schema['const'])}]"
@@ -124,9 +148,13 @@ class Emitter:
             return "Any"
         name = ref.rsplit("/", 1)[-1]
         schema = self.components.get(name)
-        if schema is None:
+        if schema is None or name in self.resolving:
             return "Any"
-        return self.object_type(schema, pascal(name) or hint)
+        self.resolving.add(name)
+        try:
+            return self.py_type(schema, pascal(name) or hint)
+        finally:
+            self.resolving.discard(name)
 
     def object_type(self, schema: dict[str, Any], hint: str) -> str:
         properties = schema.get("properties")
@@ -165,9 +193,9 @@ def response_schema(operation: dict[str, Any]) -> Any:
     responses = operation.get("responses")
     if not isinstance(responses, dict):
         raise SystemExit(f"{operation.get('operationId')} has no responses.")
-    ok = responses.get("200")
+    ok = responses.get("200", responses.get("201"))
     if not isinstance(ok, dict):
-        raise SystemExit(f"{operation.get('operationId')} has no 200 response.")
+        raise SystemExit(f"{operation.get('operationId')} has no 200 or 201 response.")
     content = ok.get("content")
     if not isinstance(content, dict):
         raise SystemExit(f"{operation.get('operationId')} has no 200 content.")
@@ -217,6 +245,27 @@ def branch_params(
         }
         for key, prop in properties.items()
     ]
+
+
+def query_params(
+    emitter: Emitter, operation: dict[str, Any], shared: dict[str, Any], hint: str
+) -> list[dict[str, Any]]:
+    params: list[dict[str, Any]] = []
+    for entry in operation.get("parameters") or []:
+        if isinstance(entry, dict) and isinstance(entry.get("$ref"), str):
+            entry = shared.get(entry["$ref"].rsplit("/", 1)[-1])
+        if not isinstance(entry, dict) or entry.get("in") not in ("path", "query"):
+            continue
+        key = entry["name"]
+        params.append(
+            {
+                "json": key,
+                "name": param_name(key),
+                "required": bool(entry.get("required")),
+                "type": emitter.py_type(entry.get("schema", {}), hint + pascal(key)),
+            }
+        )
+    return params
 
 
 def merge_params(branches: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
@@ -348,17 +397,15 @@ def render_method(operation: dict[str, Any], *, async_mode: bool) -> list[str]:
             all_optional=len(branches) > 1,
         )
     )
-    if operation["method"] == "GET":
-        lines.append("        body = None")
-    elif operation["params"]:
-        lines.append("        body = _omit_none({")
+    values = "{}"
+    if operation["params"]:
+        lines.append("        values = _omit_none({")
         for param in operation["params"]:
             lines.append(f'            "{param["json"]}": {param["name"]},')
         lines.append("        })")
-    else:
-        lines.append("        body = {}")
+        values = "values"
     call = "await self._call" if async_mode else "self._call"
-    lines.append(f'        return {call}("{operation["method"]}", "{operation["path"]}", body)')
+    lines.append(f'        return {call}("{operation["method"]}", "{operation["path"]}", {values})')
     return lines
 
 
@@ -425,26 +472,34 @@ def main() -> None:
     components = spec.get("components", {}).get("schemas", {})
     if not isinstance(components, dict):
         raise SystemExit("OpenAPI components.schemas is missing.")
+    shared_params = spec.get("components", {}).get("parameters", {})
     emitter = Emitter(components)
     prepared: list[dict[str, Any]] = []
     for path, item in spec["paths"].items():
         if not isinstance(item, dict):
             continue
-        for method in ("get", "post"):
+        for method in ("get", "post", "delete"):
             operation = item.get(method)
             if not isinstance(operation, dict):
                 continue
             operation_id = operation.get("operationId")
             if not isinstance(operation_id, str):
                 raise SystemExit(f"{method.upper()} {path} is missing operationId.")
-            segments = [part for part in path.split("/") if part and part != "v1"]
-            schema = body_schema(operation)
+            parts = [part for part in path.split("/") if part and part != "v1"]
+            segments = [part for part in parts if not part.startswith("{")]
+            if method == "delete" or len(segments) < len(parts):
+                segments.append(leaf_name(operation_id, segments))
             hint = pascal(operation_id)
-            branch_schemas = schema_branches(schema)
-            branches = [
-                branch_params(emitter, branch, hint, index if len(branch_schemas) > 1 else None)
-                for index, branch in enumerate(branch_schemas)
-            ]
+            if method == "post":
+                branch_schemas = schema_branches(body_schema(operation))
+                branches = [
+                    branch_params(
+                        emitter, branch, hint, index if len(branch_schemas) > 1 else None
+                    )
+                    for index, branch in enumerate(branch_schemas)
+                ]
+            else:
+                branches = [query_params(emitter, operation, shared_params, hint)]
             params = merge_params(branches)
             prepared.append(
                 {
@@ -461,6 +516,11 @@ def main() -> None:
                 }
             )
 
+    parsers = json.loads(PARSERS_PATH.read_text())
+    if not isinstance(parsers, list) or not parsers or not all(isinstance(n, str) for n in parsers):
+        raise SystemExit("parsers.json is not a list of parser names. Run sync first.")
+    emitter.aliases.append(("ParserName", parsers))
+    emitter.used.add("ParserName")
     models = render_models(emitter)
     tree = build_tree(prepared)
     body = [
@@ -470,7 +530,7 @@ def main() -> None:
         "        self,",
         "        method: str,",
         "        path: str,",
-        "        body: Mapping[str, Any] | None,",
+        "        values: Mapping[str, Any],",
         "    ) -> Any: ...",
         "",
         "",
@@ -479,7 +539,7 @@ def main() -> None:
         "        self,",
         "        method: str,",
         "        path: str,",
-        "        body: Mapping[str, Any] | None,",
+        "        values: Mapping[str, Any],",
         "    ) -> Any: ...",
         "",
         "",
@@ -495,7 +555,7 @@ def main() -> None:
     used = set(re.findall(r"\b[A-Z][A-Za-z0-9_]*\b", namespaces)) & model_names
     import_block = ""
     if used:
-        joined = ",\n    ".join(sorted(used, key=str.casefold))
+        joined = ",\n    ".join(sorted(used, key=natural))
         import_block = f"from .models import (\n    {joined},\n)\n\n"
     text = render_namespaces(import_block + namespaces)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
