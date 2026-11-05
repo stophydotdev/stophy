@@ -1,13 +1,13 @@
 [project]
 name = "langchain-stophy"
-version = "0.1.0"
+version = "1.0.0"
 description = "Give your agents the live web. Stophy tools for LangChain: search the web, read pages, and look up products, places, jobs and homes."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Stophy" }]
 keywords = ["stophy", "langchain", "tools", "web-search", "scraping", "ai-agents", "llm"]
-dependencies = ["langchain-core>=1.2.0,<2.0.0", "stophy>=1.2.1"]
+dependencies = ["langchain-core>=1.2.0,<2.0.0", "stophy>=2.0.0"]
 
 [project.urls]
 Homepage = "https://stophy.dev"
