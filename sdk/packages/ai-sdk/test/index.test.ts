@@ -1,12 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import { generateText, isStepCount } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import { homeSearch, readPage, webSearch } from "../src/index";
+import {
+  homeSearch,
+  jobSearch,
+  placeSearch,
+  productSearch,
+  readPage,
+  redditSearch,
+  webSearch,
+} from "../src/index";
 
 const envelope = {
   success: true,
   data: {
-    results: [{ title: "Bun", url: "https://bun.com", description: "A fast runtime", position: 1 }],
+    web: [{ title: "Bun", url: "https://bun.com", description: "A fast runtime", position: 1 }],
+    json: { results: [] },
   },
   creditsUsed: 1,
   requestId: "req_1",
@@ -38,21 +47,56 @@ describe("Stophy tools", () => {
 
     expect(data).toEqual(envelope.data);
     const request = requests[0];
-    expect(new URL(request?.url ?? "").pathname).toBe("/v1/web/search");
-    expect(await request?.json()).toEqual({ query: "bun runtime", time: "pastWeek" });
+    expect(new URL(request?.url ?? "").pathname).toBe("/v1/search");
+    expect(await request?.json()).toEqual({ query: "bun runtime", tbs: "qdr:w" });
     expect(request?.headers.get("authorization")).toBe("Bearer st_test");
   });
 
-  test("each tool calls its own endpoint", async () => {
+  test("each site tool reads its page with its parser", async () => {
     const { requests, options } = fakeStophy();
     const call = { toolCallId: "call_1", messages: [], context: {} };
 
-    await readPage(options).execute?.({ url: "https://bun.com/docs" }, call);
-    await homeSearch(options).execute?.({ location: "Austin, TX" }, call);
+    const page = await readPage(options).execute?.({ url: "https://bun.com/docs" }, call);
+    const data = await redditSearch(options).execute?.(
+      { query: "bun runtime", subreddit: "javascript", sort: "newest", time: "pastWeek" },
+      call,
+    );
+    await placeSearch(options).execute?.({ query: "coffee", location: "Austin, TX" }, call);
+    await productSearch(options).execute?.(
+      { query: "earbuds", maxPrice: 50, sort: "priceLow" },
+      call,
+    );
+    await jobSearch(options).execute?.({ query: "data analyst", remote: "remote" }, call);
+    await homeSearch(options).execute?.({ location: "Austin, TX", minBedrooms: 3 }, call);
 
-    expect(requests.map((request) => new URL(request.url).pathname)).toEqual([
-      "/v1/web/scrape",
-      "/v1/zillow/search",
+    expect(page).toMatchObject({ json: envelope.data.json });
+    expect(data).toEqual(envelope.data.json);
+    expect(requests.map((request) => new URL(request.url).pathname)).toEqual(
+      Array.from({ length: 6 }, () => "/v1/scrape"),
+    );
+    const bodies = await Promise.all(requests.map((request) => request.json()));
+    expect(bodies[0]).toEqual({ url: "https://bun.com/docs", formats: ["markdown"] });
+    expect(bodies.slice(1)).toEqual([
+      {
+        url: "https://www.reddit.com/search/?q=bun+runtime&sort=new&t=week",
+        formats: [{ type: "json", parser: "reddit-search", options: { subreddit: "javascript" } }],
+      },
+      {
+        url: "https://www.google.com/maps/search/coffee%20in%20Austin%2C%20TX",
+        formats: [{ type: "json", parser: "google-maps" }],
+      },
+      {
+        url: "https://www.amazon.com/s?k=earbuds&high-price=50&s=price-asc-rank",
+        formats: [{ type: "json", parser: "amazon-search" }],
+      },
+      {
+        url: "https://www.indeed.com/jobs?q=data+analyst",
+        formats: [{ type: "json", parser: "indeed-search", options: { remote: "remote" } }],
+      },
+      {
+        url: "https://www.zillow.com/homes/Austin%2C-TX_rb/",
+        formats: [{ type: "json", parser: "zillow-search", options: { minBedrooms: 3 } }],
+      },
     ]);
   });
 

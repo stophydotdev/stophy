@@ -1,22 +1,61 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, TypeVar
+from typing import Any, Callable, Literal, Optional, TypeVar
+from urllib.parse import quote, urlencode
 
 from langchain_core.tools import ArgsSchema, BaseTool, BaseToolkit, ToolException
 from langchain_core.tools.base import ToolExceptionHandlerOutput
 from pydantic import BaseModel, Field, SecretStr
-from stophy import Stophy, StophyError
-from stophy.generated.models import (
-    AmazonSearchSort,
-    IndeedSearchDatePosted,
-    IndeedSearchRemote,
-    RedditSearchSort,
-    RedditSearchTime,
-    WebSearchTime,
-    ZillowSearchStatus,
-)
+from stophy import ParserName, Stophy, StophyError
 
 Response = TypeVar("Response")
+
+WebSearchTime = Literal["pastWeek", "pastMonth", "pastYear"]
+RedditSearchSort = Literal["relevance", "hot", "top", "newest", "mostComments"]
+RedditSearchTime = Literal["pastHour", "today", "pastWeek", "pastMonth", "pastYear", "allTime"]
+AmazonSearchSort = Literal[
+    "relevance", "priceLow", "priceHigh", "avgCustomerReview", "newest", "bestSelling"
+]
+IndeedSearchRemote = Literal["remote", "hybrid"]
+IndeedSearchDatePosted = Literal["last24Hours", "last3Days", "last7Days", "last14Days"]
+ZillowSearchStatus = Literal["forSale", "forRent", "sold"]
+
+PERIODS: dict[str, str] = {"pastWeek": "qdr:w", "pastMonth": "qdr:m", "pastYear": "qdr:y"}
+REDDIT_SORTS: dict[str, str] = {
+    "relevance": "relevance",
+    "hot": "hot",
+    "top": "top",
+    "newest": "new",
+    "mostComments": "comments",
+}
+REDDIT_TIMES: dict[str, str] = {
+    "pastHour": "hour",
+    "today": "day",
+    "pastWeek": "week",
+    "pastMonth": "month",
+    "pastYear": "year",
+    "allTime": "all",
+}
+AMAZON_SORTS: dict[str, str] = {
+    "priceLow": "price-asc-rank",
+    "priceHigh": "price-desc-rank",
+    "avgCustomerReview": "review-rank",
+    "newest": "date-desc-rank",
+    "bestSelling": "exact-aware-popularity-rank",
+}
+
+
+def _page(base: str, **params: Any) -> str:
+    query = urlencode({key: value for key, value in params.items() if value is not None})
+    return f"{base}?{query}" if query else base
+
+
+def _defined(**values: Any) -> dict[str, Any]:
+    return {key: value for key, value in values.items() if value is not None}
+
+
+def _number(value: Optional[float]) -> Optional[str]:
+    return None if value is None else f"{value:g}"
 
 
 class StophyTool(BaseTool):
@@ -34,6 +73,9 @@ class StophyTool(BaseTool):
                 return endpoint(stophy)
             except StophyError as error:
                 raise ToolException(str(error)) from error
+
+    def _parsed(self, parser: ParserName, url: str, **options: Any) -> Any:
+        return self._call(lambda stophy: stophy.parsed(parser, url, **options))["data"].get("json")
 
 
 class WebSearchInput(BaseModel):
@@ -65,10 +107,13 @@ class StophyWebSearch(StophyTool):
         include_domains: Optional[list[str]] = None,
     ):
         return self._call(
-            lambda stophy: stophy.web.search(
-                query=query, limit=limit, time=time, include_domains=include_domains
+            lambda stophy: stophy.search(
+                query=query,
+                limit=limit,
+                tbs=None if time is None else PERIODS[time],
+                include_domains=include_domains,
             )
-        )["data"]
+        ).get("data")
 
 
 class ReadPageInput(BaseModel):
@@ -83,7 +128,7 @@ class StophyReadPage(StophyTool):
     args_schema: Optional[ArgsSchema] = ReadPageInput
 
     def _run(self, url: str):
-        return self._call(lambda stophy: stophy.web.scrape(url=url))["data"]
+        return self._call(lambda stophy: stophy.scrape(url=url, formats=["markdown"]))["data"]
 
 
 class RedditSearchInput(BaseModel):
@@ -112,11 +157,13 @@ class StophyRedditSearch(StophyTool):
         sort: Optional[RedditSearchSort] = None,
         time: Optional[RedditSearchTime] = None,
     ):
-        return self._call(
-            lambda stophy: stophy.reddit.search(
-                query=query, subreddit=subreddit, sort=sort, time=time
-            )
-        )["data"]
+        url = _page(
+            "https://www.reddit.com/search/",
+            q=query,
+            sort=None if sort is None else REDDIT_SORTS[sort],
+            t=None if time is None else REDDIT_TIMES[time],
+        )
+        return self._parsed("reddit-search", url, **_defined(subreddit=subreddit))
 
 
 class PlaceSearchInput(BaseModel):
@@ -136,11 +183,8 @@ class StophyPlaceSearch(StophyTool):
     args_schema: Optional[ArgsSchema] = PlaceSearchInput
 
     def _run(self, query: str, location: str, open_now: Optional[bool] = None):
-        return self._call(
-            lambda stophy: stophy.google.maps.search(
-                query=query, location=location, open_now=open_now
-            )
-        )["data"]
+        url = "https://www.google.com/maps/search/" + quote(f"{query} in {location}", safe="")
+        return self._parsed("google-maps", url, **_defined(openNow=open_now))
 
 
 class ProductSearchInput(BaseModel):
@@ -164,9 +208,13 @@ class StophyProductSearch(StophyTool):
         max_price: Optional[float] = None,
         sort: Optional[AmazonSearchSort] = None,
     ):
-        return self._call(
-            lambda stophy: stophy.amazon.search(query=query, max_price=max_price, sort=sort)
-        )["data"]
+        url = _page(
+            "https://www.amazon.com/s",
+            k=query,
+            **{"high-price": _number(max_price)},
+            s=None if sort is None else AMAZON_SORTS.get(sort),
+        )
+        return self._parsed("amazon-search", url)
 
 
 class JobSearchInput(BaseModel):
@@ -193,11 +241,8 @@ class StophyJobSearch(StophyTool):
         remote: Optional[IndeedSearchRemote] = None,
         date_posted: Optional[IndeedSearchDatePosted] = None,
     ):
-        return self._call(
-            lambda stophy: stophy.indeed.search(
-                query=query, location=location, remote=remote, date_posted=date_posted
-            )
-        )["data"]
+        url = _page("https://www.indeed.com/jobs", q=query, l=location)
+        return self._parsed("indeed-search", url, **_defined(remote=remote, datePosted=date_posted))
 
 
 class HomeSearchInput(BaseModel):
@@ -232,15 +277,14 @@ class StophyHomeSearch(StophyTool):
         max_price: Optional[float] = None,
         min_bedrooms: Optional[int] = None,
     ):
-        return self._call(
-            lambda stophy: stophy.zillow.search(
-                location=location,
-                status=status,
-                min_price=min_price,
-                max_price=max_price,
-                min_bedrooms=min_bedrooms,
-            )
-        )["data"]
+        url = "https://www.zillow.com/homes/" + quote(location.replace(" ", "-"), safe="") + "_rb/"
+        return self._parsed(
+            "zillow-search",
+            url,
+            **_defined(
+                status=status, minPrice=min_price, maxPrice=max_price, minBedrooms=min_bedrooms
+            ),
+        )
 
 
 class StophyToolkit(BaseToolkit):

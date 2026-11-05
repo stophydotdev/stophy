@@ -46,4 +46,4 @@ tools = StophyToolkit(api_key="your-key").get_tools()
 
 When a call fails, the tool returns the API's message as an error `ToolMessage`, so the agent can read it and recover.
 
-For YouTube, TikTok, LinkedIn, Booking and the other Stophy endpoints, use the [`stophy`](https://pypi.org/project/stophy/) SDK or the hosted MCP server at `https://api.stophy.dev/mcp`.
+For YouTube, TikTok, LinkedIn, Booking and the other sites Stophy has parsers for, use `parsed` in the [`stophy`](https://pypi.org/project/stophy/) SDK or the hosted MCP server at `https://api.stophy.dev/mcp`.
