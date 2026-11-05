@@ -40,7 +40,7 @@ stophy extract --urls "https://bun.com" --prompt "the current Bun version and it
 stophy crawl "https://bun.com/docs" --limit 3
 ```
 
-`search` returns web results, and news or images with `--sources '["web","news"]'`. `scrape` returns the page as markdown. `map` lists a site's addresses. `extract` and `crawl` need a key and run in the background: they print an `id`. Run `stophy <command> --help` for every option.
+`search` returns web results, and news or images with `--sources '["web","news"]'`. `scrape` returns the page as markdown. `map` lists a site's addresses. `extract` and `crawl` need a key and run in the background: they print an `id`. Read the result with `stophy extract status <id>` or `stophy crawl status <id>`. A crawl's pages come a page at a time: when the status has a `next` link, run it again with `--cursor` set to the `cursor=` value in that link. Run `stophy <command> --help` for every option.
 
 ## Site data
 
