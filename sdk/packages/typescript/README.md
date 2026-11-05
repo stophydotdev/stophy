@@ -19,7 +19,7 @@ const page = await stophy.scrape({ url: "https://example.com", formats: ["markdo
 console.log(page.data.markdown);
 
 const results = await stophy.search({ query: "bun runtime", limit: 3 });
-console.log(results.data.web);
+console.log(results.data?.web);
 ```
 
 `scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method throws a `StophyError` with the code `apiKeyRequired`.
@@ -64,14 +64,19 @@ Paging needs an API key.
 
 ## Crawl a site
 
-`crawl` answers at once with an id. Cancel it with the id, or stop it when you have enough:
+`crawl` answers at once with an id. Ask `crawl.status` for the pages:
 
 ```ts
 const job = await stophy.crawl({ url: "https://bun.com/docs", limit: 20 });
-await stophy.crawl.cancel({ id: job.id });
+if (job.id) {
+  const status = await stophy.crawl.status({ id: job.id });
+  console.log(status.status, status.completed, status.total, status.data);
+}
 ```
 
-`batch.scrape` takes a list of URLs and works the same way.
+`status` is `scraping` until the crawl is `completed`. When the answer has a `cursor`, send it back with the same id to get the pages finished since. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+
+`batch.scrape` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 
 ## Extract fields from pages
 
@@ -80,8 +85,10 @@ const job = await stophy.extract({
   urls: ["https://example.com"],
   prompt: "What is this page for?",
 });
-const result = await stophy.extract.result({ id: job.id });
-console.log(result.data, result.confidence);
+if (job.id) {
+  const result = await stophy.extract.result({ id: job.id });
+  console.log(result.data, result.confidence);
+}
 ```
 
 `extract.result` throws a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
