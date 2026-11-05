@@ -85,8 +85,10 @@ describe("v1 operations", () => {
     await client.extract({ urls: ["https://example.com"] });
     await client.extract.result({ id });
     await client.crawl({ url: "https://example.com" });
+    await client.crawl.status({ id, cursor: "next" });
     await client.crawl.cancel({ id });
     await client.batch.scrape({ urls: ["https://example.com"] });
+    await client.batch.scrape.status({ id });
     await client.batch.scrape.cancel({ id });
     await client.browser.task({ url: "https://example.com", goal: "Read the title" });
     await client.browser.task.status({ id });

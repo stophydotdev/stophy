@@ -108,6 +108,16 @@ export type EndpointCatalog = {
   }>;
 };
 
+export type ExtractResultSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ExtractResultSchema0>
+  | {
+      [key: string]: ExtractResultSchema0;
+    };
+
 export type SearchSchema0 =
   | string
   | number
@@ -116,6 +126,44 @@ export type SearchSchema0 =
   | Array<SearchSchema0>
   | {
       [key: string]: SearchSchema0;
+    };
+
+export type ScrapeInputSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ScrapeInputSchema0>
+  | {
+      [key: string]: ScrapeInputSchema0;
+    };
+
+export type ScrapeInputSchema1 =
+  | {
+      type: "string" | "number" | "integer" | "boolean";
+      description?: string;
+    }
+  | {
+      type: "array";
+      items: ScrapeInputSchema1;
+      description?: string;
+    }
+  | {
+      type: "object";
+      properties: {
+        [key: string]: ScrapeInputSchema1;
+      };
+      description?: string;
+    };
+
+export type ScrapeInputSchema2 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ScrapeInputSchema2>
+  | {
+      [key: string]: ScrapeInputSchema2;
     };
 
 export type ScrapeSchema0 =
@@ -128,6 +176,100 @@ export type ScrapeSchema0 =
       [key: string]: ScrapeSchema0;
     };
 
+export type ExtractInputSchema0 =
+  | {
+      type: "string" | "number" | "integer" | "boolean";
+      description?: string;
+    }
+  | {
+      type: "array";
+      items: ExtractInputSchema0;
+      description?: string;
+    }
+  | {
+      type: "object";
+      properties: {
+        [key: string]: ExtractInputSchema0;
+      };
+      description?: string;
+    };
+
+export type ExtractInputSchema1 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ExtractInputSchema1>
+  | {
+      [key: string]: ExtractInputSchema1;
+    };
+
+export type ExtractInputSchema2 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ExtractInputSchema2>
+  | {
+      [key: string]: ExtractInputSchema2;
+    };
+
+export type BrowserTaskInputSchema0 =
+  | {
+      type: "string" | "number" | "integer" | "boolean";
+      description?: string;
+    }
+  | {
+      type: "array";
+      items: BrowserTaskInputSchema0;
+      description?: string;
+    }
+  | {
+      type: "object";
+      properties: {
+        [key: string]: BrowserTaskInputSchema0;
+      };
+      description?: string;
+    };
+
+export type CrawlInputSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<CrawlInputSchema0>
+  | {
+      [key: string]: CrawlInputSchema0;
+    };
+
+export type CrawlInputSchema1 =
+  | {
+      type: "string" | "number" | "integer" | "boolean";
+      description?: string;
+    }
+  | {
+      type: "array";
+      items: CrawlInputSchema1;
+      description?: string;
+    }
+  | {
+      type: "object";
+      properties: {
+        [key: string]: CrawlInputSchema1;
+      };
+      description?: string;
+    };
+
+export type CrawlInputSchema2 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<CrawlInputSchema2>
+  | {
+      [key: string]: CrawlInputSchema2;
+    };
+
 export type CrawlStatusSchema0 =
   | string
   | number
@@ -138,6 +280,44 @@ export type CrawlStatusSchema0 =
       [key: string]: CrawlStatusSchema0;
     };
 
+export type BatchScrapeInputSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<BatchScrapeInputSchema0>
+  | {
+      [key: string]: BatchScrapeInputSchema0;
+    };
+
+export type BatchScrapeInputSchema1 =
+  | {
+      type: "string" | "number" | "integer" | "boolean";
+      description?: string;
+    }
+  | {
+      type: "array";
+      items: BatchScrapeInputSchema1;
+      description?: string;
+    }
+  | {
+      type: "object";
+      properties: {
+        [key: string]: BatchScrapeInputSchema1;
+      };
+      description?: string;
+    };
+
+export type BatchScrapeInputSchema2 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<BatchScrapeInputSchema2>
+  | {
+      [key: string]: BatchScrapeInputSchema2;
+    };
+
 export type BatchScrapeStatusSchema0 =
   | string
   | number
@@ -146,186 +326,6 @@ export type BatchScrapeStatusSchema0 =
   | Array<BatchScrapeStatusSchema0>
   | {
       [key: string]: BatchScrapeStatusSchema0;
-    };
-
-export type ExtractResultSchema0 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ExtractResultSchema0>
-  | {
-      [key: string]: ExtractResultSchema0;
-    };
-
-export type ScrapeSchema02 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ScrapeSchema02>
-  | {
-      [key: string]: ScrapeSchema02;
-    };
-
-export type ScrapeSchema1 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: ScrapeSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: ScrapeSchema1;
-      };
-      description?: string;
-    };
-
-export type ScrapeSchema2 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ScrapeSchema2>
-  | {
-      [key: string]: ScrapeSchema2;
-    };
-
-export type ExtractSchema0 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: ExtractSchema0;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: ExtractSchema0;
-      };
-      description?: string;
-    };
-
-export type ExtractSchema1 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ExtractSchema1>
-  | {
-      [key: string]: ExtractSchema1;
-    };
-
-export type ExtractSchema2 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ExtractSchema2>
-  | {
-      [key: string]: ExtractSchema2;
-    };
-
-export type BrowserTaskSchema0 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: BrowserTaskSchema0;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: BrowserTaskSchema0;
-      };
-      description?: string;
-    };
-
-export type CrawlSchema0 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<CrawlSchema0>
-  | {
-      [key: string]: CrawlSchema0;
-    };
-
-export type CrawlSchema1 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: CrawlSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: CrawlSchema1;
-      };
-      description?: string;
-    };
-
-export type CrawlSchema2 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<CrawlSchema2>
-  | {
-      [key: string]: CrawlSchema2;
-    };
-
-export type BatchScrapeSchema0 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<BatchScrapeSchema0>
-  | {
-      [key: string]: BatchScrapeSchema0;
-    };
-
-export type BatchScrapeSchema1 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: BatchScrapeSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: BatchScrapeSchema1;
-      };
-      description?: string;
-    };
-
-export type BatchScrapeSchema2 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<BatchScrapeSchema2>
-  | {
-      [key: string]: BatchScrapeSchema2;
     };
 
 /**
@@ -984,7 +984,7 @@ export type ScrapeData = {
            * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
            */
           options?: {
-            [key: string]: ScrapeSchema02;
+            [key: string]: ScrapeInputSchema0;
           };
           /**
            * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
@@ -992,7 +992,7 @@ export type ScrapeData = {
           schema?: {
             type: "object";
             properties: {
-              [key: string]: ScrapeSchema1;
+              [key: string]: ScrapeInputSchema1;
             };
           };
           /**
@@ -1003,7 +1003,7 @@ export type ScrapeData = {
            * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
            */
           rules?: {
-            [key: string]: ScrapeSchema2;
+            [key: string]: ScrapeInputSchema2;
           };
           checkPromptInjection?: false;
         }
@@ -1290,7 +1290,7 @@ export type ExtractData = {
     schema?: {
       type: "object";
       properties: {
-        [key: string]: ExtractSchema0;
+        [key: string]: ExtractInputSchema0;
       };
     };
     /**
@@ -1527,7 +1527,7 @@ export type ExtractData = {
              * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
              */
             options?: {
-              [key: string]: ExtractSchema1;
+              [key: string]: ExtractInputSchema1;
             };
             /**
              * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
@@ -1535,7 +1535,7 @@ export type ExtractData = {
             schema?: {
               type: "object";
               properties: {
-                [key: string]: ExtractSchema0;
+                [key: string]: ExtractInputSchema0;
               };
             };
             /**
@@ -1546,7 +1546,7 @@ export type ExtractData = {
              * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
              */
             rules?: {
-              [key: string]: ExtractSchema2;
+              [key: string]: ExtractInputSchema2;
             };
             checkPromptInjection?: false;
           }
@@ -1628,7 +1628,7 @@ export type BrowserTaskData = {
     schema?: {
       type: "object";
       properties: {
-        [key: string]: BrowserTaskSchema0;
+        [key: string]: BrowserTaskInputSchema0;
       };
     };
     /**
@@ -2164,7 +2164,7 @@ export type CrawlData = {
              * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
              */
             options?: {
-              [key: string]: CrawlSchema0;
+              [key: string]: CrawlInputSchema0;
             };
             /**
              * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
@@ -2172,7 +2172,7 @@ export type CrawlData = {
             schema?: {
               type: "object";
               properties: {
-                [key: string]: CrawlSchema1;
+                [key: string]: CrawlInputSchema1;
               };
             };
             /**
@@ -2183,7 +2183,7 @@ export type CrawlData = {
              * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
              */
             rules?: {
-              [key: string]: CrawlSchema2;
+              [key: string]: CrawlInputSchema2;
             };
             checkPromptInjection?: false;
           }
@@ -2288,6 +2288,113 @@ export type CrawlCancelResponses = {
 export type CrawlCancelResponse =
   CrawlCancelResponses[keyof CrawlCancelResponses];
 
+export type CrawlStatusData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+    cursor?: string;
+  };
+  url: "/v1/crawl/{id}";
+};
+
+export type CrawlStatusErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type CrawlStatusError = CrawlStatusErrors[keyof CrawlStatusErrors];
+
+export type CrawlStatusResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    status: "scraping" | "completed" | "failed" | "cancelled";
+    total: number;
+    completed: number;
+    creditsUsed: number;
+    createdAt?: string;
+    completedAt?: string;
+    duration?: number;
+    expiresAt?: string;
+    next?: string;
+    data: Array<{
+      markdown?: string;
+      summary?: string;
+      html?: string;
+      rawHtml?: string;
+      links?: Array<string>;
+      images?: Array<string>;
+      attributes?: Array<{
+        selector?: string;
+        attribute?: string;
+        values?: Array<string>;
+      }>;
+      screenshot?: string;
+      json?: CrawlStatusSchema0;
+      highlights?: string;
+      changeTracking?: {
+        previousScrapeAt?: string;
+        changeStatus?: "new" | "same" | "changed";
+        visibility?: string;
+        diff?: string;
+      };
+      branding?: {
+        [key: string]: CrawlStatusSchema0;
+      };
+      actions?: {
+        screenshots?: Array<string>;
+        scrapes?: Array<{
+          url?: string;
+          html?: string;
+        }>;
+        javascriptReturns?: Array<{
+          type?: string;
+          value?: CrawlStatusSchema0;
+        }>;
+        pdfs?: Array<string>;
+      };
+      warning?: string;
+      /**
+       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and any other meta tag appears under its own name.
+       */
+      metadata: {
+        title?: string;
+        description?: string;
+        language?: string;
+        ogImage?: string;
+        sourceURL?: string;
+        url?: string;
+        statusCode: number;
+        contentType?: string;
+        numPages?: number;
+        totalPages?: number;
+        cacheState?: "hit" | "miss";
+        cachedAt?: string;
+        scrapeId?: string;
+        creditsUsed?: number;
+        [key: string]: unknown | string | number | ("hit" | "miss") | undefined;
+      };
+    }>;
+  };
+};
+
+export type CrawlStatusResponse =
+  CrawlStatusResponses[keyof CrawlStatusResponses];
+
 export type BatchScrapeData = {
   body: {
     /**
@@ -2372,7 +2479,7 @@ export type BatchScrapeData = {
            * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
            */
           options?: {
-            [key: string]: BatchScrapeSchema0;
+            [key: string]: BatchScrapeInputSchema0;
           };
           /**
            * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
@@ -2380,7 +2487,7 @@ export type BatchScrapeData = {
           schema?: {
             type: "object";
             properties: {
-              [key: string]: BatchScrapeSchema1;
+              [key: string]: BatchScrapeInputSchema1;
             };
           };
           /**
@@ -2391,7 +2498,7 @@ export type BatchScrapeData = {
            * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
            */
           rules?: {
-            [key: string]: BatchScrapeSchema2;
+            [key: string]: BatchScrapeInputSchema2;
           };
           checkPromptInjection?: false;
         }
@@ -2650,6 +2757,114 @@ export type BatchScrapeCancelResponses = {
 
 export type BatchScrapeCancelResponse =
   BatchScrapeCancelResponses[keyof BatchScrapeCancelResponses];
+
+export type BatchScrapeStatusData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+    cursor?: string;
+  };
+  url: "/v1/batch/scrape/{id}";
+};
+
+export type BatchScrapeStatusErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type BatchScrapeStatusError =
+  BatchScrapeStatusErrors[keyof BatchScrapeStatusErrors];
+
+export type BatchScrapeStatusResponses = {
+  /**
+   * The data, and the credits this call used.
+   */
+  200: {
+    success: true;
+    status: "scraping" | "completed" | "failed" | "cancelled";
+    total: number;
+    completed: number;
+    creditsUsed: number;
+    createdAt?: string;
+    completedAt?: string;
+    duration?: number;
+    expiresAt?: string;
+    next?: string;
+    data: Array<{
+      markdown?: string;
+      summary?: string;
+      html?: string;
+      rawHtml?: string;
+      links?: Array<string>;
+      images?: Array<string>;
+      attributes?: Array<{
+        selector?: string;
+        attribute?: string;
+        values?: Array<string>;
+      }>;
+      screenshot?: string;
+      json?: BatchScrapeStatusSchema0;
+      highlights?: string;
+      changeTracking?: {
+        previousScrapeAt?: string;
+        changeStatus?: "new" | "same" | "changed";
+        visibility?: string;
+        diff?: string;
+      };
+      branding?: {
+        [key: string]: BatchScrapeStatusSchema0;
+      };
+      actions?: {
+        screenshots?: Array<string>;
+        scrapes?: Array<{
+          url?: string;
+          html?: string;
+        }>;
+        javascriptReturns?: Array<{
+          type?: string;
+          value?: BatchScrapeStatusSchema0;
+        }>;
+        pdfs?: Array<string>;
+      };
+      warning?: string;
+      /**
+       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and any other meta tag appears under its own name.
+       */
+      metadata: {
+        title?: string;
+        description?: string;
+        language?: string;
+        ogImage?: string;
+        sourceURL?: string;
+        url?: string;
+        statusCode: number;
+        contentType?: string;
+        numPages?: number;
+        totalPages?: number;
+        cacheState?: "hit" | "miss";
+        cachedAt?: string;
+        scrapeId?: string;
+        creditsUsed?: number;
+        [key: string]: unknown | string | number | ("hit" | "miss") | undefined;
+      };
+    }>;
+  };
+};
+
+export type BatchScrapeStatusResponse =
+  BatchScrapeStatusResponses[keyof BatchScrapeStatusResponses];
 
 export type ClientOptions = {
   baseUrl: "https://api.stophy.dev" | (string & {});
