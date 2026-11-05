@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/browser/task/status",
+    "body": {
+      "id": "7c76df71-1d78-4d05-b09c-2f7840b12400"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "status": "done",
+      "result": {
+        "done": false,
+        "reason": "The browser could not run this task. Nothing was charged."
+      },
+      "creditsUsed": 0
+    },
+    "creditsUsed": 0,
+    "requestId": "742fd075-3678-4a8a-a92f-7b13eccb9209"
+  }
+}

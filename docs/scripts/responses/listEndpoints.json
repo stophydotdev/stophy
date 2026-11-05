@@ -1,0 +1,267 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/endpoints"
+  },
+  "status": 200,
+  "response": {
+    "sources": [
+      {
+        "id": "web",
+        "name": "Web",
+        "summary": "Search the web and read any public page as markdown, HTML, links, a screenshot or JSON",
+        "kind": "site"
+      }
+    ],
+    "endpoints": [
+      {
+        "id": "search",
+        "title": "Search",
+        "summary": "Search the web, news and images in one call",
+        "bestWhen": "Best when you want web results, news, images or all three at once, grouped by type, with the page text of the top web…",
+        "method": "POST",
+        "path": "/v1/search",
+        "credits": 2,
+        "maxCredits": 55,
+        "pricing": "2 credits per 10 results from each source, plus 1 credit for each web result that comes back with its page text when…",
+        "keyless": true,
+        "cacheTtlSeconds": 0,
+        "input": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 400
+            },
+            "sources": {
+              "description": "What to search: web, news, images. Each is a string or {type}.",
+              "minItems": 1,
+              "maxItems": 3,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "web",
+                      "news",
+                      "images"
+                    ]
+                  }
+                ]
+              }
+            },
+            "categories": {
+              "description": "pdf: web results that are PDF files. research: web results from academic sites only.",
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "developer",
+                      "gov",
+                      "research"
+                    ]
+                  }
+                ]
+              }
+            },
+            "maxAge": {
+              "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 15 minutes for news and 1 hour…",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "limit": {
+              "description": "Most results to return for each source. Default 10, or 5 with scrapeOptions, which reads at most 5 pages. News returns…",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "tbs": {
+              "description": "Time filter: qdr:h, qdr:d, qdr:w, qdr:m or qdr:y, or cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY. Web takes both; news…",
+              "type": "string",
+              "minLength": 1
+            },
+            "location": {
+              "description": "Where to search from, like Germany or San Francisco,California,United States. The last part is the country and…",
+              "type": "string",
+              "minLength": 1
+            },
+            "country": {
+              "description": "Two-letter country to search from, like us. Image results are always US.",
+              "type": "string",
+              "pattern": "^[A-Za-z]{2}$"
+            },
+            "includeDomains": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludeDomains": {
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "safe": {
+              "description": "Hide explicit web and image results when true.",
+              "type": "boolean"
+            },
+            "timeout": {
+              "default": 60000,
+              "description": "Milliseconds to wait for the sources.",
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 9007199254740991
+            },
+            "ignoreInvalidURLs": {
+              "default": false,
+              "description": "Leave out results whose address cannot be read as a page.",
+              "type": "boolean"
+            },
+            "highlights": {
+              "default": true,
+              "description": "On by default. When a web result's page is already stored, its description is the passages of that page that best…",
+              "type": "boolean"
+            },
+            "domainTools": {
+              "type": "boolean",
+              "const": false
+            },
+            "toolDetail": {
+              "type": "string",
+              "const": "compact"
+            },
+            "enterprise": {
+              "maxItems": 0,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "threatProtection": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {}
+            },
+            "scrapeOptions": {
+              "description": "Reads the top web results, up to 5, and puts the passages that best match the query in each description. Add…",
+              "type": "object",
+              "properties": {
+                "formats": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
+                "onlyMainContent": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "onlyCleanContent": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "includeTags": {
+                  "maxItems": 0,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "excludeTags": {
+                  "maxItems": 0,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "maxAge": {
+                  "type": "number",
+                  "const": 172800000
+                },
+                "zeroDataRetention": {
+                  "default": false,
+                  "description": "Send true to keep nothing from the pages read, and read each one live. Costs 1 more credit per page.",
+                  "type": "boolean"
+                },
+                "headers": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                },
+                "waitFor": {
+                  "type": "number",
+                  "const": 0
+                },
+                "mobile": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "skipTlsVerification": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "timeout": {
+                  "type": "number",
+                  "const": 60000
+                },
+                "removeBase64Images": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "blockAds": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "proxy": {
+                  "type": "string",
+                  "const": "auto"
+                },
+                "storeInCache": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "lockdown": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "checkPromptInjection": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "redactPII": {
+                  "type": "boolean",
+                  "const": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        },
+        "example": {
+          "query": "nvidia earnings",
+          "sources": [
+            "web",
+            "news"
+          ],
+          "limit": 5
+        }
+      }
+    ]
+  }
+}

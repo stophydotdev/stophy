@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/crawl",
+    "body": {
+      "url": "https://bun.com/docs",
+      "limit": 2
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "job_a-Bqc0NaZ8ADzLB4rhpeKA",
+    "url": "https://api.stophy.dev/v1/crawl/job_a-Bqc0NaZ8ADzLB4rhpeKA"
+  }
+}

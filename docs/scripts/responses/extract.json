@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/extract",
+    "body": {
+      "urls": [
+        "https://bun.com/docs/runtime/bunfig"
+      ],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          }
+        }
+      },
+      "prompt": "What is the name of the configuration file this page describes?"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "860b5104-c8fc-4a85-aff9-f826b15c5770",
+    "invalidURLs": []
+  }
+}

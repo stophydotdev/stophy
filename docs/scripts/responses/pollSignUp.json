@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/signup/poll",
+    "body": {
+      "code": "<code>"
+    }
+  },
+  "status": 202,
+  "response": {
+    "success": true,
+    "data": {
+      "status": "waiting",
+      "claimUrl": "<claimUrl>"
+    },
+    "creditsUsed": 0,
+    "requestId": "f178fb12-7986-4688-a700-915024faa1b9"
+  }
+}

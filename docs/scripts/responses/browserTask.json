@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/browser/task",
+    "body": {
+      "url": "https://news.ycombinator.com",
+      "goal": "Open the newest stories and read the title of the first one",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "maxSteps": 4
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "id": "7c76df71-1d78-4d05-b09c-2f7840b12400",
+      "status": "running"
+    },
+    "creditsUsed": 0,
+    "requestId": "3e29cc22-93d3-4b70-ac60-52c18b07ca4f"
+  }
+}

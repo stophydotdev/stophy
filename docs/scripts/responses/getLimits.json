@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/limits"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "tier": "paid",
+      "balanceCredits": 5000,
+      "rateLimit": {
+        "limitPerMinute": 600,
+        "remaining": 596,
+        "resetsAt": "2026-11-05T23:37:00.000Z"
+      },
+      "keyExpiresAt": null,
+      "billingUrl": "https://stophy.dev/billing"
+    },
+    "creditsUsed": 0,
+    "requestId": "6d66e7cf-66c5-406e-b382-536aedbd026a"
+  }
+}

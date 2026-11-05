@@ -1,71 +1,143 @@
 ---
 title: "Quickstart"
-description: "Make your first Stophy call with no key, then add a key to use all 137 endpoints from TypeScript, Python, cURL or the CLI."
+description: "Scrape a page with no key, then add a key to search, crawl and extract from cURL, TypeScript or Python. Most calls cost $2.00 per 1,000."
 og:title: "Quickstart | Stophy"
-og:description: "Make your first Stophy call with no key, then add a key to use all 137 endpoints from TypeScript, Python, cURL or the CLI."
+og:description: "Scrape a page with no key, then add a key to search, crawl and extract from cURL, TypeScript or Python. Most calls cost $2.00 per 1,000."
 ---
 
 ## Call it with no key
 
 ```bash
-curl -X POST https://api.stophy.dev/v1/google/search \
-  -H "content-type: application/json" \
-  -d '{"query":"typescript release notes"}'
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://bun.com/docs/runtime/bunfig"}'
 ```
 
 <Accordion title="Response">
+This real response is cut to a few fields.
+
 ```json
 {
   "success": true,
   "data": {
-    "results": [
-      {
-        "type": "web",
-        "url": "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html",
-        "title": "TypeScript: Documentation - TypeScript 6.0",
-        "description": "6 days ago - While TypeScript 6.0 maintains full compatibility with your existing TypeScript knowledge and continues to be API compatible with TypeScript 5.9, this release introduces a number of breaking changes and deprecations.",
-        "position": 1
-      }
-    ],
-    "page": 1
-  },
-  "creditsUsed": 0,
-  "requestId": "e9eadb92-1a19-4127-b5e0-217da75f4b37"
+    "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's configuration…",
+    "metadata": {
+      "title": "bunfig.toml | Bun Docs",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "url": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "f82a75f2-1f53-4abb-ac5a-9fdbc4314549",
+      "creditsUsed": 0
+    }
+  }
 }
 ```
 </Accordion>
 
-That is page 1 of Google results, and it cost nothing. 27 endpoints answer like this with no key. [Rate limits](/rate-limits) has the free limits.
+That is the page as markdown. Search, scrape, map and parse work like this with no key, up to 10 calls a minute and 50 a day. See [Rate limits](/rate-limits).
 
 ## Get a key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup) and your account starts with $5 free, about 3,333 calls. Create a key and save it as `STOPHY_API_KEY`.
+Sign up at [stophy.dev/signup](https://stophy.dev/signup). Your account starts with $10 free, about 5,000 calls. Create a key and save it as `STOPHY_API_KEY`.
+
+An agent can get a key with no human at the keyboard: [Sign up](/api-reference/endpoint/sign-up) returns a link for its person to approve.
 
 ## Call it with your key
 
-import WebSearchTs from '/snippets/examples/google.search/ts.mdx';
-import WebSearchPython from '/snippets/examples/google.search/python.mdx';
-import WebSearchCurl from '/snippets/examples/google.search/curl.mdx';
-import WebSearchCli from '/snippets/examples/google.search/cli.mdx';
-
 <CodeGroup>
-  <WebSearchTs />
-  <WebSearchPython />
-  <WebSearchCurl />
-  <WebSearchCli />
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/search \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"nvidia earnings","sources":["web","news"],"limit":5}'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/search", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "nvidia earnings",
+    sources: ["web", "news"],
+    limit: 5,
+  }),
+});
+console.log(await response.json());
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/search",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "query": "nvidia earnings",
+        "sources": ["web", "news"],
+        "limit": 5,
+    },
+)
+print(response.json())
+```
 </CodeGroup>
 
-The CLI reads `STOPHY_API_KEY` too. Install it with `curl -fsSL https://stophy.dev/install | bash`.
+<Accordion title="Response">
+This real response is cut to one result per source.
 
-Send `page: 2` for the next page of results.
+```json
+{
+  "success": true,
+  "data": {
+    "news": [
+      {
+        "title": "Stocks making the biggest moves midday: Micron, Tesla, Tripadvisor, AppLovin, Nvidia & more",
+        "url": "https://www.cnbc.com/2026/11/05/stocks-making-the-biggest-moves-midday-mu-tsla-trip-app-nvda.html",
+        "snippet": "Here are some of the companies making headlines in midday trading.",
+        "date": "2026-11-05T18:35:11.000Z",
+        "position": 1
+      }
+    ],
+    "web": [
+      {
+        "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+        "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal ...",
+        "description": "GAAP and non-GAAP earnings per diluted share were $2.46 and $2.22, respectively.\n\n“AI has reached its inflection…",
+        "position": 1
+      }
+    ]
+  },
+  "creditsUsed": 4
+}
+```
+</Accordion>
+
+`creditsUsed` is what the call cost. A credit is $0.002, so this search of web and news, 2 credits for each source, cost $0.008. See [Pricing](/billing).
+
+## Read a site as JSON
+
+To get a site's own data, send its page to scrape with a parser:
+
+```bash
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.reddit.com/search/?q=web+scraping&sort=top&t=year","formats":[{"type":"json","parser":"reddit-search"}]}'
+```
+
+The posts come back in `data.json`. See [Parsers](/guides/parsers).
 
 ## Next
 
 <CardGroup cols={2}>
-  <Card title="Find an endpoint" icon="compass" href="/guides/find-endpoint">
-    Pick the right call for your task.
+  <Card title="Parsers" icon="brackets-curly" href="/guides/parsers">
+    Read Reddit, YouTube, Google Maps and 100 more sites as JSON.
   </Card>
-  <Card title="Page through results" icon="list" href="/guides/paging">
-    Get past the first page.
+  <Card title="Crawl a site" icon="spider" href="/api-reference/endpoint/crawl">
+    Read every page of a site in the background.
   </Card>
 </CardGroup>

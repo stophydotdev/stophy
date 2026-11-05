@@ -72,18 +72,37 @@ VS Code connects with no key or an API key. See [No key and API key](/mcp-server
 | --- | --- | --- |
 | Browser sign-in | `https://mcp.stophy.dev/mcp` | Every endpoint |
 | API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every endpoint |
-| No key | `https://api.stophy.dev/mcp` | The free ones, first page only |
+| No key | `https://api.stophy.dev/mcp` | Search, scrape, map and parse, within the [free limits](/rate-limits) |
 
 Both are server URLs for your client, not pages to open in a browser. [Browser sign-in](/mcp-server/oauth) explains what happens when you approve the app.
 
 ## What your agent sees
 
-Three tools. `stophy_search_endpoints` finds an endpoint, `stophy_describe_endpoint` shows its inputs, and `stophy_call` runs it. `stophy_call` takes `id`, `input` and optional `fields`, which keeps only the keys you name on each result.
+| Tool | What it does |
+| --- | --- |
+| `stophy_search` | Searches the web, news and images |
+| `stophy_scrape` | Reads a page as markdown, HTML, links, a screenshot or JSON |
+| `stophy_map` | Lists the pages on a site |
+| `stophy_crawl` | Starts a crawl of a site in the background and returns its `id` |
+| `stophy_extract` | Pulls the fields you name from pages as JSON |
+| `stophy_search_endpoints` | Finds the endpoint for a task, with its cost. Free |
+| `stophy_describe_endpoint` | Shows an endpoint's inputs, an example and what it returns. Free |
+| `stophy_call` | Runs any endpoint by `id` with `input`, and optional `fields` and `maxTextLength` |
+| `stophy_signup` | Gets your agent an API key: it returns a link for you to approve, then the key once you call it with the code |
 
-Ask *"What are people saying about Bun on Reddit?"* and your agent finds `redditSearch`, calls it, and answers. Over MCP, endpoint ids are camelCase. A call costs the same as over HTTP. See [Pricing](/billing).
+Ask *"What are people saying about Bun on Reddit?"* and your agent calls `stophy_scrape` with a Reddit search page and the `reddit-search` [parser](/guides/parsers):
 
-To get one tool per endpoint for some sources, add `toolsets` to the URL.
+```json
+{
+  "url": "https://www.reddit.com/search/?q=bun+runtime",
+  "formats": [{ "type": "json", "parser": "reddit-search" }]
+}
+```
+
+A crawl runs in the background. Your agent reads it with `stophy_call`, `id` `crawlStatus` and the crawl's `id`. Over MCP, endpoint ids are camelCase, like `crawlStatus` or `batchScrape`. A call costs the same as over HTTP. See [Pricing](/billing).
+
+To give each endpoint its own tool, add `toolsets` to the URL with a source name:
 
 ```text
-https://api.stophy.dev/mcp?toolsets=reddit,youtube
+https://api.stophy.dev/mcp?toolsets=web
 ```

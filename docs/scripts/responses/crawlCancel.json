@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "DELETE",
+    "path": "/v1/crawl/job_LcaBuaAN-S2yX7jXmsgWTw"
+  },
+  "status": 200,
+  "response": {
+    "status": "cancelled"
+  }
+}

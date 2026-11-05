@@ -1,0 +1,33 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/logs"
+  },
+  "status": 200,
+  "response": {
+    "endpoints": [
+      "search",
+      "scrape",
+      "extract"
+    ],
+    "logs": [
+      {
+        "apiKeyId": "<apiKeyId>",
+        "apiKeyName": "My key",
+        "createdAt": "2026-11-05T23:35:35.272Z",
+        "credits": 5,
+        "durationMs": null,
+        "endpoint": "extract",
+        "id": "8be659e2-a763-4e67-b8ac-e9eb53b89e4d",
+        "method": "POST",
+        "requestId": "b3b7fe02-9cf2-4339-b7f8-aa9e034be26f",
+        "response": "success",
+        "status": 200
+      }
+    ],
+    "page": 0,
+    "pageSize": 50,
+    "total": 85,
+    "totalPages": 2
+  }
+}
