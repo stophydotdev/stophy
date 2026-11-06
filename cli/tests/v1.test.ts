@@ -1,3 +1,4 @@
+import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "bun:test";
 import type { CatalogEndpoint } from "../src/catalog.ts";
 import { payloadOf } from "../src/invoke.ts";
@@ -53,4 +54,20 @@ test("crawled pages print their title and link from metadata", () => {
     data: [{ markdown: "# Bun", metadata: { title: "Bun", url: "https://bun.com/" } }],
   });
   expect(text).toBe("data:\n1. Bun\n   https://bun.com/");
+});
+
+test("a site command from before v1 points to search and parsers", async () => {
+  const home = `/tmp/stophy-cli-v1-${process.pid}`;
+  mkdirSync(`${home}/stophy`, { recursive: true });
+  const catalog = { fetchedAt: new Date().toISOString(), endpoints: [endpoint("search")] };
+  writeFileSync(`${home}/stophy/catalog.json`, JSON.stringify(catalog));
+  const run = Bun.spawn(["bun", "src/index.ts", "google", "search", "bun"], {
+    env: { ...process.env, XDG_CONFIG_HOME: home, STOPHY_NO_UPDATE_CHECK: "1" },
+    stderr: "pipe",
+    stdout: "pipe",
+  });
+  const error = await new Response(run.stderr).text();
+  expect(await run.exited).toBe(1);
+  expect(error).toContain("stophy parsers google");
+  expect(error).not.toContain("too many arguments");
 });
