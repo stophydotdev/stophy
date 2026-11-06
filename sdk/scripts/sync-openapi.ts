@@ -17,7 +17,7 @@ if (
   throw new Error(`Response from ${url} is not an OpenAPI document.`);
 }
 
-const text = `${JSON.stringify(document, null, 2)}\n`;
+const text = `${JSON.stringify(withoutUnsendableFields(document), null, 2)}\n`;
 await Bun.write(target, text);
 console.log(`Wrote ${target.pathname} from ${url} (${text.length} bytes).`);
 
@@ -36,4 +36,25 @@ async function parserNames(from: URL): Promise<string[]> {
   return list
     .flatMap((parser) => (isRecord(parser) && isString(parser.name) ? [parser.name] : []))
     .toSorted();
+}
+
+function withoutUnsendableFields(value: JsonValue): JsonValue {
+  if (Array.isArray(value)) return value.map(withoutUnsendableFields);
+  if (!isRecord(value)) return value;
+  const entries = Object.entries(value).map(([key, child]) => {
+    if (key !== "properties" || !isRecord(child)) return [key, withoutUnsendableFields(child)];
+    const sendable = Object.entries(child).filter(([, field]) => !acceptsNothing(field));
+    return [
+      key,
+      Object.fromEntries(sendable.map(([name, field]) => [name, withoutUnsendableFields(field)])),
+    ];
+  });
+  return Object.fromEntries(entries);
+}
+
+function acceptsNothing(schema: JsonValue): boolean {
+  if (!isRecord(schema)) return false;
+  const keys = Object.keys(schema);
+  const isNever = keys.length === 1 && isRecord(schema.not) && Object.keys(schema.not).length === 0;
+  return isNever || (schema.type === "array" && schema.maxItems === 0);
 }

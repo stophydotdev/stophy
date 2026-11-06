@@ -1995,13 +1995,6 @@
                     "type": "string",
                     "const": "compact"
                   },
-                  "enterprise": {
-                    "maxItems": 0,
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
                   "threatProtection": {
                     "type": "object",
                     "properties": {},
@@ -2039,20 +2032,6 @@
                       "onlyCleanContent": {
                         "type": "boolean",
                         "const": false
-                      },
-                      "includeTags": {
-                        "maxItems": 0,
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "excludeTags": {
-                        "maxItems": 0,
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
                       },
                       "maxAge": {
                         "type": "number",
@@ -2442,12 +2421,6 @@
                                 "const": "git-diff"
                               }
                             },
-                            "schema": {
-                              "not": {}
-                            },
-                            "prompt": {
-                              "not": {}
-                            },
                             "tag": {
                               "type": "null"
                             }
@@ -2468,12 +2441,6 @@
                               "default": false,
                               "description": "Capture the whole page from top to bottom instead of the visible part.",
                               "type": "boolean"
-                            },
-                            "quality": {
-                              "not": {}
-                            },
-                            "viewport": {
-                              "not": {}
                             }
                           },
                           "required": [
@@ -2660,9 +2627,6 @@
                     "minimum": 0,
                     "maximum": 9007199254740991
                   },
-                  "headers": {
-                    "not": {}
-                  },
                   "waitFor": {
                     "description": "Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.",
                     "type": "integer",
@@ -2703,9 +2667,6 @@
                             "mode": {
                               "type": "string",
                               "const": "auto"
-                            },
-                            "maxPages": {
-                              "not": {}
                             },
                             "pages": {
                               "type": "boolean",
@@ -3018,9 +2979,6 @@
                       "country": {
                         "description": "Two-letter country code to read the page from, such as DE or JP.",
                         "type": "string"
-                      },
-                      "languages": {
-                        "not": {}
                       }
                     },
                     "additionalProperties": false
@@ -3075,26 +3033,14 @@
                     ],
                     "additionalProperties": false
                   },
-                  "threatProtection": {
-                    "not": {}
-                  },
-                  "auditMetadata": {
-                    "not": {}
-                  },
                   "zeroDataRetention": {
                     "default": false,
                     "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.",
                     "type": "boolean"
                   },
-                  "alexandria": {
-                    "not": {}
-                  },
                   "domainTools": {
                     "type": "boolean",
                     "const": false
-                  },
-                  "toolDetail": {
-                    "not": {}
                   },
                   "linkStyle": {
                     "default": "inline",
@@ -3111,9 +3057,6 @@
                     "type": "integer",
                     "minimum": 500,
                     "maximum": 1000000
-                  },
-                  "urls": {
-                    "not": {}
                   }
                 },
                 "required": [
@@ -3512,9 +3455,6 @@
                         "minimum": 0,
                         "maximum": 9007199254740991
                       },
-                      "headers": {
-                        "not": {}
-                      },
                       "waitFor": {
                         "description": "Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.",
                         "type": "integer",
@@ -3555,9 +3495,6 @@
                                 "mode": {
                                   "type": "string",
                                   "const": "auto"
-                                },
-                                "maxPages": {
-                                  "not": {}
                                 },
                                 "pages": {
                                   "type": "boolean",
@@ -3870,9 +3807,6 @@
                           "country": {
                             "description": "Two-letter country code to read the page from, such as DE or JP.",
                             "type": "string"
-                          },
-                          "languages": {
-                            "not": {}
                           }
                         },
                         "additionalProperties": false
@@ -3927,26 +3861,14 @@
                         ],
                         "additionalProperties": false
                       },
-                      "threatProtection": {
-                        "not": {}
-                      },
-                      "auditMetadata": {
-                        "not": {}
-                      },
                       "zeroDataRetention": {
                         "default": false,
                         "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.",
                         "type": "boolean"
                       },
-                      "alexandria": {
-                        "not": {}
-                      },
                       "domainTools": {
                         "type": "boolean",
                         "const": false
-                      },
-                      "toolDetail": {
-                        "not": {}
                       },
                       "formats": {
                         "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.",
@@ -4009,12 +3931,6 @@
                                     "const": "git-diff"
                                   }
                                 },
-                                "schema": {
-                                  "not": {}
-                                },
-                                "prompt": {
-                                  "not": {}
-                                },
                                 "tag": {
                                   "type": "null"
                                 }
@@ -4035,12 +3951,6 @@
                                   "default": false,
                                   "description": "Capture the whole page from top to bottom instead of the visible part.",
                                   "type": "boolean"
-                                },
-                                "quality": {
-                                  "not": {}
-                                },
-                                "viewport": {
-                                  "not": {}
                                 }
                               },
                               "required": [
@@ -4199,9 +4109,6 @@
                     "default": true,
                     "description": "Skip addresses that are not public website URLs. Send false to refuse the call instead.",
                     "type": "boolean"
-                  },
-                  "threatProtection": {
-                    "not": {}
                   }
                 },
                 "required": [
@@ -4861,18 +4768,9 @@
                     "properties": {
                       "country": {
                         "type": "string"
-                      },
-                      "languages": {
-                        "not": {}
                       }
                     },
                     "additionalProperties": false
-                  },
-                  "auditMetadata": {
-                    "not": {}
-                  },
-                  "threatProtection": {
-                    "not": {}
                   }
                 },
                 "required": [
@@ -5060,15 +4958,6 @@
                     "type": "boolean",
                     "const": false
                   },
-                  "robotsUserAgent": {
-                    "not": {}
-                  },
-                  "delay": {
-                    "not": {}
-                  },
-                  "maxConcurrency": {
-                    "not": {}
-                  },
                   "scrapeOptions": {
                     "description": "How to read each page, the same options as scrape. Only markdown comes back yet.",
                     "type": "object",
@@ -5112,9 +5001,6 @@
                         "minimum": 0,
                         "maximum": 9007199254740991
                       },
-                      "headers": {
-                        "not": {}
-                      },
                       "waitFor": {
                         "description": "Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.",
                         "type": "integer",
@@ -5155,9 +5041,6 @@
                                 "mode": {
                                   "type": "string",
                                   "const": "auto"
-                                },
-                                "maxPages": {
-                                  "not": {}
                                 },
                                 "pages": {
                                   "type": "boolean",
@@ -5470,9 +5353,6 @@
                           "country": {
                             "description": "Two-letter country code to read the page from, such as DE or JP.",
                             "type": "string"
-                          },
-                          "languages": {
-                            "not": {}
                           }
                         },
                         "additionalProperties": false
@@ -5527,26 +5407,14 @@
                         ],
                         "additionalProperties": false
                       },
-                      "threatProtection": {
-                        "not": {}
-                      },
-                      "auditMetadata": {
-                        "not": {}
-                      },
                       "zeroDataRetention": {
                         "default": false,
                         "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.",
                         "type": "boolean"
                       },
-                      "alexandria": {
-                        "not": {}
-                      },
                       "domainTools": {
                         "type": "boolean",
                         "const": false
-                      },
-                      "toolDetail": {
-                        "not": {}
                       },
                       "formats": {
                         "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.",
@@ -5609,12 +5477,6 @@
                                     "const": "git-diff"
                                   }
                                 },
-                                "schema": {
-                                  "not": {}
-                                },
-                                "prompt": {
-                                  "not": {}
-                                },
                                 "tag": {
                                   "type": "null"
                                 }
@@ -5635,12 +5497,6 @@
                                   "default": false,
                                   "description": "Capture the whole page from top to bottom instead of the visible part.",
                                   "type": "boolean"
-                                },
-                                "quality": {
-                                  "not": {}
-                                },
-                                "viewport": {
-                                  "not": {}
                                 }
                               },
                               "required": [
@@ -5801,15 +5657,6 @@
                     "properties": {
                       "url": {
                         "type": "string"
-                      },
-                      "headers": {
-                        "not": {}
-                      },
-                      "metadata": {
-                        "not": {}
-                      },
-                      "events": {
-                        "not": {}
                       }
                     },
                     "required": [
@@ -6335,24 +6182,12 @@
                     "properties": {
                       "url": {
                         "type": "string"
-                      },
-                      "headers": {
-                        "not": {}
-                      },
-                      "metadata": {
-                        "not": {}
-                      },
-                      "events": {
-                        "not": {}
                       }
                     },
                     "required": [
                       "url"
                     ],
                     "additionalProperties": false
-                  },
-                  "maxConcurrency": {
-                    "not": {}
                   },
                   "ignoreInvalidURLs": {
                     "default": true,
@@ -6420,12 +6255,6 @@
                                 "const": "git-diff"
                               }
                             },
-                            "schema": {
-                              "not": {}
-                            },
-                            "prompt": {
-                              "not": {}
-                            },
                             "tag": {
                               "type": "null"
                             }
@@ -6446,12 +6275,6 @@
                               "default": false,
                               "description": "Capture the whole page from top to bottom instead of the visible part.",
                               "type": "boolean"
-                            },
-                            "quality": {
-                              "not": {}
-                            },
-                            "viewport": {
-                              "not": {}
                             }
                           },
                           "required": [
@@ -6638,9 +6461,6 @@
                     "minimum": 0,
                     "maximum": 9007199254740991
                   },
-                  "headers": {
-                    "not": {}
-                  },
                   "waitFor": {
                     "description": "Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.",
                     "type": "integer",
@@ -6681,9 +6501,6 @@
                             "mode": {
                               "type": "string",
                               "const": "auto"
-                            },
-                            "maxPages": {
-                              "not": {}
                             },
                             "pages": {
                               "type": "boolean",
@@ -6996,9 +6813,6 @@
                       "country": {
                         "description": "Two-letter country code to read the page from, such as DE or JP.",
                         "type": "string"
-                      },
-                      "languages": {
-                        "not": {}
                       }
                     },
                     "additionalProperties": false
@@ -7053,26 +6867,14 @@
                     ],
                     "additionalProperties": false
                   },
-                  "threatProtection": {
-                    "not": {}
-                  },
-                  "auditMetadata": {
-                    "not": {}
-                  },
                   "zeroDataRetention": {
                     "default": false,
                     "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.",
                     "type": "boolean"
                   },
-                  "alexandria": {
-                    "not": {}
-                  },
                   "domainTools": {
                     "type": "boolean",
                     "const": false
-                  },
-                  "toolDetail": {
-                    "not": {}
                   },
                   "linkStyle": {
                     "default": "inline",

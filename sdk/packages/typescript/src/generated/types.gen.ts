@@ -802,7 +802,6 @@ export type SearchData = {
     highlights?: boolean;
     domainTools?: false;
     toolDetail?: "compact";
-    enterprise?: Array<string>;
     threatProtection?: {};
     /**
      * Reads the top web results, up to 5, and puts the passages that best match the query in each description. Add "markdown" to formats to get the whole page text too. Costs 1 more credit for each page read.
@@ -816,8 +815,6 @@ export type SearchData = {
       >;
       onlyMainContent?: true;
       onlyCleanContent?: false;
-      includeTags?: Array<string>;
-      excludeTags?: Array<string>;
       maxAge?: 172800000;
       /**
        * Send true to keep nothing from the pages read, and read each one live. Costs 1 more credit per page.
@@ -950,8 +947,6 @@ export type ScrapeData = {
       | {
           type: "changeTracking";
           modes?: Array<"git-diff">;
-          schema?: unknown;
-          prompt?: unknown;
           tag?: null;
         }
       | {
@@ -960,8 +955,6 @@ export type ScrapeData = {
            * Capture the whole page from top to bottom instead of the visible part.
            */
           fullPage?: boolean;
-          quality?: unknown;
-          viewport?: unknown;
         }
       | {
           type: "highlights";
@@ -1039,7 +1032,6 @@ export type ScrapeData = {
      * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
      */
     minAge?: number;
-    headers?: unknown;
     /**
      * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
      */
@@ -1058,7 +1050,6 @@ export type ScrapeData = {
       | {
           type: "pdf";
           mode?: "auto";
-          maxPages?: unknown;
           pages?: false;
           blocks?: false;
           pageMarkers?: false;
@@ -1142,7 +1133,6 @@ export type ScrapeData = {
        * Two-letter country code to read the page from, such as DE or JP.
        */
       country?: string;
-      languages?: unknown;
     };
     removeBase64Images?: true;
     blockAds?: true;
@@ -1167,15 +1157,11 @@ export type ScrapeData = {
        */
       saveChanges?: boolean;
     };
-    threatProtection?: unknown;
-    auditMetadata?: unknown;
     /**
      * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
      */
     zeroDataRetention?: boolean;
-    alexandria?: unknown;
     domainTools?: false;
-    toolDetail?: unknown;
     /**
      * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
      */
@@ -1184,7 +1170,6 @@ export type ScrapeData = {
      * Cut the markdown at this many characters; isTruncated says when that happened.
      */
     maxChars?: number;
-    urls?: unknown;
   };
   path?: never;
   query?: {
@@ -1326,7 +1311,6 @@ export type ExtractData = {
        * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
        */
       minAge?: number;
-      headers?: unknown;
       /**
        * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
        */
@@ -1345,7 +1329,6 @@ export type ExtractData = {
         | {
             type: "pdf";
             mode?: "auto";
-            maxPages?: unknown;
             pages?: false;
             blocks?: false;
             pageMarkers?: false;
@@ -1429,7 +1412,6 @@ export type ExtractData = {
          * Two-letter country code to read the page from, such as DE or JP.
          */
         country?: string;
-        languages?: unknown;
       };
       removeBase64Images?: true;
       blockAds?: true;
@@ -1454,15 +1436,11 @@ export type ExtractData = {
          */
         saveChanges?: boolean;
       };
-      threatProtection?: unknown;
-      auditMetadata?: unknown;
       /**
        * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
-      alexandria?: unknown;
       domainTools?: false;
-      toolDetail?: unknown;
       /**
        * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
        */
@@ -1493,8 +1471,6 @@ export type ExtractData = {
         | {
             type: "changeTracking";
             modes?: Array<"git-diff">;
-            schema?: unknown;
-            prompt?: unknown;
             tag?: null;
           }
         | {
@@ -1503,8 +1479,6 @@ export type ExtractData = {
              * Capture the whole page from top to bottom instead of the visible part.
              */
             fullPage?: boolean;
-            quality?: unknown;
-            viewport?: unknown;
           }
         | {
             type: "highlights";
@@ -1570,7 +1544,6 @@ export type ExtractData = {
      * Skip addresses that are not public website URLs. Send false to refuse the call instead.
      */
     ignoreInvalidURLs?: boolean;
-    threatProtection?: unknown;
   };
   path?: never;
   query?: {
@@ -1844,10 +1817,7 @@ export type MapData = {
     timeout?: number;
     location?: {
       country?: string;
-      languages?: unknown;
     };
-    auditMetadata?: unknown;
-    threatProtection?: unknown;
   };
   path?: never;
   query?: {
@@ -1935,9 +1905,6 @@ export type CrawlData = {
      */
     allowSubdomains?: boolean;
     ignoreRobotsTxt?: false;
-    robotsUserAgent?: unknown;
-    delay?: unknown;
-    maxConcurrency?: unknown;
     /**
      * How to read each page, the same options as scrape. Only markdown comes back yet.
      */
@@ -1963,7 +1930,6 @@ export type CrawlData = {
        * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
        */
       minAge?: number;
-      headers?: unknown;
       /**
        * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
        */
@@ -1982,7 +1948,6 @@ export type CrawlData = {
         | {
             type: "pdf";
             mode?: "auto";
-            maxPages?: unknown;
             pages?: false;
             blocks?: false;
             pageMarkers?: false;
@@ -2066,7 +2031,6 @@ export type CrawlData = {
          * Two-letter country code to read the page from, such as DE or JP.
          */
         country?: string;
-        languages?: unknown;
       };
       removeBase64Images?: true;
       blockAds?: true;
@@ -2091,15 +2055,11 @@ export type CrawlData = {
          */
         saveChanges?: boolean;
       };
-      threatProtection?: unknown;
-      auditMetadata?: unknown;
       /**
        * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
-      alexandria?: unknown;
       domainTools?: false;
-      toolDetail?: unknown;
       /**
        * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
        */
@@ -2130,8 +2090,6 @@ export type CrawlData = {
         | {
             type: "changeTracking";
             modes?: Array<"git-diff">;
-            schema?: unknown;
-            prompt?: unknown;
             tag?: null;
           }
         | {
@@ -2140,8 +2098,6 @@ export type CrawlData = {
              * Capture the whole page from top to bottom instead of the visible part.
              */
             fullPage?: boolean;
-            quality?: unknown;
-            viewport?: unknown;
           }
         | {
             type: "highlights";
@@ -2208,9 +2164,6 @@ export type CrawlData = {
      */
     webhook?: {
       url: string;
-      headers?: unknown;
-      metadata?: unknown;
-      events?: unknown;
     };
   };
   path?: never;
@@ -2406,11 +2359,7 @@ export type BatchScrapeData = {
      */
     webhook?: {
       url: string;
-      headers?: unknown;
-      metadata?: unknown;
-      events?: unknown;
     };
-    maxConcurrency?: unknown;
     /**
      * Skip addresses that are not public website URLs and list them in invalidURLs. Send false to refuse the whole batch instead.
      */
@@ -2445,8 +2394,6 @@ export type BatchScrapeData = {
       | {
           type: "changeTracking";
           modes?: Array<"git-diff">;
-          schema?: unknown;
-          prompt?: unknown;
           tag?: null;
         }
       | {
@@ -2455,8 +2402,6 @@ export type BatchScrapeData = {
            * Capture the whole page from top to bottom instead of the visible part.
            */
           fullPage?: boolean;
-          quality?: unknown;
-          viewport?: unknown;
         }
       | {
           type: "highlights";
@@ -2534,7 +2479,6 @@ export type BatchScrapeData = {
      * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
      */
     minAge?: number;
-    headers?: unknown;
     /**
      * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
      */
@@ -2553,7 +2497,6 @@ export type BatchScrapeData = {
       | {
           type: "pdf";
           mode?: "auto";
-          maxPages?: unknown;
           pages?: false;
           blocks?: false;
           pageMarkers?: false;
@@ -2637,7 +2580,6 @@ export type BatchScrapeData = {
        * Two-letter country code to read the page from, such as DE or JP.
        */
       country?: string;
-      languages?: unknown;
     };
     removeBase64Images?: true;
     blockAds?: true;
@@ -2662,15 +2604,11 @@ export type BatchScrapeData = {
        */
       saveChanges?: boolean;
     };
-    threatProtection?: unknown;
-    auditMetadata?: unknown;
     /**
      * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
      */
     zeroDataRetention?: boolean;
-    alexandria?: unknown;
     domainTools?: false;
-    toolDetail?: unknown;
     /**
      * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
      */
