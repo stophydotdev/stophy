@@ -45,6 +45,20 @@ def test_parsed_reads_a_page_with_a_parser():
     assert body_of(calls[1])["formats"] == [{"type": "json", "parser": "reddit-search"}]
 
 
+def test_parsed_sends_snake_case_options_as_camel_case():
+    client, calls = make_client(OK)
+    client.parsed(
+        "google-maps", "https://www.google.com/maps/search/dentists", min_rating=4.5
+    )
+    client.parsed(
+        "google-maps", "https://www.google.com/maps/search/dentists", minRating=4.5
+    )
+    assert [body_of(call)["formats"][0]["options"] for call in calls] == [
+        {"minRating": 4.5},
+        {"minRating": 4.5},
+    ]
+
+
 def test_id_goes_in_the_path_and_the_rest_in_the_query():
     client, calls = make_client({"json": {"status": "cancelled"}})
     client.crawl.cancel(id="job/1", max_text_length=100)

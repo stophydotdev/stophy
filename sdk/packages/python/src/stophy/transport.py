@@ -32,6 +32,14 @@ def request_args(method: str, path: str, values: Mapping[str, Any]) -> tuple[str
     return filled, {"json": rest} if method == "POST" else {"params": rest}
 
 
+def camel_keys(values: Mapping[str, Any]) -> dict[str, Any]:
+    return {re.sub(r"_([a-z0-9])", _upper, key): value for key, value in values.items()}
+
+
+def _upper(match: re.Match[str]) -> str:
+    return match[1].upper()
+
+
 def _error_object(payload: Any) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
