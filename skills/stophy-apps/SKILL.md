@@ -48,7 +48,7 @@ stophy scrape "https://apps.apple.com/us/iphone/charts" --parser appstore-top
 ## Tips
 
 - `appstore-reviews` pages with `{"page":2}`, and `google-play-reviews` with the `cursor`.
-- `appstore-search`, `appstore-top` and `google-play-search` cost $0.002 per 10 apps. Every other call here costs $0.002.
+- `appstore-search`, `appstore-top` and `google-play-search` cost 1 credit per 10 apps. Every other call here costs 1 credit.
 
 ## See also
 

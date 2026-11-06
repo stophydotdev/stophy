@@ -42,7 +42,7 @@ stophy scrape "https://www.zillow.com/homedetails/157-28th-Ave-San-Francisco-CA-
 ## Tips
 
 - Send filters as options, like `--parserOptions '{"status":"forRent","maxPrice":3000}'`. `stophy parsers zillow --json` lists every option.
-- `zillow-search` costs $0.004. Every other call here costs $0.002.
+- `zillow-search` costs 2 credits. Every other call here costs 1 credit.
 
 ## See also
 
