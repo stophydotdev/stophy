@@ -1,5 +1,14 @@
 # stophy
 
+## 2.0.0
+
+- Breaking: the client calls Stophy API v1. The site methods such as `stophy.youtube.search` and `stophy.reddit.search` are gone.
+- `scrape`, `search`, `map`, `crawl`, `batch.scrape`, `extract`, `parse`, `browser.task` and the account calls `limits`, `usage`, `logs`, `signup` and `key.revoke` are on `Stophy` and `AsyncStophy`.
+- `crawl.status`, `crawl.cancel`, `batch.scrape.status`, `batch.scrape.cancel` and `extract.result` take `id=`. The status calls also take `cursor=`, read from the `next` link of the last answer.
+- `parsed(parser, url, **options)` reads a site with one of the parsers from `parsers()`. `ParserName` lists them. Options can be snake_case or camelCase.
+- `StophyError` reads the flat error body: the message, `code` and `retry_after_seconds`, with `request_id` from the response header.
+- `Usage`, `Logs` and `LogEntry` are gone. `usage()` and `logs()` return the generated response types.
+
 ## 1.2.1
 
 - The package links point to github.com/stophydotdev/stophy, where the source now lives.
