@@ -1,6 +1,6 @@
 # stophy
 
-## 2.0.0
+## 1.3.0
 
 - Breaking: the client calls Stophy API v1. The site methods such as `stophy.youtube.search` and `stophy.reddit.search` are gone.
 - `scrape`, `search`, `map`, `crawl`, `batch.scrape`, `extract`, `parse`, `browser.task` and the account calls `limits`, `usage`, `logs`, `signup` and `key.revoke` are on `Stophy` and `AsyncStophy`.

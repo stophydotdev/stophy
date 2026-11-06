@@ -15,7 +15,7 @@ allowed-tools:
 
 Find open roles and what they pay.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.3.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

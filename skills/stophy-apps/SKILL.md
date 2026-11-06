@@ -15,7 +15,7 @@ allowed-tools:
 
 Find apps and read what their users say.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `appstore-reviews` and `google-play-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.3.0 or later (`stophy --version`). `appstore-reviews` and `google-play-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
