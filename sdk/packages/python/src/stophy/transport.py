@@ -100,8 +100,8 @@ class _RetryConfig:
         window = self.retry_initial_delay * (2**attempt)
         return window / 2 + random.random() * (window / 2)
 
-    def retry_after(self, response: httpx.Response, attempt: int) -> float | None:
-        if attempt >= self.max_retries or response.status_code not in RETRYABLE_STATUS:
+    def retry_after(self, response: httpx.Response, attempt: int, max_retries: int) -> float | None:
+        if attempt >= max_retries or response.status_code not in RETRYABLE_STATUS:
             return None
         seconds = _retry_after(response, _error_object(_payload(response)))
         if seconds is None:
@@ -124,16 +124,17 @@ class SyncTransport(_RetryConfig):
 
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
+        max_retries = 0 if method == "DELETE" else self.max_retries
         while True:
             try:
                 response = self.client.request(method, path, **kwargs)
             except httpx.TransportError:
-                if attempt >= self.max_retries:
+                if attempt >= max_retries:
                     raise
                 time.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt)
+            wait = self.retry_after(response, attempt, max_retries)
             if wait is None:
                 return handle_response(response)
             time.sleep(wait)
@@ -153,16 +154,17 @@ class AsyncTransport(_RetryConfig):
 
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
+        max_retries = 0 if method == "DELETE" else self.max_retries
         while True:
             try:
                 response = await self.client.request(method, path, **kwargs)
             except httpx.TransportError:
-                if attempt >= self.max_retries:
+                if attempt >= max_retries:
                     raise
                 await asyncio.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt)
+            wait = self.retry_after(response, attempt, max_retries)
             if wait is None:
                 return handle_response(response)
             await asyncio.sleep(wait)
