@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { formatBalance, usageDataSchema } from "../account.js";
+import { formatBalance, limitsSchema, usageDataSchema } from "../account.js";
 import { request } from "../client.js";
 import { CliError } from "../errors.js";
 import { handleOutput, writeOutput } from "../output.js";
@@ -20,22 +20,25 @@ Examples:
 `,
     )
     .action(async (options: OutputOptions) => {
-      const response = await request({
-        method: "GET",
-        path: "/v1/usage",
-        accept: "application/json",
-      });
-      const parsed = usageDataSchema.safeParse(response.json);
-      if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
+      const [usageResponse, limitsResponse] = await Promise.all([
+        request({ method: "GET", path: "/v1/usage", accept: "application/json" }),
+        request({ method: "GET", path: "/v1/limits", accept: "application/json" }),
+      ]);
+      const usage = usageDataSchema.safeParse(usageResponse.json);
+      const limits = limitsSchema.safeParse(limitsResponse.json);
+      if (!usage.success || !limits.success) {
+        throw new CliError("Server returned an unexpected response shape.");
+      }
+      const account = { balanceCredits: limits.data.data.balanceCredits, ...usage.data };
       if (options.json || options.output) {
-        handleOutput(parsed.data, options);
+        handleOutput(account, options);
         return;
       }
       writeOutput(
         [
-          `balance: ${formatBalance(parsed.data.balanceMicros)}`,
-          `credits used (all time): ${parsed.data.creditsUsed}`,
-          `requests (all time): ${parsed.data.requestCount}`,
+          `balance: ${formatBalance(account.balanceCredits)}`,
+          `credits used (all time): ${account.creditsUsed}`,
+          `requests (all time): ${account.requestCount}`,
         ].join("\n"),
       );
     });
