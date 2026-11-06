@@ -1,5 +1,15 @@
 # @stophy/cli
 
+## 2.0.0
+
+### Major Changes
+
+- 454204d: The CLI works with Stophy API v1. Every command reads the v1 responses again, `stophy scrape <url> --parser <name>` reads a site with one of its parsers, `stophy parsers` lists them, and `stophy crawl status <id>`, `crawl cancel`, `batch scrape status`, `batch scrape cancel` and `extract status` follow a job after it starts.
+
+### Patch Changes
+
+- 1f0ed52: Prices and balances show credits, not dollars: `stophy endpoints` and `--help` show what a call costs in credits, and `stophy usage`, `status` and `doctor` show the balance as `balanceCredits`. An old site command such as `stophy google search` says what to run instead.
+
 ## 1.2.2
 
 ### Patch Changes
