@@ -25,7 +25,7 @@ parameters:
     label:
       en_US: Results
     human_description:
-      en_US: Most results to return, 1 to 100. Each 10 results cost $0.0015.
+      en_US: Most results to return, 1 to 100. Each 10 results cost 2 credits.
     llm_description: Most results to return.
     form: llm
   - name: time

@@ -8,21 +8,21 @@ Source repository: https://github.com/stophydotdev/stophy/tree/main/integrations
 
 ## Tools
 
-| Tool           | What it returns                                       | Price per call     |
-| -------------- | ----------------------------------------------------- | ------------------ |
-| Web Search     | Ranked pages with title, URL and description          | $0.0015            |
-| Read Page      | A web page or PDF as markdown                         | $0.0015 to $0.0075 |
-| Reddit Search  | Reddit posts with score and comment count             | $0.0015            |
-| Place Search   | Google Maps places with rating, reviews and hours     | $0.0015            |
-| Product Search | Amazon products with price, rating and reviews        | $0.0015            |
-| Job Search     | Indeed jobs with company, location and salary         | $0.0015            |
-| Home Search    | Zillow homes for sale or rent with price, beds, baths | $0.003             |
+| Tool           | What it returns                                       | Credits per call       |
+| -------------- | ----------------------------------------------------- | ---------------------- |
+| Web Search     | Ranked pages with title, URL and description          | 2 for each 10 results  |
+| Read Page      | A web page or PDF as markdown                         | 1, plus 1 per PDF page |
+| Reddit Search  | Reddit posts with score and comment count             | 1                      |
+| Place Search   | Google Maps places with rating, reviews and hours     | 1                      |
+| Product Search | Amazon products with price, rating and reviews        | 1                      |
+| Job Search     | Indeed jobs with company, location and salary         | 1                      |
+| Home Search    | Zillow homes for sale or rent with price, beds, baths | 2                      |
 
-Web Search costs $0.0015 per 10 results. Read Page costs more on pages that are hard to load. A call that fails or finds nothing costs nothing. These prices are for top-ups under $100.
+Most calls cost 1 credit. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
 ## Setup
 
-1. Get an API key at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $5 free, about 3,333 calls.
+1. Get an API key at [stophy.dev/signup](https://stophy.dev/signup). New accounts get free credits, no card needed.
 2. In Dify, open **Plugins**, find **Stophy** in the Marketplace and install it.
 3. Open the plugin, click **Authorize** and paste your API key. Dify checks the key before saving it.
 
