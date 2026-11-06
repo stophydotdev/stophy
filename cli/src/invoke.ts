@@ -35,8 +35,7 @@ const COUNTERS = new Set(["success", "creditsUsed"]);
 
 export function payloadOf(body: JsonRecord): JsonValue {
   const rest = Object.fromEntries(Object.entries(body).filter(([key]) => !COUNTERS.has(key)));
-  const only = Object.keys(rest).length === 1 ? rest.data : undefined;
-  return only ?? rest;
+  return rest.data ?? rest;
 }
 
 function shownOf(payload: JsonValue): JsonValue {
