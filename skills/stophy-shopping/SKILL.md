@@ -56,7 +56,7 @@ stophy scrape "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2" --p
 ## Tips
 
 - Amazon US shows reviews only after sign-in, so `amazon-reviews` on amazon.com returns reviews for few products. Use the same product on another Amazon marketplace.
-- Every call here costs $0.002, except `craigslist-search`, which costs $0.002 per 10 listings.
+- Every call here costs 1 credit, except `craigslist-search`: 1 credit per 10 listings.
 
 ## See also
 

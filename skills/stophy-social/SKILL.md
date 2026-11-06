@@ -71,7 +71,7 @@ stophy scrape "https://www.pinterest.com/search/pins/?q=kitchen%20ideas" --parse
 - Put Reddit's own sort and time in the page URL, like `?sort=top&t=month`.
 - `reddit-post` returns the comments in `commentList`. For the other subreddits that shared the same link, send `--parserOptions '{"view":"discussions"}'`.
 - `x-post` returns exact `likes`, `views`, `reposts` and `replies`. `x-profile` returns exact `followers` and `posts`.
-- Every call here costs $0.002, except `reddit-post`, which costs $0.002 per 200 comments.
+- Every call here costs 1 credit, except `reddit-post`: 1 credit per 200 comments.
 
 ## See also
 

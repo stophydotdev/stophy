@@ -64,7 +64,7 @@ stophy scrape "https://www.instagram.com/reel/DfS8Xbng4MD/" --parser instagram-t
 - Save a transcript with `-o` and read it from the file. Add `--parserOptions '{"includeTimestamps":true}'` to cite the moment a line is said.
 - For the replies to one comment, send its id as `--parserOptions '{"comment":"<id>"}'`.
 - TikTok shows video search only to signed-in accounts, so find TikTok videos on a topic with `tiktok-hashtag`.
-- Every call here costs $0.002, except transcripts made from audio. A TikTok transcript costs $0.002 with captions, or $0.004 plus $0.002 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs $0.002 plus $0.002 per 30 seconds of audio, up to 5 minutes.
+- Every call here costs 1 credit, except transcripts made from audio. A TikTok transcript costs 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs 1 credit plus 1 per 30 seconds of audio, up to 5 minutes.
 
 ## See also
 

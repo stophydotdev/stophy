@@ -60,7 +60,7 @@ stophy scrape "https://luma.com/sf" --parser luma-events
 ## Tips
 
 - Put dates, guests and filters in the page URL the way the site does.
-- Every call here costs $0.002, except `google-maps-reviews`, which costs $0.002 per 10 reviews.
+- Every call here costs 1 credit, except `google-maps-reviews`: 1 credit per 10 reviews.
 
 ## See also
 
