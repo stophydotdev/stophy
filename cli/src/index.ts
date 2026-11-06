@@ -60,7 +60,7 @@ Examples:
     .allowExcessArguments(true)
     .action(() => {
       const [word] = program.args;
-      if (word === undefined) {
+      if (word === undefined || word === "help") {
         program.outputHelp();
         return;
       }
