@@ -22,7 +22,7 @@ const results = await stophy.search({ query: "bun runtime", limit: 3 });
 console.log(results.data?.web);
 ```
 
-`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method throws a `StophyError` with the code `apiKeyRequired`.
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance, and so do `parsers`, `endpoints` and `signup`. Every other method throws a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 
@@ -71,10 +71,16 @@ const job = await stophy.crawl({ url: "https://bun.com/docs", limit: 20 });
 if (job.id) {
   const status = await stophy.crawl.status({ id: job.id });
   console.log(status.status, status.completed, status.total, status.data);
+
+  const cursor = status.next && new URL(status.next).searchParams.get("cursor");
+  if (cursor) {
+    const more = await stophy.crawl.status({ id: job.id, cursor });
+    console.log(more.data);
+  }
 }
 ```
 
-`status` is `scraping` until the crawl is `completed`. When the answer has a `cursor`, send it back with the same id to get the pages finished since. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+`status` is `scraping` until the crawl is `completed`. While pages are left to read, the answer has `next`, a link with a `cursor`. Send that cursor with the same id to get only the pages finished since. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
 
 `batch.scrape` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 

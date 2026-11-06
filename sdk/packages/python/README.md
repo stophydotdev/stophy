@@ -16,13 +16,13 @@ from stophy import Stophy
 stophy = Stophy()
 
 page = stophy.scrape(url="https://example.com", formats=["markdown"])
-print(page["data"]["markdown"])
+print(page["data"].get("markdown"))
 
 results = stophy.search(query="bun runtime", limit=3)
-print(results["data"]["web"])
+print(results.get("data"))
 ```
 
-`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method raises a `StophyError` with the code `apiKeyRequired`.
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance, and so do `parsers`, `endpoints` and `signup`. Every other method raises a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 
@@ -44,7 +44,7 @@ A parser reads a site's page and returns its data as JSON: Reddit posts, Google 
 
 ```python
 places = stophy.parsed("google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana")
-print(places["data"]["json"])
+print(places["data"].get("json"))
 ```
 
 `parsed` calls `scrape` with the format `{"type": "json", "parser": ...}`. The parser name is typed as `ParserName`. `stophy.parsers()` returns each parser with the page it reads and what it returns.
@@ -64,12 +64,22 @@ Paging needs an API key.
 `crawl` answers at once with an id. Ask `crawl.status` for the pages:
 
 ```python
+from urllib.parse import parse_qs, urlparse
+
 job = stophy.crawl(url="https://bun.com/docs", limit=20)
-status = stophy.crawl.status(id=job["id"])
-print(status["status"], status["completed"], status["total"], status.get("data"))
+job_id = job.get("id")
+if job_id:
+    status = stophy.crawl.status(id=job_id)
+    print(status["status"], status["completed"], status["total"], status["data"])
+
+    next_link = status.get("next")
+    if next_link:
+        cursor = parse_qs(urlparse(next_link).query)["cursor"][0]
+        more = stophy.crawl.status(id=job_id, cursor=cursor)
+        print(more["data"])
 ```
 
-`status` is `scraping` until the crawl is `completed`. When the answer has a `cursor`, send it back with the same id to get the pages finished since. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+`status` is `scraping` until the crawl is `completed`. While pages are left to read, the answer has `next`, a link with a `cursor`. Send that cursor with the same id to get only the pages finished since. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
 
 `stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 
@@ -77,8 +87,10 @@ print(status["status"], status["completed"], status["total"], status.get("data")
 
 ```python
 job = stophy.extract(urls=["https://example.com"], prompt="What is this page for?")
-result = stophy.extract.result(id=job["id"])
-print(result["data"], result["confidence"])
+job_id = job.get("id")
+if job_id:
+    result = stophy.extract.result(id=job_id)
+    print(result["data"], result["confidence"])
 ```
 
 `extract.result` raises a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
