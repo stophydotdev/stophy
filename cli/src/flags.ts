@@ -1,3 +1,4 @@
+import { DOLLARS_PER_CREDIT } from "./account.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { CliError } from "./errors.js";
 import {
@@ -791,8 +792,6 @@ function valueAt(root: JsonRecord, flag: string): JsonValue | undefined {
   }
   return current;
 }
-
-const DOLLARS_PER_CREDIT = 0.0015;
 
 export function dollars(credits: number): string {
   const amount = credits * DOLLARS_PER_CREDIT;
