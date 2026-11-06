@@ -144,7 +144,6 @@ class SyncExtract:
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         ignore_invalid_ur_ls: bool | None = None,
-        threat_protection: Any | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
@@ -158,7 +157,6 @@ class SyncExtract:
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "ignoreInvalidURLs": ignore_invalid_ur_ls,
-                "threatProtection": threat_protection,
             }
         )
         return self._call("POST", "/v1/extract", values)
@@ -288,7 +286,6 @@ class SyncSearch:
         highlights: bool | None = None,
         domain_tools: Literal[False] | None = None,
         tool_detail: Literal["compact"] | None = None,
-        enterprise: list[str] | None = None,
         threat_protection: dict[str, Any] | None = None,
         scrape_options: SearchScrapeOptions | None = None,
     ) -> SearchResponse:
@@ -310,7 +307,6 @@ class SyncSearch:
                 "highlights": highlights,
                 "domainTools": domain_tools,
                 "toolDetail": tool_detail,
-                "enterprise": enterprise,
                 "threatProtection": threat_protection,
                 "scrapeOptions": scrape_options,
             }
@@ -342,7 +338,6 @@ class SyncScrape:
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
-        headers: Any | None = None,
         wait_for: int | None = None,
         mobile: Literal[False] | None = None,
         skip_tls_verification: Literal[False] | None = None,
@@ -371,15 +366,10 @@ class SyncScrape:
         check_prompt_injection: Literal[False] | None = None,
         redact_pii: Literal[False] | None = None,
         profile: ScrapeProfile | None = None,
-        threat_protection: Any | None = None,
-        audit_metadata: Any | None = None,
         zero_data_retention: bool | None = None,
-        alexandria: Any | None = None,
         domain_tools: Literal[False] | None = None,
-        tool_detail: Any | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
-        urls: Any | None = None,
     ) -> ScrapeResponse:
         values = _omit_none(
             {
@@ -391,7 +381,6 @@ class SyncScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
-                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -407,15 +396,10 @@ class SyncScrape:
                 "checkPromptInjection": check_prompt_injection,
                 "redactPII": redact_pii,
                 "profile": profile,
-                "threatProtection": threat_protection,
-                "auditMetadata": audit_metadata,
                 "zeroDataRetention": zero_data_retention,
-                "alexandria": alexandria,
                 "domainTools": domain_tools,
-                "toolDetail": tool_detail,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
-                "urls": urls,
             }
         )
         return self._call("POST", "/v1/scrape", values)
@@ -515,8 +499,6 @@ class SyncMap:
         limit: int | None = None,
         timeout: int | None = None,
         location: MapLocation | None = None,
-        audit_metadata: Any | None = None,
-        threat_protection: Any | None = None,
     ) -> MapResponse:
         values = _omit_none(
             {
@@ -529,8 +511,6 @@ class SyncMap:
                 "limit": limit,
                 "timeout": timeout,
                 "location": location,
-                "auditMetadata": audit_metadata,
-                "threatProtection": threat_protection,
             }
         )
         return self._call("POST", "/v1/map", values)
@@ -601,9 +581,6 @@ class SyncCrawl:
         allow_external_links: Literal[False] | None = None,
         allow_subdomains: bool | None = None,
         ignore_robots_txt: Literal[False] | None = None,
-        robots_user_agent: Any | None = None,
-        delay: Any | None = None,
-        max_concurrency: Any | None = None,
         scrape_options: CrawlScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         webhook: CrawlWebhook | None = None,
@@ -623,9 +600,6 @@ class SyncCrawl:
                 "allowExternalLinks": allow_external_links,
                 "allowSubdomains": allow_subdomains,
                 "ignoreRobotsTxt": ignore_robots_txt,
-                "robotsUserAgent": robots_user_agent,
-                "delay": delay,
-                "maxConcurrency": max_concurrency,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "webhook": webhook,
@@ -688,7 +662,6 @@ class SyncBatchScrape:
         *,
         urls: list[str],
         webhook: CrawlWebhook | None = None,
-        max_concurrency: Any | None = None,
         ignore_invalid_ur_ls: bool | None = None,
         formats: list[
             ScrapeFormatsItemOption0
@@ -706,7 +679,6 @@ class SyncBatchScrape:
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
-        headers: Any | None = None,
         wait_for: int | None = None,
         mobile: Literal[False] | None = None,
         skip_tls_verification: Literal[False] | None = None,
@@ -735,12 +707,8 @@ class SyncBatchScrape:
         check_prompt_injection: Literal[False] | None = None,
         redact_pii: Literal[False] | None = None,
         profile: ScrapeProfile | None = None,
-        threat_protection: Any | None = None,
-        audit_metadata: Any | None = None,
         zero_data_retention: bool | None = None,
-        alexandria: Any | None = None,
         domain_tools: Literal[False] | None = None,
-        tool_detail: Any | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> BatchScrapeResponse:
@@ -748,7 +716,6 @@ class SyncBatchScrape:
             {
                 "urls": urls,
                 "webhook": webhook,
-                "maxConcurrency": max_concurrency,
                 "ignoreInvalidURLs": ignore_invalid_ur_ls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
@@ -757,7 +724,6 @@ class SyncBatchScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
-                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -773,12 +739,8 @@ class SyncBatchScrape:
                 "checkPromptInjection": check_prompt_injection,
                 "redactPII": redact_pii,
                 "profile": profile,
-                "threatProtection": threat_protection,
-                "auditMetadata": audit_metadata,
                 "zeroDataRetention": zero_data_retention,
-                "alexandria": alexandria,
                 "domainTools": domain_tools,
-                "toolDetail": tool_detail,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
             }
@@ -886,7 +848,6 @@ class AsyncExtract:
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         ignore_invalid_ur_ls: bool | None = None,
-        threat_protection: Any | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
@@ -900,7 +861,6 @@ class AsyncExtract:
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "ignoreInvalidURLs": ignore_invalid_ur_ls,
-                "threatProtection": threat_protection,
             }
         )
         return await self._call("POST", "/v1/extract", values)
@@ -1030,7 +990,6 @@ class AsyncSearch:
         highlights: bool | None = None,
         domain_tools: Literal[False] | None = None,
         tool_detail: Literal["compact"] | None = None,
-        enterprise: list[str] | None = None,
         threat_protection: dict[str, Any] | None = None,
         scrape_options: SearchScrapeOptions | None = None,
     ) -> SearchResponse:
@@ -1052,7 +1011,6 @@ class AsyncSearch:
                 "highlights": highlights,
                 "domainTools": domain_tools,
                 "toolDetail": tool_detail,
-                "enterprise": enterprise,
                 "threatProtection": threat_protection,
                 "scrapeOptions": scrape_options,
             }
@@ -1084,7 +1042,6 @@ class AsyncScrape:
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
-        headers: Any | None = None,
         wait_for: int | None = None,
         mobile: Literal[False] | None = None,
         skip_tls_verification: Literal[False] | None = None,
@@ -1113,15 +1070,10 @@ class AsyncScrape:
         check_prompt_injection: Literal[False] | None = None,
         redact_pii: Literal[False] | None = None,
         profile: ScrapeProfile | None = None,
-        threat_protection: Any | None = None,
-        audit_metadata: Any | None = None,
         zero_data_retention: bool | None = None,
-        alexandria: Any | None = None,
         domain_tools: Literal[False] | None = None,
-        tool_detail: Any | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
-        urls: Any | None = None,
     ) -> ScrapeResponse:
         values = _omit_none(
             {
@@ -1133,7 +1085,6 @@ class AsyncScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
-                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -1149,15 +1100,10 @@ class AsyncScrape:
                 "checkPromptInjection": check_prompt_injection,
                 "redactPII": redact_pii,
                 "profile": profile,
-                "threatProtection": threat_protection,
-                "auditMetadata": audit_metadata,
                 "zeroDataRetention": zero_data_retention,
-                "alexandria": alexandria,
                 "domainTools": domain_tools,
-                "toolDetail": tool_detail,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
-                "urls": urls,
             }
         )
         return await self._call("POST", "/v1/scrape", values)
@@ -1257,8 +1203,6 @@ class AsyncMap:
         limit: int | None = None,
         timeout: int | None = None,
         location: MapLocation | None = None,
-        audit_metadata: Any | None = None,
-        threat_protection: Any | None = None,
     ) -> MapResponse:
         values = _omit_none(
             {
@@ -1271,8 +1215,6 @@ class AsyncMap:
                 "limit": limit,
                 "timeout": timeout,
                 "location": location,
-                "auditMetadata": audit_metadata,
-                "threatProtection": threat_protection,
             }
         )
         return await self._call("POST", "/v1/map", values)
@@ -1343,9 +1285,6 @@ class AsyncCrawl:
         allow_external_links: Literal[False] | None = None,
         allow_subdomains: bool | None = None,
         ignore_robots_txt: Literal[False] | None = None,
-        robots_user_agent: Any | None = None,
-        delay: Any | None = None,
-        max_concurrency: Any | None = None,
         scrape_options: CrawlScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         webhook: CrawlWebhook | None = None,
@@ -1365,9 +1304,6 @@ class AsyncCrawl:
                 "allowExternalLinks": allow_external_links,
                 "allowSubdomains": allow_subdomains,
                 "ignoreRobotsTxt": ignore_robots_txt,
-                "robotsUserAgent": robots_user_agent,
-                "delay": delay,
-                "maxConcurrency": max_concurrency,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "webhook": webhook,
@@ -1430,7 +1366,6 @@ class AsyncBatchScrape:
         *,
         urls: list[str],
         webhook: CrawlWebhook | None = None,
-        max_concurrency: Any | None = None,
         ignore_invalid_ur_ls: bool | None = None,
         formats: list[
             ScrapeFormatsItemOption0
@@ -1448,7 +1383,6 @@ class AsyncBatchScrape:
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
-        headers: Any | None = None,
         wait_for: int | None = None,
         mobile: Literal[False] | None = None,
         skip_tls_verification: Literal[False] | None = None,
@@ -1477,12 +1411,8 @@ class AsyncBatchScrape:
         check_prompt_injection: Literal[False] | None = None,
         redact_pii: Literal[False] | None = None,
         profile: ScrapeProfile | None = None,
-        threat_protection: Any | None = None,
-        audit_metadata: Any | None = None,
         zero_data_retention: bool | None = None,
-        alexandria: Any | None = None,
         domain_tools: Literal[False] | None = None,
-        tool_detail: Any | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
     ) -> BatchScrapeResponse:
@@ -1490,7 +1420,6 @@ class AsyncBatchScrape:
             {
                 "urls": urls,
                 "webhook": webhook,
-                "maxConcurrency": max_concurrency,
                 "ignoreInvalidURLs": ignore_invalid_ur_ls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
@@ -1499,7 +1428,6 @@ class AsyncBatchScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
-                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -1515,12 +1443,8 @@ class AsyncBatchScrape:
                 "checkPromptInjection": check_prompt_injection,
                 "redactPII": redact_pii,
                 "profile": profile,
-                "threatProtection": threat_protection,
-                "auditMetadata": audit_metadata,
                 "zeroDataRetention": zero_data_retention,
-                "alexandria": alexandria,
                 "domainTools": domain_tools,
-                "toolDetail": tool_detail,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
             }

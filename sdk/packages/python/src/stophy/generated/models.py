@@ -388,8 +388,6 @@ class SearchScrapeOptions(TypedDict):
     formats: NotRequired[list[str | SearchScrapeOptionsFormatsItemOption1]]
     onlyMainContent: NotRequired[Literal[True]]
     onlyCleanContent: NotRequired[Literal[False]]
-    includeTags: NotRequired[list[str]]
-    excludeTags: NotRequired[list[str]]
     maxAge: NotRequired[Literal[172800000]]
     zeroDataRetention: NotRequired[bool]
     headers: NotRequired[dict[str, Any]]
@@ -464,16 +462,12 @@ class ScrapeFormatsItemOption1(TypedDict):
 class ScrapeFormatsItemOption2(TypedDict):
     type: Literal["changeTracking"]
     modes: NotRequired[list[Literal["git-diff"]]]
-    schema: NotRequired[Any]
-    prompt: NotRequired[Any]
     tag: NotRequired[None]
 
 
 class ScrapeFormatsItemOption3(TypedDict):
     type: Literal["screenshot"]
     fullPage: NotRequired[bool]
-    quality: NotRequired[Any]
-    viewport: NotRequired[Any]
 
 
 class ScrapeFormatsItemOption4(TypedDict):
@@ -529,7 +523,6 @@ class ScrapeFormatsItemOption6(TypedDict):
 class ScrapeParsersItemOption1(TypedDict):
     type: Literal["pdf"]
     mode: NotRequired[Literal["auto"]]
-    maxPages: NotRequired[Any]
     pages: NotRequired[Literal[False]]
     blocks: NotRequired[Literal[False]]
     pageMarkers: NotRequired[Literal[False]]
@@ -604,7 +597,6 @@ class ScrapeActionsItemOption10(TypedDict):
 
 class ScrapeLocation(TypedDict):
     country: NotRequired[str]
-    languages: NotRequired[Any]
 
 
 class ScrapeProfile(TypedDict):
@@ -718,7 +710,6 @@ class ExtractScrapeOptions(TypedDict):
     excludeTags: NotRequired[list[str]]
     maxAge: NotRequired[int]
     minAge: NotRequired[int]
-    headers: NotRequired[Any]
     waitFor: NotRequired[int]
     mobile: NotRequired[Literal[False]]
     skipTlsVerification: NotRequired[Literal[False]]
@@ -748,12 +739,8 @@ class ExtractScrapeOptions(TypedDict):
     checkPromptInjection: NotRequired[Literal[False]]
     redactPII: NotRequired[Literal[False]]
     profile: NotRequired[ScrapeProfile]
-    threatProtection: NotRequired[Any]
-    auditMetadata: NotRequired[Any]
     zeroDataRetention: NotRequired[bool]
-    alexandria: NotRequired[Any]
     domainTools: NotRequired[Literal[False]]
-    toolDetail: NotRequired[Any]
     formats: NotRequired[
         list[
             ScrapeFormatsItemOption0
@@ -848,7 +835,6 @@ class ParseResponse(TypedDict):
 
 class MapLocation(TypedDict):
     country: NotRequired[str]
-    languages: NotRequired[Any]
 
 
 class MapResponseLinksItem(TypedDict):
@@ -897,7 +883,6 @@ class CrawlScrapeOptions(TypedDict):
     excludeTags: NotRequired[list[str]]
     maxAge: NotRequired[int]
     minAge: NotRequired[int]
-    headers: NotRequired[Any]
     waitFor: NotRequired[int]
     mobile: NotRequired[Literal[False]]
     skipTlsVerification: NotRequired[Literal[False]]
@@ -927,12 +912,8 @@ class CrawlScrapeOptions(TypedDict):
     checkPromptInjection: NotRequired[Literal[False]]
     redactPII: NotRequired[Literal[False]]
     profile: NotRequired[ScrapeProfile]
-    threatProtection: NotRequired[Any]
-    auditMetadata: NotRequired[Any]
     zeroDataRetention: NotRequired[bool]
-    alexandria: NotRequired[Any]
     domainTools: NotRequired[Literal[False]]
-    toolDetail: NotRequired[Any]
     formats: NotRequired[
         list[
             ScrapeFormatsItemOption0
@@ -948,9 +929,6 @@ class CrawlScrapeOptions(TypedDict):
 
 class CrawlWebhook(TypedDict):
     url: str
-    headers: NotRequired[Any]
-    metadata: NotRequired[Any]
-    events: NotRequired[Any]
 
 
 class CrawlResponse(TypedDict):
