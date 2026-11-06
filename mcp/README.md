@@ -132,7 +132,7 @@ To get a site's own data as JSON, such as a Reddit search, a YouTube transcript 
 
 The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
 
-Endpoint ids are camelCase, such as `crawlStatus` or `batchScrape`. A crawl runs in the background: call `crawlStatus` through `stophy_call` with the crawl's `id`. While the crawl runs, the result has a `next` link: send the `cursor` value from that link as `cursor` to get the pages finished since. `fields` keeps only the keys you name on each row. Each result shows its cost in `creditsUsed`. Most calls cost $0.002. See [pricing](https://docs.stophy.dev/billing).
+Endpoint ids are camelCase, such as `crawlStatus` or `batchScrape`. A crawl runs in the background: call `crawlStatus` through `stophy_call` with the crawl's `id`. While the crawl runs, the result has a `next` link: send the `cursor` value from that link as `cursor` to get the pages finished since. `fields` keeps only the keys you name on each row. Most calls cost 1 credit. Search costs 2 credits per 10 results, a crawl 1 credit a page, and extract 5 credits for most pages. Each result shows its cost in `creditsUsed`. See [pricing](https://docs.stophy.dev/billing).
 
 To give each endpoint its own tool, add `toolsets` to the URL with a source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets `scrape`, `crawlStatus`, `batchScrape` and every other web endpoint as tools.
 
