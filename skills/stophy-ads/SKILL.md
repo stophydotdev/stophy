@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy ads
 
 See which ads a brand runs, and where.
 
-**Prerequisite:** `google-ads` works without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `google-ads` works without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -42,7 +43,7 @@ stophy scrape "https://www.linkedin.com/ad-library/search?keyword=software&count
 ## Tips
 
 - Put the country in the page URL: `region` on Google and TikTok, `country` on Meta, `countries` on LinkedIn.
-- Every call here costs $0.0015.
+- Every call here costs $0.002.
 
 ## See also
 
