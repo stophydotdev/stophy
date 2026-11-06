@@ -1,4 +1,3 @@
-import { DOLLARS_PER_CREDIT } from "./account.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { CliError } from "./errors.js";
 import {
@@ -793,30 +792,16 @@ function valueAt(root: JsonRecord, flag: string): JsonValue | undefined {
   return current;
 }
 
-export function dollars(credits: number): string {
-  const amount = credits * DOLLARS_PER_CREDIT;
-  return `$${amount >= 1 ? amount.toFixed(2) : String(Number(amount.toFixed(4)))}`;
-}
-
-const inDollars = (text: string): string =>
-  text
-    .replace(
-      /\b(\d+) credits?, or (\d+)\b/gu,
-      (_, low: string, high: string) => `${dollars(Number(low))}, or ${dollars(Number(high))}`,
-    )
-    .replace(
-      /\b(\d+) (more )?credits?\b/gu,
-      (_, units: string, more = "") => `${dollars(Number(units))}${more === "" ? "" : " more"}`,
-    );
+const creditCount = (credits: number): string => `${credits} credit${credits === 1 ? "" : "s"}`;
 
 export function costLine(endpoint: {
   readonly credits?: number;
   readonly pricing?: string | null;
 }): string {
-  if (endpoint.pricing) return `Price: ${inDollars(endpoint.pricing)}.`;
+  if (endpoint.pricing) return `Price: ${endpoint.pricing}.`;
   if (endpoint.credits === undefined) return "Price: shown in your usage.";
   if (endpoint.credits === 0) return "Price: free.";
-  return `Price: ${dollars(endpoint.credits)} per call.`;
+  return `Price: ${creditCount(endpoint.credits)} per call.`;
 }
 
 function costCell(endpoint: {
@@ -825,7 +810,7 @@ function costCell(endpoint: {
 }): string {
   if (endpoint.credits === undefined) return "";
   if (endpoint.credits === 0) return endpoint.pricing ? "per page" : "no cost";
-  const price = dollars(endpoint.credits);
+  const price = creditCount(endpoint.credits);
   return endpoint.pricing ? `from ${price}` : price;
 }
 

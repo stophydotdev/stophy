@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
-import { formatBalance, usageDataSchema } from "../account.js";
+import { formatBalance, limitsSchema } from "../account.js";
 import { request } from "../client.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { CliError } from "../errors.js";
@@ -46,12 +46,12 @@ async function getStatus(): Promise<StatusResult> {
   try {
     const response = await request({
       method: "GET",
-      path: "/v1/usage",
+      path: "/v1/limits",
       accept: "application/json",
     });
-    const usage = usageDataSchema.safeParse(response.json);
-    if (!usage.success) throw new CliError("Server returned an unexpected response shape.");
-    result.balance = formatBalance(usage.data.balanceMicros);
+    const limits = limitsSchema.safeParse(response.json);
+    if (!limits.success) throw new CliError("Server returned an unexpected response shape.");
+    result.balance = formatBalance(limits.data.data.balanceCredits);
   } catch (error) {
     result.error = error instanceof Error ? error.message : "Failed to fetch account info";
   }

@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { flagTokens, stripGlobalRefresh } from "../src/argv.ts";
 import {
-  dollars,
   formatDescribe,
   formatEndpointHelp,
   formatEndpointIndex,
@@ -346,7 +345,7 @@ test("help reads like a person wrote it: summary, positional input, options, exa
     expect(help).not.toContain(internal);
   }
   expect(formatDescribe(search)).toContain("youtube.search");
-  expect(formatDescribe(search)).toContain("Price: $0.002 per call.");
+  expect(formatDescribe(search)).toContain("Price: 1 credit per call.");
 });
 
 test("the one required text field can be given without its flag", () => {
@@ -394,20 +393,16 @@ const transcript = {
 
 test("a price that is not flat shows its terms, not one number", () => {
   expect(formatDescribe(transcript)).toContain(
-    "Price: $0.002 when the video has captions; otherwise $0.004 plus $0.002 for every 10 seconds of audio, up to 30 minutes.",
+    "Price: 1 credit when the video has captions; otherwise 2 credits plus 1 credit for every 10 seconds of audio, up to 30 minutes.",
   );
   expect(formatDescribe(transcript)).not.toContain("per call");
   const list = formatEndpointIndex([search, transcript]);
-  expect(list).toMatch(/^instagram\.transcript +from \$0\.002$/mu);
-  expect(list).toMatch(/^youtube\.search +\$0\.002 +$/mu);
+  expect(list).toMatch(/^instagram\.transcript +from 1 credit$/mu);
+  expect(list).toMatch(/^youtube\.search +1 credit +$/mu);
 });
 
-test("prices read in dollars at $0.002 a credit", () => {
-  expect([1, 2, 5, 11, 5000].map(dollars)).toEqual([
-    "$0.002",
-    "$0.004",
-    "$0.01",
-    "$0.022",
-    "$10.00",
-  ]);
+test("prices count credits", () => {
+  const pricey = { ...search, credits: 5 };
+  expect(formatDescribe(pricey)).toContain("Price: 5 credits per call.");
+  expect(formatEndpointIndex([pricey])).toMatch(/^youtube\.search +5 credits *$/mu);
 });
