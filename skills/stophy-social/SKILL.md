@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy social
 
 Search and read posts, profiles and threads on seven social platforms.
 
-**Prerequisite:** the parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). The parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -70,7 +71,7 @@ stophy scrape "https://www.pinterest.com/search/pins/?q=kitchen%20ideas" --parse
 - Put Reddit's own sort and time in the page URL, like `?sort=top&t=month`.
 - `reddit-post` returns the comments in `commentList`. For the other subreddits that shared the same link, send `--parserOptions '{"view":"discussions"}'`.
 - `x-post` returns exact `likes`, `views`, `reposts` and `replies`. `x-profile` returns exact `followers` and `posts`.
-- Every call here costs $0.0015, except `reddit-post`, which costs $0.0015 per 200 comments.
+- Every call here costs $0.002, except `reddit-post`, which costs $0.002 per 200 comments.
 
 ## See also
 

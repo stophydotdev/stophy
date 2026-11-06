@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy jobs
 
 Find open roles and what they pay.
 
-**Prerequisite:** every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -49,7 +50,7 @@ stophy scrape "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11
 
 - Search first, then scrape one job page for the full description.
 - In a LinkedIn search URL, `f_TPR=r604800` keeps jobs posted in the past week.
-- Every call here costs $0.0015.
+- Every call here costs $0.002.
 
 ## See also
 

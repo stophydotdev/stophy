@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy video
 
 Find videos and read what they say and what viewers say about them.
 
-**Prerequisite:** the parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). The parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -63,7 +64,7 @@ stophy scrape "https://www.instagram.com/reel/DfS8Xbng4MD/" --parser instagram-t
 - Save a transcript with `-o` and read it from the file. Add `--parserOptions '{"includeTimestamps":true}'` to cite the moment a line is said.
 - For the replies to one comment, send its id as `--parserOptions '{"comment":"<id>"}'`.
 - TikTok shows video search only to signed-in accounts, so find TikTok videos on a topic with `tiktok-hashtag`.
-- Every call here costs $0.0015, except transcripts made from audio. A TikTok transcript costs $0.0015 with captions, or $0.003 plus $0.0015 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs $0.0015 plus $0.0015 per 30 seconds of audio, up to 5 minutes.
+- Every call here costs $0.002, except transcripts made from audio. A TikTok transcript costs $0.002 with captions, or $0.004 plus $0.002 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs $0.002 plus $0.002 per 30 seconds of audio, up to 5 minutes.
 
 ## See also
 

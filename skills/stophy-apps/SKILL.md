@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy apps
 
 Find apps and read what their users say.
 
-**Prerequisite:** `appstore-reviews` and `google-play-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `appstore-reviews` and `google-play-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -47,7 +48,7 @@ stophy scrape "https://apps.apple.com/us/iphone/charts" --parser appstore-top
 ## Tips
 
 - `appstore-reviews` pages with `{"page":2}`, and `google-play-reviews` with the `cursor`.
-- `appstore-search`, `appstore-top` and `google-play-search` cost $0.0015 per 10 apps. Every other call here costs $0.0015.
+- `appstore-search`, `appstore-top` and `google-play-search` cost $0.002 per 10 apps. Every other call here costs $0.002.
 
 ## See also
 

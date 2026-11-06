@@ -56,7 +56,7 @@ Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header
 ## Requirements
 
 - Node.js ≥18
-- The CLI: `npm install -g @stophy/cli`, or run it with `npx -y @stophy/cli`
+- The CLI, 2.0.0 or later: `npm install -g @stophy/cli`, or run it with `npx @stophy/cli@latest`
 - An API key from [stophy.dev](https://stophy.dev/signup) for everything except `search`, `scrape`, `map` and the parsers each skill marks "no key", which work 50 calls a day
 
 ## Authentication
@@ -87,7 +87,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 
 ## For agents
 
-Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Site data comes from scraping the site's own page with a parser: `stophy scrape "<page URL>" --parser <name>`. `stophy parsers` lists them. Each call returns one page. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. Most calls cost $0.0015, a search costs $0.003 per 10 results from each source, and each skill names the few that cost more.
+Pick the narrowest skill for the task. Run the command, read the output, then summarize. Never invent data. Site data comes from scraping the site's own page with a parser: `stophy scrape "<page URL>" --parser <name>`. `stophy parsers` lists them. Each call returns one page. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. Most calls cost $0.002, a search costs $0.004 per 10 results from each source, and each skill names the few that cost more.
 
 ## Docs
 

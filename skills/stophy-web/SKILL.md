@@ -7,14 +7,15 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy web
 
 Find pages on a topic, read them, and pull the facts you need from them.
 
-**Prerequisite:** `search`, `scrape`, `map` and the `google-patents` parser work without a key, 50 calls a day. Everything else here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `search`, `scrape`, `map` and the `google-patents` parser work without a key, 50 calls a day. Everything else here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -61,7 +62,7 @@ stophy scrape "https://www.hetzner.com/legal/legal-notice/" --parser emails
 - `scrape --formats '["links"]'` picks what comes back: `markdown` (the default), `summary`, `links`, `html`, `screenshot` and more.
 - `map --search` keeps the addresses that match, best first.
 - `crawl` and `extract` print an `id` and finish in the background. Read the result with `crawl status <id>` or `extract status <id>`. `crawl --limit` caps the pages read, and `crawl cancel <id>` stops a crawl.
-- A search costs $0.003 per 10 results from each source. A scrape, a map or a parser call costs $0.0015. `extract` costs about $0.01 a page, and nothing when it finds none of the fields. `crawl` costs $0.0015 a page.
+- A search costs $0.004 per 10 results from each source. A scrape, a map or a parser call costs $0.002. `extract` costs about $0.01 a page, and nothing when it finds none of the fields. `crawl` costs $0.002 a page.
 
 ## See also
 

@@ -7,7 +7,8 @@ metadata:
   version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # Stophy
@@ -16,13 +17,13 @@ Stophy gives your agent the live web as JSON: search, scrape, map, crawl and ext
 
 ## Rules
 
-- Run `stophy ...`. If the CLI is not installed, run `npx -y @stophy/cli ...`.
+- Run `stophy ...`. The skills need CLI 2.0.0 or later. If `stophy` is missing or `stophy --version` is below 2.0.0, run `npx @stophy/cli@latest ...` instead.
 - Quote every query, URL and user value.
 - Never invent data. Never print or commit an API key.
 
 ## Set up
 
-`search`, `scrape`, `map` and the parsers marked "no key" in each skill work without a key, 50 calls a day, first page only. Everything else needs a key. Check `stophy status`, then log in:
+`search`, `scrape`, `map` and the parsers marked "no key" in each skill work without a key, up to 10 calls a minute and 50 a day, first page only. Everything else needs a key. Check `stophy status`, then log in:
 
 ```bash
 stophy login --browser
@@ -62,12 +63,12 @@ Add `--json` for every field and `-o file` to save it. Long output is easier to 
 
 ## Prices
 
-Most calls cost $0.0015: a scrape, a parser call, a map. A search costs $0.003 per 10 results from each source. `extract` costs about $0.01 a page, and is free when it finds nothing. `crawl` costs $0.0015 a page. A few parsers price per result or per second of audio; the skill for that site says so. A page that cannot be read and an error cost nothing.
+Most calls cost $0.002: a scrape, a parser call, a map. A search costs $0.004 per 10 results from each source. `extract` costs about $0.01 a page, and is free when it finds nothing. `crawl` costs $0.002 a page. A few parsers price per result or per second of audio; the skill for that site says so. A page that cannot be read and an error cost nothing.
 
 ## Errors
 
 - **`apiKeyRequired`:** run `stophy login --browser`.
-- **`freeLimit`:** the 50 calls a day without a key are used up. Log in, or wait the seconds in the message.
+- **`freeLimit`:** the free calls without a key are used up (10 a minute, 50 a day). Log in, or wait the seconds in the message.
 - **`insufficientCredits`:** the balance is too low, and nothing was charged. Send the user to https://stophy.dev/billing.
 - **`rateLimited`, `sourceTimeout` or `sourceUnavailable`:** wait for any delay the message gives, then retry once. Do not loop.
 - **`invalidRequest`:** the message names the field. A parser error names the page it reads, such as "The youtube-video parser reads A YouTube video link". Fix the URL; do not retry it unchanged.
