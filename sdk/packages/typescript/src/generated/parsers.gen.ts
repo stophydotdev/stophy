@@ -17,6 +17,7 @@ export type ParserName =
 	| "booking-search"
 	| "careers-job"
 	| "careers-jobs"
+	| "company"
 	| "craigslist-search"
 	| "ebay-item"
 	| "ebay-search"
