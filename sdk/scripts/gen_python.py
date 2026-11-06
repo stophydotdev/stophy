@@ -50,6 +50,7 @@ def natural(value: str) -> list[int | str]:
 
 
 def snake(value: str) -> str:
+    value = re.sub(r"([A-Z]{2,})s(?=[A-Z]|$)", lambda match: match[1].capitalize() + "s", value)
     value = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", value)
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", value)
     return value.lower()
