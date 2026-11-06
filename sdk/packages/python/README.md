@@ -127,7 +127,7 @@ usage = stophy.usage()
 logs = stophy.logs(days=7)
 ```
 
-`limits` returns your balance and rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.
+`limits` returns your balance in credits as `balanceCredits`, and your rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.
 
 ## License
 

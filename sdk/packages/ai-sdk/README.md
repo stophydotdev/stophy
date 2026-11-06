@@ -34,7 +34,7 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, `webSearch`, 
 | `jobSearch`     | Indeed jobs with company, location and salary         | 1                      |
 | `homeSearch`    | Zillow homes for sale or rent with price, beds, baths | 2                      |
 
-A credit is $0.002. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
+Most calls cost 1 credit. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
 Pass a key or client options to any tool:
 

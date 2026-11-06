@@ -18,7 +18,7 @@ credentials_for_provider:
     placeholder:
       en_US: Paste your Stophy API key
     help:
-      en_US: Get a key at stophy.dev. New accounts start with $1.50 free.
+      en_US: Get a key at stophy.dev. New accounts get free credits.
     url: https://stophy.dev/signup
 tools:
   - tools/web_search.yaml
