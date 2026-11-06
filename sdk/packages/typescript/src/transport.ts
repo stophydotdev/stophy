@@ -69,7 +69,7 @@ export function createCaller(options: TransportOptions): Caller {
         signal,
       }),
       spec.options?.signal,
-      retry,
+      spec.method === "DELETE" ? { ...retry, maxRetries: 0 } : retry,
     );
   };
 }
