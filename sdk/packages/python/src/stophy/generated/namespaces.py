@@ -143,7 +143,7 @@ class SyncExtract:
         show_sources: Literal[False] | None = None,
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
@@ -156,7 +156,7 @@ class SyncExtract:
                 "showSources": show_sources,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
             }
         )
         return self._call("POST", "/v1/extract", values)
@@ -282,7 +282,7 @@ class SyncSearch:
         exclude_domains: list[str] | None = None,
         safe: bool | None = None,
         timeout: int | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
         highlights: bool | None = None,
         domain_tools: Literal[False] | None = None,
         tool_detail: Literal["compact"] | None = None,
@@ -303,7 +303,7 @@ class SyncSearch:
                 "excludeDomains": exclude_domains,
                 "safe": safe,
                 "timeout": timeout,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
                 "highlights": highlights,
                 "domainTools": domain_tools,
                 "toolDetail": tool_detail,
@@ -662,7 +662,7 @@ class SyncBatchScrape:
         *,
         urls: list[str],
         webhook: CrawlWebhook | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
         formats: list[
             ScrapeFormatsItemOption0
             | ScrapeFormatsItemOption1
@@ -716,7 +716,7 @@ class SyncBatchScrape:
             {
                 "urls": urls,
                 "webhook": webhook,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
                 "onlyCleanContent": only_clean_content,
@@ -847,7 +847,7 @@ class AsyncExtract:
         show_sources: Literal[False] | None = None,
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
@@ -860,7 +860,7 @@ class AsyncExtract:
                 "showSources": show_sources,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
             }
         )
         return await self._call("POST", "/v1/extract", values)
@@ -986,7 +986,7 @@ class AsyncSearch:
         exclude_domains: list[str] | None = None,
         safe: bool | None = None,
         timeout: int | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
         highlights: bool | None = None,
         domain_tools: Literal[False] | None = None,
         tool_detail: Literal["compact"] | None = None,
@@ -1007,7 +1007,7 @@ class AsyncSearch:
                 "excludeDomains": exclude_domains,
                 "safe": safe,
                 "timeout": timeout,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
                 "highlights": highlights,
                 "domainTools": domain_tools,
                 "toolDetail": tool_detail,
@@ -1366,7 +1366,7 @@ class AsyncBatchScrape:
         *,
         urls: list[str],
         webhook: CrawlWebhook | None = None,
-        ignore_invalid_ur_ls: bool | None = None,
+        ignore_invalid_urls: bool | None = None,
         formats: list[
             ScrapeFormatsItemOption0
             | ScrapeFormatsItemOption1
@@ -1420,7 +1420,7 @@ class AsyncBatchScrape:
             {
                 "urls": urls,
                 "webhook": webhook,
-                "ignoreInvalidURLs": ignore_invalid_ur_ls,
+                "ignoreInvalidURLs": ignore_invalid_urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
                 "onlyCleanContent": only_clean_content,
