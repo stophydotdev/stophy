@@ -68,13 +68,15 @@ function seoDescription(op: Operation): string {
 const PAGES_NOTE = " Pages with cursor.";
 
 
+const DOLLARS = /\$\d/;
+
 function aboutSection(op: Operation): string[] {
   const credits = op.catalog?.credits ?? 0;
   const pricing = op.catalog?.pricing || (credits > 0 ? `${credits} credit${credits === 1 ? "" : "s"} per call` : "");
-  if (pricing !== "") {
-    return ["## Price", "", sentence(pricing), "", "A credit costs $0.002, and less after larger top-ups. See [Pricing](/billing).", ""];
-  }
-  const text = op.description.replace(PAGES_NOTE, "").replace(/^Costs 0 credits per call\./, "Free.").trim();
+  const stated = pricing !== "" ? pricing : op.description.replace(PAGES_NOTE, "").replace(/^Costs 0 credits per call\./, "Free.").trim();
+  const text = config.inCredits[op.id] ?? stated;
+  if (DOLLARS.test(text)) throw new Error(`${op.id} states a price in dollars. Add its credit wording to inCredits in scripts/reference.config.json.`);
+  if (pricing !== "") return ["## Price", "", sentence(text), "", "See [Pricing](/billing) for what credits cost.", ""];
   return text === "" ? [] : [mdxSafe(text), ""];
 }
 

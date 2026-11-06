@@ -17,6 +17,7 @@ export const referenceConfig = z.object({
   calls: z.record(z.string(), callPlan),
   notCalled: names,
   masks: z.record(z.string(), jsonObject),
+  inCredits: names,
   parserPages: z.array(
     z.object({ slug: z.string(), title: z.string(), icon: z.string(), description: z.string(), parsers: z.array(z.string()) }),
   ),
