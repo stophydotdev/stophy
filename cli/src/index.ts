@@ -57,8 +57,16 @@ Examples:
   $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
 `,
     )
+    .allowExcessArguments(true)
     .action(() => {
-      program.outputHelp();
+      const [word] = program.args;
+      if (word === undefined) {
+        program.outputHelp();
+        return;
+      }
+      throw new CliError(
+        `\`stophy ${word}\` is not a command. Search the web with \`stophy search\`, or read a site with a parser: \`stophy parsers ${word}\` lists them, then run \`stophy scrape <url> --parser <name>\`.`,
+      );
     });
 
   registerInitCommand(program);
