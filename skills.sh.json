@@ -6,7 +6,23 @@
       "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
       "skills": [
         "stophy",
-        "stophy-web",
+        "stophy-scrape",
+        "stophy-search",
+        "stophy-crawl",
+        "stophy-extract",
+        "stophy-parse",
+        "stophy-monitor",
+        "stophy-download",
+        "stophy-docs",
+        "stophy-browser",
+        "stophy-build",
+        "stophy-build-scrape",
+        "stophy-build-search",
+        "stophy-lead-gen",
+        "stophy-job-postings",
+        "stophy-shop",
+        "stophy-competitive-intel",
+        "stophy-deep-research",
         "stophy-video",
         "stophy-social",
         "stophy-places",
@@ -14,7 +30,8 @@
         "stophy-shopping",
         "stophy-apps",
         "stophy-real-estate",
-        "stophy-ads"
+        "stophy-ads",
+        "stophy-web"
       ]
     }
   ]
