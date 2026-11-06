@@ -10,7 +10,7 @@ openapi: 'api-reference/openapi.json POST /v1/signup'
 
 <Note>Needs no API key.</Note>
 
-Free, and needs no key. Returns a claimUrl for your person and a secret code. Your person signs in with GitHub or Google and approves. A new account starts with $10.00 to spend. Then send the code to POST /v1/signup/poll to collect the key. Each IP address can sign up a few times a day, then the answer is rateLimited with retryAfterSeconds.
+Free, and needs no key. Returns a claimUrl for your person and a secret code. Your person signs in with GitHub or Google and approves. A new account starts with 5,000 free credits. Then send the code to POST /v1/signup/poll to collect the key. Each IP address can sign up a few times a day, then the answer is rateLimited with retryAfterSeconds.
 
 <RequestExample>
 ```bash cURL
