@@ -80,7 +80,7 @@ if (job.id) {
 }
 ```
 
-`status` is `scraping` until the crawl is `completed`. When the answer has a `cursor`, send it back with the same id to get the pages finished since. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+`status` is `scraping` until the crawl is `completed`. A status answer holds up to 10 pages. When it has a `next` link, send the `cursor` value from that link with the same id to get the next 10. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
 
 `batch.scrape` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 
