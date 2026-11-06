@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-export const MICROS_PER_CREDIT = 1_500;
+const MICROS_PER_CREDIT = 2_000;
 
 const MICROS_PER_DOLLAR = 1_000_000;
+
+export const DOLLARS_PER_CREDIT = MICROS_PER_CREDIT / MICROS_PER_DOLLAR;
 
 export const usageDataSchema = z.object({
   balanceMicros: z.number(),
