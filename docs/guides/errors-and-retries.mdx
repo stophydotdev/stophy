@@ -7,14 +7,19 @@ og:description: "Read the error code, retry only rate limits and outages, wait f
 
 ## Decide what to do
 
-| When | Do this |
-| --- | --- |
-| The status is `400` to `415` | Don't retry. Fix the request, or read `error`. |
-| `retryAfterSeconds` is set | Wait that many seconds, then retry. The `Retry-After` header has the same value. |
-| The status is `429`, `500`, `503` or `504` with no wait | Back off: 0.5 s, then 1 s, then 2 s. |
-| Still failing after a few tries | Stop, and log the `X-Request-ID` header. |
+`retryAfterSeconds` in the body and the `Retry-After` header are the same number of seconds. When neither is there, back off: wait 0.5 s, then 1 s, then 2 s.
 
-A `502 sourceChanged` will not get better on a retry. [Errors](/api-reference/errors) lists every code.
+| Code | Status | Retry | Wait | Most tries |
+| --- | --- | --- | --- | --- |
+| `invalidRequest`, `unsupportedMediaType`, `payloadTooLarge` | 400, 413, 415 | No | Fix the request, or read `error`. | 1 |
+| `apiKeyRequired`, `unauthorized` | 401 | No | Get a key at `signupUrl`, or call `signup`. | 1 |
+| `insufficientCredits` | 402 | No | Top up at [stophy.dev/billing](https://stophy.dev/billing). The `x-required-credits` and `x-available-credits` headers say by how much. | 1 |
+| `forbidden`, `siteNotRead`, `notFound`, `jobFinished` | 403, 404, 409 | No | Change the request. `siteNotRead` needs a [parser](/guides/parsers). | 1 |
+| `freeLimit`, `rateLimited` | 429 | Yes | `retryAfterSeconds`, else back off. | 3 |
+| `internalError`, `sourceUnavailable`, `sourceRefused`, `sourceTimeout` | 500, 503, 504 | Yes | `retryAfterSeconds`, else back off. | 3 |
+| `sourceChanged` | 502 | No | Retrying will not help yet. | 1 |
+
+After the last try, stop and log the `X-Request-ID` header. A failed call costs nothing, so a retry costs nothing extra. [Errors](/api-reference/errors) lists every code.
 
 ## A retry loop
 

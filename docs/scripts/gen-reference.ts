@@ -85,7 +85,7 @@ function pagesSection(op: Operation): string[] {
   return [
     "## Pages",
     "",
-    "A big job comes back in pages. While the response has `next`, call that URL for the next page. See [Page through results](/guides/paging).",
+    "Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. See [Page through results](/guides/paging).",
     "",
   ];
 }

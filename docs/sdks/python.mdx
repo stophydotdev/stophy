@@ -75,7 +75,7 @@ status = stophy.crawl.status(id=job["id"])
 print(status["status"], status["completed"], status["total"], status.get("data"))
 ```
 
-`status` is `scraping` until the crawl is `completed`. A status answer holds up to 10 pages. When it has a `next` link, send the `cursor` value from that link with the same id to get the next 10. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+`status` is `scraping` until the crawl is `completed`. A status answer holds up to 100 finished pages. Wait until the status is `completed`. When the answer has a `next` link, send the `cursor` value from that link with the same id to get the rest. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
 
 `stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
 
