@@ -15,7 +15,7 @@ allowed-tools:
 
 Find products, compare prices and read what buyers say.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.3.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 

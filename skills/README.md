@@ -56,7 +56,7 @@ Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header
 ## Requirements
 
 - Node.js ≥18
-- The CLI, 2.0.0 or later: `npm install -g @stophy/cli`, or run it with `npx @stophy/cli@latest`
+- The CLI, 1.3.0 or later: `npm install -g @stophy/cli`, or run it with `npx @stophy/cli@latest`
 - An API key from [stophy.dev](https://stophy.dev/signup) for everything except `search`, `scrape`, `map`, `parse` and the parsers each skill marks "no key", which work up to 10 calls a minute and 50 a day
 
 ## Authentication
