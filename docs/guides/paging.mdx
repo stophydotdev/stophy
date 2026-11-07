@@ -98,7 +98,7 @@ const over = new Set(["completed", "failed", "cancelled"]);
 
 let status = await (await fetch(url, { headers })).json();
 while (!over.has(status.status)) {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   status = await (await fetch(url, { headers })).json();
 }
 
@@ -122,7 +122,7 @@ url = f"https://api.stophy.dev/v1/crawl/{job_id}"
 
 status = requests.get(url, headers=headers).json()
 while status["status"] not in ("completed", "failed", "cancelled"):
-    time.sleep(3)
+    time.sleep(2)
     status = requests.get(url, headers=headers).json()
 
 pages = list(status["data"])

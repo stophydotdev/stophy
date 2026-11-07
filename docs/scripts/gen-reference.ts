@@ -82,10 +82,23 @@ function aboutSection(op: Operation): string[] {
 
 function pagesSection(op: Operation): string[] {
   if (!op.description.includes(PAGES_NOTE)) return [];
+  const errors = op.id === "crawlStatus" ? { title: "Crawl errors", page: "crawl-errors" } : { title: "Batch scrape errors", page: "batch-scrape-errors" };
   return [
     "## Pages",
     "",
     "Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. A page's address is in `metadata.url`. See [Page through results](/guides/paging).",
+    "",
+    `\`failed\` counts the pages that could not be read. \`errors\` lists the failed pages in this answer with \`url\`, \`code\`, \`message\`, \`retryable\` and \`at\`, and \`error\` is set only when the whole job failed. For every failed page, call [${errors.title}](/api-reference/endpoint/${errors.page}).`,
+    "",
+  ];
+}
+
+function errorsSection(op: Operation): string[] {
+  if (op.id !== "crawlErrors" && op.id !== "batchScrapeErrors") return [];
+  return [
+    "## Failed pages",
+    "",
+    "Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`.",
     "",
   ];
 }
@@ -141,6 +154,7 @@ function page(op: Operation): string {
     ...aboutSection(op),
     ...pagesSection(op),
     ...jobsSection(op),
+    ...errorsSection(op),
     ...(notCalled === undefined ? [] : [`<Warning>${notCalled}</Warning>`, ""]),
     ...examples(op),
     "",

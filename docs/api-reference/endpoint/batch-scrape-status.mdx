@@ -14,6 +14,8 @@ Free.
 
 Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. A page's address is in `metadata.url`. See [Page through results](/guides/paging).
 
+`failed` counts the pages that could not be read. `errors` lists the failed pages in this answer with `url`, `code`, `message`, `retryable` and `at`, and `error` is set only when the whole job failed. For every failed page, call [Batch scrape errors](/api-reference/endpoint/batch-scrape-errors).
+
 <RequestExample>
 ```bash cURL
 curl https://api.stophy.dev/v1/batch/scrape/job_385XD5MMpQfsXsGFdTO9vQ \

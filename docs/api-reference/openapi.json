@@ -87,125 +87,6 @@
           }
         }
       },
-      "EndpointCatalog": {
-        "type": "object",
-        "required": [
-          "endpoints",
-          "sources"
-        ],
-        "properties": {
-          "sources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "id",
-                "name",
-                "summary",
-                "kind"
-              ],
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string",
-                  "description": "The source's name, such as YouTube or Google Maps."
-                },
-                "summary": {
-                  "type": "string",
-                  "description": "What you can get from this source."
-                },
-                "kind": {
-                  "type": "string",
-                  "enum": [
-                    "site",
-                    "aiAnswers"
-                  ],
-                  "description": "aiAnswers when the source returns another AI's answer, site otherwise."
-                }
-              }
-            }
-          },
-          "endpoints": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "id",
-                "title",
-                "summary",
-                "bestWhen",
-                "method",
-                "path",
-                "credits",
-                "maxCredits",
-                "keyless",
-                "cacheTtlSeconds",
-                "example"
-              ],
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string",
-                  "description": "A short name for the endpoint within its source, such as Comment replies."
-                },
-                "summary": {
-                  "type": "string",
-                  "description": "What this endpoint returns, in one line."
-                },
-                "bestWhen": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "When this endpoint beats a similar one, such as another source with the same kind of data. Null when there is no overlap worth calling out."
-                },
-                "method": {
-                  "const": "POST"
-                },
-                "path": {
-                  "type": "string"
-                },
-                "credits": {
-                  "type": "integer",
-                  "description": "What one call costs, or the lowest it can cost when pricing is set."
-                },
-                "maxCredits": {
-                  "type": "integer",
-                  "description": "The most one call can cost. The same as credits when pricing is null."
-                },
-                "pricing": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "How the price changes with the answer. Null when every call costs the same."
-                },
-                "keyless": {
-                  "type": "boolean"
-                },
-                "cacheTtlSeconds": {
-                  "type": "integer"
-                },
-                "input": {
-                  "type": "object",
-                  "description": "The endpoint's input as JSON Schema."
-                },
-                "example": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
-                  "description": "A real input for this endpoint, or null when there is none."
-                }
-              }
-            }
-          }
-        }
-      },
       "extractResult.schema0": {
         "anyOf": [
           {
@@ -302,72 +183,31 @@
       "scrape.input.schema1": {
         "anyOf": [
           {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "string",
-                  "number",
-                  "integer",
-                  "boolean"
-                ]
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type"
-            ]
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/scrape.input.schema1"
+            }
           },
           {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "array"
-              },
-              "items": {
-                "$ref": "#/components/schemas/scrape.input.schema1"
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
+            "propertyNames": {
+              "type": "string"
             },
-            "required": [
-              "type",
-              "items"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "object"
-              },
-              "properties": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/scrape.input.schema1"
-                }
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type",
-              "properties"
-            ]
+            "additionalProperties": {
+              "$ref": "#/components/schemas/scrape.input.schema1"
+            }
           }
         ]
       },
@@ -436,72 +276,31 @@
       "extract.input.schema0": {
         "anyOf": [
           {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "string",
-                  "number",
-                  "integer",
-                  "boolean"
-                ]
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type"
-            ]
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/extract.input.schema0"
+            }
           },
           {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "array"
-              },
-              "items": {
-                "$ref": "#/components/schemas/extract.input.schema0"
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
+            "propertyNames": {
+              "type": "string"
             },
-            "required": [
-              "type",
-              "items"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "object"
-              },
-              "properties": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/extract.input.schema0"
-                }
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type",
-              "properties"
-            ]
+            "additionalProperties": {
+              "$ref": "#/components/schemas/extract.input.schema0"
+            }
           }
         ]
       },
@@ -570,72 +369,31 @@
       "browserTask.input.schema0": {
         "anyOf": [
           {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "string",
-                  "number",
-                  "integer",
-                  "boolean"
-                ]
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type"
-            ]
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/browserTask.input.schema0"
+            }
           },
           {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "array"
-              },
-              "items": {
-                "$ref": "#/components/schemas/browserTask.input.schema0"
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
+            "propertyNames": {
+              "type": "string"
             },
-            "required": [
-              "type",
-              "items"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "object"
-              },
-              "properties": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/browserTask.input.schema0"
-                }
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type",
-              "properties"
-            ]
+            "additionalProperties": {
+              "$ref": "#/components/schemas/browserTask.input.schema0"
+            }
           }
         ]
       },
@@ -673,72 +431,31 @@
       "crawl.input.schema1": {
         "anyOf": [
           {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "string",
-                  "number",
-                  "integer",
-                  "boolean"
-                ]
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type"
-            ]
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/crawl.input.schema1"
+            }
           },
           {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "array"
-              },
-              "items": {
-                "$ref": "#/components/schemas/crawl.input.schema1"
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
+            "propertyNames": {
+              "type": "string"
             },
-            "required": [
-              "type",
-              "items"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "object"
-              },
-              "properties": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/crawl.input.schema1"
-                }
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type",
-              "properties"
-            ]
+            "additionalProperties": {
+              "$ref": "#/components/schemas/crawl.input.schema1"
+            }
           }
         ]
       },
@@ -838,72 +555,31 @@
       "batchScrape.input.schema1": {
         "anyOf": [
           {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "string",
-                  "number",
-                  "integer",
-                  "boolean"
-                ]
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type"
-            ]
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/batchScrape.input.schema1"
+            }
           },
           {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "array"
-              },
-              "items": {
-                "$ref": "#/components/schemas/batchScrape.input.schema1"
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
+            "propertyNames": {
+              "type": "string"
             },
-            "required": [
-              "type",
-              "items"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "object"
-              },
-              "properties": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/batchScrape.input.schema1"
-                }
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 300
-              }
-            },
-            "required": [
-              "type",
-              "properties"
-            ]
+            "additionalProperties": {
+              "$ref": "#/components/schemas/batchScrape.input.schema1"
+            }
           }
         ]
       },
@@ -1054,25 +730,6 @@
     }
   },
   "paths": {
-    "/v1/endpoints": {
-      "get": {
-        "operationId": "listEndpoints",
-        "summary": "List every endpoint with its cost and input schema.",
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "The endpoint catalog.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EndpointCatalog"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/parsers": {
       "get": {
         "operationId": "listParsers",
@@ -1197,6 +854,10 @@
                         "minimum": 0,
                         "maximum": 1
                       }
+                    },
+                    "warning": {
+                      "description": "The pages that could not be read and why. The fields come from the rest.",
+                      "type": "string"
                     },
                     "expiresAt": {
                       "type": "string"
@@ -1802,15 +1463,15 @@
     "/v1/search": {
       "post": {
         "operationId": "search",
-        "summary": "Search the web, news and images in one call",
-        "description": "Costs 2 credits per 10 results from each source, plus 1 credit for each web result that comes back with its page text when scrapeOptions is on.",
+        "summary": "Search the web, news, images, scholarly papers, companies and people in one call",
+        "description": "Costs 2 credits per 10 results from each source and each research, companies, people or developer list, plus 1 credit for each web result that comes back with its page text when scrapeOptions is on.",
         "security": [
           {
             "apiKey": []
           }
         ],
         "x-credits": 2,
-        "x-credits-max": 55,
+        "x-credits-max": 135,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -1829,7 +1490,7 @@
                     "maxLength": 400
                   },
                   "sources": {
-                    "description": "What to search: web, news, images. Each is a string or {type}.",
+                    "description": "What to search: web, news, images. Each is a string or {type}. Default web, or none when categories asks for research, companies, people or developer.",
                     "minItems": 1,
                     "maxItems": 3,
                     "type": "array",
@@ -1882,7 +1543,7 @@
                     }
                   },
                   "categories": {
-                    "description": "pdf: web results that are PDF files. research: web results from academic sites only.",
+                    "description": "pdf: web results that are PDF files. research: scholarly papers, in a research list, ranked by relevance then citations. companies: companies that match the query, in a companies list, best matches first. The query can name a place, industry, employee count, founding year and funding stage, like fintech startups in Berlin, 50-200 employees. people: people that match the query, in a people list, best matches first. The query can name a role, company, place or research topic, like CFO of Stripe, founders of fintech startups in Berlin, or researchers on CRISPR base editing. Each person has roles, affiliations and public profile links, never contact details. developer: passages from GitHub READMEs, issues, merged pull requests, releases, developer docs and API operations, in a developer list; send it as an object to filter by repos, types, language and minStars.",
                     "type": "array",
                     "items": {
                       "anyOf": [
@@ -1892,7 +1553,9 @@
                             "developer",
                             "gov",
                             "research",
-                            "pdf"
+                            "pdf",
+                            "companies",
+                            "people"
                           ]
                         },
                         {
@@ -1904,8 +1567,60 @@
                                 "developer",
                                 "gov",
                                 "research",
-                                "pdf"
+                                "pdf",
+                                "companies",
+                                "people"
                               ]
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "developer"
+                            },
+                            "repos": {
+                              "default": [],
+                              "description": "Only results from these GitHub repositories, as owner/name.",
+                              "maxItems": 5,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[\\w.-]+\\/[\\w.-]+$"
+                              }
+                            },
+                            "types": {
+                              "default": [],
+                              "description": "Only these result types: readme, issue, pull_request, release, operation, doc.",
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "readme",
+                                  "issue",
+                                  "pull_request",
+                                  "release",
+                                  "operation",
+                                  "doc"
+                                ]
+                              }
+                            },
+                            "language": {
+                              "description": "Only repositories whose main language is this, like TypeScript.",
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "minStars": {
+                              "description": "Only repositories with at least this many GitHub stars.",
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
                             }
                           },
                           "required": [
@@ -2313,6 +2028,441 @@
                               "position"
                             ]
                           }
+                        },
+                        "research": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "title": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "The paper's DOI link, or its OpenAlex page when it has no DOI."
+                              },
+                              "doi": {
+                                "type": "string"
+                              },
+                              "snippet": {
+                                "description": "The part of the abstract that best matches the query.",
+                                "type": "string"
+                              },
+                              "authors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Up to the first 10 authors."
+                              },
+                              "year": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "venue": {
+                                "description": "The journal, conference or repository.",
+                                "type": "string"
+                              },
+                              "type": {
+                                "description": "article, preprint, review, book-chapter and so on.",
+                                "type": "string"
+                              },
+                              "citedByCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "openAccessUrl": {
+                                "description": "A free copy of the paper, when one exists.",
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "position": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "citedByCount",
+                              "position"
+                            ]
+                          }
+                        },
+                        "companies": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "legalName": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "website": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "linkedinUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              },
+                              "industry": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "description": "Employee band, like 51-200.",
+                                "type": "string"
+                              },
+                              "employees": {
+                                "description": "Exact headcount, when known.",
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "founded": {
+                                "description": "Year founded.",
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "incorporated": {
+                                "description": "Registry incorporation date.",
+                                "type": "string"
+                              },
+                              "type": {
+                                "description": "private, public, nonprofit, educational or government_agency.",
+                                "type": "string"
+                              },
+                              "status": {
+                                "description": "Registry status, like active.",
+                                "type": "string"
+                              },
+                              "headquarters": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "city": {
+                                    "type": "string"
+                                  },
+                                  "region": {
+                                    "type": "string"
+                                  },
+                                  "country": {
+                                    "description": "Two-letter country code.",
+                                    "type": "string"
+                                  },
+                                  "address": {
+                                    "type": "string"
+                                  },
+                                  "postcode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": []
+                              },
+                              "tickers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "parent": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "lei": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": []
+                              },
+                              "revenue": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "amount": {
+                                    "type": "number"
+                                  },
+                                  "currency": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "amount"
+                                ]
+                              },
+                              "legalEntities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "country": {
+                                      "type": "string"
+                                    },
+                                    "idType": {
+                                      "type": "string",
+                                      "description": "lei, cik, companyNumber, siren, cnpj, abn, organisationNumber, businessId, registryCode, ico or corporationNumber."
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": []
+                                },
+                                "description": "The registered legal entities behind the company, best match first."
+                              },
+                              "funding": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "stage": {
+                                      "type": "string"
+                                    },
+                                    "amount": {
+                                      "type": "number"
+                                    },
+                                    "currency": {
+                                      "type": "string"
+                                    },
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "investors": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "sourceUrl": {
+                                      "type": "string",
+                                      "format": "uri"
+                                    }
+                                  },
+                                  "required": []
+                                },
+                                "description": "Funding rounds, newest first."
+                              },
+                              "officers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "role": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": []
+                                },
+                                "description": "Officers and directors named in public filings."
+                              },
+                              "position": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "position"
+                            ]
+                          }
+                        },
+                        "people": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "description": "A short description of the person.",
+                                "type": "string"
+                              },
+                              "occupations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "roles": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "relationships": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "description": "How the filing describes the role, like Director or Executive Officer."
+                                    },
+                                    "company": {
+                                      "type": "string"
+                                    },
+                                    "startDate": {
+                                      "type": "string"
+                                    },
+                                    "endDate": {
+                                      "type": "string"
+                                    },
+                                    "lastSeen": {
+                                      "description": "The last filing that names them.",
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": []
+                                },
+                                "description": "Where they work or have worked. Our sources do not say which is current."
+                              },
+                              "affiliations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "institution": {
+                                      "type": "string"
+                                    },
+                                    "city": {
+                                      "type": "string"
+                                    },
+                                    "country": {
+                                      "type": "string"
+                                    },
+                                    "lastYear": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "current": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "current"
+                                  ]
+                                },
+                                "description": "Research institutions, from author records."
+                              },
+                              "topics": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Research topics, for authors."
+                              },
+                              "links": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Public profile links, like Wikidata, ORCID, SEC and OpenAlex."
+                              },
+                              "position": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "position"
+                            ]
+                          }
+                        },
+                        "developer": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "repo": {
+                                "type": "string"
+                              },
+                              "stars": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "language": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string"
+                              },
+                              "fixedBy": {
+                                "type": "string"
+                              },
+                              "releasedIn": {
+                                "type": "string"
+                              },
+                              "method": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "product": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "position"
+                            ]
+                          }
                         }
                       },
                       "required": []
@@ -2520,28 +2670,14 @@
                               }
                             },
                             "schema": {
+                              "description": "The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.",
                               "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "object"
-                                },
-                                "properties": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string",
-                                    "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                                  },
-                                  "additionalProperties": {
-                                    "$ref": "#/components/schemas/scrape.input.schema1"
-                                  }
-                                }
+                              "propertyNames": {
+                                "type": "string"
                               },
-                              "required": [
-                                "type",
-                                "properties"
-                              ],
-                              "description": "The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels."
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/scrape.input.schema1"
+                              }
                             },
                             "prompt": {
                               "description": "What to pull from the page in plain words, such as the version and the release date.",
@@ -2639,7 +2775,7 @@
                     }
                   },
                   "maxAge": {
-                    "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.",
+                    "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.",
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
@@ -3344,7 +3480,8 @@
                               "type": "string",
                               "enum": [
                                 "hit",
-                                "miss"
+                                "miss",
+                                "stale"
                               ]
                             },
                             "cachedAt": {
@@ -3367,11 +3504,17 @@
                       "required": [
                         "metadata"
                       ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
                     "success",
-                    "data"
+                    "data",
+                    "creditsUsed"
                   ]
                 }
               }
@@ -3390,7 +3533,7 @@
       "post": {
         "operationId": "extract",
         "summary": "Pull the fields you name from any public page as JSON, each checked against the page",
-        "description": "Costs $0.01 for most pages: the page's own price plus $0.008. A call that finds none of the fields is free.",
+        "description": "Costs 5 credits for most pages: the page's own price plus 4 credits. A call that finds none of the fields is free.",
         "x-credits": 5,
         "x-credits-max": 14,
         "parameters": [
@@ -3413,31 +3556,17 @@
                       "type": "string",
                       "maxLength": 2048
                     },
-                    "description": "The pages to read, up to 10, such as [\"https://bun.com/blog/bun-v1.3\"]. With more than one, the fields are filled from all of them together."
+                    "description": "The pages to read, up to 10, such as [\"https://bun.com/blog/bun-v1.3\"]. With more than one, the fields are filled from all of them together. A page that cannot be read is skipped and named in warning, and costs nothing. The call fails only when no page can be read."
                   },
                   "schema": {
+                    "description": "The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.",
                     "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "const": "object"
-                      },
-                      "properties": {
-                        "type": "object",
-                        "propertyNames": {
-                          "type": "string",
-                          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                        },
-                        "additionalProperties": {
-                          "$ref": "#/components/schemas/extract.input.schema0"
-                        }
-                      }
+                    "propertyNames": {
+                      "type": "string"
                     },
-                    "required": [
-                      "type",
-                      "properties"
-                    ],
-                    "description": "The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels."
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/extract.input.schema0"
+                    }
                   },
                   "prompt": {
                     "description": "What to pull from the pages in plain words, such as the version and the release date.",
@@ -3491,7 +3620,7 @@
                         }
                       },
                       "maxAge": {
-                        "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.",
+                        "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.",
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9007199254740991
@@ -4087,28 +4216,14 @@
                                   }
                                 },
                                 "schema": {
+                                  "description": "The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.",
                                   "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "const": "object"
-                                    },
-                                    "properties": {
-                                      "type": "object",
-                                      "propertyNames": {
-                                        "type": "string",
-                                        "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                                      },
-                                      "additionalProperties": {
-                                        "$ref": "#/components/schemas/extract.input.schema0"
-                                      }
-                                    }
+                                  "propertyNames": {
+                                    "type": "string"
                                   },
-                                  "required": [
-                                    "type",
-                                    "properties"
-                                  ],
-                                  "description": "The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels."
+                                  "additionalProperties": {
+                                    "$ref": "#/components/schemas/extract.input.schema0"
+                                  }
                                 },
                                 "prompt": {
                                   "description": "What to pull from the page in plain words, such as the version and the release date.",
@@ -4283,7 +4398,7 @@
       "post": {
         "operationId": "browserTask",
         "summary": "Click through a public website in a real browser to search, filter or fill a form",
-        "description": "Costs $0.006 for each step the task takes, up to maxSteps and maxCost. A task that ends before its first step costs nothing. Starting a task sets aside the most it can cost, and what it does not use comes back when it ends.",
+        "description": "Costs 3 credits for each step the task takes, up to maxSteps and maxCost. A task that ends before its first step costs nothing. Starting a task sets aside the most it can cost, and what it does not use comes back when it ends.",
         "x-credits": 0,
         "x-credits-max": 60,
         "parameters": [
@@ -4316,26 +4431,12 @@
                   "schema": {
                     "description": "Fields to read from the last page when the task is done, as a JSON Schema object. Each one is checked against the page and comes back null when the page does not state it.",
                     "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "const": "object"
-                      },
-                      "properties": {
-                        "type": "object",
-                        "propertyNames": {
-                          "type": "string",
-                          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                        },
-                        "additionalProperties": {
-                          "$ref": "#/components/schemas/browserTask.input.schema0"
-                        }
-                      }
+                    "propertyNames": {
+                      "type": "string"
                     },
-                    "required": [
-                      "type",
-                      "properties"
-                    ]
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/browserTask.input.schema0"
+                    }
                   },
                   "maxSteps": {
                     "default": 20,
@@ -4345,7 +4446,7 @@
                     "maximum": 20
                   },
                   "maxCost": {
-                    "description": "The most the task may cost in US dollars. Each step costs $0.006. Leave out to allow maxSteps steps.",
+                    "description": "The most the task may spend, in US dollars at the standard price of $0.002 a credit. Each step is 3 credits, so $0.006. Leave out to allow maxSteps steps.",
                     "type": "number",
                     "exclusiveMinimum": 0
                   }
@@ -4949,9 +5050,9 @@
       "post": {
         "operationId": "crawl",
         "summary": "Crawl a website in the background",
-        "description": "Costs 1 credit a page, however it is reached. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
+        "description": "Costs 1 credit a page, however it is reached. json with a schema or a prompt, summary and highlights add 4 credits each when they return something. CSS rules and attributes add nothing. A PDF adds 1 credit for each page read. Each perform action adds 2 credits. An answer from a stored copy within maxAge is free. A page that comes back with a 404 or 410 status is charged like any page. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
-        "x-credits-max": 10000,
+        "x-credits-max": 130000,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
@@ -5058,9 +5159,235 @@
                     "not": {}
                   },
                   "scrapeOptions": {
-                    "description": "How to read each page, the same options as scrape. Only markdown comes back yet.",
+                    "description": "How to read each page, the same options and formats as scrape. Without formats, each page comes back as markdown.",
                     "type": "object",
                     "properties": {
+                      "formats": {
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.",
+                        "default": [
+                          "markdown"
+                        ],
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "markdown",
+                                "summary",
+                                "html",
+                                "rawHtml",
+                                "links",
+                                "images",
+                                "network",
+                                "branding",
+                                "screenshot",
+                                "changeTracking"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "markdown",
+                                    "summary",
+                                    "html",
+                                    "rawHtml",
+                                    "links",
+                                    "images",
+                                    "network",
+                                    "branding"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "changeTracking"
+                                },
+                                "modes": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "const": "git-diff"
+                                  }
+                                },
+                                "schema": {
+                                  "not": {}
+                                },
+                                "prompt": {
+                                  "not": {}
+                                },
+                                "tag": {
+                                  "type": "null"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "screenshot"
+                                },
+                                "fullPage": {
+                                  "default": false,
+                                  "description": "Capture the whole page from top to bottom instead of the visible part.",
+                                  "type": "boolean"
+                                },
+                                "quality": {
+                                  "not": {}
+                                },
+                                "viewport": {
+                                  "not": {}
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "highlights"
+                                },
+                                "query": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 10000,
+                                  "description": "What you are looking for on the page, such as refund policy."
+                                },
+                                "count": {
+                                  "default": 5,
+                                  "description": "How many passages to return, best match first.",
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "query"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "json"
+                                },
+                                "parser": {
+                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
+                                  "type": "string"
+                                },
+                                "options": {
+                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
+                                  "type": "object",
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {
+                                    "$ref": "#/components/schemas/crawl.input.schema0"
+                                  }
+                                },
+                                "schema": {
+                                  "description": "The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.",
+                                  "type": "object",
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {
+                                    "$ref": "#/components/schemas/crawl.input.schema1"
+                                  }
+                                },
+                                "prompt": {
+                                  "description": "What to pull from the page in plain words, such as the version and the release date.",
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 10000
+                                },
+                                "rules": {
+                                  "description": "Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as \"h1\" (the first match's text), \"a@href\" (an attribute) or { \"selector\": \"li\", \"type\": \"list\", \"output\": \"text\" | \"html\" | \"@attribute\" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.",
+                                  "type": "object",
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {
+                                    "$ref": "#/components/schemas/crawl.input.schema2"
+                                  }
+                                },
+                                "checkPromptInjection": {
+                                  "type": "boolean",
+                                  "const": false
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "attributes"
+                                },
+                                "selectors": {
+                                  "minItems": 1,
+                                  "maxItems": 50,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "selector": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "attribute": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100
+                                      }
+                                    },
+                                    "required": [
+                                      "selector",
+                                      "attribute"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "description": "The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }."
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "selectors"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      },
                       "onlyMainContent": {
                         "default": true,
                         "description": "Keep only the page's main content, without menus, headers, footers and ads.",
@@ -5089,7 +5416,7 @@
                         }
                       },
                       "maxAge": {
-                        "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.",
+                        "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.",
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9007199254740991
@@ -5535,246 +5862,6 @@
                       },
                       "toolDetail": {
                         "not": {}
-                      },
-                      "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.",
-                        "default": [
-                          "markdown"
-                        ],
-                        "minItems": 1,
-                        "maxItems": 20,
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "markdown",
-                                "summary",
-                                "html",
-                                "rawHtml",
-                                "links",
-                                "images",
-                                "network",
-                                "branding",
-                                "screenshot",
-                                "changeTracking"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "markdown",
-                                    "summary",
-                                    "html",
-                                    "rawHtml",
-                                    "links",
-                                    "images",
-                                    "network",
-                                    "branding"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "changeTracking"
-                                },
-                                "modes": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "const": "git-diff"
-                                  }
-                                },
-                                "schema": {
-                                  "not": {}
-                                },
-                                "prompt": {
-                                  "not": {}
-                                },
-                                "tag": {
-                                  "type": "null"
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "screenshot"
-                                },
-                                "fullPage": {
-                                  "default": false,
-                                  "description": "Capture the whole page from top to bottom instead of the visible part.",
-                                  "type": "boolean"
-                                },
-                                "quality": {
-                                  "not": {}
-                                },
-                                "viewport": {
-                                  "not": {}
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "highlights"
-                                },
-                                "query": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 10000,
-                                  "description": "What you are looking for on the page, such as refund policy."
-                                },
-                                "count": {
-                                  "default": 5,
-                                  "description": "How many passages to return, best match first.",
-                                  "type": "integer",
-                                  "minimum": 1,
-                                  "maximum": 20
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "query"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "json"
-                                },
-                                "parser": {
-                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
-                                  "type": "string"
-                                },
-                                "options": {
-                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "$ref": "#/components/schemas/crawl.input.schema0"
-                                  }
-                                },
-                                "schema": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "const": "object"
-                                    },
-                                    "properties": {
-                                      "type": "object",
-                                      "propertyNames": {
-                                        "type": "string",
-                                        "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                                      },
-                                      "additionalProperties": {
-                                        "$ref": "#/components/schemas/crawl.input.schema1"
-                                      }
-                                    }
-                                  },
-                                  "required": [
-                                    "type",
-                                    "properties"
-                                  ],
-                                  "description": "The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels."
-                                },
-                                "prompt": {
-                                  "description": "What to pull from the page in plain words, such as the version and the release date.",
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 10000
-                                },
-                                "rules": {
-                                  "description": "Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as \"h1\" (the first match's text), \"a@href\" (an attribute) or { \"selector\": \"li\", \"type\": \"list\", \"output\": \"text\" | \"html\" | \"@attribute\" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.",
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "$ref": "#/components/schemas/crawl.input.schema2"
-                                  }
-                                },
-                                "checkPromptInjection": {
-                                  "type": "boolean",
-                                  "const": false
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "attributes"
-                                },
-                                "selectors": {
-                                  "minItems": 1,
-                                  "maxItems": 50,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "selector": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      },
-                                      "attribute": {
-                                        "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 100
-                                      }
-                                    },
-                                    "required": [
-                                      "selector",
-                                      "attribute"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  "description": "The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }."
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "selectors"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        }
                       }
                     }
                   },
@@ -5958,6 +6045,41 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "failed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "retryable"
+                        ]
+                      }
                     },
                     "creditsUsed": {
                       "type": "integer",
@@ -6172,7 +6294,8 @@
                                 "type": "string",
                                 "enum": [
                                   "hit",
-                                  "miss"
+                                  "miss",
+                                  "stale"
                                 ]
                               },
                               "cachedAt": {
@@ -6203,6 +6326,8 @@
                     "status",
                     "total",
                     "completed",
+                    "failed",
+                    "errors",
                     "creditsUsed",
                     "data"
                   ]
@@ -6275,6 +6400,135 @@
                   },
                   "required": [
                     "status"
+                  ]
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/crawl/{id}/errors": {
+      "get": {
+        "operationId": "crawlErrors",
+        "summary": "List the pages a background crawl could not read, and why",
+        "description": "Costs 0 credits per call.",
+        "x-credits": 0,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "scraping",
+                        "completed",
+                        "failed",
+                        "cancelled"
+                      ]
+                    },
+                    "failed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "retryable"
+                        ]
+                      }
+                    },
+                    "robotsBlocked": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isTruncated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "status",
+                    "failed",
+                    "errors",
+                    "robotsBlocked"
                   ]
                 }
               }
@@ -6496,28 +6750,14 @@
                               }
                             },
                             "schema": {
+                              "description": "The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.",
                               "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "const": "object"
-                                },
-                                "properties": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string",
-                                    "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
-                                  },
-                                  "additionalProperties": {
-                                    "$ref": "#/components/schemas/batchScrape.input.schema1"
-                                  }
-                                }
+                              "propertyNames": {
+                                "type": "string"
                               },
-                              "required": [
-                                "type",
-                                "properties"
-                              ],
-                              "description": "The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels."
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/batchScrape.input.schema1"
+                              }
                             },
                             "prompt": {
                               "description": "What to pull from the page in plain words, such as the version and the release date.",
@@ -6615,7 +6855,7 @@
                     }
                   },
                   "maxAge": {
-                    "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.",
+                    "description": "Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.",
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
@@ -7241,6 +7481,41 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "failed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "retryable"
+                        ]
+                      }
+                    },
                     "creditsUsed": {
                       "type": "integer",
                       "minimum": -9007199254740991,
@@ -7454,7 +7729,8 @@
                                 "type": "string",
                                 "enum": [
                                   "hit",
-                                  "miss"
+                                  "miss",
+                                  "stale"
                                 ]
                               },
                               "cachedAt": {
@@ -7485,6 +7761,8 @@
                     "status",
                     "total",
                     "completed",
+                    "failed",
+                    "errors",
                     "creditsUsed",
                     "data"
                   ]
@@ -7557,6 +7835,135 @@
                   },
                   "required": [
                     "status"
+                  ]
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/batch/scrape/{id}/errors": {
+      "get": {
+        "operationId": "batchScrapeErrors",
+        "summary": "List the pages a batch scrape could not read, and why",
+        "description": "Costs 0 credits per call.",
+        "x-credits": 0,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, and the credits this call used.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "scraping",
+                        "completed",
+                        "failed",
+                        "cancelled"
+                      ]
+                    },
+                    "failed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "retryable"
+                        ]
+                      }
+                    },
+                    "robotsBlocked": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isTruncated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "status",
+                    "failed",
+                    "errors",
+                    "robotsBlocked"
                   ]
                 }
               }
