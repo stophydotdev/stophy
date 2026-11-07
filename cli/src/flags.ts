@@ -809,7 +809,8 @@ function costCell(endpoint: {
   readonly pricing?: string | null;
 }): string {
   if (endpoint.credits === undefined) return "";
-  if (endpoint.credits === 0) return endpoint.pricing ? (endpoint.pricing.split(/[.,]/)[0] ?? "") : "no cost";
+  if (endpoint.credits === 0)
+    return endpoint.pricing ? (endpoint.pricing.split(/[.,]/)[0] ?? "") : "no cost";
   const price = creditCount(endpoint.credits);
   return endpoint.pricing ? `from ${price}` : price;
 }
