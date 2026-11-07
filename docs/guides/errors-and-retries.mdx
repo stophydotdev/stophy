@@ -7,7 +7,7 @@ og:description: "Read the error code, retry only rate limits and outages, wait f
 
 ## Decide what to do
 
-`retryAfterSeconds` in the body and the `Retry-After` header are the same number of seconds. When neither is there, back off: wait 0.5 s, then 1 s, then 2 s.
+`retryAfterSeconds` in the body and the `Retry-After` header are the same number of seconds, so read either one. When neither is there, back off: wait 0.5 s, then 1 s, then 2 s. If the wait is longer than a minute, stop retrying. A `freeLimit` wait can be hours, so get a key instead.
 
 | Code | Status | Retry | Wait | Most tries |
 | --- | --- | --- | --- | --- |

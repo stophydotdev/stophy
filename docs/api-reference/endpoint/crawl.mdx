@@ -16,6 +16,10 @@ Best for reading a whole section of a site without holding a call open. It answe
 
 See [Pricing](/billing) for what credits cost.
 
+## Limits
+
+An account runs up to 5 crawls and batch scrapes at once. A sixth start answers 400 `invalidRequest`: `jobs: you already have 5 jobs running. Wait for one of them to finish, then try again.` Wait until one is `completed`, then start it again.
+
 <RequestExample>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/crawl \

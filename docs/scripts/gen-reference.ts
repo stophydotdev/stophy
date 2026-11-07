@@ -85,7 +85,17 @@ function pagesSection(op: Operation): string[] {
   return [
     "## Pages",
     "",
-    "Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. See [Page through results](/guides/paging).",
+    "Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. A page's address is in `metadata.url`. See [Page through results](/guides/paging).",
+    "",
+  ];
+}
+
+function jobsSection(op: Operation): string[] {
+  if (op.id !== "crawl" && op.id !== "batchScrape") return [];
+  return [
+    "## Limits",
+    "",
+    "An account runs up to 5 crawls and batch scrapes at once. A sixth start answers 400 `invalidRequest`: `jobs: you already have 5 jobs running. Wait for one of them to finish, then try again.` Wait until one is `completed`, then start it again.",
     "",
   ];
 }
@@ -130,6 +140,7 @@ function page(op: Operation): string {
     ...(op.keyless ? [op.catalog === undefined ? NO_KEY_NOTE : KEYLESS_NOTE, ""] : []),
     ...aboutSection(op),
     ...pagesSection(op),
+    ...jobsSection(op),
     ...(notCalled === undefined ? [] : [`<Warning>${notCalled}</Warning>`, ""]),
     ...examples(op),
     "",
