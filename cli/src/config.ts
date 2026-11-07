@@ -1,8 +1,14 @@
 import { chmodSync } from "node:fs";
 import Conf from "conf";
+import { z } from "zod";
 import { CliError } from "./errors.js";
 
+const pendingSignup = z.object({ code: z.string(), claimUrl: z.string(), expiresAt: z.string() });
+
+export type PendingSignup = z.infer<typeof pendingSignup>;
+
 export interface CliConfig {
+  pendingSignup?: PendingSignup | undefined;
   apiKey?: string;
   baseUrl?: string;
   frontendUrl?: string;
@@ -37,6 +43,7 @@ export async function loadConfig(): Promise<CliConfig> {
       frontendUrl: normalizeBaseUrl(store.get("frontendUrl")),
       sessionCookie: normalizeSessionCookie(store.get("sessionCookie")),
       sessionExpiresAt: normalizeSessionExpiry(store.get("sessionExpiresAt")),
+      pendingSignup: pendingSignup.safeParse(store.get("pendingSignup")).data,
     };
   } catch {
     throw new CliError(`Failed to read config at ${store.path}.`);
@@ -50,6 +57,7 @@ export async function saveConfig(config: CliConfig) {
     frontendUrl: config.frontendUrl,
     sessionCookie: config.sessionCookie,
     sessionExpiresAt: config.sessionExpiresAt,
+    pendingSignup: config.pendingSignup,
   };
   secureConfigFile();
 }
@@ -57,6 +65,7 @@ export async function saveConfig(config: CliConfig) {
 export async function setStoredApiKey(apiKey: string) {
   const config = await loadConfig();
   config.apiKey = normalizeApiKey(apiKey);
+  config.pendingSignup = undefined;
   await saveConfig(config);
   return config;
 }

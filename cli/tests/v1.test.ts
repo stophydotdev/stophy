@@ -66,7 +66,7 @@ test("a site command from before v1 points to search and parsers", async () => {
     stderr: "pipe",
     stdout: "pipe",
   });
-  const error = await new Response(run.stderr).text();
+  const error = `${await new Response(run.stderr).text()}${await new Response(run.stdout).text()}`;
   expect(await run.exited).toBe(1);
   expect(error).toContain("stophy parsers google");
   expect(error).not.toContain("too many arguments");

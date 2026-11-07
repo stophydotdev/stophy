@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import packageJson from "../package.json" with { type: "json" };
+import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
 import { type Catalog, catalogFilePath, fetchCatalog, loadCatalog } from "./catalog.js";
 import { registerAccountCommands } from "./commands/account.js";
@@ -17,8 +18,9 @@ import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
 import { withJobEndpoints } from "./jobs.js";
+import { writeFailure } from "./output.js";
 import { withParserFlags } from "./parsers.js";
-import { promptLogin } from "./prompt-login.js";
+import { ensureKey } from "./signup.js";
 import { maybeShowUpdateNotice } from "./update-notice.js";
 
 const NO_AUTH_COMMANDS = new Set([
@@ -48,6 +50,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
       "after",
       `
 Run stophy <command> --help to see its options.
+Some calls need no key. Output is JSON when piped, or with --json.
 
 Examples:
   $ stophy search "bun runtime" --limit 5
@@ -84,16 +87,14 @@ Examples:
 
   program.hook("preAction", async (_thisCommand, actionCommand) => {
     const id = commandPath(actionCommand);
+    setCommand(id ?? actionCommand.name());
     const endpoint = id === undefined ? undefined : byId.get(id);
     if (endpoint?.keyless) return;
     if (!endpoint && actionCommand.commands.length > 0) return;
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) return;
-    if (!process.stdin.isTTY) {
-      throw new CliError("No API key. Set STOPHY_API_KEY or run `stophy login`.");
-    }
-    await promptLogin();
+    await ensureKey();
   });
 
   program.configureOutput({
@@ -135,6 +136,7 @@ async function main() {
 
 main().catch((error) => {
   const cliError = toCliError(error);
-  console.error(cliError.message);
+  if (isAgentMode()) writeFailure(cliError);
+  else console.error(cliError.message);
   process.exit(cliError.exitCode);
 });

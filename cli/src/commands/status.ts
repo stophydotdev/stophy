@@ -4,6 +4,8 @@ import { formatBalance, limitsSchema } from "../account.js";
 import { request } from "../client.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { CliError } from "../errors.js";
+import { handleOutput } from "../output.js";
+import { isAgentMode } from "../agent.js";
 
 function useColor(): boolean {
   if (process.env.NO_COLOR !== undefined) return false;
@@ -26,6 +28,7 @@ interface StatusResult {
   source: string;
   balance?: string;
   error?: string;
+  next?: string;
 }
 
 async function getStatus(): Promise<StatusResult> {
@@ -40,7 +43,10 @@ async function getStatus(): Promise<StatusResult> {
   };
 
   if (!authenticated) {
-    return result;
+    return {
+      ...result,
+      next: "Run stophy login. It prints a link for a person to approve, then saves the key.",
+    };
   }
 
   try {
@@ -67,8 +73,8 @@ export function registerStatusCommand(program: Command) {
     .action(async (options) => {
       const status = await getStatus();
 
-      if (options.json) {
-        console.log(JSON.stringify(status, null, 2));
+      if (options.json || isAgentMode()) {
+        handleOutput(status);
         if (status.error) process.exitCode = 1;
         return;
       }
