@@ -1,0 +1,77 @@
+---
+title: "Extract with a schema"
+description: "Send a Pydantic or zod model to extract as a JSON Schema and read the fields back from the page. Needs an API key."
+og:title: "Extract with a schema | Stophy"
+og:description: "Send a Pydantic or zod model to extract as a JSON Schema and read the fields back from the page. Needs an API key."
+---
+
+[Extract](/api-reference/endpoint/extract) takes the fields you want as a JSON Schema in `schema`. The output of Pydantic's `model_json_schema()` and zod's `toJSONSchema()` works as it is, including `enum`, `anyOf`, nullable types and `$ref` with `$defs`. A field the page does not state comes back `null`. The same schema works in the `json` format of [scrape](/api-reference/endpoint/scrape).
+
+The call answers with an `id`. Read the result from `GET /v1/extract/{id}`.
+
+## Pydantic
+
+```python
+import os
+import time
+
+import requests
+from pydantic import BaseModel
+from typing import Literal
+
+
+class Plan(BaseModel):
+    name: str
+    price: float | None
+    billing: Literal["monthly", "yearly"]
+
+
+class Pricing(BaseModel):
+    product: str
+    plans: list[Plan]
+
+
+headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
+started = requests.post(
+    "https://api.stophy.dev/v1/extract",
+    headers=headers,
+    json={"urls": ["https://example.com/pricing"], "schema": Pricing.model_json_schema()},
+).json()
+result = requests.get(f"https://api.stophy.dev/v1/extract/{started['id']}", headers=headers).json()
+print(Pricing.model_validate(result["data"]))
+```
+
+## zod
+
+```typescript
+import { z } from "zod";
+
+const Pricing = z.object({
+  product: z.string(),
+  plans: z.array(
+    z.object({
+      name: z.string(),
+      price: z.number().nullable(),
+      billing: z.enum(["monthly", "yearly"]),
+    }),
+  ),
+});
+
+const headers = {
+  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+  "content-type": "application/json",
+};
+const started = await fetch("https://api.stophy.dev/v1/extract", {
+  method: "POST",
+  headers,
+  body: JSON.stringify({ urls: ["https://example.com/pricing"], schema: z.toJSONSchema(Pricing) }),
+}).then((response) => response.json());
+const result = await fetch(`https://api.stophy.dev/v1/extract/${started.id}`, { headers }).then(
+  (response) => response.json(),
+);
+console.log(Pricing.parse(result.data));
+```
+
+## Limits
+
+A schema takes up to 100 top-level fields and 32 KB. Extract costs 5 credits for most pages, and a call that finds none of the fields is free.

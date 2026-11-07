@@ -81,6 +81,7 @@
             "pages": [
               "guides/parsers",
               "guides/paging",
+              "guides/extract-with-a-schema",
               "guides/errors-and-retries"
             ]
           },
@@ -131,6 +132,7 @@
             "pages": [
               "api-reference/endpoint/crawl",
               "api-reference/endpoint/crawl-status",
+              "api-reference/endpoint/crawl-errors",
               "api-reference/endpoint/crawl-cancel"
             ]
           },
@@ -139,6 +141,7 @@
             "pages": [
               "api-reference/endpoint/batch-scrape",
               "api-reference/endpoint/batch-scrape-status",
+              "api-reference/endpoint/batch-scrape-errors",
               "api-reference/endpoint/batch-scrape-cancel"
             ]
           },
@@ -159,7 +162,6 @@
           {
             "group": "Catalog",
             "pages": [
-              "api-reference/endpoint/list-endpoints",
               "api-reference/endpoint/list-parsers"
             ]
           },
@@ -948,7 +950,7 @@
     },
     {
       "source": "/api-reference/endpoint/endpoints",
-      "destination": "/api-reference/endpoint/list-endpoints"
+      "destination": "/api-reference/introduction"
     },
     {
       "source": "/api-reference/endpoint/expedia-hotels",

@@ -14,6 +14,7 @@
       "operations": [
         "crawl",
         "crawlStatus",
+        "crawlErrors",
         "crawlCancel"
       ]
     },
@@ -22,6 +23,7 @@
       "operations": [
         "batchScrape",
         "batchScrapeStatus",
+        "batchScrapeErrors",
         "batchScrapeCancel"
       ]
     },
@@ -42,7 +44,6 @@
     {
       "group": "Catalog",
       "operations": [
-        "listEndpoints",
         "listParsers"
       ]
     },
@@ -73,14 +74,15 @@
     "batchScrapeStatus": "Batch scrape status",
     "batchScrapeCancel": "Cancel a batch scrape",
     "extractResult": "Extract result",
-    "listEndpoints": "List endpoints",
     "listParsers": "List parsers",
     "getLimits": "Limits",
     "getUsage": "Usage",
     "getLogs": "Logs",
     "signUp": "Sign up",
     "pollSignUp": "Collect the key",
-    "revokeKey": "Revoke your key"
+    "revokeKey": "Revoke your key",
+    "crawlErrors": "Crawl errors",
+    "batchScrapeErrors": "Batch scrape errors"
   },
   "calls": {
     "crawl": {
@@ -187,7 +189,9 @@
     }
   },
   "notCalled": {
-    "revokeKey": "Calling it would revoke the key that recorded these examples."
+    "revokeKey": "Calling it would revoke the key that recorded these examples.",
+    "crawlErrors": "No example is recorded. The schema below lists every field.",
+    "batchScrapeErrors": "No example is recorded. The schema below lists every field."
   },
   "masks": {
     "getLimits": {

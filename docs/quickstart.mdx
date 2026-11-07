@@ -133,7 +133,7 @@ The posts come back in `data.json`. See [Parsers](/guides/parsers).
 
 ## Crawl a site
 
-Crawl reads many pages in the background. Start it, poll until it is `completed`, then read the pages. Starting is free, and each page costs 1 credit.
+Crawl reads many pages in the background. Start it, poll about every 2 seconds until it is `completed`, then read the pages. Send `scrapeOptions.formats` to read more than markdown, for example `["markdown","links"]`, and each page in `data` has every format the crawl read. Starting is free, and each page costs 1 credit.
 
 ```bash
 ID=$(curl -s -X POST https://api.stophy.dev/v1/crawl \
@@ -141,7 +141,7 @@ ID=$(curl -s -X POST https://api.stophy.dev/v1/crawl \
   -H "Content-Type: application/json" \
   -d '{"url":"https://bun.com/docs","limit":10}' | jq -r .id)
 
-until [ "$(curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq -r .status)" != scraping ]; do sleep 3; done
+until [ "$(curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq -r .status)" != scraping ]; do sleep 2; done
 
 curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq '{status, completed, pages: [.data[].metadata.url], next}'
 ```
@@ -150,7 +150,7 @@ A status answer holds up to 100 finished pages. If it has `next`, call that URL 
 
 ## Scrape many pages
 
-Batch scrape takes a list of URLs and works the same way. Poll `https://api.stophy.dev/v1/batch/scrape/<id>` until `status` is `completed`. Each page in `data` has the same shape as a scrape.
+Batch scrape takes a list of URLs and works the same way. Poll `https://api.stophy.dev/v1/batch/scrape/<id>` about every 2 seconds until `status` is `completed`. Each page in `data` has the same shape as a scrape.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/batch/scrape \
