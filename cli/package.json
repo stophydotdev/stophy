@@ -1,6 +1,6 @@
 {
   "name": "@stophy/cli",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Give your agents the live web from your terminal. One API to search the web, read what people say, and look up products, places, jobs and homes.",
   "keywords": [
     "ads",
