@@ -1,5 +1,16 @@
 # @stophy/ai-sdk
 
+## 1.3.0
+
+### Minor Changes
+
+- f4c8b40: The tools call Stophy API v1. `webSearch` and `readPage` call `search` and `scrape`. The five site tools keep their inputs and read the site's search page with its parser, so each returns the parser's JSON, such as `{ results, cursor, page, total }`.
+
+### Patch Changes
+
+- Updated dependencies [30e26b5]
+  - stophy@1.3.0
+
 ## 1.0.0
 
 ### Major Changes

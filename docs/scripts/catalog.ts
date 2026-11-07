@@ -12,20 +12,11 @@ const stringValue = z.string();
 const numberValue = z.number();
 const booleanValue = z.boolean();
 const plainObject = z.record(z.string(), z.unknown());
-const names = z.array(z.string());
 
 export const isString = (value: Json | undefined): value is string => stringValue.safeParse(value).success;
 export const isNumber = (value: Json | undefined): value is number => numberValue.safeParse(value).success;
 export const isBoolean = (value: Json | undefined): value is boolean => booleanValue.safeParse(value).success;
 export const isObject = (value: Json | undefined): value is JsonObject => plainObject.safeParse(value).success;
-
-export const schemaProperties = (schema: Json | undefined): JsonObject =>
-  isObject(schema) && isObject(schema.properties) ? schema.properties : {};
-
-export const namesAt = (schema: JsonObject | undefined, key: string): string[] => {
-  const parsed = names.safeParse(schema?.[key]);
-  return parsed.success ? parsed.data : [];
-};
 
 const catalogEndpoint = z.object({
   id: z.string(),
@@ -68,15 +59,3 @@ export async function fetchCatalog(): Promise<Catalog> {
   if (!response.ok) throw new Error(`GET ${CATALOG_URL} returned ${response.status}`);
   return catalog.parse(await response.json());
 }
-
-const DOLLARS_PER_UNIT = 0.0015;
-
-export const dollars = (units: number): string => {
-  const amount = units * DOLLARS_PER_UNIT;
-  return `$${amount >= 1 ? amount.toFixed(2) : String(Number(amount.toFixed(4)))}`;
-};
-
-export const inDollars = (text: string): string =>
-  text
-    .replace(/\b(\d+) credits?, or (\d+)\b/g, (_, low: string, high: string) => `${dollars(Number(low))}, or ${dollars(Number(high))}`)
-    .replace(/\b(\d+) (more )?credits?\b/g, (_, units: string, more = "") => `${dollars(Number(units))}${more === "" ? "" : " more"}`);

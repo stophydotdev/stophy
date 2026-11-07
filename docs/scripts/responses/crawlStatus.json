@@ -1,0 +1,51 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/crawl/job_a-Bqc0NaZ8ADzLB4rhpeKA"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "status": "completed",
+    "total": 2,
+    "completed": 2,
+    "creditsUsed": 2,
+    "createdAt": "2026-11-05T23:35:26.793Z",
+    "completedAt": "2026-11-05T23:35:28.779Z",
+    "duration": 1.986,
+    "expiresAt": "2026-11-06T23:35:26.793Z",
+    "data": [
+      {
+        "markdown": "# Welcome to Bun\n\nBun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.\n\n[Bun Runtime…",
+        "metadata": {
+          "viewport": "width=device-width, initial-scale=1",
+          "theme-color": [
+            "#ffffff",
+            "#0d0a0c"
+          ],
+          "og:type": "website",
+          "og:image": "https://bun.com/og/docs.png",
+          "twitter:site": "@bunjavascript",
+          "twitter:card": "summary_large_image",
+          "ogTitle": "Welcome to Bun | Bun Docs",
+          "ogDescription": "Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.",
+          "ogUrl": "https://bun.com/docs",
+          "ogLocale": "en_US",
+          "ogSiteName": "Bun",
+          "favicon": "https://bun.com/favicon.ico",
+          "title": "Welcome to Bun | Bun Docs",
+          "description": "Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.",
+          "language": "en",
+          "ogImage": "https://bun.com/og/docs.png",
+          "sourceURL": "https://bun.com/docs",
+          "url": "https://bun.com/docs",
+          "statusCode": 200,
+          "contentType": "text/html",
+          "cacheState": "miss",
+          "scrapeId": "job_a-Bqc0NaZ8ADzLB4rhpeKA",
+          "creditsUsed": 1
+        }
+      }
+    ]
+  }
+}

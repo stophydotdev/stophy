@@ -1,136 +1,139 @@
 ---
 title: "TypeScript SDK"
-description: "Install the Stophy TypeScript SDK, make your first call with no key, then add a key to page through results, handle errors and read your usage."
 sidebarTitle: "TypeScript"
-icon: "node-js"
+description: "Install the Stophy TypeScript SDK, scrape and search with no key, then add a key to read sites through parsers, crawl, extract and handle errors."
 og:title: "TypeScript SDK | Stophy"
-og:description: "Install the Stophy TypeScript SDK, make your first call with no key, then add a key to page through results, handle errors and read your usage."
+og:description: "Install the Stophy TypeScript SDK, scrape and search with no key, then add a key to read sites through parsers, crawl, extract and handle errors."
 ---
 
-Call Stophy from Node.js, Bun, Deno or the browser and get typed results back.
+Give your agents the live web from TypeScript. Every method and result is typed.
+
+## Install
 
 ```bash
 npm install stophy
 ```
 
-## Make a call
-
-No account, no key.
-
-```ts
-import { Stophy } from "stophy";
-
-const result = await new Stophy().google.search({ query: "postgres jsonb index" });
-console.log(result.data.results);
-```
-
-Methods follow the endpoint id. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`. The inputs and results are typed, so a missing required field is a compile error.
-
-## Use a key
-
-A call that needs a key throws a `StophyError` with code `apiKeyRequired`.
-
-Set `STOPHY_API_KEY` and `new Stophy()` picks it up. Or pass it in:
-
-```ts
-import { Stophy } from "stophy";
-
-const stophy = new Stophy({ apiKey: process.env.STOPHY_API_KEY });
-const posts = await stophy.reddit.search({ query: "bun runtime" });
-console.log(posts.data.results.length, posts.creditsUsed);
-```
-
-`new Stophy("your key")` works too.
-
-## Find endpoints
-
-```ts
-import { Stophy } from "stophy";
-
-const catalog = await new Stophy().endpoints();
-const free = catalog.endpoints.filter((endpoint) => endpoint.keyless);
-console.log(catalog.endpoints.length, free.length);
-```
-
-## Page through results
-
-When there is more, `data.cursor` is set. Pass it back for the next page. Paging needs a key.
+## Try it without a key
 
 ```ts
 import { Stophy } from "stophy";
 
 const stophy = new Stophy();
-let cursor: string | undefined;
-for (let page = 1; page <= 2; page++) {
-  const result = await stophy.reddit.search({ query: "bun runtime", cursor });
-  console.log(result.data.results.length);
-  cursor = result.data.cursor;
-  if (!cursor) break;
+
+const page = await stophy.scrape({ url: "https://example.com", formats: ["markdown"] });
+console.log(page.data.markdown);
+
+const results = await stophy.search({ query: "bun runtime", limit: 3 });
+console.log(results.data?.web);
+```
+
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method throws a `StophyError` with the code `apiKeyRequired`.
+
+## Use an API key
+
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in:
+
+```ts
+const stophy = new Stophy({ apiKey: "st_..." });
+```
+
+`new Stophy("st_...")` works too.
+
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as is. `scrape` returns `{ success, data }`, and `map` returns `{ success, links }`.
+
+## Read a site with a parser
+
+A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the page URL and the parser's name:
+
+```ts
+const places = await stophy.parsed(
+  "google-maps",
+  "https://www.google.com/maps/search/dentists+in+Ljubljana",
+);
+console.log(places.data.json);
+```
+
+`parsed` calls `scrape` with the format `{ type: "json", parser }`. The parser name is typed, so your editor lists every parser. `await stophy.parsers()` returns each parser with the page it reads and what it returns.
+
+The third argument sends the parser's options, such as the next page:
+
+```ts
+const next = await stophy.parsed(
+  "google-maps",
+  "https://www.google.com/maps/search/dentists+in+Ljubljana",
+  { page: 2 },
+);
+```
+
+Paging needs an API key.
+
+## Crawl a site
+
+`crawl` answers at once with an id. Ask `crawl.status` for the pages:
+
+```ts
+const job = await stophy.crawl({ url: "https://bun.com/docs", limit: 20 });
+if (job.id) {
+  const status = await stophy.crawl.status({ id: job.id });
+  console.log(status.status, status.completed, status.total, status.data);
 }
 ```
 
-Some endpoints take a `page` number instead, like `google.search`. See [Page through results](/guides/paging).
+`status` is `scraping` until the crawl is `completed`. A status answer holds up to 10 pages. When it has a `next` link, send the `cursor` value from that link with the same id to get the next 10. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+
+`batch.scrape` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
+
+## Extract fields from pages
+
+```ts
+const job = await stophy.extract({
+  urls: ["https://example.com"],
+  prompt: "What is this page for?",
+});
+if (job.id) {
+  const result = await stophy.extract.result({ id: job.id });
+  console.log(result.data, result.confidence);
+}
+```
+
+`extract.result` throws a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
 
 ## Handle errors
 
 ```ts
-import { Stophy, StophyError } from "stophy";
+import { StophyError } from "stophy";
 
 try {
-  await new Stophy().reddit.search({ query: "bun runtime", cursor: "next" });
+  await stophy.scrape({ url: "not a url" });
 } catch (error) {
   if (error instanceof StophyError) {
-    console.log(error.status, error.code, error.message);
-    console.log(error.retryable, error.retryAfterSeconds, error.requestId);
+    console.log(error.code, error.message, error.retryable);
   }
 }
 ```
 
-The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it throws at once with `retryAfterSeconds` set. [Errors](/api-reference/errors) lists every code.
+`StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, and `requestId`. The message says what went wrong and what to do next.
+
+The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
 
 ## Options
 
-```ts
-import { Stophy } from "stophy";
+| Option       | Default                              | What it does                                                     |
+| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                     |
+| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                               |
+| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                      |
+| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is not retried. |
 
-const stophy = new Stophy({
-  apiKey: process.env.STOPHY_API_KEY,
-  timeoutMs: 20_000,
-  maxRetries: 3,
-  retryInitialDelayMs: 500,
-  headers: { "x-app": "my-app" },
-});
+Each method also takes `signal` to cancel the request.
 
-const controller = new AbortController();
-setTimeout(() => controller.abort(), 5_000);
-await stophy.google.search({ query: "bun runtime" }, { signal: controller.signal });
-```
-
-| Option | Default | What it does |
-| --- | --- | --- |
-| `apiKey` | `STOPHY_API_KEY` | Your API key |
-| `baseUrl` | `STOPHY_BASE_URL` or `https://api.stophy.dev` | Where requests go |
-| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
-| `maxRetries` | `2` | Retries per request. `0` turns them off. |
-| `retryInitialDelayMs` | `500` | Base delay before a retry. Each retry waits longer. |
-| `headers` | none | Extra headers on every request |
-| `fetch` | global `fetch` | Your own `fetch` |
-
-## Check your usage
-
-These need a key.
+## Check your account
 
 ```ts
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
+const limits = await stophy.limits();
 const usage = await stophy.usage();
-console.log(usage.balanceMicros / 1_000_000, usage.creditsUsed, usage.requestCount);
-
-const logs = await stophy.logs({ days: 7, endpoint: "reddit.search" });
-for (const entry of logs.logs) {
-  console.log(entry.createdAt, entry.endpoint, entry.credits);
-}
+const logs = await stophy.logs({ days: 7 });
 ```
 
+`limits` returns your balance and rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.

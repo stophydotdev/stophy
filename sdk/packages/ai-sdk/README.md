@@ -24,17 +24,17 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, `webSearch`, 
 
 ## Tools
 
-| Tool            | What the model gets                                   | Price per call     |
-| --------------- | ----------------------------------------------------- | ------------------ |
-| `webSearch`     | Ranked pages with title, url and description          | $0.0015            |
-| `readPage`      | A page or PDF as markdown                             | $0.0015 to $0.0075 |
-| `redditSearch`  | Reddit posts with score and comment count             | $0.0015            |
-| `placeSearch`   | Google Maps places with rating, reviews and hours     | $0.0015            |
-| `productSearch` | Amazon products with price, rating and reviews        | $0.0015            |
-| `jobSearch`     | Indeed jobs with company, location and salary         | $0.0015            |
-| `homeSearch`    | Zillow homes for sale or rent with price, beds, baths | $0.003             |
+| Tool            | What the model gets                                   | Credits per call       |
+| --------------- | ----------------------------------------------------- | ---------------------- |
+| `webSearch`     | Ranked pages with title, url and description          | 2 for each 10 results  |
+| `readPage`      | A page or PDF as markdown                             | 1, plus 1 per PDF page |
+| `redditSearch`  | Reddit posts with score and comment count             | 1                      |
+| `placeSearch`   | Google Maps places with rating, reviews and hours     | 1                      |
+| `productSearch` | Amazon products with price, rating and reviews        | 1                      |
+| `jobSearch`     | Indeed jobs with company, location and salary         | 1                      |
+| `homeSearch`    | Zillow homes for sale or rent with price, beds, baths | 2                      |
 
-`webSearch` charges $0.0015 per 10 results. `readPage` costs more only on the hardest pages to reach. A call that fails or finds nothing costs nothing. These prices are for top-ups under $100.
+Most calls cost 1 credit. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
 Pass a key or client options to any tool:
 
@@ -44,7 +44,7 @@ webSearch({ apiKey: process.env.STOPHY_KEY, timeoutMs: 30_000 });
 
 ## Every other source
 
-Stophy has 137 endpoints, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client:
+Stophy has parsers for 103 kinds of pages, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client:
 
 ```ts
 import { createMCPClient } from "@ai-sdk/mcp";

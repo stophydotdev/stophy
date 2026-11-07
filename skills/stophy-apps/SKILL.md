@@ -1,55 +1,55 @@
 ---
 name: stophy-apps
 description: |
-  Get app store data: search the App Store and Google Play, read an app's details and reviews, and see the App Store top charts. Use for "find apps for", "what do users say about this app", "what is the rating of", "top free apps right now", "how do people review this app on Google Play". For videos about an app use stophy-video.
+  Get app store data: search the App Store and Google Play, read an app's details and reviews, and see the App Store top charts. Use for "find apps for", "what do users say about this app", "what is the rating of", "top free apps right now", "how do people review this app on Google Play". App Store and Google Play reviews work without an API key. For videos about an app use stophy-video.
 metadata:
   author: stophy
-  version: "4.0.3"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy apps
 
-Search apps and read their details and reviews on the App Store and Google Play.
+Find apps and read what their users say.
 
-**Prerequisite:** `appstore reviews` and `google play reviews` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.3.0 or later (`stophy --version`). `appstore-reviews` and `google-play-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# apps by keyword, on each store
-stophy appstore search "photo editor" --json -o .stophy/appstore.json
-stophy google play search "photo editor" --json -o .stophy/google-play.json
+# no key needed: an app's reviews on both stores
+stophy scrape "https://apps.apple.com/us/app/notes/id1110145109" --parser appstore-reviews --json -o .stophy/reviews.json
+stophy scrape "https://play.google.com/store/apps/details?id=com.spotify.music" --parser google-play-reviews
 
-# one app's details, by App Store ID or Google Play package name
-stophy appstore app 284882215 --json
-stophy google play app com.spotify.music --json
-
-# what users say, newest first
-stophy appstore reviews 284882215 --sort newest --json -o .stophy/appstore-reviews.json
-stophy google play reviews com.spotify.music --rating 1 --json -o .stophy/google-play-reviews.json
-
-# the App Store top free iPhone apps in the US
-stophy appstore top --chart free --device iphone --country us --json
+# key needed: search, details and charts
+stophy scrape "https://apps.apple.com/us/iphone/search?term=notes" --parser appstore-search
+stophy scrape "https://play.google.com/store/search?q=meditation&c=apps" --parser google-play-search
+stophy scrape "https://play.google.com/store/apps/details?id=com.spotify.music" --parser google-play-app
+stophy scrape "https://apps.apple.com/us/iphone/charts" --parser appstore-top
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `appstore` and `google play`.
+**Done when:** you name each app with its rating and store link, and quote the reviews you summarize.
 
-**Done when:** you name the specific app, its rating or rank, and the review text or detail you rely on, with the store link.
+## Parsers
+
+| Parser | Page to scrape | Options |
+|---|---|---|
+| `appstore-search` | apps.apple.com/us/iphone/search?term=... | limit |
+| `appstore-app` | apps.apple.com/us/app/name/id... | country |
+| `appstore-reviews` (no key) | apps.apple.com/us/app/name/id... | sort, page |
+| `appstore-top` | apps.apple.com/us/iphone/charts, or one chart | limit |
+| `google-play-search` | play.google.com/store/search?q=...&c=apps | limit |
+| `google-play-app` | play.google.com/store/apps/details?id=... | country, language |
+| `google-play-reviews` (no key) | play.google.com/store/apps/details?id=... | sort, rating, cursor |
 
 ## Tips
 
-- `appstore app`, `appstore reviews`, `google play app` and `google play reviews` cost $0.0015 a call. `appstore search`, `appstore top` and `google play search` cost $0.0015 per 10 apps, and `--limit` returns fewer.
-- Search first to get an app ID, then run `app` or `reviews` on it. To point at one app, give its link or its id, never both: `--appUrl` or `--appId`.
-- App Store IDs are numbers (`284882215`). Google Play IDs are package names (`com.spotify.music`).
-- `--country` picks the storefront, so prices, ratings and charts can differ by country. Google Play also takes `--language`.
-- `appstore reviews` takes `--sort` (`newest`, `helpful`, `highest`, `lowest`). `google play reviews` takes `--sort` (`newest`, `relevance`, `highest`) and `--rating` to keep one star level.
-- Each call returns one page. For more App Store reviews, run the same command with `--page 2`, until a page has no results. For more Google Play reviews, run it with `--cursor <cursor>` from the last output. Keep the other options the same.
-- `appstore top` takes `--chart` (`free`, `paid`, `grossing`), `--device` (`iphone`, `ipad`, `mac`) and `--genre`. Google Play has search, app and reviews only.
+- `appstore-reviews` pages with `{"page":2}`, and `google-play-reviews` with the `cursor`.
+- `appstore-search`, `appstore-top` and `google-play-search` cost 1 credit per 10 apps. Every other call here costs 1 credit.
 
 ## See also
 
-- [stophy-video](../stophy-video/SKILL.md): YouTube and TikTok videos about an app
-- [stophy-social](../stophy-social/SKILL.md): what people say about an app on Reddit
+- [stophy-video](../stophy-video/SKILL.md): videos and reviews of an app on YouTube and TikTok

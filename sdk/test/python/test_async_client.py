@@ -11,7 +11,7 @@ def _run(function):
     return asyncio.run(function())
 
 
-def test_async_search_and_transcript():
+def test_async_scrape_and_crawl_cancel():
     calls = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -20,7 +20,7 @@ def test_async_search_and_transcript():
             200,
             json={
                 "success": True,
-                "data": {"results": [{"videoUrl": "https://youtu.be/abc"}]},
+                "data": {"markdown": "# Example"},
                 "creditsUsed": 1,
                 "requestId": "req_1",
             },
@@ -33,14 +33,14 @@ def test_async_search_and_transcript():
             transport=httpx.MockTransport(handler),
             max_retries=0,
         ) as client:
-            result = await client.youtube.search(query="bun runtime", cursor="next")
-            await client.youtube.transcript(video_url="https://youtu.be/abc")
+            result = await client.scrape(url="https://example.com")
+            await client.crawl.cancel(id="job_1")
             return result
 
     result = _run(run)
-    assert result["data"]["results"][0]["videoUrl"] == "https://youtu.be/abc"
-    assert body_of(calls[0]) == {"query": "bun runtime", "cursor": "next"}
-    assert calls[1].url.path == "/v1/youtube/transcript"
+    assert result["data"]["markdown"] == "# Example"
+    assert body_of(calls[0]) == {"url": "https://example.com"}
+    assert (calls[1].method, calls[1].url.path) == ("DELETE", "/v1/crawl/job_1")
     assert calls[1].headers["accept"] == "application/json"
 
 
@@ -50,13 +50,10 @@ def test_async_error_has_code():
             401,
             json={
                 "success": False,
-                "error": {
-                    "code": "unauthorized",
-                    "message": "nope",
-                    "retryable": False,
-                    "requestId": "req_a",
-                },
+                "error": "nope",
+                "code": "unauthorized",
             },
+            headers={"x-request-id": "req_a"},
             request=request,
         )
 
@@ -66,7 +63,7 @@ def test_async_error_has_code():
             transport=httpx.MockTransport(handler),
             max_retries=0,
         ) as client:
-            await client.youtube.search(query="x")
+            await client.search(query="x")
 
     with pytest.raises(StophyError) as info:
         _run(run)
@@ -105,7 +102,7 @@ def test_async_raises_instead_of_waiting_more_than_60_seconds():
         return httpx.Response(
             429,
             headers={"retry-after": "120"},
-            json={"success": False, "error": {"code": "rateLimited"}},
+            json={"success": False, "error": "failed", "code": "rateLimited"},
             request=request,
         )
 
@@ -116,7 +113,7 @@ def test_async_raises_instead_of_waiting_more_than_60_seconds():
             max_retries=2,
             retry_initial_delay=0,
         ) as client:
-            await client.youtube.search(query="x")
+            await client.search(query="x")
 
     with pytest.raises(StophyError) as info:
         _run(run)

@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/search",
+    "body": {
+      "query": "nvidia earnings",
+      "sources": [
+        "web",
+        "news"
+      ],
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "news": [
+        {
+          "title": "Stocks making the biggest moves midday: Micron, Tesla, Tripadvisor, AppLovin, Nvidia & more",
+          "url": "https://www.cnbc.com/2026/11/05/stocks-making-the-biggest-moves-midday-mu-tsla-trip-app-nvda.html",
+          "snippet": "Here are some of the companies making headlines in midday trading.",
+          "date": "2026-11-05T18:35:11.000Z",
+          "position": 1
+        }
+      ],
+      "web": [
+        {
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+          "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal ...",
+          "description": "GAAP and non-GAAP earnings per diluted share were $2.46 and $2.22, respectively.\n\n“AI has reached its inflection…",
+          "position": 1
+        }
+      ]
+    },
+    "creditsUsed": 4
+  }
+}

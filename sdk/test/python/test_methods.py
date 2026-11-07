@@ -1,158 +1,118 @@
+import inspect
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 
 from helpers import body_of, make_client, query_of
 
-ENVELOPE = {
-    "success": True,
-    "data": {
-        "results": [
-            {
-                "type": "video",
-                "videoId": "abc",
-                "videoUrl": "https://youtu.be/abc",
-                "channelName": "Bun",
-            }
-        ]
-    },
-    "creditsUsed": 1,
-    "requestId": "req_1",
-}
+OK = {"json": {"success": True, "data": {}, "creditsUsed": 1, "requestId": "req_1"}}
+
+
+def route(call):
+    return f"{call.method} {call.url.raw_path.decode().split('?')[0]}"
 
 
 def test_posts_input_to_the_spec_path():
-    client, calls = make_client({"json": ENVELOPE})
-    result = client.youtube.search(query="bun runtime", cursor="next")
-    assert result["data"]["results"][0]["videoUrl"] == "https://youtu.be/abc"
-    assert calls[0].method == "POST"
-    assert calls[0].url.path == "/v1/youtube/search"
-    assert body_of(calls[0]) == {"query": "bun runtime", "cursor": "next"}
+    client, calls = make_client(OK)
+    client.scrape(
+        url="https://example.com", formats=["markdown"], only_main_content=True
+    )
+    client.batch.scrape(urls=["https://example.com"])
+    assert [route(call) for call in calls] == [
+        "POST /v1/scrape",
+        "POST /v1/batch/scrape",
+    ]
+    assert body_of(calls[0]) == {
+        "url": "https://example.com",
+        "formats": ["markdown"],
+        "onlyMainContent": True,
+    }
     assert calls[0].headers["accept"] == "application/json"
 
 
-def test_single_segment_operations_and_keyword_argument():
-    client, calls = make_client({"json": ENVELOPE})
-    client.youtube.transcript(video_url="https://youtu.be/abc", include_timestamps=True)
-    assert calls[0].url.path == "/v1/youtube/transcript"
+def test_parsed_reads_a_page_with_a_parser():
+    client, calls = make_client(OK)
+    client.parsed("reddit-search", "https://www.reddit.com/search/?q=bun", page=2)
+    client.parsed("reddit-search", "https://www.reddit.com/search/?q=bun")
+    assert route(calls[0]) == "POST /v1/scrape"
     assert body_of(calls[0]) == {
-        "videoUrl": "https://youtu.be/abc",
-        "includeTimestamps": True,
+        "url": "https://www.reddit.com/search/?q=bun",
+        "formats": [
+            {"type": "json", "parser": "reddit-search", "options": {"page": 2}}
+        ],
     }
+    assert body_of(calls[1])["formats"] == [{"type": "json", "parser": "reddit-search"}]
 
 
-def test_app_jobs_places_and_shopping_operations():
-    client, calls = make_client({"json": ENVELOPE})
-    client.appstore.search(query="notes")
-    client.google.play.reviews(app_id="com.example.app", cursor="c1")
-    client.indeed.search(query="designer")
-    client.tripadvisor.place(place_id="d1234")
-    client.amazon.search(query="tv", sort="priceLow")
-    assert [call.url.path for call in calls] == [
-        "/v1/appstore/search",
-        "/v1/google/play/reviews",
-        "/v1/indeed/search",
-        "/v1/tripadvisor/place",
-        "/v1/amazon/search",
+def test_parsed_sends_snake_case_options_as_camel_case():
+    client, calls = make_client(OK)
+    client.parsed(
+        "google-maps", "https://www.google.com/maps/search/dentists", min_rating=4.5
+    )
+    client.parsed(
+        "google-maps", "https://www.google.com/maps/search/dentists", minRating=4.5
+    )
+    assert [body_of(call)["formats"][0]["options"] for call in calls] == [
+        {"minRating": 4.5},
+        {"minRating": 4.5},
     ]
-    assert body_of(calls[1]) == {"appId": "com.example.app", "cursor": "c1"}
 
 
-def test_ads_operations_of_each_network():
-    client, calls = make_client({"json": ENVELOPE})
-    client.meta.ads.search(query="shoes")
-    client.google.ads.search(domain="example.com")
-    assert calls[0].url.path == "/v1/meta/ads/search"
-    assert calls[1].url.path == "/v1/google/ads/search"
-    assert body_of(calls[1]) == {"domain": "example.com"}
+def test_id_goes_in_the_path_and_the_rest_in_the_query():
+    client, calls = make_client({"json": {"status": "cancelled"}})
+    client.crawl.cancel(id="job/1", max_text_length=100)
+    assert route(calls[0]) == "DELETE /v1/crawl/job%2F1"
+    assert query_of(calls[0]) == {"maxTextLength": "100"}
+    assert calls[0].content == b""
 
 
-def test_empty_optional_body_and_endpoint_catalog():
-    client, calls = make_client(
-        [{"json": ENVELOPE}, {"json": {"endpoints": []}}],
-    )
-    client.upwork.search()
-    catalog = client.endpoints()
+def test_get_query_parameters_and_bare_calls():
+    client, calls = make_client(OK)
+    client.logs(days=7, api_key_id="key_1")
+    client.limits()
+    client.key.revoke()
+    assert [route(call) for call in calls] == [
+        "GET /v1/logs",
+        "GET /v1/limits",
+        "DELETE /v1/key",
+    ]
+    assert query_of(calls[0]) == {"days": "7", "apiKeyId": "key_1"}
+
+
+def test_empty_optional_body():
+    client, calls = make_client(OK)
+    client.signup()
     assert body_of(calls[0]) == {}
-    assert calls[0].url.path == "/v1/upwork/search"
-    assert catalog["endpoints"] == []
-    assert calls[1].method == "GET"
 
 
-def test_usage_and_logs():
-    client, calls = make_client(
-        [
-            {"json": {"balanceMicros": 1000, "creditsUsed": 2, "requestCount": 1}},
-            {
-                "json": {
-                    "endpoints": ["youtube.search"],
-                    "logs": [
-                        {
-                            "apiKeyId": None,
-                            "apiKeyName": None,
-                            "createdAt": "2026-09-28T00:00:00.000Z",
-                            "credits": 1,
-                            "durationMs": None,
-                            "endpoint": "youtube.search",
-                            "id": "log_1",
-                            "method": "POST",
-                            "response": "success",
-                            "status": 200,
-                        }
-                    ],
-                    "page": 0,
-                    "pageSize": 50,
-                    "total": 1,
-                    "totalPages": 1,
-                }
-            },
-        ]
-    )
-    assert client.usage()["creditsUsed"] == 2
-    logs = client.logs(days=7, page=0, endpoint="youtube.search", api_key_id="key_1")
-    assert logs["logs"][0]["endpoint"] == "youtube.search"
-    assert query_of(calls[1]) == {
-        "days": "7",
-        "page": "0",
-        "endpoint": "youtube.search",
-        "apiKeyId": "key_1",
-    }
+def call_every_operation(node):
+    for name, value in vars(node).items():
+        if name.startswith("_") or not hasattr(value, "_call"):
+            continue
+        if callable(value):
+            params = inspect.signature(value).parameters.values()
+            value(
+                **{param.name: "x" for param in params if param.default is param.empty}
+            )
+        call_every_operation(value)
 
 
 def test_every_spec_operation_is_callable():
     spec = json.loads(Path("openapi.json").read_text())
-    client, _calls = make_client({"json": ENVELOPE})
-    assert "/v1/google/search" in spec["paths"]
-    assert "/v1/amazon/product" in spec["paths"]
-    assert "/v1/walmart/product" not in spec["paths"]
-    for path in spec["paths"]:
-        node = client
-        for part in [item for item in path.split("/") if item and item != "v1"]:
-            node = getattr(node, part)
-        assert callable(node)
+    client, calls = make_client(OK)
+    call_every_operation(client)
+    expected = {
+        f"{method.upper()} {path.replace('{id}', 'x')}"
+        for path, item in spec["paths"].items()
+        for method in item
+    }
+    assert {route(call) for call in calls} == expected
     client.close()
 
 
-def test_web_search_and_web_news_still_work_after_the_rename():
-    client, calls = make_client({"json": ENVELOPE})
-    assert callable(client.web.search)
-    assert callable(client.web.news)
-    client.web.search(query="bun runtime")
-    assert calls[-1].url.path == "/v1/web/search"
-    client.close()
-
-
-def test_page_numbers_and_advertiser_are_sent():
-    client, calls = make_client({"json": ENVELOPE})
-    client.google.search(query="bun", page=2)
-    client.meta.ads.page(advertiser="nike")
-    assert body_of(calls[0]) == {"query": "bun", "page": 2}
-    assert calls[1].url.path == "/v1/meta/ads/page"
-    assert body_of(calls[1]) == {"advertiser": "nike"}
-
-
-def test_limit_is_not_accepted():
-    client, calls = make_client({"json": ENVELOPE})
-    with pytest.raises(TypeError):
-        client.youtube.search(query="bun", limit=2)  # type: ignore[call-arg]
+def test_retired_endpoints_are_gone():
+    client, calls = make_client(OK)
+    with pytest.raises(AttributeError):
+        client.youtube.search(query="bun")  # type: ignore[attr-defined]
     assert calls == []

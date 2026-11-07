@@ -1,13 +1,12 @@
 import { z } from "zod";
 
-export const MICROS_PER_CREDIT = 1_500;
-
-const MICROS_PER_DOLLAR = 1_000_000;
-
 export const usageDataSchema = z.object({
-  balanceMicros: z.number(),
   creditsUsed: z.number(),
   requestCount: z.number(),
+});
+
+export const limitsSchema = z.object({
+  data: z.object({ balanceCredits: z.number() }),
 });
 
 export type UsageData = z.infer<typeof usageDataSchema>;
@@ -37,14 +36,6 @@ export const logsDataSchema = z.object({
 export type LogsData = z.infer<typeof logsDataSchema>;
 export type LogEntry = z.infer<typeof logEntrySchema>;
 
-export function creditsFromMicros(micros: number): number | undefined {
-  if (!Number.isFinite(micros)) return undefined;
-  return Math.floor(micros / MICROS_PER_CREDIT);
-}
-
-export function formatBalance(micros: number): string {
-  const credits = creditsFromMicros(micros);
-  const usd = (micros / MICROS_PER_DOLLAR).toFixed(2);
-  if (credits === undefined) return `$${usd}`;
-  return `${credits.toLocaleString("en-US")} credits ($${usd})`;
+export function formatBalance(credits: number): string {
+  return `${Math.floor(credits).toLocaleString("en-US")} credits`;
 }

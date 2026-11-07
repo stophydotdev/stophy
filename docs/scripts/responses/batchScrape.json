@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/batch/scrape",
+    "body": {
+      "urls": [
+        "https://bun.com/docs/runtime/bunfig",
+        "https://bun.com/docs/runtime/env"
+      ]
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "job_385XD5MMpQfsXsGFdTO9vQ",
+    "url": "https://api.stophy.dev/v1/batch/scrape/job_385XD5MMpQfsXsGFdTO9vQ",
+    "invalidURLs": []
+  }
+}

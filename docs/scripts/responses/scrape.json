@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/scrape",
+    "body": {
+      "url": "https://bun.com/docs/runtime/bunfig"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's configuration…",
+      "metadata": {
+        "viewport": "width=device-width, initial-scale=1",
+        "theme-color": [
+          "#ffffff",
+          "#0d0a0c"
+        ],
+        "og:type": "website",
+        "og:image": "https://bun.com/og/docs/runtime/bunfig.png",
+        "twitter:site": "@bunjavascript",
+        "twitter:card": "summary_large_image",
+        "ogTitle": "bunfig.toml | Bun Docs",
+        "ogDescription": "Configure Bun's behavior using its configuration file bunfig.toml",
+        "ogUrl": "https://bun.com/docs/runtime/bunfig",
+        "ogLocale": "en_US",
+        "ogSiteName": "Bun",
+        "favicon": "https://bun.com/favicon.ico",
+        "title": "bunfig.toml | Bun Docs",
+        "description": "Configure Bun's behavior using its configuration file bunfig.toml",
+        "language": "en",
+        "ogImage": "https://bun.com/og/docs/runtime/bunfig.png",
+        "sourceURL": "https://bun.com/docs/runtime/bunfig",
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "statusCode": 200,
+        "contentType": "text/html",
+        "cacheState": "hit",
+        "cachedAt": "2026-11-05T19:33:09.837Z",
+        "scrapeId": "f82a75f2-1f53-4abb-ac5a-9fdbc4314549",
+        "creditsUsed": 0
+      }
+    }
+  }
+}

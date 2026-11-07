@@ -8,6 +8,7 @@ const SKIP_CATALOG = new Set([
   "status",
   "usage",
   "logs",
+  "parsers",
 ]);
 
 let invocation: readonly string[] = [];

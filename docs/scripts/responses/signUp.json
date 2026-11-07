@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/signup"
+  },
+  "status": 201,
+  "response": {
+    "success": true,
+    "data": {
+      "claimUrl": "<claimUrl>",
+      "code": "<code>",
+      "expiresAt": "2026-11-06T23:36:07.172Z"
+    },
+    "creditsUsed": 0,
+    "requestId": "23ad30a8-6558-49cf-9c85-960f97d273a1"
+  }
+}

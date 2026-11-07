@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/extract/860b5104-c8fc-4a85-aff9-f826b15c5770"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "status": "completed",
+    "data": {
+      "file": "bunfig.toml"
+    },
+    "confidence": {
+      "file": 0.9432
+    },
+    "expiresAt": "2026-11-06T23:35:37.867Z"
+  }
+}

@@ -62,9 +62,10 @@ function renderRow(item: JsonValue, index: number): string {
     const { url, ...page } = item;
     return [`${prefix}${url}`, renderData(page)].join("\n");
   }
-  const title = firstString(item, TITLE_KEYS);
-  const owner = firstString(item, OWNER_KEYS);
-  const url = urlOf(item);
+  const row = isJsonRecord(item.metadata) ? { ...item.metadata, ...item } : item;
+  const title = firstString(row, TITLE_KEYS);
+  const owner = firstString(row, OWNER_KEYS);
+  const url = urlOf(row);
   if (!title && !url) return `${prefix}${oneLine(JSON.stringify(item), 200)}`;
   const head = [title ? oneLine(title) : url, owner]
     .filter((part) => part !== undefined)

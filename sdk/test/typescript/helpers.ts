@@ -76,22 +76,17 @@ export function queryOf(url: string): Record<string, string> {
   return Object.fromEntries(new URL(url).searchParams.entries());
 }
 
-export async function specPaths(): Promise<string[]> {
+export async function specOperations(): Promise<string[]> {
   const text = await Bun.file(new URL("../../openapi.json", import.meta.url)).text();
   const document: JsonValue = JSON.parse(text);
   if (!isRecord(document) || !isRecord(document.paths)) {
     throw new Error("openapi.json has no paths");
   }
-  return Object.keys(document.paths);
-}
-
-export function endpointAt(root: Stophy, path: string): object | undefined {
-  const parts = path.split("/").filter((part) => part.length > 0 && part !== "v1");
-  let node: object = root;
-  for (const part of parts) {
-    const value = Object.getOwnPropertyDescriptor(node, part)?.value;
-    if (!(value instanceof Object)) return undefined;
-    node = value;
-  }
-  return node;
+  return Object.entries(document.paths)
+    .flatMap(([path, item]) =>
+      isRecord(item)
+        ? Object.keys(item).map((method) => `${method.toUpperCase()} ${path.replace("{id}", "x")}`)
+        : [],
+    )
+    .sort();
 }

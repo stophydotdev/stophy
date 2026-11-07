@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
-import { creditsFromMicros, usageDataSchema } from "../account.js";
+import { limitsSchema } from "../account.js";
 import { request } from "../client.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { CliError, statusFrom } from "../errors.js";
@@ -62,19 +62,19 @@ interface ApiPing {
   credits?: number;
 }
 
-async function pingUsage(): Promise<ApiPing> {
+async function pingAccount(): Promise<ApiPing> {
   const start = Date.now();
   try {
     const response = await request({
       method: "GET",
-      path: "/v1/usage",
+      path: "/v1/limits",
       accept: "application/json",
     });
-    const usage = usageDataSchema.safeParse(response.json);
+    const limits = limitsSchema.safeParse(response.json);
     return {
       status: response.status,
       durationMs: Date.now() - start,
-      credits: usage.success ? creditsFromMicros(usage.data.balanceMicros) : undefined,
+      credits: limits.success ? limits.data.data.balanceCredits : undefined,
     };
   } catch (error) {
     return {
@@ -241,7 +241,7 @@ async function runChecks(): Promise<CheckResult[]> {
 
   const [latest, ping] = await Promise.all([
     getLatestVersion(packageJson.name),
-    apiKey || sessionCookie ? pingUsage() : Promise.resolve(null),
+    apiKey || sessionCookie ? pingAccount() : Promise.resolve(null),
   ]);
 
   return [

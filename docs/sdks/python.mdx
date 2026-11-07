@@ -1,148 +1,124 @@
 ---
 title: "Python SDK"
-description: "Install the Stophy Python SDK, make your first call with no key, then add a key to page through results, run async, handle errors and read your usage."
 sidebarTitle: "Python"
-icon: "python"
+description: "Install the Stophy Python SDK, scrape and search with no key, then add a key to read sites through parsers, crawl, extract and run async."
 og:title: "Python SDK | Stophy"
-og:description: "Install the Stophy Python SDK, make your first call with no key, then add a key to page through results, run async, handle errors and read your usage."
+og:description: "Install the Stophy Python SDK, scrape and search with no key, then add a key to read sites through parsers, crawl, extract and run async."
 ---
 
-Call Stophy from Python 3.9 or newer, sync or async, and get plain dictionaries back.
+Give your agents the live web from Python. Every method and result is typed.
+
+## Install
 
 ```bash
 pip install stophy
 ```
 
-## Make a call
-
-No account, no key.
-
-```python
-from stophy import Stophy
-
-result = Stophy().google.search(query="postgres jsonb index")
-print(result["data"]["results"])
-```
-
-Methods follow the endpoint id, with keyword arguments in snake_case. `google.search` is `stophy.google.search(...)`, and `reddit.search` is `stophy.reddit.search(...)`.
-
-## Use a key
-
-A call that needs a key raises a `StophyError` with code `apiKeyRequired`.
-
-Set `STOPHY_API_KEY` and `Stophy()` picks it up. Or pass it in:
-
-```python
-import os
-
-from stophy import Stophy
-
-stophy = Stophy(api_key=os.environ["STOPHY_API_KEY"])
-posts = stophy.reddit.search(query="bun runtime")
-print(len(posts["data"]["results"]), posts["creditsUsed"])
-```
-
-## Find endpoints
-
-```python
-from stophy import Stophy
-
-catalog = Stophy().endpoints()
-free = [endpoint for endpoint in catalog["endpoints"] if endpoint["keyless"]]
-print(len(catalog["endpoints"]), len(free))
-```
-
-## Run async
-
-`AsyncStophy` has the same methods. Await them.
-
-```python
-import asyncio
-
-from stophy import AsyncStophy
-
-
-async def main() -> None:
-    async with AsyncStophy() as stophy:
-        result = await stophy.google.search(query="bun runtime")
-        for item in result["data"]["results"]:
-            print(item["title"])
-
-
-asyncio.run(main())
-```
-
-## Page through results
-
-When there is more, `data["cursor"]` is set. Pass it back for the next page. Paging needs a key.
+## Try it without a key
 
 ```python
 from stophy import Stophy
 
 stophy = Stophy()
-cursor = None
-for _ in range(2):
-    result = stophy.reddit.search(query="bun runtime", cursor=cursor)
-    print(len(result["data"]["results"]))
-    cursor = result["data"].get("cursor")
-    if not cursor:
-        break
+
+page = stophy.scrape(url="https://example.com", formats=["markdown"])
+print(page["data"]["markdown"])
+
+results = stophy.search(query="bun runtime", limit=3)
+print(results["data"]["web"])
 ```
 
-Some endpoints take a `page` number instead, like `google.search`. See [Page through results](/guides/paging).
+`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance. Every other method raises a `StophyError` with the code `apiKeyRequired`.
+
+## Use an API key
+
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in:
+
+```python
+stophy = Stophy(api_key="st_...")
+```
+
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`.
+
+Arguments are keyword-only and snake_case.
+
+For async code, use `AsyncStophy`. It has the same methods, and you `await` each call.
+
+## Read a site with a parser
+
+A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the parser's name and the page URL:
+
+```python
+places = stophy.parsed("google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana")
+print(places["data"]["json"])
+```
+
+`parsed` calls `scrape` with the format `{"type": "json", "parser": ...}`. The parser name is typed as `ParserName`. `stophy.parsers()` returns each parser with the page it reads and what it returns.
+
+Extra keyword arguments are the parser's options, such as the next page:
+
+```python
+next_page = stophy.parsed(
+    "google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana", page=2
+)
+```
+
+Paging needs an API key.
+
+## Crawl a site
+
+`crawl` answers at once with an id. Ask `crawl.status` for the pages:
+
+```python
+job = stophy.crawl(url="https://bun.com/docs", limit=20)
+status = stophy.crawl.status(id=job["id"])
+print(status["status"], status["completed"], status["total"], status.get("data"))
+```
+
+`status` is `scraping` until the crawl is `completed`. A status answer holds up to 10 pages. When it has a `next` link, send the `cursor` value from that link with the same id to get the next 10. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
+
+`stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
+
+## Extract fields from pages
+
+```python
+job = stophy.extract(urls=["https://example.com"], prompt="What is this page for?")
+result = stophy.extract.result(id=job["id"])
+print(result["data"], result["confidence"])
+```
+
+`extract.result` raises a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
 
 ## Handle errors
 
 ```python
-from stophy import Stophy, StophyError
+from stophy import StophyError
 
 try:
-    Stophy().reddit.search(query="bun runtime", cursor="next")
+    stophy.scrape(url="not a url")
 except StophyError as error:
-    print(error.status, error.code, str(error))
-    print(error.retryable, error.retry_after_seconds, error.request_id)
+    print(error.code, str(error), error.retryable)
 ```
 
-The SDK retries network errors and the statuses 429, 500, 502, 503 and 504 for you, and waits as long as the API asks. If the API asks for more than 60 seconds, it raises at once with `retry_after_seconds` set. [Errors](/api-reference/errors) lists every code.
+`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
+
+The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
 
 ## Options
 
-```python
-from stophy import Stophy
+| Option        | Default                              | What it does                                |
+| ------------- | ------------------------------------ | ------------------------------------------- |
+| `api_key`     | `STOPHY_API_KEY`                     | Your API key                                |
+| `base_url`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                          |
+| `max_retries` | `2`                                  | Retries per request. `0` turns retries off. |
+| `timeout`     | `70.0`                               | Time limit in seconds for each attempt      |
 
-with Stophy(
-    timeout=20.0,
-    max_retries=3,
-    retry_initial_delay=0.5,
-    headers={"x-app": "my-app"},
-) as stophy:
-    result = stophy.google.search(query="bun runtime")
-```
-
-| Option | Default | What it does |
-| --- | --- | --- |
-| `api_key` | `STOPHY_API_KEY` | Your API key |
-| `base_url` | `STOPHY_BASE_URL` or `https://api.stophy.dev` | Where requests go |
-| `timeout` | `70.0` | Time limit in seconds |
-| `max_retries` | `2` | Retries per request. `0` turns them off. |
-| `retry_initial_delay` | `0.5` | Base delay in seconds before a retry. Each retry waits longer. |
-| `headers` | none | Extra headers on every request |
-| `transport` | none | An `httpx` transport, for tests |
-
-## Check your usage
-
-These need a key.
+## Check your account
 
 ```python
-from stophy import Stophy
-
-stophy = Stophy()
-
+limits = stophy.limits()
 usage = stophy.usage()
-print(usage["balanceMicros"] / 1_000_000, usage["creditsUsed"], usage["requestCount"])
-
-logs = stophy.logs(days=7, endpoint="reddit.search")
-for entry in logs["logs"]:
-    print(entry["createdAt"], entry["endpoint"], entry["credits"])
+logs = stophy.logs(days=7)
 ```
 
+`limits` returns your balance and rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.

@@ -1,14 +1,12 @@
-from .account import LogEntry, Logs, Usage
 from .client import Stophy
 from .client_async import AsyncStophy
 from .errors import StophyError
+from .generated.models import ParserName
 
 __all__ = [
     "AsyncStophy",
-    "LogEntry",
-    "Logs",
+    "ParserName",
     "Stophy",
     "StophyError",
-    "Usage",
 ]
-__version__ = "1.2.1"
+__version__ = "1.3.0"

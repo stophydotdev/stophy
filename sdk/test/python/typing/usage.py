@@ -3,33 +3,32 @@ from __future__ import annotations
 import asyncio
 
 from stophy import AsyncStophy, Stophy
-from stophy.generated.models import (
-    GoogleSearchResponse,
-    MetaAdsPageResponse,
-    YoutubeTranscriptResponse,
-)
+from stophy.generated.models import CrawlCancelResponse, MapResponse, ScrapeResponse
 
 
-def sync_search() -> GoogleSearchResponse:
+def sync_scrape() -> ScrapeResponse:
     with Stophy() as stophy:
-        return stophy.google.search(query="bun runtime", page=2)
+        return stophy.scrape(url="https://example.com", formats=["markdown"])
 
 
-def sync_ads() -> MetaAdsPageResponse:
+def sync_parsed() -> ScrapeResponse:
     with Stophy() as stophy:
-        return stophy.meta.ads.search(query="shoes")
+        return stophy.parsed(
+            "google-maps", "https://www.google.com/maps/search/dentists", page=2
+        )
 
 
-async def async_search() -> GoogleSearchResponse:
+def sync_map() -> MapResponse:
+    with Stophy() as stophy:
+        return stophy.map(url="https://bun.sh")
+
+
+async def async_cancel() -> CrawlCancelResponse:
     async with AsyncStophy() as stophy:
-        return await stophy.google.search(query="bun runtime", page=2)
-
-
-async def async_transcript() -> YoutubeTranscriptResponse:
-    async with AsyncStophy() as stophy:
-        return await stophy.youtube.transcript(video_url="https://youtu.be/abc")
+        return await stophy.crawl.cancel(id="job_1")
 
 
 def main() -> None:
-    print(sync_search()["data"])
-    print(asyncio.run(async_search())["data"])
+    print(sync_scrape()["data"])
+    print(sync_map()["links"])
+    print(asyncio.run(async_cancel())["status"])

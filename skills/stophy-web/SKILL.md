@@ -1,66 +1,52 @@
 ---
 name: stophy-web
 description: |
-  Search the web with Google: ranked pages, news, images, videos, scholarly papers, patents, autocomplete and search trends. Use for "search the web for", "find pages about", "find sources on", "latest news about", "find papers on", "what is trending on Google". Google search and Google News work without an API key. For posts on social platforms use stophy-social. For ad libraries use stophy-ads.
+  Read Google Scholar, Google Patents and Google Trends: papers and the works that cite them, patents by topic, inventor or assignee, and what people search for. Use for "find papers on", "who cites this paper", "find patents on", "what patents does this company hold", "what is trending on Google", "is interest in this growing". For general web search use stophy-search. For a sourced report use stophy-deep-research.
 metadata:
   author: stophy
-  version: "4.0.6"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy web
 
-Search the web for pages, news, papers and trends on a topic.
+Papers, patents and search trends from Google.
 
-**Prerequisite:** `google search`, `web search`, `web news`, `web images`, `web scrape`, `web parse`, `web map`, `google news`, `google images`, `google suggest` and `google patents` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `google-patents` works without a key, 10 calls a minute and 50 a day. Scholar and Trends need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# no login needed: find pages and sources on a topic
-stophy google search "postgres 18 release notes" --json -o .stophy/search.json
+# newest papers on a topic
+stophy scrape "https://scholar.google.com/scholar?q=malaria+vaccine+efficacy&scisbd=1" --parser google-scholar
 
-# the next page of results
-stophy google search "postgres 18 release notes" --page 2 --json -o .stophy/search-2.json
+# patents by topic and assignee
+stophy scrape "https://patents.google.com/?q=solid+state+battery&assignee=Toyota" --parser google-patents
 
-# recent news, newest first
-stophy google news "nvidia" --sort newest --json -o .stophy/news.json
-
-# papers, and the works that cite one
-stophy google scholar "malaria vaccine efficacy" --sort newest --json -o .stophy/scholar.json
-stophy google scholar --citesId 12345678901234567 --json
-
-# what people search for
-stophy google trends trending --country us --json
-stophy google trends related bitcoin --json
-
-# pages in one language, published in a date range
-stophy web search "postgres 18" --language en --after 2026-01-01 --before 2026-10-27 --json -o .stophy/dated.json
-
-# read several pages in one call
-stophy web scrape --urls https://example.com,https://example.org --json -o .stophy/pages.json
+# related searches for a term
+stophy scrape "https://trends.google.com/trends/explore?q=bitcoin&geo=US" --parser google-trends
 ```
 
-Narrow a search with `--time`, `--country` and `--language`. Run `stophy google search --help` for every option. Run `stophy google --help` for every Google command.
+**Done when:** you report each paper, patent or trend with its link, as the output gives it.
 
-**Done when:** you report each result with its source URL or domain, and every claim matches the saved output.
+## Parsers
+
+| Parser | Page to scrape | Options |
+|---|---|---|
+| `google-scholar` | scholar.google.com/scholar with `q` or a cites id | citesId, yearFrom, yearTo, sort, type, page |
+| `google-patents` (no key) | patents.google.com with `q`, `inventor` or `assignee` | status, type, after, before, sort, page |
+| `google-trends` | trends.google.com/trends/explore with terms in `q`, or the trending now page | view: related, interest or regions |
 
 ## Tips
 
-- Search first, then open the pages that matter. Quote the result's `url`.
-- `google search` and `google news` cost $0.0015 and work without a key within a free limit. `google images`, `web search`, `web news` and `web images` cost $0.0015 per 10 results, and `--limit` returns fewer. `web scrape` costs $0.0015 a page, $0.003 or $0.0075 on pages that are harder to load, and more with a screenshot, actions or `--waitFor`. Every other command here costs $0.0015.
-- One call returns one page of results. Run the same command with the next `--page`, until a page has no results.
-- `google news` takes `--topic` to read headlines by topic, and `--sort relevance` or `--sort newest`.
-- `google scholar` takes `--sort relevance` or `--sort newest`, `--yearFrom` and `--yearTo`. Each result has a `citesId` you can pass back as `--citesId`.
-- `google patents` takes `--inventor`, `--assignee`, `--status` and `--sort`.
-- `google suggest` returns autocomplete phrases for a query.
-- `web search` takes `--language`, and `--after` and `--before` as `YYYY-MM-DD`. `--time` cannot be sent with `--after` or `--before`, and `--after` cannot be later than `--before`.
-- `web scrape --url` reads one page. `--urls` takes 2 to 10 addresses separated by commas, and needs a key. `results` holds one entry per address, in the order you sent them: the page with its `url`, or the `url` with an `error`. A repeated address is read once, each page costs what it costs alone, and a page that cannot be read is free.
+- In Scholar, `scisbd=1` in the URL sorts by date. Each result has a cites id: send `--parserOptions '{"citesId":"<id>"}'` for the works that cite it.
+- In Trends, one term gives its related searches, and several terms, like `q=bitcoin,ethereum`, their interest over time.
+- Every call here costs 1 credit.
 
 ## See also
 
-- [stophy-video](../stophy-video/SKILL.md): YouTube and TikTok videos and transcripts
-- [stophy-social](../stophy-social/SKILL.md): posts and profiles on Reddit, Instagram, LinkedIn, and Pinterest
-- [stophy-ads](../stophy-ads/SKILL.md): ad libraries, including Google's
+- [stophy-search](../stophy-search/SKILL.md): web, news and images
+- [stophy-deep-research](../stophy-deep-research/SKILL.md): a sourced report from many sources

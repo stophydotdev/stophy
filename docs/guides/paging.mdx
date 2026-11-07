@@ -1,159 +1,98 @@
 ---
 title: "Page through results"
-description: "Get more than one page from Stophy. Send page 2, 3 and on until a page is empty, or send back the cursor from each response until none comes back."
+description: "Get the next page of a parser with the cursor or page it returns, and read a big crawl or batch scrape by following each status response's next link."
 og:title: "Page through results | Stophy"
-og:description: "Get more than one page from Stophy. Send page 2, 3 and on until a page is empty, or send back the cursor from each response until none comes back."
+og:description: "Get the next page of a parser with the cursor or page it returns, and read a big crawl or batch scrape by following each status response's next link."
 ---
 
-Ask for page 2 of a search. Paging needs an API key.
+Two things in Stophy come back in pages: [parsers](/guides/parsers) that read lists, and the results of a [crawl](/api-reference/endpoint/crawl) or [batch scrape](/api-reference/endpoint/batch-scrape). Paging needs an API key.
+
+## Parsers
+
+A parser that reads a list returns `cursor` or `page` in `data.json` when there is more. Send the same request again with that value in the format's `options`.
+
+This asks for the second page of a Reddit search. The first response had `"cursor": "MjQ="`.
 
 ```bash
-curl -X POST https://api.stophy.dev/v1/google/search \
+curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "content-type: application/json" \
-  -d '{"query":"rust tutorial","page":2}'
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.reddit.com/search/?q=web+scraping&sort=top&t=year","formats":[{"type":"json","parser":"reddit-search","options":{"cursor":"MjQ="}}]}'
 ```
 
-<Accordion title="Response">
-```json
-{
-  "success": true,
-  "data": {
-    "results": [
-      {
-        "type": "web",
-        "url": "https://github.com/ImplFerris/LearnRust",
-        "title": "ImplFerris/LearnRust: Rust Learning Resources",
-        "description": "Rust Crash Course Tutorial : This playlist is designed to guide you from the very basics of Rust to its most advanced features. Rust 101 Crash Course: Learn ...",
-        "position": 1
-      }
-    ],
-    "page": 2
-  },
-  "creditsUsed": 1,
-  "requestId": "f53e44c9-6007-46b2-b65e-73a3d3fac03f"
-}
-```
-</Accordion>
+It returned the next 25 posts and `"cursor": "NDk="` for the page after. Keep the URL and the rest of the format the same between pages. The last page has no `cursor`.
 
-One call returns one page, the way the site shows it. Page 2 continues page 1 with no repeats. A page holds what the site puts on it, so the number of results changes from call to call.
-
-Each endpoint pages in one of three ways.
-
-| The endpoint takes | How to get the next page | Examples |
-| --- | --- | --- |
-| `page` | Send the same input with `page: 2`, then `3`, until `data.results` is empty. An empty page costs nothing. | `google.search`, `google.news`, `google.maps.search`, `zillow.search`, `amazon.search`, `upwork.search` |
-| `cursor` | Send the same input with the `cursor` from the last response, until a response has no `cursor`. | `youtube.search`, `reddit.search`, `tiktok.search`, `instagram.comments` |
-| neither | There is no next page. One call returns everything for that input. | `google.maps.place`, `appstore.search`, `google.images` |
-
-Keep the rest of the input the same between pages.
-
-## Loop through numbered pages
+A parser that takes `page` works the same way: send `"options": {"page": 2}`, then `3`, until the results are empty. Each parser's options are on its [parser page](/sources/social) and in the [parser list](https://api.stophy.dev/v1/parsers). Each page is a new call and costs the parser's price.
 
 <CodeGroup>
 
-```ts Node.js
-const results = [];
-for (let page = 1; page <= 5; page += 1) {
-  const response = await fetch("https://api.stophy.dev/v1/google/search", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ query: "rust tutorial", page }),
-  });
-  const { data } = await response.json();
-  results.push(...data.results);
-  if (data.results.length === 0) break;
-}
-```
-
-```python Python
-import os
-import requests
-
-results = []
-for page in range(1, 6):
-    response = requests.post(
-        "https://api.stophy.dev/v1/google/search",
-        headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-        json={"query": "rust tutorial", "page": page},
-        timeout=30,
-    )
-    data = response.json()["data"]
-    results += data["results"]
-    if not data["results"]:
-        break
-```
-
-</CodeGroup>
-
-## Loop through cursors
-
-The response carries a `cursor` when there is a next page. Send it back, unchanged, with the same input.
-
-```json
-{
-  "success": true,
-  "data": {
-    "results": [{ "videoId": "Wc0ZJo06oAw", "title": "The Ultimate Rust Beginners Guide (2026)" }],
-    "cursor": "fms9tEb3seen.eyJ0b2t..."
-  },
-  "creditsUsed": 1,
-  "requestId": "43c2f153-e261-4147-a315-cc4eb1543585"
-}
-```
-
-<CodeGroup>
-
-```ts Node.js
-const results = [];
+```ts TypeScript
+const format = { type: "json", parser: "reddit-search" };
+const url = "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year";
+const posts = [];
 let cursor: string | undefined;
-do {
-  const response = await fetch("https://api.stophy.dev/v1/youtube/search", {
+for (let page = 0; page < 3; page += 1) {
+  const response = await fetch("https://api.stophy.dev/v1/scrape", {
     method: "POST",
     headers: {
-      authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-      "content-type": "application/json",
+      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query: "rust tutorial", cursor }),
+    body: JSON.stringify({ url, formats: [cursor === undefined ? format : { ...format, options: { cursor } }] }),
   });
   const { data } = await response.json();
-  results.push(...data.results);
-  cursor = data.cursor;
-} while (cursor && results.length < 100);
+  posts.push(...data.json.results);
+  cursor = data.json.cursor;
+  if (cursor === undefined) break;
+}
 ```
 
 ```python Python
 import os
+
 import requests
 
-results = []
+fmt = {"type": "json", "parser": "reddit-search"}
+url = "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year"
+posts = []
 cursor = None
-while True:
-    body = {"query": "rust tutorial"}
-    if cursor:
-        body["cursor"] = cursor
+for _ in range(3):
+    options = {"options": {"cursor": cursor}} if cursor else {}
     response = requests.post(
-        "https://api.stophy.dev/v1/youtube/search",
+        "https://api.stophy.dev/v1/scrape",
         headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-        json=body,
-        timeout=30,
+        json={"url": url, "formats": [{**fmt, **options}]},
     )
     data = response.json()["data"]
-    results += data["results"]
-    cursor = data.get("cursor")
-    if not cursor or len(results) >= 100:
+    posts.extend(data["json"]["results"])
+    cursor = data["json"].get("cursor")
+    if not cursor:
         break
 ```
 
 </CodeGroup>
 
-Set your own stop, like the 5 pages or 100 results above. Some sources have many pages. A cursor only works with the input that produced it. Any other cursor returns a `400` with code `invalidRequest`.
+## Crawl and batch scrape
 
-## Keep fewer results
+[Crawl status](/api-reference/endpoint/crawl-status) and [batch scrape status](/api-reference/endpoint/batch-scrape-status) return up to 10 pages in `data`. When there are more, the response has `next`, a full URL. Call it with the same key for the next 10. The last one has no `next`.
 
-`web.search`, `web.news`, `web.images`, `google.images`, `google.ads.advertisers`, `craigslist.search`, `appstore.search`, `appstore.top` and `google.play.search` take `limit`. Send it to return fewer results. Except on `google.ads.advertisers`, fewer results [cost less](/billing).
+A crawl of 30 pages on bun.com/docs came back in three status responses:
 
-On every other endpoint, `limit` returns a `400`. To keep a model's context small, take the rows you need from `data.results`, or use `fields` through the [MCP server](/mcp-server) to keep only some keys.
+```json
+{ "status": "completed", "total": 30, "completed": 30, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=-IEUnTHVpage_10", "data": [ ... ] }
+{ "status": "completed", "total": 30, "completed": 30, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=1owY_-gJpage_20", "data": [ ... ] }
+{ "status": "completed", "total": 30, "completed": 30, "data": [ ... ] }
+```
+
+While the job runs, `next` also appears, and `status` is `scraping`. Reading status is free.
+
+```ts TypeScript
+const pages = [];
+let next: string | undefined = `https://api.stophy.dev/v1/crawl/${id}`;
+while (next !== undefined) {
+  const response = await fetch(next, { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } });
+  const status = await response.json();
+  pages.push(...status.data);
+  next = status.next;
+}
+```

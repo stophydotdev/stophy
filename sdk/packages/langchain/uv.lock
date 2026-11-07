@@ -438,7 +438,7 @@ wheels = [
 
 [[package]]
 name = "langchain-stophy"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "langchain-core" },
@@ -1300,7 +1300,7 @@ wheels = [
 
 [[package]]
 name = "stophy"
-version = "1.2.1"
+version = "1.3.0"
 source = { editable = "../python" }
 dependencies = [
     { name = "httpx" },

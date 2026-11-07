@@ -1,63 +1,72 @@
 ---
 name: stophy-video
 description: |
-  Get YouTube, TikTok and Instagram video data: search videos and read transcripts, comments, channels, playlists, profiles, hashtags, sounds and charts. Transcripts work for YouTube, TikTok, and Instagram videos. Use for "get the transcript of", "what are people saying in the comments", "find videos about", "latest uploads from this channel", "what is trending on YouTube". For posts on Reddit or Instagram use stophy-social. For TikTok ads use stophy-ads.
+  Get videos, transcripts, comments, channels and playlists from YouTube, TikTok and Instagram. Use for "get this video's transcript", "summarize this video", "what are people saying in the comments", "find videos about", "what does this channel post", "what is trending on this hashtag". YouTube search, videos, transcripts, comments and channels, TikTok transcripts and TikTok profiles work without an API key. For social posts that aren't videos use stophy-social. For ad libraries use stophy-ads.
 metadata:
   author: stophy
-  version: "4.0.6"
+  version: "5.0.0"
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx -y @stophy/cli *)
+  - Bash(npx @stophy/cli *)
+  - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy video
 
-Search and read videos, transcripts, comments, channels, and playlists on YouTube, TikTok and Instagram.
+Find videos and read what they say and what viewers say about them.
 
-**Prerequisite:** `youtube search`, `youtube transcript`, `youtube video`, `youtube comments`, `youtube channel` and `tiktok transcript` work without a key, within a free limit. Every other command here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). The parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
 ```bash
-# find videos on a topic
-stophy youtube search "rust tutorial" --json -o .stophy/search.json
+# no key needed: search YouTube, then read one video
+stophy scrape "https://www.youtube.com/results?search_query=lofi+beats" --parser youtube-search
+stophy scrape "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --parser youtube-transcript --json -o .stophy/transcript.json
+stophy scrape "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --parser youtube-comments
+stophy scrape "https://www.youtube.com/@mkbhd" --parser youtube-channel
 
-# read what a video says
-stophy youtube transcript "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -o .stophy/transcript.txt
-stophy tiktok transcript "https://www.tiktok.com/@khaby.lame/video/7137423965982592302" --json
-stophy instagram transcript "https://www.instagram.com/reel/DdG4RIxIPyf/" --json
+# a TikTok profile and one video's transcript
+stophy scrape "https://www.tiktok.com/@khaby.lame" --parser tiktok-profile
+stophy scrape "https://www.tiktok.com/@charlidamelio/video/7137423965982592302" --parser tiktok-transcript
 
-# one video's title, channel, and views
-stophy youtube video dQw4w9WgXcQ --json
-
-# what viewers say
-stophy youtube comments dQw4w9WgXcQ --sort top --json -o .stophy/comments.json
-
-# a creator's recent uploads
-stophy youtube channel @mkbhd --tab videos --json -o .stophy/channel.json
-
-# the same on TikTok
-stophy tiktok profile khaby.lame --json -o .stophy/tiktok-profile.json
-stophy tiktok search "street food" --sort mostLiked --json
+# key needed: TikTok accounts and videos on a topic, an Instagram reel's transcript
+stophy scrape "https://www.tiktok.com/search/user?q=street%20food" --parser tiktok-search
+stophy scrape "https://www.tiktok.com/tag/booktok" --parser tiktok-hashtag
+stophy scrape "https://www.instagram.com/reel/DfS8Xbng4MD/" --parser instagram-transcript
 ```
 
-Run `stophy <source> --help` for every command. The sources here are `youtube`, `tiktok`, and `instagram`.
+**Done when:** you quote the transcript lines or comments that answer the question, with the video's link.
 
-**Done when:** you quote the transcript, comment, or listing text that answers the question, with the video or channel URL.
+## Parsers
+
+| Parser | Page to scrape | Options |
+|---|---|---|
+| `youtube-search` (no key) | youtube.com/results?search_query=... | type, duration, uploadDate, features, cursor |
+| `youtube-video` (no key) | a watch, youtu.be, shorts or live link | |
+| `youtube-transcript` (no key) | a watch, youtu.be, shorts or live link | language, includeTimestamps |
+| `youtube-comments` (no key) | a watch, youtu.be, shorts or live link | comment, sort, cursor |
+| `youtube-channel` (no key) | youtube.com/@handle, with an optional tab | tab, sort, cursor |
+| `youtube-playlist` | youtube.com/playlist?list=... | cursor |
+| `youtube-post` | a community post link, youtube.com/post/... | sort, cursor |
+| `tiktok-video` | a video page or share link | |
+| `tiktok-transcript` (no key) | a video page or share link | language, includeTimestamps |
+| `tiktok-comments` | a video page or share link | comment, cursor |
+| `tiktok-profile` (no key) | tiktok.com/@handle | view: videos, cursor |
+| `tiktok-search` | tiktok.com/search/user?q=... | cursor |
+| `tiktok-hashtag` | tiktok.com/tag/... | cursor |
+| `tiktok-sound` | tiktok.com/music/...-<sound id> | cursor |
+| `tiktok-followers`, `tiktok-following` | tiktok.com/@handle | cursor |
+| `instagram-transcript` | an Instagram reel or video post | language, includeTimestamps |
 
 ## Tips
 
-- To point at one video, give its link or its id, never both. `youtube video`, `youtube transcript` and `youtube comments` take a link or an id (`dQw4w9WgXcQ`). The options are `--videoUrl` and `--videoId`. Channels take `--channelUrl` or `--channelId`, and profiles take `--userUrl` or `--username`.
-- A YouTube transcript costs $0.0015 and comes from the video's captions. Add `--includeTimestamps` for each line with its time, and `--language` to pick one.
-- `tiktok transcript` costs $0.0015 when the video has captions. Without captions, the audio is transcribed for $0.003 plus $0.0015 per 10 seconds, up to 3 minutes. `instagram transcript` always transcribes the audio, for $0.0015 plus $0.0015 per 30 seconds, up to 5 minutes. A transcribed result has `transcribedSeconds`. A longer video is refused, and a refused call is free.
-- Every other command here costs $0.0015.
-- Replies: for `youtube comments`, pass a comment's `repliesCursor` as `--comment`. For `tiktok comments`, pass a comment's `commentId` as `--comment`.
-- A TikTok or Instagram profile returns its videos in `results`, a page at a time. When the output ends with a `cursor`, run the same command with `--cursor <cursor>` for the next page. YouTube search, comments, channels and playlists page the same way.
-- A cursor comes from the site and can expire. Start again from the first page when it does.
-- `youtube post` reads a community post with its comments. `tiktok sound` lists videos that use a sound, by `--audioId`. `instagram profile reels` lists a profile's reels.
+- Save a transcript with `-o` and read it from the file. Add `--parserOptions '{"includeTimestamps":true}'` to cite the moment a line is said.
+- For the replies to one comment, send its id as `--parserOptions '{"comment":"<id>"}'`.
+- TikTok shows video search only to signed-in accounts, so find TikTok videos on a topic with `tiktok-hashtag`.
+- Every call here costs 1 credit, except transcripts made from audio. A TikTok transcript costs 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs 1 credit plus 1 per 30 seconds of audio, up to 5 minutes.
 
 ## See also
 
-- [stophy-social](../stophy-social/SKILL.md): posts on Reddit, Instagram, and other platforms
-- [stophy-shopping](../stophy-shopping/SKILL.md): TikTok Shop products and reviews
-- [stophy-ads](../stophy-ads/SKILL.md): TikTok's ad library
+- [stophy-social](../stophy-social/SKILL.md): posts, profiles and threads on Reddit, Instagram, LinkedIn, X and more
+- [stophy-ads](../stophy-ads/SKILL.md): ads that run on TikTok and Meta

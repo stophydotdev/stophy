@@ -11,7 +11,7 @@
   ],
   "type": "module",
   "scripts": {
-    "check": "oxlint && oxfmt --check && bun scripts/check-text.ts",
+    "check": "oxlint && oxfmt --check && bun scripts/check-text.ts && bun scripts/check-version-bump.ts && bun test scripts",
     "fix": "oxlint --fix && oxfmt --write",
     "changeset": "changeset",
     "version": "changeset version"

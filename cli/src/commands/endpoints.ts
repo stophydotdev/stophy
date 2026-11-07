@@ -13,7 +13,7 @@ export function registerEndpointsCommand(program: Command, endpoints: readonly C
       `
 Examples:
   $ stophy endpoints
-  $ stophy endpoints youtube
+  $ stophy endpoints crawl
   $ stophy --refresh endpoints
 `,
     )

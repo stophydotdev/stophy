@@ -14,6 +14,7 @@ const RESERVED = new Set([
   "status",
   "usage",
   "logs",
+  "parsers",
   "endpoints",
   "describe",
   "help",

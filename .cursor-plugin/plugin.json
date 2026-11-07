@@ -1,6 +1,6 @@
 {
   "name": "stophy",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
   "author": {
     "name": "Stophy"
@@ -11,6 +11,8 @@
   "keywords": [
     "web-data",
     "search",
+    "scrape",
+    "crawl",
     "youtube",
     "reddit",
     "maps",
