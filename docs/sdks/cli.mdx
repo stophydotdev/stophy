@@ -78,7 +78,7 @@ stophy extract status <id>
 - Options that take JSON, like `--formats '["markdown","links"]'`, take it as one quoted argument.
 - A value the command doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
 
-`crawl`, `batch scrape` and `extract` answer with an id. Read the result with `status <id>` and stop a running job with `cancel <id>`. When a status answer has a `next` link, run it again with `--cursor` and the cursor from that link.
+`crawl`, `batch scrape` and `extract` answer with an id. Read the result with `status <id>` and stop a running job with `cancel <id>`. A status answer holds up to 100 finished pages. Wait until the status is `completed`. When it has a `next` link, run it again with `--cursor` and the cursor from that link.
 
 ## Read a site with a parser
 
