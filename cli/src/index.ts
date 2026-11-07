@@ -50,7 +50,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
       "after",
       `
 Run stophy <command> --help to see its options.
-Some calls need no key. Output is JSON when piped, or with --json.
+Some calls need no key. Calls and status print JSON when piped, or with --json.
 
 Examples:
   $ stophy search "bun runtime" --limit 5

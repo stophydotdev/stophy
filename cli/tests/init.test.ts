@@ -151,7 +151,7 @@ test("a failed step does not stop the others, and the run reports it", async () 
 
   expect(calls.map((call) => call[0])).toEqual(["npx", "claude"]);
   expect(output).toContain("offline");
-  expect(message).toBe("Setup did not finish: Skills.");
+  expect(message).toBe("Setup did not finish. Skills: offline");
 });
 
 test("the manual snippet for an unknown agent is valid JSON", () => {

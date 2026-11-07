@@ -10,9 +10,9 @@ const answerSchema = z.string();
 
 const err = (msg: string) => process.stderr.write(`${msg}\n`);
 
-export async function prompt(question: string): Promise<string> {
+export async function prompt(question: string, secret = false): Promise<string> {
   const { value } = await prompts({
-    type: "text",
+    type: secret ? "password" : "text",
     name: "value",
     message: question,
   });

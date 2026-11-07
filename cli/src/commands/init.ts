@@ -136,7 +136,7 @@ async function authStep(options: InitOptions, dependencies: InitDependencies): P
   if (!(await wanted(options, dependencies, "Log in to Stophy in your browser?"))) {
     return { name, outcome: "skipped", note: "declined" };
   }
-  err("Opening browser authentication...");
+  err("Logging in...");
   try {
     await dependencies.browserLogin();
     return { name, outcome: "done", note: "logged in" };
@@ -216,7 +216,9 @@ export async function runInit(
 
   const failed = results.filter((result) => result.outcome === "failed");
   if (failed.length > 0) {
-    throw new CliError(`Setup did not finish: ${failed.map((result) => result.name).join(", ")}.`);
+    throw new CliError(
+      `Setup did not finish. ${failed.map((result) => `${result.name}: ${result.note}`).join(" ")}`,
+    );
   }
 }
 
