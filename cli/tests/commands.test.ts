@@ -6,6 +6,7 @@ import type { JsonValue } from "../src/json.ts";
 const home = `/tmp/stophy-cli-commands-${process.pid}`;
 mkdirSync(home, { recursive: true });
 process.env.XDG_CONFIG_HOME = home;
+delete process.env.CI;
 
 test("nested catalog commands reach the matching endpoint", async () => {
   const { registerDynamicCommands } = await import("../src/commands/dynamic.ts");
