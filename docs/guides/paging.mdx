@@ -74,25 +74,65 @@ for _ in range(3):
 
 ## Crawl and batch scrape
 
-[Crawl status](/api-reference/endpoint/crawl-status) and [batch scrape status](/api-reference/endpoint/batch-scrape-status) return up to 10 pages in `data`. When there are more, the response has `next`, a full URL. Call it with the same key for the next 10. The last one has no `next`.
+[Crawl](/api-reference/endpoint/crawl) and [batch scrape](/api-reference/endpoint/batch-scrape) answer at once with an `id`. Read the pages with [crawl status](/api-reference/endpoint/crawl-status) or [batch scrape status](/api-reference/endpoint/batch-scrape-status). Reading status is free, and it needs the same key.
 
-A crawl of 30 pages on bun.com/docs came back in three status responses:
+A status answer holds up to 100 finished pages or 2 MB, whichever comes first. This is separate from the `limit` you sent to crawl, which is how many pages the crawl reads in all. A crawl with `limit` 30 is usually read in one status call once it is done, and one with `limit` 250 in three.
+
+While the job runs, `status` is `scraping`. `total` is the number of pages found so far, and it grows. `completed` is how many are finished. `data` holds the finished pages. `next` appears only when more finished pages are waiting, so it never leads to an empty `data`.
+
+1. Poll the status URL every few seconds until `status` is `completed`, `failed` or `cancelled`.
+2. Follow `next` until the answer has none. Each `next` is a full URL on api.stophy.dev. Call it with the same key.
 
 ```json
-{ "status": "completed", "total": 30, "completed": 30, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=-IEUnTHVpage_10", "data": [ ... ] }
-{ "status": "completed", "total": 30, "completed": 30, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=1owY_-gJpage_20", "data": [ ... ] }
-{ "status": "completed", "total": 30, "completed": 30, "data": [ ... ] }
+{ "status": "completed", "total": 250, "completed": 250, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=-IEUnTHVpage_100", "data": [ ... ] }
+{ "status": "completed", "total": 250, "completed": 250, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=1owY_-gJpage_200", "data": [ ... ] }
+{ "status": "completed", "total": 250, "completed": 250, "data": [ ... ] }
 ```
 
-While the job runs, `next` also appears, and `status` is `scraping`. Reading status is free.
+<CodeGroup>
 
 ```ts TypeScript
-const pages = [];
-let next: string | undefined = `https://api.stophy.dev/v1/crawl/${id}`;
+const headers = { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` };
+const url = `https://api.stophy.dev/v1/crawl/${id}`;
+const over = new Set(["completed", "failed", "cancelled"]);
+
+let status = await (await fetch(url, { headers })).json();
+while (!over.has(status.status)) {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  status = await (await fetch(url, { headers })).json();
+}
+
+const pages = [...status.data];
+let next: string | undefined = status.next;
 while (next !== undefined) {
-  const response = await fetch(next, { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } });
-  const status = await response.json();
-  pages.push(...status.data);
-  next = status.next;
+  const more = await (await fetch(next, { headers })).json();
+  pages.push(...more.data);
+  next = more.next;
 }
 ```
+
+```python Python
+import os
+import time
+
+import requests
+
+headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
+url = f"https://api.stophy.dev/v1/crawl/{job_id}"
+
+status = requests.get(url, headers=headers).json()
+while status["status"] not in ("completed", "failed", "cancelled"):
+    time.sleep(3)
+    status = requests.get(url, headers=headers).json()
+
+pages = list(status["data"])
+next_url = status.get("next")
+while next_url:
+    more = requests.get(next_url, headers=headers).json()
+    pages.extend(more["data"])
+    next_url = more.get("next")
+```
+
+</CodeGroup>
+
+Batch scrape works the same way at `https://api.stophy.dev/v1/batch/scrape/<id>`. A crawl and its pages are kept for 24 hours.

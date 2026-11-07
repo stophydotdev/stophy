@@ -33,7 +33,7 @@ Every error has this flat shape.
 | `success` | Always `false`. |
 | `error` | What went wrong and what to do next, in plain words. |
 | `code` | A stable code from the table below. |
-| `retryAfterSeconds` | Present when you should wait a set time. The `Retry-After` header has the same value. |
+| `retryAfterSeconds` | Present when you should wait a set time. The `Retry-After` header has the same value. When it is absent, back off as [Errors and retries](/guides/errors-and-retries) says. |
 | `signupUrl` | Present on `apiKeyRequired`, `freeLimit` and a key that is not valid. Where a person gets a key. |
 | `signup` | Sent next to `signupUrl`: `POST https://api.stophy.dev/v1/signup`, the call that gets an agent a key. See [Sign up](/api-reference/endpoint/sign-up). |
 
@@ -128,4 +128,4 @@ These come from signing in to the CLI and from invites, not from a data endpoint
 
 ## Retrying
 
-Retry only the codes marked Yes. [Errors and retries](/guides/errors-and-retries) has a retry loop for TypeScript and Python.
+Retry only the codes marked Yes. [Errors and retries](/guides/errors-and-retries) has the wait and the most tries for each code, and a retry loop for TypeScript and Python.
