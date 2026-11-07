@@ -1,4 +1,5 @@
-import { chmodSync } from "node:fs";
+import { accessSync, chmodSync, constants, existsSync } from "node:fs";
+import { dirname } from "node:path";
 import Conf from "conf";
 import { z } from "zod";
 import { CliError } from "./errors.js";
@@ -8,7 +9,7 @@ const pendingSignup = z.object({ code: z.string(), claimUrl: z.string(), expires
 export type PendingSignup = z.infer<typeof pendingSignup>;
 
 export interface CliConfig {
-  pendingSignup?: PendingSignup | undefined;
+  pendingSignups?: PendingSignup[] | undefined;
   apiKey?: string;
   baseUrl?: string;
   frontendUrl?: string;
@@ -29,6 +30,17 @@ export function getConfigPath() {
   return store.path;
 }
 
+export function assertConfigWritable() {
+  const target = existsSync(store.path) ? store.path : dirname(store.path);
+  try {
+    accessSync(existsSync(target) ? target : dirname(target), constants.W_OK);
+  } catch {
+    throw new CliError(
+      `Can't save a key to ${store.path}. Set STOPHY_API_KEY instead, or make that file writable.`,
+    );
+  }
+}
+
 function secureConfigFile() {
   try {
     chmodSync(store.path, 0o600);
@@ -37,13 +49,16 @@ function secureConfigFile() {
 
 export async function loadConfig(): Promise<CliConfig> {
   try {
+    const listed = z.array(pendingSignup).safeParse(store.get("pendingSignups")).data ?? [];
+    const legacy = pendingSignup.safeParse(store.get("pendingSignup")).data;
+    const pendingSignups = legacy === undefined ? listed : [...listed, legacy];
     return {
       apiKey: normalizeApiKey(store.get("apiKey")),
       baseUrl: normalizeBaseUrl(store.get("baseUrl")),
       frontendUrl: normalizeBaseUrl(store.get("frontendUrl")),
       sessionCookie: normalizeSessionCookie(store.get("sessionCookie")),
       sessionExpiresAt: normalizeSessionExpiry(store.get("sessionExpiresAt")),
-      pendingSignup: pendingSignup.safeParse(store.get("pendingSignup")).data,
+      pendingSignups: pendingSignups.length > 0 ? pendingSignups : undefined,
     };
   } catch {
     throw new CliError(`Failed to read config at ${store.path}.`);
@@ -57,7 +72,7 @@ export async function saveConfig(config: CliConfig) {
     frontendUrl: config.frontendUrl,
     sessionCookie: config.sessionCookie,
     sessionExpiresAt: config.sessionExpiresAt,
-    pendingSignup: config.pendingSignup,
+    pendingSignups: config.pendingSignups?.length ? config.pendingSignups : undefined,
   };
   secureConfigFile();
 }
@@ -65,7 +80,7 @@ export async function saveConfig(config: CliConfig) {
 export async function setStoredApiKey(apiKey: string) {
   const config = await loadConfig();
   config.apiKey = normalizeApiKey(apiKey);
-  config.pendingSignup = undefined;
+  config.pendingSignups = undefined;
   await saveConfig(config);
   return config;
 }

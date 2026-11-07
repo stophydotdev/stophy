@@ -45,7 +45,7 @@ async function getStatus(): Promise<StatusResult> {
   if (!authenticated) {
     return {
       ...result,
-      next: "Run stophy login. It prints a link for a person to approve, then saves the key.",
+      next: "Run stophy login. It prints a link for a person to approve. Run it again after they approve to save the key, or set STOPHY_API_KEY.",
     };
   }
 

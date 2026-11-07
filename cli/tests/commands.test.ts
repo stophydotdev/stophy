@@ -239,7 +239,7 @@ test("an agent with no key gets the claim link, and the code stays on disk", asy
     fetched.mockRestore();
   }
   expect(seen).toEqual(["/v1/web/search", "/v1/signup"]);
-  expect((await loadConfig()).pendingSignup?.code).toBe(CODE);
+  expect((await loadConfig()).pendingSignups?.map((entry) => entry.code)).toEqual([CODE]);
 });
 
 test("the next run polls the saved code once and gives the same link while it waits", async () => {
@@ -261,7 +261,7 @@ test("once a person approves, the key is saved and the call goes through", async
     fetched.mockRestore();
   }
   expect(seen).toEqual(["/v1/web/search", "/v1/signup/poll", "/v1/web/search with key"]);
-  expect(await loadConfig()).toMatchObject({ apiKey: KEY, pendingSignup: undefined });
+  expect(await loadConfig()).toMatchObject({ apiKey: KEY, pendingSignups: undefined });
 });
 
 test("an expired link is dropped and the agent signs up again", async () => {
@@ -339,4 +339,141 @@ test("login and status never wait for a person when an agent runs them", async (
     fetched.mockRestore();
   }
   expect(seen).toEqual(["/v1/signup"]);
+});
+
+const pollServer = (answer: (code: string) => Response | Promise<Response>) => {
+  const seen: string[] = [];
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    const key = new Headers(init?.headers).get("authorization");
+    seen.push(`${path}${key === null ? "" : " with key"}`);
+    if (path === "/v1/signup") {
+      return reply(201, {
+        success: true,
+        data: { claimUrl: CLAIM_URL, code: CODE, expiresAt: EXPIRES_AT },
+      });
+    }
+    if (path === "/v1/signup/poll") {
+      const body = JSON.parse(String(init?.body ?? "{}"));
+      return answer(String(body.code));
+    }
+    return key === null
+      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
+      : reply(200, { success: true, data: {}, creditsUsed: 1, requestId: "req-2" });
+  });
+  return { seen, fetched };
+};
+
+const pending = (code: string) => ({ claimUrl: CLAIM_URL, code, expiresAt: EXPIRES_AT });
+
+test("two signups started in parallel both stay, and either approval is collected", async () => {
+  await agentWithoutKey();
+  const { loadConfig, saveConfig } = await import("../src/config.ts");
+  await saveConfig({
+    ...(await loadConfig()),
+    pendingSignups: [pending("first"), pending("second")],
+  });
+  const { seen, fetched } = pollServer((code) =>
+    code === "first"
+      ? reply(200, { success: true, data: { apiKey: KEY } })
+      : reply(202, { success: true, data: { status: "waiting", claimUrl: CLAIM_URL } }),
+  );
+  try {
+    expect((await callWithSignup()).status).toBe(200);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search", "/v1/signup/poll", "/v1/web/search with key"]);
+  expect((await loadConfig()).apiKey).toBe(KEY);
+});
+
+test("a server error while polling keeps the signup instead of failing", async () => {
+  await agentWithoutKey();
+  const { loadConfig, saveConfig } = await import("../src/config.ts");
+  await saveConfig({ ...(await loadConfig()), pendingSignups: [pending(CODE)] });
+  const { seen, fetched } = pollServer(() =>
+    reply(503, {
+      success: false,
+      error: { code: "internalError", message: "Busy.", retryable: true },
+    }),
+  );
+  try {
+    await expect(callWithSignup()).rejects.toMatchObject(claimRequired);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search", "/v1/signup/poll"]);
+  expect((await loadConfig()).pendingSignups?.map((entry) => entry.code)).toEqual([CODE]);
+});
+
+test("a code another run already collected counts as approved, not expired", async () => {
+  await agentWithoutKey();
+  const { loadConfig, saveConfig, setStoredApiKey } = await import("../src/config.ts");
+  await saveConfig({ ...(await loadConfig()), pendingSignups: [pending(CODE)] });
+  const { fetched } = pollServer(async () => {
+    await setStoredApiKey(KEY);
+    return reply(404, { success: false, error: { ...apiKeyRequired.error, code: "notFound" } });
+  });
+  try {
+    expect((await callWithSignup()).status).toBe(200);
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("in CI with no key the CLI asks for STOPHY_API_KEY and starts no signup", async () => {
+  await agentWithoutKey();
+  process.env.CI = "true";
+  const { seen, fetched } = pollServer(() =>
+    reply(404, { success: false, error: { code: "notFound" } }),
+  );
+  try {
+    await expect(callWithSignup()).rejects.toThrow("STOPHY_API_KEY");
+  } finally {
+    fetched.mockRestore();
+    delete process.env.CI;
+  }
+  expect(seen).toEqual(["/v1/web/search"]);
+});
+
+test("a config the CLI can't write stops before a signup is spent", async () => {
+  await agentWithoutKey();
+  const { chmodSync } = await import("node:fs");
+  const { getConfigPath } = await import("../src/config.ts");
+  const { dirname } = await import("node:path");
+  const { seen, fetched } = pollServer(() =>
+    reply(404, { success: false, error: { code: "notFound" } }),
+  );
+  chmodSync(getConfigPath(), 0o400);
+  chmodSync(dirname(getConfigPath()), 0o500);
+  try {
+    await expect(callWithSignup()).rejects.toThrow("Set STOPHY_API_KEY");
+  } finally {
+    chmodSync(dirname(getConfigPath()), 0o700);
+    chmodSync(getConfigPath(), 0o600);
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual(["/v1/web/search"]);
+});
+
+test("a key piped to login --api-key is saved, not replaced by a signup", async () => {
+  const configHome = `${home}/piped`;
+  mkdirSync(configHome, { recursive: true });
+  const run = Bun.spawn(["bun", "src/index.ts", "login", "--api-key"], {
+    env: {
+      ...process.env,
+      XDG_CONFIG_HOME: configHome,
+      STOPHY_API_KEY: "",
+      STOPHY_BASE_URL: "http://127.0.0.1:9",
+      STOPHY_NO_UPDATE_CHECK: "1",
+    },
+    stdin: new Blob([`${KEY}\n`]),
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const out = await new Response(run.stdout).text();
+  expect(await run.exited).toBe(0);
+  expect(JSON.parse(out)).toEqual({ success: true, data: { authenticated: true } });
+  const saved = await Bun.file(`${configHome}/stophy/config.json`).json();
+  expect(saved.apiKey).toBe(KEY);
 });

@@ -3,6 +3,7 @@ import { agentName } from "./agent.js";
 import { RequestError, request } from "./client.js";
 import {
   type PendingSignup,
+  assertConfigWritable,
   loadConfig,
   resolveRuntimeConfig,
   saveConfig,
@@ -24,7 +25,7 @@ const collected = z.object({
 export const canPrompt = (): boolean => Boolean(process.stdin.isTTY) && agentName() === undefined;
 
 const claimMessage = ({ claimUrl, expiresAt }: PendingSignup) =>
-  `Ask your person to open ${claimUrl} to approve this account. The link works until ${expiresAt}. Then run the same command again.`;
+  `Ask your person to open ${claimUrl} to approve this account. The link works until ${expiresAt}. Then run the same command again. Or set STOPHY_API_KEY.`;
 
 const waitMessage = ({ claimUrl, expiresAt }: PendingSignup) =>
   `Open ${claimUrl} to approve this account. The link works until ${expiresAt}.\nWaiting for approval...\n`;
@@ -42,6 +43,7 @@ function claimRequired(pending: PendingSignup): RequestError {
 }
 
 async function startSignup(): Promise<PendingSignup> {
+  assertConfigWritable();
   const response = await request({
     method: "POST",
     path: "/v1/signup",
@@ -50,7 +52,8 @@ async function startSignup(): Promise<PendingSignup> {
   const parsed = started.safeParse(response.json);
   if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
   const pending = parsed.data.data;
-  await saveConfig({ ...(await loadConfig()), pendingSignup: pending });
+  const config = await loadConfig();
+  await saveConfig({ ...config, pendingSignups: [...(config.pendingSignups ?? []), pending] });
   return pending;
 }
 
@@ -68,32 +71,61 @@ async function collect(pending: PendingSignup): Promise<"approved" | "waiting" |
     await setStoredApiKey(parsed.data.data.apiKey);
     return "approved";
   } catch (error) {
-    if (error instanceof RequestError && statusFrom(error) === 404) return "gone";
+    if (!(error instanceof RequestError)) throw error;
+    if (statusFrom(error) === 404) {
+      return (await resolveRuntimeConfig()).apiKey ? "approved" : "gone";
+    }
+    if (error.failure.retryable) return "waiting";
     throw error;
   }
 }
 
+async function pollAll(list: readonly PendingSignup[]): Promise<PendingSignup[] | "approved"> {
+  const open: PendingSignup[] = [];
+  for (const pending of list) {
+    const state = await collect(pending);
+    if (state === "approved") return "approved";
+    if (state === "waiting") open.push(pending);
+  }
+  if (open.length !== list.length) {
+    await saveConfig({ ...(await loadConfig()), pendingSignups: open });
+  }
+  return open;
+}
+
+const LAST_WAIT_MS = 60_000;
+
+const deadlineOf = (list: readonly PendingSignup[]) =>
+  Math.max(
+    Date.now() + LAST_WAIT_MS,
+    ...list.map(({ expiresAt }) => Date.parse(expiresAt) + LAST_WAIT_MS).filter(Number.isFinite),
+  );
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function ensureKey(): Promise<void> {
-  let pending = (await loadConfig()).pendingSignup;
-  if (pending) {
-    const state = await collect(pending);
-    if (state === "approved") return;
-    if (state === "gone") pending = undefined;
+  let open = await pollAll((await loadConfig()).pendingSignups ?? []);
+  if (open === "approved") return;
+  if (process.env.CI) {
+    throw new CliError(
+      "No API key. Set STOPHY_API_KEY from your CI secrets. A signup needs a person to approve it.",
+    );
   }
-  pending ??= await startSignup();
+  const pending = open.at(-1) ?? (await startSignup());
   if (!canPrompt()) throw claimRequired(pending);
 
   process.stderr.write(waitMessage(pending));
-  while (Date.parse(pending.expiresAt) > Date.now()) {
+  open = [...open.filter((entry) => entry !== pending), pending];
+  const deadline = deadlineOf(open);
+  while (open.length > 0 && Date.now() < deadline) {
     await sleep(POLL_MS);
-    const state = await collect(pending);
-    if (state === "approved") return;
-    if (state === "gone") break;
+    const result = await pollAll(open);
+    if (result === "approved") return;
+    open = result;
   }
-  await saveConfig({ ...(await loadConfig()), pendingSignup: undefined });
-  throw new CliError("The link expired. Run the command again to get a new one.");
+  throw new CliError(
+    "That link expired or was already used. Run the command again to get a new one.",
+  );
 }
 
 export async function withSignup<Value>(send: () => Promise<Value>): Promise<Value> {
