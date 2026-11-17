@@ -15,7 +15,7 @@ allowed-tools:
 
 Gather sources from several angles, read them, and cite them.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search, scrape, `reddit-search` and `google-patents` work without a key, 10 calls a minute and 50 a day. Google Scholar and extract need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search, scrape, `reddit-search` and `google-patents` work without a key, 10 calls a minute and 50 a day. Extract needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -25,8 +25,7 @@ stophy search "malaria vaccine efficacy" --limit 3 --scrapeOptions.formats '["ma
 stophy search "malaria vaccine efficacy" --categories '["research"]' --limit 3
 stophy search "malaria vaccine" --sources '["news"]' --tbs qdr:m --limit 3
 
-# 2. papers, and what people say
-stophy scrape "https://scholar.google.com/scholar?q=malaria+vaccine+efficacy&scisbd=1" --parser google-scholar
+# 2. what people say
 stophy scrape "https://www.reddit.com/search/?q=malaria+vaccine" --parser reddit-search
 
 # 3. read a source in full, or pull the same fields from several
@@ -46,4 +45,4 @@ stophy extract --urls "https://www.nature.com/articles/s41467-025-58963-4" --pro
 ## See also
 
 - [stophy-search](../stophy-search/SKILL.md), [stophy-scrape](../stophy-scrape/SKILL.md), [stophy-extract](../stophy-extract/SKILL.md)
-- [stophy-web](../stophy-web/SKILL.md): Google Scholar, Patents and Trends
+- [stophy-web](../stophy-web/SKILL.md): Google Patents and Trends

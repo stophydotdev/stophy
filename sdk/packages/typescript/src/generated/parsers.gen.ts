@@ -40,7 +40,6 @@ export type ParserName =
 	| "google-play-app"
 	| "google-play-reviews"
 	| "google-play-search"
-	| "google-scholar"
 	| "google-trends"
 	| "indeed-job"
 	| "indeed-search"

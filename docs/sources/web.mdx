@@ -1,8 +1,8 @@
 ---
 title: 'Search and the web'
-description: 'Read Google Scholar, Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.'
+description: 'Read Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.'
 og:title: 'Search and the web | Stophy'
-og:description: 'Read Google Scholar, Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.'
+og:description: 'Read Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.'
 icon: 'magnifying-glass'
 ---
 
@@ -15,7 +15,7 @@ Each parser reads one kind of page and returns the site's own data. Send the pag
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://scholar.google.com/scholar?q=attention+is+all+you+need","formats":[{"type":"json","parser":"google-scholar"}]}'
+  -d '{"url":"https://patents.google.com/?q=solid+state+battery&assignee=Toyota","formats":[{"type":"json","parser":"google-patents"}]}'
 ```
 ```typescript TypeScript
 const response = await fetch("https://api.stophy.dev/v1/scrape", {
@@ -25,8 +25,8 @@ const response = await fetch("https://api.stophy.dev/v1/scrape", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    url: "https://scholar.google.com/scholar?q=attention+is+all+you+need",
-    formats: [{ type: "json", parser: "google-scholar" }],
+    url: "https://patents.google.com/?q=solid+state+battery&assignee=Toyota",
+    formats: [{ type: "json", parser: "google-patents" }],
   }),
 });
 console.log(await response.json());
@@ -40,63 +40,22 @@ response = requests.post(
     "https://api.stophy.dev/v1/scrape",
     headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
     json={
-        "url": "https://scholar.google.com/scholar?q=attention+is+all+you+need",
-        "formats": [{"type": "json", "parser": "google-scholar"}],
+        "url": "https://patents.google.com/?q=solid+state+battery&assignee=Toyota",
+        "formats": [{"type": "json", "parser": "google-patents"}],
     },
 )
 print(response.json())
 ```
 </CodeGroup>
 
-Send a parser's options in the same format, like `{"type": "json", "parser": "google-scholar", "options": {...}}`. See [Parsers](/guides/parsers) for how they work.
+Send a parser's options in the same format, like `{"type": "json", "parser": "google-patents", "options": {...}}`. See [Parsers](/guides/parsers) for how they work.
 
 | Parser | Reads | Price |
 | --- | --- | --- |
-| [`google-scholar`](#google-scholar) | A Google Scholar results page with a search in q or a cites id. | 1 credit per call. |
 | [`google-patents`](#google-patents) | A Google Patents search page with q, inventor or assignee. | 1 credit per call. |
 | [`google-trends`](#google-trends) | A Google Trends explore page with search terms in q, or the trending now page. | 1 credit per call. |
 | [`emails`](#emails) | Any public web page. | 1 credit per call. |
 | [`phone-numbers`](#phone-numbers) | Any public web page. | 1 credit per call. |
-
-## google-scholar
-
-A Google Scholar results page with a search in q or a cites id.
-
-- **Example page:** https://scholar.google.com/scholar?q=attention+is+all+you+need
-- **Returns:** `title`, `url`, `format`, `authors`, `publication`, `year`.
-- **Options:** `citesId` (A result's citesId: lists the works that cite it, like Scholar's Cited by), `yearFrom` (Scholar's own Custom range: from this year), `yearTo` (Scholar's own Custom range: up to this year), `sort` (Scholar's own sort. Newest lists recent additions first), `type` (Scholar's own Any type, Review articles, or Case law), `includePatents`, `includeCitations` (Scholar's own include citations: works known only from citations), `page` (Page number, starting at 1).
-- **Price:** 1 credit per call.
-
-<Accordion title="Example response">
-
-```json
-{
-  "results": [
-    {
-      "title": "Attention is all you need",
-      "url": "https://proceedings.neurips.cc/paper_files/paper/7181-attention-is",
-      "format": "pdf",
-      "authors": [
-        "A Vaswani",
-        "N Shazeer",
-        "N Parmar"
-      ],
-      "publication": "Advances in neural …",
-      "year": 2017,
-      "publisher": "proceedings.neurips.cc",
-      "snippet": "… to attend to all positions in the decoder up to and including that position. We need to prevent … We implement this…",
-      "citations": 279946,
-      "citesId": "2960712678066186980",
-      "versions": 26,
-      "pdfUrl": "https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf?src_trk=em66c5166…",
-      "position": 1
-    }
-  ],
-  "page": 1
-}
-```
-
-</Accordion>
 
 ## google-patents
 

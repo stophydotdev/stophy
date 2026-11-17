@@ -115,7 +115,7 @@ Site data:
 | [`stophy-apps`](./skills/stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
 | [`stophy-real-estate`](./skills/stophy-real-estate/SKILL.md) | Zillow and Realtor.com homes for sale, for rent and sold |
 | [`stophy-ads`](./skills/stophy-ads/SKILL.md) | Meta, Google, TikTok, and LinkedIn ad libraries |
-| [`stophy-web`](./skills/stophy-web/SKILL.md) | Google Scholar, Patents and Trends |
+| [`stophy-web`](./skills/stophy-web/SKILL.md) | Google Patents and Trends |
 
 ## For agents
 

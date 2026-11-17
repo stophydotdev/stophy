@@ -1050,7 +1050,7 @@
     },
     {
       "source": "/api-reference/endpoint/google-scholar",
-      "destination": "/sources/web#google-scholar"
+      "destination": "/sources/web"
     },
     {
       "source": "/api-reference/endpoint/google-search",
