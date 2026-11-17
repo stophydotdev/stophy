@@ -48,7 +48,7 @@ For one site's data, use its parser: `stophy scrape "<the site's page URL>" --pa
 | App Store and Google Play | [stophy-apps](../stophy-apps/SKILL.md) |
 | Zillow and Realtor.com | [stophy-real-estate](../stophy-real-estate/SKILL.md) |
 | Meta, Google, TikTok and LinkedIn ad libraries | [stophy-ads](../stophy-ads/SKILL.md) |
-| Google Scholar, Patents and Trends | [stophy-web](../stophy-web/SKILL.md) |
+| Google Patents and Trends | [stophy-web](../stophy-web/SKILL.md) |
 
 For a bigger job, follow a workflow: [stophy-lead-gen](../stophy-lead-gen/SKILL.md), [stophy-job-postings](../stophy-job-postings/SKILL.md), [stophy-shop](../stophy-shop/SKILL.md), [stophy-competitive-intel](../stophy-competitive-intel/SKILL.md) or [stophy-deep-research](../stophy-deep-research/SKILL.md).
 

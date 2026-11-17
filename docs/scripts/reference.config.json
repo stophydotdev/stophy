@@ -214,9 +214,8 @@
       "slug": "web",
       "title": "Search and the web",
       "icon": "magnifying-glass",
-      "description": "Read Google Scholar, Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.",
+      "description": "Read Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.",
       "parsers": [
-        "google-scholar",
         "google-patents",
         "google-trends",
         "emails",
