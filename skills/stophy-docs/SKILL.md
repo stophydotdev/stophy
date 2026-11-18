@@ -15,7 +15,7 @@ allowed-tools:
 
 Answer from the docs as they are today, not from memory.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search, map and scrape work without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Search, map and scrape work without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -33,10 +33,10 @@ stophy scrape "https://bun.com/docs/runtime/sqlite" --maxChars 1500
 ## Tips
 
 - Search with `--includeDomains` set to the docs site. If you don't know the site, search without it first and take the official domain from the results.
-- `map --search` finds pages a search misses, such as API reference pages. It costs 1 credit for the whole list.
+- `map --search` finds pages a search misses, such as API reference pages. It costs $0.0005 for the whole list.
 - Save a long page with `-o page.md` and read the part you need from the file, instead of cutting it with `--maxChars`.
 - For a release or a changelog, scrape the project's releases or changelog page and quote the version line.
-- A search costs 2 credits per 10 results, and a scrape 1 credit.
+- A search costs $0.001 per 10 results, and a scrape $0.001.
 
 ## See also
 

@@ -58,9 +58,9 @@ def test_exposes_underlying_client():
 
 def test_works_as_context_manager():
     with make_client(
-        {"json": {"balanceMicros": 1, "creditsUsed": 0, "requestCount": 0}}
+        {"json": {"balanceMicros": 1, "balanceUsd": 0, "costUsd": 0, "requestCount": 0}}
     )[0] as client:
-        assert client.usage()["creditsUsed"] == 0
+        assert client.usage()["costUsd"] == 0
 
 
 def test_reads_api_key_and_base_url_from_environment(monkeypatch):
@@ -75,7 +75,7 @@ def test_reads_api_key_and_base_url_from_environment(monkeypatch):
             json={
                 "success": True,
                 "data": {"results": []},
-                "creditsUsed": 1,
+                "costUsd": 0.001,
                 "requestId": "r",
             },
             request=request,

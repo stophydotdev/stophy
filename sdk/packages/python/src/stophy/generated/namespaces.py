@@ -5,59 +5,72 @@ from __future__ import annotations
 from typing import Any, Literal, Mapping, Protocol
 
 from .models import (
-    BatchScrapeFormatsItemOption5,
+    BatchScrapeFormatsItemOption2,
+    BatchScrapeFormatsItemOption8,
     BatchScrapeResponse,
     BatchScrapeStatusResponse,
+    BatchScrapeWebhookOption1,
     BrowserTaskResponse,
-    BrowserTaskSchema,
     BrowserTaskStatusResponse,
     CrawlCancelResponse,
     CrawlResponse,
     CrawlScrapeOptions,
     CrawlStatusResponse,
-    CrawlWebhook,
-    EndpointCatalog,
+    CrawlWebhookOption1,
+    ExtractAgent,
     ExtractResponse,
     ExtractResultResponse,
-    ExtractSchema,
     ExtractScrapeOptions,
+    ExtractWebhookOption1,
     GetLimitsResponse,
     GetLogsResponse,
     GetUsageResponse,
+    ListEndpointsResponse,
     ListParsersResponse,
-    MapLocation,
     MapResponse,
     MapSitemap,
+    ParseFormatsItemOption0,
+    ParseFormatsItemOption1Option0,
+    ParseFormatsItemOption1Option1,
+    ParseOptions,
+    ParseParsersItem,
     ParseResponse,
     PollSignUpResponse,
     RevokeKeyResponse,
-    ScrapeActionsItemOption0,
-    ScrapeActionsItemOption1,
-    ScrapeActionsItemOption2,
-    ScrapeActionsItemOption3,
-    ScrapeActionsItemOption4,
-    ScrapeActionsItemOption5,
-    ScrapeActionsItemOption6,
-    ScrapeActionsItemOption7,
-    ScrapeActionsItemOption8,
-    ScrapeActionsItemOption9,
-    ScrapeActionsItemOption10,
-    ScrapeFormatsItemOption0,
-    ScrapeFormatsItemOption1,
     ScrapeFormatsItemOption2,
-    ScrapeFormatsItemOption3,
-    ScrapeFormatsItemOption4,
-    ScrapeFormatsItemOption5,
-    ScrapeFormatsItemOption6,
+    ScrapeFormatsItemOption8,
     ScrapeLinkStyle,
-    ScrapeLocation,
-    ScrapeParsersItemOption1,
-    ScrapeProfile,
     ScrapeResponse,
     SearchCategoriesItemOption0,
     SearchCategoriesItemOption1,
+    SearchDeveloperPassagesOption1,
+    SearchDeveloperResponse,
     SearchResponse,
     SearchScrapeOptions,
+    SearchScrapeOptionsActionsItemOption0,
+    SearchScrapeOptionsActionsItemOption1,
+    SearchScrapeOptionsActionsItemOption2,
+    SearchScrapeOptionsActionsItemOption3,
+    SearchScrapeOptionsActionsItemOption4,
+    SearchScrapeOptionsActionsItemOption5,
+    SearchScrapeOptionsActionsItemOption6,
+    SearchScrapeOptionsActionsItemOption7,
+    SearchScrapeOptionsActionsItemOption8,
+    SearchScrapeOptionsActionsItemOption9,
+    SearchScrapeOptionsActionsItemOption10,
+    SearchScrapeOptionsFormatsItemOption0,
+    SearchScrapeOptionsFormatsItemOption1,
+    SearchScrapeOptionsFormatsItemOption3,
+    SearchScrapeOptionsFormatsItemOption4,
+    SearchScrapeOptionsFormatsItemOption5,
+    SearchScrapeOptionsFormatsItemOption6,
+    SearchScrapeOptionsFormatsItemOption7,
+    SearchScrapeOptionsFormatsItemOption9,
+    SearchScrapeOptionsLocation,
+    SearchScrapeOptionsParsersItemOption1,
+    SearchScrapeOptionsProfile,
+    SearchScrapeOptionsProxy,
+    SearchScrapeOptionsRedactPIIOption1,
     SearchSourcesItemOption0,
     SearchSourcesItemOption1,
     SearchSourcesItemOption2,
@@ -87,26 +100,6 @@ def _omit_none(values: Mapping[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in values.items() if value is not None}
 
 
-class SyncEndpoints:
-    def __init__(self, call: SyncCall) -> None:
-        self._call = call
-
-    def __call__(
-        self,
-    ) -> EndpointCatalog:
-        return self._call("GET", "/v1/endpoints", {})
-
-
-class SyncParsers:
-    def __init__(self, call: SyncCall) -> None:
-        self._call = call
-
-    def __call__(
-        self,
-    ) -> ListParsersResponse:
-        return self._call("GET", "/v1/parsers", {})
-
-
 class SyncExtractResult:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
@@ -134,29 +127,43 @@ class SyncExtract:
     def __call__(
         self,
         *,
-        urls: list[str],
-        schema: ExtractSchema | None = None,
+        urls: list[str] | None = None,
+        schema: dict[str, str | float | bool | None | list[Any] | dict[str, Any]] | None = None,
         prompt: str | None = None,
-        enable_web_search: Literal[False] | None = None,
+        system_prompt: str | None = None,
+        enable_web_search: bool | None = None,
+        allow_external_links: bool | None = None,
+        agent: ExtractAgent | None = None,
+        webhook: str | ExtractWebhookOption1 | None = None,
         ignore_sitemap: bool | None = None,
         include_subdomains: bool | None = None,
-        show_sources: Literal[False] | None = None,
+        limit: int | None = None,
+        timeout: int | None = None,
+        show_sources: bool | None = None,
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         ignore_invalid_urls: bool | None = None,
+        idempotency_key: str | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
                 "urls": urls,
                 "schema": schema,
                 "prompt": prompt,
+                "systemPrompt": system_prompt,
                 "enableWebSearch": enable_web_search,
+                "allowExternalLinks": allow_external_links,
+                "agent": agent,
+                "webhook": webhook,
                 "ignoreSitemap": ignore_sitemap,
                 "includeSubdomains": include_subdomains,
+                "limit": limit,
+                "timeout": timeout,
                 "showSources": show_sources,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "ignoreInvalidURLs": ignore_invalid_urls,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/extract", values)
@@ -188,15 +195,8 @@ class SyncSignup:
 
     def __call__(
         self,
-        *,
-        scopes: list[Any] | None = None,
     ) -> SignUpResponse:
-        values = _omit_none(
-            {
-                "scopes": scopes,
-            }
-        )
-        return self._call("POST", "/v1/signup", values)
+        return self._call("POST", "/v1/signup", {})
 
 
 class SyncLimits:
@@ -260,9 +260,63 @@ class SyncKey:
         self.revoke = SyncKeyRevoke(call)
 
 
-class SyncSearch:
+class SyncParsers:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
+
+    def __call__(
+        self,
+    ) -> ListParsersResponse:
+        return self._call("GET", "/v1/parsers", {})
+
+
+class SyncEndpoints:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+    ) -> ListEndpointsResponse:
+        return self._call("GET", "/v1/endpoints", {})
+
+
+class SyncSearchDeveloper:
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+
+    def __call__(
+        self,
+        *,
+        query: str,
+        k: int | None = None,
+        types: str | list[str] | None = None,
+        repos: str | list[str] | None = None,
+        language: str | None = None,
+        min_stars: int | None = None,
+        max_stars: int | None = None,
+        passages: bool | SearchDeveloperPassagesOption1 | None = None,
+    ) -> SearchDeveloperResponse:
+        values = _omit_none(
+            {
+                "query": query,
+                "k": k,
+                "types": types,
+                "repos": repos,
+                "language": language,
+                "min_stars": min_stars,
+                "max_stars": max_stars,
+                "passages": passages,
+            }
+        )
+        return self._call("POST", "/v1/search/developer", values)
+
+
+class SyncSearch:
+    developer: SyncSearchDeveloper
+
+    def __init__(self, call: SyncCall) -> None:
+        self._call = call
+        self.developer = SyncSearchDeveloper(call)
 
     def __call__(
         self,
@@ -275,19 +329,19 @@ class SyncSearch:
         categories: list[SearchCategoriesItemOption0 | SearchCategoriesItemOption1] | None = None,
         max_age: int | None = None,
         limit: int | None = None,
+        scrape_limit: int | None = None,
         tbs: str | None = None,
         location: str | None = None,
         country: str | None = None,
+        lang: str | None = None,
         include_domains: list[str] | None = None,
         exclude_domains: list[str] | None = None,
         safe: bool | None = None,
         timeout: int | None = None,
         ignore_invalid_urls: bool | None = None,
         highlights: bool | None = None,
-        domain_tools: Literal[False] | None = None,
-        tool_detail: Literal["compact"] | None = None,
-        threat_protection: dict[str, Any] | None = None,
         scrape_options: SearchScrapeOptions | None = None,
+        idempotency_key: str | None = None,
     ) -> SearchResponse:
         values = _omit_none(
             {
@@ -296,19 +350,19 @@ class SyncSearch:
                 "categories": categories,
                 "maxAge": max_age,
                 "limit": limit,
+                "scrapeLimit": scrape_limit,
                 "tbs": tbs,
                 "location": location,
                 "country": country,
+                "lang": lang,
                 "includeDomains": include_domains,
                 "excludeDomains": exclude_domains,
                 "safe": safe,
                 "timeout": timeout,
                 "ignoreInvalidURLs": ignore_invalid_urls,
                 "highlights": highlights,
-                "domainTools": domain_tools,
-                "toolDetail": tool_detail,
-                "threatProtection": threat_protection,
                 "scrapeOptions": scrape_options,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/search", values)
@@ -323,53 +377,60 @@ class SyncScrape:
         *,
         url: str,
         formats: list[
-            ScrapeFormatsItemOption0
-            | ScrapeFormatsItemOption1
+            SearchScrapeOptionsFormatsItemOption0
+            | SearchScrapeOptionsFormatsItemOption1
             | ScrapeFormatsItemOption2
-            | ScrapeFormatsItemOption3
-            | ScrapeFormatsItemOption4
-            | ScrapeFormatsItemOption5
-            | ScrapeFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption3
+            | SearchScrapeOptionsFormatsItemOption4
+            | SearchScrapeOptionsFormatsItemOption5
+            | SearchScrapeOptionsFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption7
+            | ScrapeFormatsItemOption8
+            | SearchScrapeOptionsFormatsItemOption9
         ]
         | None = None,
         only_main_content: bool | None = None,
-        only_clean_content: Literal[False] | None = None,
+        only_clean_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
+        headers: dict[str, str] | None = None,
         wait_for: int | None = None,
-        mobile: Literal[False] | None = None,
-        skip_tls_verification: Literal[False] | None = None,
+        mobile: bool | None = None,
+        skip_tls_verification: bool | None = None,
         timeout: int | None = None,
-        parsers: list[Literal["pdf"] | ScrapeParsersItemOption1] | None = None,
+        parsers: list[Literal["pdf"] | SearchScrapeOptionsParsersItemOption1] | None = None,
         actions: list[
-            ScrapeActionsItemOption0
-            | ScrapeActionsItemOption1
-            | ScrapeActionsItemOption2
-            | ScrapeActionsItemOption3
-            | ScrapeActionsItemOption4
-            | ScrapeActionsItemOption5
-            | ScrapeActionsItemOption6
-            | ScrapeActionsItemOption7
-            | ScrapeActionsItemOption8
-            | ScrapeActionsItemOption9
-            | ScrapeActionsItemOption10
+            SearchScrapeOptionsActionsItemOption0
+            | SearchScrapeOptionsActionsItemOption1
+            | SearchScrapeOptionsActionsItemOption2
+            | SearchScrapeOptionsActionsItemOption3
+            | SearchScrapeOptionsActionsItemOption4
+            | SearchScrapeOptionsActionsItemOption5
+            | SearchScrapeOptionsActionsItemOption6
+            | SearchScrapeOptionsActionsItemOption7
+            | SearchScrapeOptionsActionsItemOption8
+            | SearchScrapeOptionsActionsItemOption9
+            | SearchScrapeOptionsActionsItemOption10
         ]
         | None = None,
-        location: ScrapeLocation | None = None,
-        remove_base64_images: Literal[True] | None = None,
-        block_ads: Literal[True] | None = None,
-        proxy: Literal["auto"] | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        remove_base64_images: bool | None = None,
+        block_ads: bool | None = None,
+        fast_mode: bool | None = None,
+        proxy: SearchScrapeOptionsProxy | None = None,
         store_in_cache: bool | None = None,
-        lockdown: Literal[False] | None = None,
-        check_prompt_injection: Literal[False] | None = None,
-        redact_pii: Literal[False] | None = None,
-        profile: ScrapeProfile | None = None,
+        lockdown: bool | None = None,
+        check_prompt_injection: bool | None = None,
+        redact_pii: bool | SearchScrapeOptionsRedactPIIOption1 | None = None,
+        profile: SearchScrapeOptionsProfile | None = None,
         zero_data_retention: bool | None = None,
-        domain_tools: Literal[False] | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
+        offset: int | None = None,
+        query: str | None = None,
+        idempotency_key: str | None = None,
     ) -> ScrapeResponse:
         values = _omit_none(
             {
@@ -381,6 +442,7 @@ class SyncScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
+                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -390,6 +452,7 @@ class SyncScrape:
                 "location": location,
                 "removeBase64Images": remove_base64_images,
                 "blockAds": block_ads,
+                "fastMode": fast_mode,
                 "proxy": proxy,
                 "storeInCache": store_in_cache,
                 "lockdown": lockdown,
@@ -397,9 +460,11 @@ class SyncScrape:
                 "redactPII": redact_pii,
                 "profile": profile,
                 "zeroDataRetention": zero_data_retention,
-                "domainTools": domain_tools,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
+                "offset": offset,
+                "query": query,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/scrape", values)
@@ -413,10 +478,12 @@ class SyncBrowserTaskStatus:
         self,
         *,
         id: str,
+        idempotency_key: str | None = None,
     ) -> BrowserTaskStatusResponse:
         values = _omit_none(
             {
                 "id": id,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/browser/task/status", values)
@@ -435,9 +502,10 @@ class SyncBrowserTask:
         url: str,
         goal: str,
         values: str | None = None,
-        schema: BrowserTaskSchema | None = None,
+        schema: dict[str, str | float | bool | None | list[Any] | dict[str, Any]] | None = None,
         max_steps: int | None = None,
         max_cost: float | None = None,
+        idempotency_key: str | None = None,
     ) -> BrowserTaskResponse:
         values = _omit_none(
             {
@@ -447,6 +515,7 @@ class SyncBrowserTask:
                 "schema": schema,
                 "maxSteps": max_steps,
                 "maxCost": max_cost,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/browser/task", values)
@@ -467,17 +536,62 @@ class SyncParse:
     def __call__(
         self,
         *,
-        file: str,
+        formats: list[
+            ParseFormatsItemOption0
+            | ParseFormatsItemOption1Option0
+            | ParseFormatsItemOption1Option1
+        ]
+        | None = None,
+        parsers: list[ParseParsersItem] | None = None,
+        only_main_content: bool | None = None,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
+        remove_base64_images: bool | None = None,
+        zero_data_retention: bool | None = None,
+        origin: str | None = None,
+        integration: str | None = None,
+        fast_mode: Any | None = None,
+        mobile: Any | None = None,
+        block_ads: Any | None = None,
+        skip_tls_verification: Any | None = None,
+        timeout: Any | None = None,
+        headers: Any | None = None,
+        proxy: Any | None = None,
+        location: Any | None = None,
+        profile: Any | None = None,
+        upload_ref: str | None = None,
+        file: str | None = None,
         filename: str | None = None,
         max_pages: int | None = None,
-        zero_data_retention: bool | None = None,
+        options: ParseOptions | None = None,
+        idempotency_key: str | None = None,
     ) -> ParseResponse:
         values = _omit_none(
             {
+                "formats": formats,
+                "parsers": parsers,
+                "onlyMainContent": only_main_content,
+                "includeTags": include_tags,
+                "excludeTags": exclude_tags,
+                "removeBase64Images": remove_base64_images,
+                "zeroDataRetention": zero_data_retention,
+                "origin": origin,
+                "integration": integration,
+                "fastMode": fast_mode,
+                "mobile": mobile,
+                "blockAds": block_ads,
+                "skipTlsVerification": skip_tls_verification,
+                "timeout": timeout,
+                "headers": headers,
+                "proxy": proxy,
+                "location": location,
+                "profile": profile,
+                "uploadRef": upload_ref,
                 "file": file,
                 "filename": filename,
                 "maxPages": max_pages,
-                "zeroDataRetention": zero_data_retention,
+                "options": options,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/parse", values)
@@ -498,7 +612,8 @@ class SyncMap:
         ignore_cache: bool | None = None,
         limit: int | None = None,
         timeout: int | None = None,
-        location: MapLocation | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        idempotency_key: str | None = None,
     ) -> MapResponse:
         values = _omit_none(
             {
@@ -511,6 +626,7 @@ class SyncMap:
                 "limit": limit,
                 "timeout": timeout,
                 "location": location,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/map", values)
@@ -578,12 +694,15 @@ class SyncCrawl:
         regex_on_full_url: bool | None = None,
         limit: int | None = None,
         crawl_entire_domain: bool | None = None,
-        allow_external_links: Literal[False] | None = None,
+        deduplicate_similar_urls: bool | None = None,
+        allow_external_links: bool | None = None,
         allow_subdomains: bool | None = None,
-        ignore_robots_txt: Literal[False] | None = None,
+        delay: float | None = None,
+        max_concurrency: int | None = None,
         scrape_options: CrawlScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
-        webhook: CrawlWebhook | None = None,
+        webhook: str | CrawlWebhookOption1 | None = None,
+        idempotency_key: str | None = None,
     ) -> CrawlResponse:
         values = _omit_none(
             {
@@ -597,12 +716,15 @@ class SyncCrawl:
                 "regexOnFullURL": regex_on_full_url,
                 "limit": limit,
                 "crawlEntireDomain": crawl_entire_domain,
+                "deduplicateSimilarURLs": deduplicate_similar_urls,
                 "allowExternalLinks": allow_external_links,
                 "allowSubdomains": allow_subdomains,
-                "ignoreRobotsTxt": ignore_robots_txt,
+                "delay": delay,
+                "maxConcurrency": max_concurrency,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "webhook": webhook,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/crawl", values)
@@ -661,61 +783,71 @@ class SyncBatchScrape:
         self,
         *,
         urls: list[str],
-        webhook: CrawlWebhook | None = None,
+        webhook: str | BatchScrapeWebhookOption1 | None = None,
+        max_concurrency: int | None = None,
+        append_to_id: str | None = None,
         ignore_invalid_urls: bool | None = None,
         formats: list[
-            ScrapeFormatsItemOption0
-            | ScrapeFormatsItemOption1
-            | ScrapeFormatsItemOption2
-            | ScrapeFormatsItemOption3
-            | ScrapeFormatsItemOption4
-            | BatchScrapeFormatsItemOption5
-            | ScrapeFormatsItemOption6
+            SearchScrapeOptionsFormatsItemOption0
+            | SearchScrapeOptionsFormatsItemOption1
+            | BatchScrapeFormatsItemOption2
+            | SearchScrapeOptionsFormatsItemOption3
+            | SearchScrapeOptionsFormatsItemOption4
+            | SearchScrapeOptionsFormatsItemOption5
+            | SearchScrapeOptionsFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption7
+            | BatchScrapeFormatsItemOption8
+            | SearchScrapeOptionsFormatsItemOption9
         ]
         | None = None,
         only_main_content: bool | None = None,
-        only_clean_content: Literal[False] | None = None,
+        only_clean_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
+        headers: dict[str, str] | None = None,
         wait_for: int | None = None,
-        mobile: Literal[False] | None = None,
-        skip_tls_verification: Literal[False] | None = None,
+        mobile: bool | None = None,
+        skip_tls_verification: bool | None = None,
         timeout: int | None = None,
-        parsers: list[Literal["pdf"] | ScrapeParsersItemOption1] | None = None,
+        parsers: list[Literal["pdf"] | SearchScrapeOptionsParsersItemOption1] | None = None,
         actions: list[
-            ScrapeActionsItemOption0
-            | ScrapeActionsItemOption1
-            | ScrapeActionsItemOption2
-            | ScrapeActionsItemOption3
-            | ScrapeActionsItemOption4
-            | ScrapeActionsItemOption5
-            | ScrapeActionsItemOption6
-            | ScrapeActionsItemOption7
-            | ScrapeActionsItemOption8
-            | ScrapeActionsItemOption9
-            | ScrapeActionsItemOption10
+            SearchScrapeOptionsActionsItemOption0
+            | SearchScrapeOptionsActionsItemOption1
+            | SearchScrapeOptionsActionsItemOption2
+            | SearchScrapeOptionsActionsItemOption3
+            | SearchScrapeOptionsActionsItemOption4
+            | SearchScrapeOptionsActionsItemOption5
+            | SearchScrapeOptionsActionsItemOption6
+            | SearchScrapeOptionsActionsItemOption7
+            | SearchScrapeOptionsActionsItemOption8
+            | SearchScrapeOptionsActionsItemOption9
+            | SearchScrapeOptionsActionsItemOption10
         ]
         | None = None,
-        location: ScrapeLocation | None = None,
-        remove_base64_images: Literal[True] | None = None,
-        block_ads: Literal[True] | None = None,
-        proxy: Literal["auto"] | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        remove_base64_images: bool | None = None,
+        block_ads: bool | None = None,
+        fast_mode: bool | None = None,
+        proxy: SearchScrapeOptionsProxy | None = None,
         store_in_cache: bool | None = None,
-        lockdown: Literal[False] | None = None,
-        check_prompt_injection: Literal[False] | None = None,
-        redact_pii: Literal[False] | None = None,
-        profile: ScrapeProfile | None = None,
+        lockdown: bool | None = None,
+        check_prompt_injection: bool | None = None,
+        redact_pii: bool | SearchScrapeOptionsRedactPIIOption1 | None = None,
+        profile: SearchScrapeOptionsProfile | None = None,
         zero_data_retention: bool | None = None,
-        domain_tools: Literal[False] | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
+        query: str | None = None,
+        idempotency_key: str | None = None,
     ) -> BatchScrapeResponse:
         values = _omit_none(
             {
                 "urls": urls,
                 "webhook": webhook,
+                "maxConcurrency": max_concurrency,
+                "appendToId": append_to_id,
                 "ignoreInvalidURLs": ignore_invalid_urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
@@ -724,6 +856,7 @@ class SyncBatchScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
+                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -733,6 +866,7 @@ class SyncBatchScrape:
                 "location": location,
                 "removeBase64Images": remove_base64_images,
                 "blockAds": block_ads,
+                "fastMode": fast_mode,
                 "proxy": proxy,
                 "storeInCache": store_in_cache,
                 "lockdown": lockdown,
@@ -740,9 +874,10 @@ class SyncBatchScrape:
                 "redactPII": redact_pii,
                 "profile": profile,
                 "zeroDataRetention": zero_data_retention,
-                "domainTools": domain_tools,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
+                "query": query,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return self._call("POST", "/v1/batch/scrape", values)
@@ -757,14 +892,14 @@ class SyncBatch:
 
 
 class SyncSurface:
-    endpoints: SyncEndpoints
-    parsers: SyncParsers
     extract: SyncExtract
     signup: SyncSignup
     limits: SyncLimits
     usage: SyncUsage
     logs: SyncLogs
     key: SyncKey
+    parsers: SyncParsers
+    endpoints: SyncEndpoints
     search: SyncSearch
     scrape: SyncScrape
     browser: SyncBrowser
@@ -774,14 +909,14 @@ class SyncSurface:
     batch: SyncBatch
 
     def __init__(self, call: SyncCall) -> None:
-        self.endpoints = SyncEndpoints(call)
-        self.parsers = SyncParsers(call)
         self.extract = SyncExtract(call)
         self.signup = SyncSignup(call)
         self.limits = SyncLimits(call)
         self.usage = SyncUsage(call)
         self.logs = SyncLogs(call)
         self.key = SyncKey(call)
+        self.parsers = SyncParsers(call)
+        self.endpoints = SyncEndpoints(call)
         self.search = SyncSearch(call)
         self.scrape = SyncScrape(call)
         self.browser = SyncBrowser(call)
@@ -789,26 +924,6 @@ class SyncSurface:
         self.map = SyncMap(call)
         self.crawl = SyncCrawl(call)
         self.batch = SyncBatch(call)
-
-
-class AsyncEndpoints:
-    def __init__(self, call: AsyncCall) -> None:
-        self._call = call
-
-    async def __call__(
-        self,
-    ) -> EndpointCatalog:
-        return await self._call("GET", "/v1/endpoints", {})
-
-
-class AsyncParsers:
-    def __init__(self, call: AsyncCall) -> None:
-        self._call = call
-
-    async def __call__(
-        self,
-    ) -> ListParsersResponse:
-        return await self._call("GET", "/v1/parsers", {})
 
 
 class AsyncExtractResult:
@@ -838,29 +953,43 @@ class AsyncExtract:
     async def __call__(
         self,
         *,
-        urls: list[str],
-        schema: ExtractSchema | None = None,
+        urls: list[str] | None = None,
+        schema: dict[str, str | float | bool | None | list[Any] | dict[str, Any]] | None = None,
         prompt: str | None = None,
-        enable_web_search: Literal[False] | None = None,
+        system_prompt: str | None = None,
+        enable_web_search: bool | None = None,
+        allow_external_links: bool | None = None,
+        agent: ExtractAgent | None = None,
+        webhook: str | ExtractWebhookOption1 | None = None,
         ignore_sitemap: bool | None = None,
         include_subdomains: bool | None = None,
-        show_sources: Literal[False] | None = None,
+        limit: int | None = None,
+        timeout: int | None = None,
+        show_sources: bool | None = None,
         scrape_options: ExtractScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
         ignore_invalid_urls: bool | None = None,
+        idempotency_key: str | None = None,
     ) -> ExtractResponse:
         values = _omit_none(
             {
                 "urls": urls,
                 "schema": schema,
                 "prompt": prompt,
+                "systemPrompt": system_prompt,
                 "enableWebSearch": enable_web_search,
+                "allowExternalLinks": allow_external_links,
+                "agent": agent,
+                "webhook": webhook,
                 "ignoreSitemap": ignore_sitemap,
                 "includeSubdomains": include_subdomains,
+                "limit": limit,
+                "timeout": timeout,
                 "showSources": show_sources,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "ignoreInvalidURLs": ignore_invalid_urls,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/extract", values)
@@ -892,15 +1021,8 @@ class AsyncSignup:
 
     async def __call__(
         self,
-        *,
-        scopes: list[Any] | None = None,
     ) -> SignUpResponse:
-        values = _omit_none(
-            {
-                "scopes": scopes,
-            }
-        )
-        return await self._call("POST", "/v1/signup", values)
+        return await self._call("POST", "/v1/signup", {})
 
 
 class AsyncLimits:
@@ -964,9 +1086,63 @@ class AsyncKey:
         self.revoke = AsyncKeyRevoke(call)
 
 
-class AsyncSearch:
+class AsyncParsers:
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
+
+    async def __call__(
+        self,
+    ) -> ListParsersResponse:
+        return await self._call("GET", "/v1/parsers", {})
+
+
+class AsyncEndpoints:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+    ) -> ListEndpointsResponse:
+        return await self._call("GET", "/v1/endpoints", {})
+
+
+class AsyncSearchDeveloper:
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+
+    async def __call__(
+        self,
+        *,
+        query: str,
+        k: int | None = None,
+        types: str | list[str] | None = None,
+        repos: str | list[str] | None = None,
+        language: str | None = None,
+        min_stars: int | None = None,
+        max_stars: int | None = None,
+        passages: bool | SearchDeveloperPassagesOption1 | None = None,
+    ) -> SearchDeveloperResponse:
+        values = _omit_none(
+            {
+                "query": query,
+                "k": k,
+                "types": types,
+                "repos": repos,
+                "language": language,
+                "min_stars": min_stars,
+                "max_stars": max_stars,
+                "passages": passages,
+            }
+        )
+        return await self._call("POST", "/v1/search/developer", values)
+
+
+class AsyncSearch:
+    developer: AsyncSearchDeveloper
+
+    def __init__(self, call: AsyncCall) -> None:
+        self._call = call
+        self.developer = AsyncSearchDeveloper(call)
 
     async def __call__(
         self,
@@ -979,19 +1155,19 @@ class AsyncSearch:
         categories: list[SearchCategoriesItemOption0 | SearchCategoriesItemOption1] | None = None,
         max_age: int | None = None,
         limit: int | None = None,
+        scrape_limit: int | None = None,
         tbs: str | None = None,
         location: str | None = None,
         country: str | None = None,
+        lang: str | None = None,
         include_domains: list[str] | None = None,
         exclude_domains: list[str] | None = None,
         safe: bool | None = None,
         timeout: int | None = None,
         ignore_invalid_urls: bool | None = None,
         highlights: bool | None = None,
-        domain_tools: Literal[False] | None = None,
-        tool_detail: Literal["compact"] | None = None,
-        threat_protection: dict[str, Any] | None = None,
         scrape_options: SearchScrapeOptions | None = None,
+        idempotency_key: str | None = None,
     ) -> SearchResponse:
         values = _omit_none(
             {
@@ -1000,19 +1176,19 @@ class AsyncSearch:
                 "categories": categories,
                 "maxAge": max_age,
                 "limit": limit,
+                "scrapeLimit": scrape_limit,
                 "tbs": tbs,
                 "location": location,
                 "country": country,
+                "lang": lang,
                 "includeDomains": include_domains,
                 "excludeDomains": exclude_domains,
                 "safe": safe,
                 "timeout": timeout,
                 "ignoreInvalidURLs": ignore_invalid_urls,
                 "highlights": highlights,
-                "domainTools": domain_tools,
-                "toolDetail": tool_detail,
-                "threatProtection": threat_protection,
                 "scrapeOptions": scrape_options,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/search", values)
@@ -1027,53 +1203,60 @@ class AsyncScrape:
         *,
         url: str,
         formats: list[
-            ScrapeFormatsItemOption0
-            | ScrapeFormatsItemOption1
+            SearchScrapeOptionsFormatsItemOption0
+            | SearchScrapeOptionsFormatsItemOption1
             | ScrapeFormatsItemOption2
-            | ScrapeFormatsItemOption3
-            | ScrapeFormatsItemOption4
-            | ScrapeFormatsItemOption5
-            | ScrapeFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption3
+            | SearchScrapeOptionsFormatsItemOption4
+            | SearchScrapeOptionsFormatsItemOption5
+            | SearchScrapeOptionsFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption7
+            | ScrapeFormatsItemOption8
+            | SearchScrapeOptionsFormatsItemOption9
         ]
         | None = None,
         only_main_content: bool | None = None,
-        only_clean_content: Literal[False] | None = None,
+        only_clean_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
+        headers: dict[str, str] | None = None,
         wait_for: int | None = None,
-        mobile: Literal[False] | None = None,
-        skip_tls_verification: Literal[False] | None = None,
+        mobile: bool | None = None,
+        skip_tls_verification: bool | None = None,
         timeout: int | None = None,
-        parsers: list[Literal["pdf"] | ScrapeParsersItemOption1] | None = None,
+        parsers: list[Literal["pdf"] | SearchScrapeOptionsParsersItemOption1] | None = None,
         actions: list[
-            ScrapeActionsItemOption0
-            | ScrapeActionsItemOption1
-            | ScrapeActionsItemOption2
-            | ScrapeActionsItemOption3
-            | ScrapeActionsItemOption4
-            | ScrapeActionsItemOption5
-            | ScrapeActionsItemOption6
-            | ScrapeActionsItemOption7
-            | ScrapeActionsItemOption8
-            | ScrapeActionsItemOption9
-            | ScrapeActionsItemOption10
+            SearchScrapeOptionsActionsItemOption0
+            | SearchScrapeOptionsActionsItemOption1
+            | SearchScrapeOptionsActionsItemOption2
+            | SearchScrapeOptionsActionsItemOption3
+            | SearchScrapeOptionsActionsItemOption4
+            | SearchScrapeOptionsActionsItemOption5
+            | SearchScrapeOptionsActionsItemOption6
+            | SearchScrapeOptionsActionsItemOption7
+            | SearchScrapeOptionsActionsItemOption8
+            | SearchScrapeOptionsActionsItemOption9
+            | SearchScrapeOptionsActionsItemOption10
         ]
         | None = None,
-        location: ScrapeLocation | None = None,
-        remove_base64_images: Literal[True] | None = None,
-        block_ads: Literal[True] | None = None,
-        proxy: Literal["auto"] | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        remove_base64_images: bool | None = None,
+        block_ads: bool | None = None,
+        fast_mode: bool | None = None,
+        proxy: SearchScrapeOptionsProxy | None = None,
         store_in_cache: bool | None = None,
-        lockdown: Literal[False] | None = None,
-        check_prompt_injection: Literal[False] | None = None,
-        redact_pii: Literal[False] | None = None,
-        profile: ScrapeProfile | None = None,
+        lockdown: bool | None = None,
+        check_prompt_injection: bool | None = None,
+        redact_pii: bool | SearchScrapeOptionsRedactPIIOption1 | None = None,
+        profile: SearchScrapeOptionsProfile | None = None,
         zero_data_retention: bool | None = None,
-        domain_tools: Literal[False] | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
+        offset: int | None = None,
+        query: str | None = None,
+        idempotency_key: str | None = None,
     ) -> ScrapeResponse:
         values = _omit_none(
             {
@@ -1085,6 +1268,7 @@ class AsyncScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
+                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -1094,6 +1278,7 @@ class AsyncScrape:
                 "location": location,
                 "removeBase64Images": remove_base64_images,
                 "blockAds": block_ads,
+                "fastMode": fast_mode,
                 "proxy": proxy,
                 "storeInCache": store_in_cache,
                 "lockdown": lockdown,
@@ -1101,9 +1286,11 @@ class AsyncScrape:
                 "redactPII": redact_pii,
                 "profile": profile,
                 "zeroDataRetention": zero_data_retention,
-                "domainTools": domain_tools,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
+                "offset": offset,
+                "query": query,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/scrape", values)
@@ -1117,10 +1304,12 @@ class AsyncBrowserTaskStatus:
         self,
         *,
         id: str,
+        idempotency_key: str | None = None,
     ) -> BrowserTaskStatusResponse:
         values = _omit_none(
             {
                 "id": id,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/browser/task/status", values)
@@ -1139,9 +1328,10 @@ class AsyncBrowserTask:
         url: str,
         goal: str,
         values: str | None = None,
-        schema: BrowserTaskSchema | None = None,
+        schema: dict[str, str | float | bool | None | list[Any] | dict[str, Any]] | None = None,
         max_steps: int | None = None,
         max_cost: float | None = None,
+        idempotency_key: str | None = None,
     ) -> BrowserTaskResponse:
         values = _omit_none(
             {
@@ -1151,6 +1341,7 @@ class AsyncBrowserTask:
                 "schema": schema,
                 "maxSteps": max_steps,
                 "maxCost": max_cost,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/browser/task", values)
@@ -1171,17 +1362,62 @@ class AsyncParse:
     async def __call__(
         self,
         *,
-        file: str,
+        formats: list[
+            ParseFormatsItemOption0
+            | ParseFormatsItemOption1Option0
+            | ParseFormatsItemOption1Option1
+        ]
+        | None = None,
+        parsers: list[ParseParsersItem] | None = None,
+        only_main_content: bool | None = None,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
+        remove_base64_images: bool | None = None,
+        zero_data_retention: bool | None = None,
+        origin: str | None = None,
+        integration: str | None = None,
+        fast_mode: Any | None = None,
+        mobile: Any | None = None,
+        block_ads: Any | None = None,
+        skip_tls_verification: Any | None = None,
+        timeout: Any | None = None,
+        headers: Any | None = None,
+        proxy: Any | None = None,
+        location: Any | None = None,
+        profile: Any | None = None,
+        upload_ref: str | None = None,
+        file: str | None = None,
         filename: str | None = None,
         max_pages: int | None = None,
-        zero_data_retention: bool | None = None,
+        options: ParseOptions | None = None,
+        idempotency_key: str | None = None,
     ) -> ParseResponse:
         values = _omit_none(
             {
+                "formats": formats,
+                "parsers": parsers,
+                "onlyMainContent": only_main_content,
+                "includeTags": include_tags,
+                "excludeTags": exclude_tags,
+                "removeBase64Images": remove_base64_images,
+                "zeroDataRetention": zero_data_retention,
+                "origin": origin,
+                "integration": integration,
+                "fastMode": fast_mode,
+                "mobile": mobile,
+                "blockAds": block_ads,
+                "skipTlsVerification": skip_tls_verification,
+                "timeout": timeout,
+                "headers": headers,
+                "proxy": proxy,
+                "location": location,
+                "profile": profile,
+                "uploadRef": upload_ref,
                 "file": file,
                 "filename": filename,
                 "maxPages": max_pages,
-                "zeroDataRetention": zero_data_retention,
+                "options": options,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/parse", values)
@@ -1202,7 +1438,8 @@ class AsyncMap:
         ignore_cache: bool | None = None,
         limit: int | None = None,
         timeout: int | None = None,
-        location: MapLocation | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        idempotency_key: str | None = None,
     ) -> MapResponse:
         values = _omit_none(
             {
@@ -1215,6 +1452,7 @@ class AsyncMap:
                 "limit": limit,
                 "timeout": timeout,
                 "location": location,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/map", values)
@@ -1282,12 +1520,15 @@ class AsyncCrawl:
         regex_on_full_url: bool | None = None,
         limit: int | None = None,
         crawl_entire_domain: bool | None = None,
-        allow_external_links: Literal[False] | None = None,
+        deduplicate_similar_urls: bool | None = None,
+        allow_external_links: bool | None = None,
         allow_subdomains: bool | None = None,
-        ignore_robots_txt: Literal[False] | None = None,
+        delay: float | None = None,
+        max_concurrency: int | None = None,
         scrape_options: CrawlScrapeOptions | None = None,
         zero_data_retention: bool | None = None,
-        webhook: CrawlWebhook | None = None,
+        webhook: str | CrawlWebhookOption1 | None = None,
+        idempotency_key: str | None = None,
     ) -> CrawlResponse:
         values = _omit_none(
             {
@@ -1301,12 +1542,15 @@ class AsyncCrawl:
                 "regexOnFullURL": regex_on_full_url,
                 "limit": limit,
                 "crawlEntireDomain": crawl_entire_domain,
+                "deduplicateSimilarURLs": deduplicate_similar_urls,
                 "allowExternalLinks": allow_external_links,
                 "allowSubdomains": allow_subdomains,
-                "ignoreRobotsTxt": ignore_robots_txt,
+                "delay": delay,
+                "maxConcurrency": max_concurrency,
                 "scrapeOptions": scrape_options,
                 "zeroDataRetention": zero_data_retention,
                 "webhook": webhook,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/crawl", values)
@@ -1365,61 +1609,71 @@ class AsyncBatchScrape:
         self,
         *,
         urls: list[str],
-        webhook: CrawlWebhook | None = None,
+        webhook: str | BatchScrapeWebhookOption1 | None = None,
+        max_concurrency: int | None = None,
+        append_to_id: str | None = None,
         ignore_invalid_urls: bool | None = None,
         formats: list[
-            ScrapeFormatsItemOption0
-            | ScrapeFormatsItemOption1
-            | ScrapeFormatsItemOption2
-            | ScrapeFormatsItemOption3
-            | ScrapeFormatsItemOption4
-            | BatchScrapeFormatsItemOption5
-            | ScrapeFormatsItemOption6
+            SearchScrapeOptionsFormatsItemOption0
+            | SearchScrapeOptionsFormatsItemOption1
+            | BatchScrapeFormatsItemOption2
+            | SearchScrapeOptionsFormatsItemOption3
+            | SearchScrapeOptionsFormatsItemOption4
+            | SearchScrapeOptionsFormatsItemOption5
+            | SearchScrapeOptionsFormatsItemOption6
+            | SearchScrapeOptionsFormatsItemOption7
+            | BatchScrapeFormatsItemOption8
+            | SearchScrapeOptionsFormatsItemOption9
         ]
         | None = None,
         only_main_content: bool | None = None,
-        only_clean_content: Literal[False] | None = None,
+        only_clean_content: bool | None = None,
         include_tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
         max_age: int | None = None,
         min_age: int | None = None,
+        headers: dict[str, str] | None = None,
         wait_for: int | None = None,
-        mobile: Literal[False] | None = None,
-        skip_tls_verification: Literal[False] | None = None,
+        mobile: bool | None = None,
+        skip_tls_verification: bool | None = None,
         timeout: int | None = None,
-        parsers: list[Literal["pdf"] | ScrapeParsersItemOption1] | None = None,
+        parsers: list[Literal["pdf"] | SearchScrapeOptionsParsersItemOption1] | None = None,
         actions: list[
-            ScrapeActionsItemOption0
-            | ScrapeActionsItemOption1
-            | ScrapeActionsItemOption2
-            | ScrapeActionsItemOption3
-            | ScrapeActionsItemOption4
-            | ScrapeActionsItemOption5
-            | ScrapeActionsItemOption6
-            | ScrapeActionsItemOption7
-            | ScrapeActionsItemOption8
-            | ScrapeActionsItemOption9
-            | ScrapeActionsItemOption10
+            SearchScrapeOptionsActionsItemOption0
+            | SearchScrapeOptionsActionsItemOption1
+            | SearchScrapeOptionsActionsItemOption2
+            | SearchScrapeOptionsActionsItemOption3
+            | SearchScrapeOptionsActionsItemOption4
+            | SearchScrapeOptionsActionsItemOption5
+            | SearchScrapeOptionsActionsItemOption6
+            | SearchScrapeOptionsActionsItemOption7
+            | SearchScrapeOptionsActionsItemOption8
+            | SearchScrapeOptionsActionsItemOption9
+            | SearchScrapeOptionsActionsItemOption10
         ]
         | None = None,
-        location: ScrapeLocation | None = None,
-        remove_base64_images: Literal[True] | None = None,
-        block_ads: Literal[True] | None = None,
-        proxy: Literal["auto"] | None = None,
+        location: SearchScrapeOptionsLocation | None = None,
+        remove_base64_images: bool | None = None,
+        block_ads: bool | None = None,
+        fast_mode: bool | None = None,
+        proxy: SearchScrapeOptionsProxy | None = None,
         store_in_cache: bool | None = None,
-        lockdown: Literal[False] | None = None,
-        check_prompt_injection: Literal[False] | None = None,
-        redact_pii: Literal[False] | None = None,
-        profile: ScrapeProfile | None = None,
+        lockdown: bool | None = None,
+        check_prompt_injection: bool | None = None,
+        redact_pii: bool | SearchScrapeOptionsRedactPIIOption1 | None = None,
+        profile: SearchScrapeOptionsProfile | None = None,
         zero_data_retention: bool | None = None,
-        domain_tools: Literal[False] | None = None,
         link_style: ScrapeLinkStyle | None = None,
         max_chars: int | None = None,
+        query: str | None = None,
+        idempotency_key: str | None = None,
     ) -> BatchScrapeResponse:
         values = _omit_none(
             {
                 "urls": urls,
                 "webhook": webhook,
+                "maxConcurrency": max_concurrency,
+                "appendToId": append_to_id,
                 "ignoreInvalidURLs": ignore_invalid_urls,
                 "formats": formats,
                 "onlyMainContent": only_main_content,
@@ -1428,6 +1682,7 @@ class AsyncBatchScrape:
                 "excludeTags": exclude_tags,
                 "maxAge": max_age,
                 "minAge": min_age,
+                "headers": headers,
                 "waitFor": wait_for,
                 "mobile": mobile,
                 "skipTlsVerification": skip_tls_verification,
@@ -1437,6 +1692,7 @@ class AsyncBatchScrape:
                 "location": location,
                 "removeBase64Images": remove_base64_images,
                 "blockAds": block_ads,
+                "fastMode": fast_mode,
                 "proxy": proxy,
                 "storeInCache": store_in_cache,
                 "lockdown": lockdown,
@@ -1444,9 +1700,10 @@ class AsyncBatchScrape:
                 "redactPII": redact_pii,
                 "profile": profile,
                 "zeroDataRetention": zero_data_retention,
-                "domainTools": domain_tools,
                 "linkStyle": link_style,
                 "maxChars": max_chars,
+                "query": query,
+                "Idempotency-Key": idempotency_key,
             }
         )
         return await self._call("POST", "/v1/batch/scrape", values)
@@ -1461,14 +1718,14 @@ class AsyncBatch:
 
 
 class AsyncSurface:
-    endpoints: AsyncEndpoints
-    parsers: AsyncParsers
     extract: AsyncExtract
     signup: AsyncSignup
     limits: AsyncLimits
     usage: AsyncUsage
     logs: AsyncLogs
     key: AsyncKey
+    parsers: AsyncParsers
+    endpoints: AsyncEndpoints
     search: AsyncSearch
     scrape: AsyncScrape
     browser: AsyncBrowser
@@ -1478,14 +1735,14 @@ class AsyncSurface:
     batch: AsyncBatch
 
     def __init__(self, call: AsyncCall) -> None:
-        self.endpoints = AsyncEndpoints(call)
-        self.parsers = AsyncParsers(call)
         self.extract = AsyncExtract(call)
         self.signup = AsyncSignup(call)
         self.limits = AsyncLimits(call)
         self.usage = AsyncUsage(call)
         self.logs = AsyncLogs(call)
         self.key = AsyncKey(call)
+        self.parsers = AsyncParsers(call)
+        self.endpoints = AsyncEndpoints(call)
         self.search = AsyncSearch(call)
         self.scrape = AsyncScrape(call)
         self.browser = AsyncBrowser(call)

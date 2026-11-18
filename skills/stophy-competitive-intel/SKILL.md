@@ -15,7 +15,7 @@ allowed-tools:
 
 Build a picture of a rival from public sources.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `google-ads`, `appstore-reviews`, `google-play-reviews` and `map` work without a key, 10 calls a minute and 50 a day. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `google-ads`, `appstore-reviews`, `google-play-reviews` and `map` work without a key, 10 calls a minute and 50 a day. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -43,7 +43,7 @@ stophy scrape "https://www.notion.com/pricing" --formats '["markdown","changeTra
 - Find their pages first with `stophy map "<their site>" --search pricing`.
 - Read 1-star reviews for complaints: `google-play-reviews` takes `--parserOptions '{"rating":1}'`.
 - Run the change-tracking scrape on a schedule to hear when their pricing or terms change. See [stophy-monitor](../stophy-monitor/SKILL.md).
-- A parser call or scrape costs 1 credit. Fields from a schema add 4 credits when they return something.
+- A parser call or scrape costs $0.001. Fields from a schema add $0.003 when they return something.
 
 ## See also
 

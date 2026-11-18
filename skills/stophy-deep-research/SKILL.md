@@ -15,7 +15,7 @@ allowed-tools:
 
 Gather sources from several angles, read them, and cite them.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search, scrape, `reddit-search` and `google-patents` work without a key, 10 calls a minute and 50 a day. Extract needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Search, scrape, `reddit-search` and `google-patents` work without a key, 10 calls a minute and 50 a day. Extract needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -40,7 +40,7 @@ stophy extract --urls "https://www.nature.com/articles/s41467-025-58963-4" --pro
 - Search from more than one angle: the plain question, `--categories '["research"]'`, news, and Reddit for first-hand reports.
 - With `--scrapeOptions.formats '["markdown"]'`, each web result comes with its text, so you read it without a second call. Save it with `-o` and read from the file.
 - Prefer primary sources: the paper, the official page, the dataset. Use news and Reddit for what changed and what people report.
-- A search costs 2 credits per 10 results from each source, plus 1 credit per web result with its text. A scrape or parser call costs 1 credit, and extract about 5 credits a page.
+- A search costs $0.001 per 10 results from each source, plus $0.001 per web result with its text. A scrape or parser call costs $0.001, and extract $0.005 a page.
 
 ## See also
 

@@ -1,5 +1,15 @@
 # stophy
 
+## 1.4.0
+
+- Every POST sends an `Idempotency-Key`, the same on each retry of that call. Pass your own with `idempotency_key=` on `scrape`, `search`, `map`, `parse`, `extract`, `crawl`, `batch.scrape`, `browser.task` and `browser.task.status`.
+- `search.developer` is new, `search` takes `scrapeLimit`, twelve parsers are new, `extract` and `parse` no longer require a body, and results carry `costUsd`.
+- The API already refuses everything below, so no working call stops working, but code that names these breaks.
+- Breaking: `scrape` and `batch.scrape` no longer take `domain_tools`. `search` no longer takes `domain_tools`, `tool_detail` or `threat_protection`, nor the categories `developer` and `gov`. `crawl` no longer takes `ignore_robots_txt`. `signup` no longer takes `scopes`.
+- Breaking: `parsed("company", ...)` is gone, because the `company` parser no longer exists.
+- Breaking: these models are gone from `stophy.generated.models`: `EndpointCatalog`, `ScrapeLocation`, `ScrapeProfile`, `MapLocation`, `CrawlWebhook`, `ExtractSchema` and `BrowserTaskSchema`. Four are renamed: `ScrapeResponseDataAttributesItem` is now `SearchResponseDataWebItemAttributesItem`, `ScrapeResponseDataActionsScrapesItem` is now `SearchResponseDataWebItemActionsScrapesItem`, `ScrapeResponseDataChangeTrackingChangeStatus` is now `SearchResponseDataWebItemChangeTrackingStatus`, and `EndpointCatalogEndpointsItem`, `EndpointCatalogSourcesItem` and `EndpointCatalogSourcesItemKind` are now `ListEndpointsResponseEndpointsItem`, `ListEndpointsResponseSourcesItem` and `ListEndpointsResponseSourcesItemKind`. The numbered `Option` models are renamed too.
+- `cacheState` can now also be `stale`, and an extract `status` can now also be `failed`.
+
 ## 1.3.0
 
 - Breaking: the client calls Stophy API v1. The site methods such as `stophy.youtube.search` and `stophy.reddit.search` are gone.

@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { formatBalance, limitsSchema, usageDataSchema } from "../account.js";
+import { formatUsd, limitsSchema, usageDataSchema } from "../account.js";
 import { request } from "../client.js";
 import { CliError } from "../errors.js";
 import { handleOutput, writeOutput } from "../output.js";
@@ -29,15 +29,15 @@ Examples:
       if (!usage.success || !limits.success) {
         throw new CliError("Server returned an unexpected response shape.");
       }
-      const account = { balanceCredits: limits.data.data.balanceCredits, ...usage.data };
+      const account = { balanceUsd: limits.data.data.balanceUsd, ...usage.data };
       if (options.json || options.output) {
         handleOutput(account, options);
         return;
       }
       writeOutput(
         [
-          `balance: ${formatBalance(account.balanceCredits)}`,
-          `credits used (all time): ${account.creditsUsed}`,
+          `balance: ${formatUsd(account.balanceUsd)}`,
+          `spent (all time): ${formatUsd(account.costUsd)}`,
           `requests (all time): ${account.requestCount}`,
         ].join("\n"),
       );

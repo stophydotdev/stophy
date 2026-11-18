@@ -16,7 +16,7 @@ const endpoint = (id: string): CatalogEndpoint => ({
 
 test("a lone data is unwrapped, other bodies keep their fields", () => {
   expect(payloadOf({ success: true, data: { markdown: "hi" } })).toEqual({ markdown: "hi" });
-  expect(payloadOf({ success: true, data: { web: [] }, creditsUsed: 2 })).toEqual({ web: [] });
+  expect(payloadOf({ success: true, data: { web: [] }, costUsd: 0.002 })).toEqual({ web: [] });
   expect(payloadOf({ success: true, links: [{ url: "https://a.test" }] })).toEqual({
     links: [{ url: "https://a.test" }],
   });
@@ -121,4 +121,72 @@ test("the first command in the README runs and sends one search with two results
   expect(await new Response(run.stderr).text()).toBe("");
   expect(exit).toBe(0);
   expect(bodies).toEqual([{ query: "bun runtime", limit: 2 }]);
+});
+
+const runAgainst = async (answer: (path: string) => Response, args: string[]) => {
+  const home = `/tmp/stophy-cli-dollars-${process.pid}`;
+  mkdirSync(`${home}/stophy`, { recursive: true });
+  const search = {
+    id: "search",
+    method: "POST",
+    path: "/v1/search",
+    keyless: true,
+    input: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+  };
+  writeFileSync(
+    `${home}/stophy/catalog.json`,
+    JSON.stringify({ fetchedAt: new Date().toISOString(), endpoints: [search] }),
+  );
+  const server = Bun.serve({ port: 0, fetch: (req) => answer(new URL(req.url).pathname) });
+  const run = Bun.spawn(["bun", "src/index.ts", ...args], {
+    env: {
+      ...process.env,
+      XDG_CONFIG_HOME: home,
+      STOPHY_API_KEY: "st_test",
+      STOPHY_BASE_URL: `http://127.0.0.1:${server.port}`,
+      STOPHY_NO_UPDATE_CHECK: "1",
+    },
+    stderr: "pipe",
+    stdout: "pipe",
+  });
+  await run.exited;
+  server.stop(true);
+  return {
+    out: await new Response(run.stdout).text(),
+    err: await new Response(run.stderr).text(),
+  };
+};
+
+const account = (path: string) =>
+  path === "/v1/usage"
+    ? Response.json({ balanceUsd: 1.9876, costUsd: 0.0124, requestCount: 12 })
+    : Response.json({ success: true, data: { balanceUsd: 1.9876 } });
+
+test("usage shows the balance and the spend in dollars", async () => {
+  const { out } = await runAgainst(account, ["usage"]);
+  expect(out).toBe("balance: $1.9876\nspent (all time): $0.0124\nrequests (all time): 12\n");
+});
+
+test("usage --json carries balanceUsd and costUsd", async () => {
+  const { out } = await runAgainst(account, ["usage", "--json"]);
+  expect(JSON.parse(out)).toEqual({ balanceUsd: 1.9876, costUsd: 0.0124, requestCount: 12 });
+});
+
+test("doctor shows the balance in dollars", async () => {
+  const { out } = await runAgainst(account, ["doctor"]);
+  expect(out).toContain("Balance");
+  expect(out).toContain("$1.9876 left");
+  expect(out.toLowerCase()).not.toContain("credit");
+});
+
+test("a --json call prints what it cost, in dollars, on stderr", async () => {
+  const { err } = await runAgainst(
+    () =>
+      Response.json(
+        { success: true, data: { web: [] }, costUsd: 0.001 },
+        { headers: { "x-cost-usd": "0.001" } },
+      ),
+    ["search", "bun", "--json"],
+  );
+  expect(err).toBe("cost: $0.001\n");
 });

@@ -1,3 +1,4 @@
+import { formatUsd } from "./account.js";
 import { isAgentMode } from "./agent.js";
 import { currentArgs, flagTokens } from "./argv.js";
 import type { CatalogEndpoint } from "./catalog.js";
@@ -27,8 +28,8 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
     parsed.call.format === "text" && isAgentMode() && parsed.call.outputFile === undefined
       ? "raw"
       : parsed.call.format;
-  if (format === "json" && response.creditsUsed !== null) {
-    process.stderr.write(`credits used: ${response.creditsUsed}\n`);
+  if (format === "json" && response.costUsd !== null) {
+    process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
   }
   if (format === "text") {
     writeOutput(renderData(shownOf(payloadOf(body.data))), parsed.call.outputFile);
@@ -39,7 +40,7 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
   });
 }
 
-const COUNTERS = new Set(["success", "creditsUsed"]);
+const COUNTERS = new Set(["success", "costUsd"]);
 
 export function payloadOf(body: JsonRecord): JsonValue {
   const rest = Object.fromEntries(Object.entries(body).filter(([key]) => !COUNTERS.has(key)));

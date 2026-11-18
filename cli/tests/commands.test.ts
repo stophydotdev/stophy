@@ -20,7 +20,7 @@ test("nested catalog commands reach the matching endpoint", async () => {
         id: "youtube.search",
         method: "POST",
         path: "/v1/youtube/search",
-        credits: 1,
+        costUsd: 0.001,
         keyless: false,
         input: {
           type: "object",
@@ -32,7 +32,7 @@ test("nested catalog commands reach the matching endpoint", async () => {
         id: "youtube.comments",
         method: "POST",
         path: "/v1/youtube/comments",
-        credits: 1,
+        costUsd: 0.001,
         keyless: false,
         input: {
           type: "object",
@@ -44,7 +44,7 @@ test("nested catalog commands reach the matching endpoint", async () => {
         id: "youtube.transcript",
         method: "POST",
         path: "/v1/youtube/transcript",
-        credits: 1,
+        costUsd: 0.001,
         keyless: true,
         input: {
           type: "object",
@@ -87,7 +87,7 @@ test("sources show their summary, or their name when the server has none", async
     summary: "Search Reddit posts",
     method: "POST" as const,
     path: "/v1/reddit/search",
-    credits: 2,
+    costUsd: 0.004,
     keyless: false,
     input: { type: "object", properties: {} },
   };
@@ -199,7 +199,7 @@ const fakeServer = (poll: Poll) => {
     }
     return key === null
       ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
-      : reply(200, { success: true, data: {}, creditsUsed: 1, requestId: "req-2" });
+      : reply(200, { success: true, data: {}, costUsd: 0.001, requestId: "req-2" });
   });
   return { seen, fetched };
 };
@@ -360,7 +360,7 @@ const pollServer = (answer: (code: string) => Response | Promise<Response>) => {
     }
     return key === null
       ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
-      : reply(200, { success: true, data: {}, creditsUsed: 1, requestId: "req-2" });
+      : reply(200, { success: true, data: {}, costUsd: 0.001, requestId: "req-2" });
   });
   return { seen, fetched };
 };

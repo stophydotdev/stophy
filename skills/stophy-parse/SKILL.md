@@ -15,7 +15,7 @@ allowed-tools:
 
 Read the text of a local document.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Parse works without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Parse works without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -37,7 +37,7 @@ The file goes in as base64.
 - One shell argument holds at most 128 KB, so the CLI reads files up to about 96 KB. A bigger file fails with "Argument list too long". If the file is online, scrape its URL instead.
 - `--maxPages` reads at most that many PDF pages, sheets or slides, up to 100.
 - `--filename` names the file; the type is read from the file itself.
-- A parse costs 1 credit.
+- A parse costs $0.0005 a page whose text comes from a text layer, and $0.0025 a page read from a picture.
 
 ## See also
 

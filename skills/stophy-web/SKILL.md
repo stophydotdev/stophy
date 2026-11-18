@@ -15,7 +15,7 @@ allowed-tools:
 
 Patents and search trends from Google.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `google-patents` works without a key, 10 calls a minute and 50 a day. Trends needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `google-patents` works without a key, 10 calls a minute and 50 a day. Trends needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -39,7 +39,7 @@ stophy scrape "https://trends.google.com/trends/explore?q=bitcoin&geo=US" --pars
 ## Tips
 
 - In Trends, one term gives its related searches, and several terms, like `q=bitcoin,ethereum`, their interest over time.
-- Every call here costs 1 credit.
+- Every call here costs $0.001 ($1 per 1,000 calls).
 
 ## See also
 

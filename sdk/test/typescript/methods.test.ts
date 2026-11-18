@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { makeClient, queryOf, specOperations } from "./helpers";
 
-const ok = { success: true, data: {}, creditsUsed: 1, requestId: "req_1" };
+const ok = { success: true, data: {}, costUsd: 0.001, requestId: "req_1" };
 
 describe("v1 operations", () => {
   test("posts the input to the path from the spec", async () => {
@@ -79,6 +79,7 @@ describe("v1 operations", () => {
     await client.signup();
     await client.signup.poll({ code: id });
     await client.search({ query: "bun" });
+    await client.search.developer({ query: "bun" });
     await client.scrape({ url: "https://example.com" });
     await client.map({ url: "https://example.com" });
     await client.parse({ file: "JVBERi0=" });

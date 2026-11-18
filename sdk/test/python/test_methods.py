@@ -6,7 +6,7 @@ import pytest
 
 from helpers import body_of, make_client, query_of
 
-OK = {"json": {"success": True, "data": {}, "creditsUsed": 1, "requestId": "req_1"}}
+OK = {"json": {"success": True, "data": {}, "costUsd": 0.001, "requestId": "req_1"}}
 
 
 def route(call):

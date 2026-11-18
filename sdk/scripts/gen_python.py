@@ -269,6 +269,21 @@ def query_params(
     return params
 
 
+IDEMPOTENCY_KEY = {
+    "json": "Idempotency-Key",
+    "name": "idempotency_key",
+    "required": False,
+    "type": "str",
+}
+
+
+def takes_idempotency_key(operation: dict[str, Any]) -> bool:
+    return any(
+        isinstance(entry, dict) and entry.get("$ref") == "#/components/parameters/IdempotencyKey"
+        for entry in operation.get("parameters") or []
+    )
+
+
 def merge_params(branches: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
     if len(branches) == 1:
         return branches[0]
@@ -499,6 +514,8 @@ def main() -> None:
                     )
                     for index, branch in enumerate(branch_schemas)
                 ]
+                if takes_idempotency_key(operation):
+                    branches = [[*branch, IDEMPOTENCY_KEY] for branch in branches]
             else:
                 branches = [query_params(emitter, operation, shared_params, hint)]
             params = merge_params(branches)

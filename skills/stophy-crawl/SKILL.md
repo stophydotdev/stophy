@@ -15,7 +15,7 @@ allowed-tools:
 
 Find a site's pages and read many of them at once.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `map` works without a key, 10 calls a minute and 50 a day. `crawl` and `batch scrape` need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `map` works without a key, 10 calls a minute and 50 a day. `crawl` and `batch scrape` need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -39,11 +39,11 @@ stophy crawl cancel <id>
 
 ## Tips
 
-- Map first when you only need addresses: it costs 1 credit for the whole list. Then scrape or batch scrape the pages that matter.
+- Map first when you only need addresses: it costs $0.0005 for the whole list. Then scrape or batch scrape the pages that matter.
 - `crawl` stays under the start page's path. `--includePaths` and `--excludePaths` narrow it, `--maxDiscoveryDepth` caps how far it follows links, and `--limit` caps the pages read.
 - `status` is `scraping` until the job is `completed`. Pages come 10 at a time: when the status has a `next` link, run `status <id> --cursor <c>`, where `<c>` is the `cursor=` value in that link.
 - A job and its pages are kept for 24 hours.
-- A crawl or batch scrape costs 1 credit a page. Starting a job and a page that cannot be read cost nothing.
+- A crawl or batch scrape costs $0.001 a page. Starting a job and a page that cannot be read cost nothing.
 
 ## See also
 

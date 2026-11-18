@@ -15,7 +15,7 @@ allowed-tools:
 
 Compare offers and reviews before you recommend a product.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search and `reddit-search` work without a key, 10 calls a minute and 50 a day. The store parsers need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Search and `reddit-search` work without a key, 10 calls a minute and 50 a day. The store parsers need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -40,7 +40,7 @@ stophy scrape "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2" --p
 - Put price ranges, sort and condition in the store's own URL, as above.
 - Prices change. Say when you read them, and give the link to check.
 - Amazon US shows reviews only after sign-in. For a product's reviews, use the same product on another marketplace with `amazon-reviews`, or search Reddit.
-- Every call here costs 1 credit, except a search: 2 credits per 10 results.
+- Every call here costs $0.001, except a search: $0.001 per 10 results.
 
 ## See also
 

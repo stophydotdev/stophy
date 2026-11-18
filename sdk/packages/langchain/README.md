@@ -24,17 +24,17 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, web search, p
 
 ## Tools
 
-| Tool                  | What the model gets                                   | Credits per call       |
-| --------------------- | ----------------------------------------------------- | ---------------------- |
-| `StophyWebSearch`     | Ranked pages with title, url and description          | 2 for each 10 results  |
-| `StophyReadPage`      | A page or PDF as markdown                             | 1, plus 1 per PDF page |
-| `StophyRedditSearch`  | Reddit posts with score and comment count             | 1                      |
-| `StophyPlaceSearch`   | Google Maps places with rating, reviews and hours     | 1                      |
-| `StophyProductSearch` | Amazon products with price, rating and reviews        | 1                      |
-| `StophyJobSearch`     | Indeed jobs with company, location and salary         | 1                      |
-| `StophyHomeSearch`    | Zillow homes for sale or rent with price, beds, baths | 2                      |
+| Tool                  | What the model gets                                   | Price per call                               |
+| --------------------- | ----------------------------------------------------- | -------------------------------------------- |
+| `StophyWebSearch`     | Ranked pages with title, url and description          | $0.001 for each 10 results                   |
+| `StophyReadPage`      | A page or PDF as markdown                             | $0.001, plus $0.0005 to $0.0025 per PDF page |
+| `StophyRedditSearch`  | Reddit posts with score and comment count             | $0.001                                       |
+| `StophyPlaceSearch`   | Google Maps places with rating, reviews and hours     | $0.001                                       |
+| `StophyProductSearch` | Amazon products with price, rating and reviews        | $0.001                                       |
+| `StophyJobSearch`     | Indeed jobs with company, location and salary         | $0.001                                       |
+| `StophyHomeSearch`    | Zillow homes for sale or rent with price, beds, baths | $0.004                                       |
 
-Most calls cost 1 credit. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
+Most calls cost $0.001. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
 To give an agent every tool with one key:
 

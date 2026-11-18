@@ -40,7 +40,9 @@ def default_headers(api_key: str, headers: Mapping[str, str] | None) -> dict[str
 def request_args(method: str, path: str, values: Mapping[str, Any]) -> tuple[str, dict[str, Any]]:
     rest = dict(values)
     filled = re.sub(r"\{(\w+)\}", lambda match: quote(str(rest.pop(match[1])), safe=""), path)
-    return filled, {"json": rest} if method == "POST" else {"params": rest}
+    key = rest.pop("Idempotency-Key", None)
+    args = {"json": rest} if method == "POST" else {"params": rest}
+    return filled, {**args, "headers": {"Idempotency-Key": key}} if key else args
 
 
 def camel_keys(values: Mapping[str, Any]) -> dict[str, Any]:
@@ -168,7 +170,11 @@ class _Call:
         kwargs: dict[str, Any],
     ) -> None:
         sent_key = (
-            client.headers.get("idempotency-key") or str(uuid.uuid4()) if method == "POST" else None
+            kwargs.get("headers", {}).get("Idempotency-Key")
+            or client.headers.get("idempotency-key")
+            or str(uuid.uuid4())
+            if method == "POST"
+            else None
         )
         has_api_key = "authorization" in client.headers
         self.key = sent_key if has_api_key else None

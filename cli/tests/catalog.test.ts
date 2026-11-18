@@ -9,12 +9,12 @@ const endpoint = {
   id: "youtube.search",
   method: "POST" as const,
   path: "/v1/youtube/search",
-  credits: 1,
+  costUsd: 0.001,
   keyless: false,
   input: { type: "object", properties: {}, additionalProperties: false },
 };
 
-const newer = { ...endpoint, id: "google.maps.search", keyless: false, credits: 1 };
+const newer = { ...endpoint, id: "google.maps.search", keyless: false, costUsd: 0.001 };
 
 test("uses a fresh cache, refreshes a stale one, and keeps it when refresh fails", async () => {
   const { loadCatalog, planCatalog } = await import("../src/catalog.ts");
@@ -105,6 +105,6 @@ test("a catalog entry the CLI cannot read is skipped, and missing extras get def
   });
   expect(catalog.endpoints.map((item) => item.id)).toEqual(["google.search", "youtube.search"]);
   expect(catalog.endpoints[0]?.keyless).toBe(false);
-  expect(catalog.endpoints[0]?.credits).toBeUndefined();
+  expect(catalog.endpoints[0]?.costUsd).toBeUndefined();
   expect(catalog.sources).toEqual([{ id: "google" }]);
 });

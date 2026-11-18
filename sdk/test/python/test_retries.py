@@ -1,14 +1,14 @@
 import httpx
 import pytest
 
-from helpers import make_client
+from helpers import body_of, make_client
 from stophy import Stophy, StophyError
 
 OK = {
     "json": {
         "success": True,
         "data": {"results": []},
-        "creditsUsed": 1,
+        "costUsd": 0.001,
         "requestId": "req_1",
     }
 }
@@ -21,7 +21,7 @@ def test_retries_a_429_then_succeeds():
         retry_initial_delay=0,
     )
     result = client.search(query="x")
-    assert result["creditsUsed"] == 1
+    assert result["costUsd"] == 0.001
     assert len(calls) == 2
 
 
@@ -88,6 +88,13 @@ def test_retries_network_errors():
     client.search(query="x")
     assert len(calls) == 2
     client.close()
+
+
+def test_a_post_sends_the_key_the_caller_gives():
+    client, calls = make_client(OK)
+    client.scrape(url="https://example.com", idempotency_key="order-1")
+    assert calls[0].headers["idempotency-key"] == "order-1"
+    assert body_of(calls[0]) == {"url": "https://example.com"}
 
 
 def test_honors_retry_after_header_seconds():

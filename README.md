@@ -16,4 +16,4 @@ Everything you install to use Stophy lives in this repo.
 | [`skills`](./skills) | Agent skills, and the Claude Code, Cursor and Gemini plugin | `npx skills add stophydotdev/stophy`            |
 | [`docs`](./docs)     | The pages at [docs.stophy.dev](https://docs.stophy.dev)     |                                                 |
 
-Get a key at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $5 free, about 3,333 calls.
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). New accounts start with $2 free, about 2,000 scrapes.

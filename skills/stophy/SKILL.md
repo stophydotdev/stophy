@@ -17,7 +17,7 @@ Stophy gives your agent the live web as JSON: search, scrape, map, crawl and ext
 
 ## Rules
 
-- Run `stophy ...`. The skills need CLI 2.0.0 or later. If `stophy` is missing or `stophy --version` is below 2.0.0, run `npx @stophy/cli@latest ...` instead.
+- Run `stophy ...`. The skills need CLI 1.4.0 or later. If `stophy` is missing or `stophy --version` is below 1.4.0, run `npx @stophy/cli@latest ...` instead.
 - Quote every query, URL and user value.
 - Never invent data. Never print or commit an API key.
 
@@ -70,7 +70,7 @@ Add `--json` for every field and `-o file` to save it. Long output is easier to 
 
 ## Prices
 
-Most calls cost 1 credit: a scrape, a parser call, a map, a parse. A search costs 2 credits per 10 results from each source. `extract` costs 5 credits for most pages, and nothing when it finds none of the fields. A crawl costs 1 credit a page, and a browser task 3 credits a step. A few parsers price per result or per second of audio; their skill says so. A page that cannot be read and an error cost nothing. `stophy status` shows your balance.
+Prices are in dollars. A scrape or a parser call costs $0.001, a map $0.0005, a parse $0.0005 a page. A search costs $0.001 per 10 results from each source. `extract` costs $0.005 for most pages, and nothing when it finds none of the fields. A crawl costs $0.001 a page, and a browser task $0.84 per hour of browser time. A few parsers price per result or per second of audio; their skill says so. A page that cannot be read and an error cost nothing. `stophy status` shows your balance.
 
 ## Errors
 

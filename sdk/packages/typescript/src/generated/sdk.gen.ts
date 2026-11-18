@@ -6,10 +6,6 @@ import type {
   Client,
 } from "@hey-api/client-fetch";
 import type {
-  ListEndpointsData,
-  ListEndpointsResponse,
-  ListParsersData,
-  ListParsersResponse,
   ExtractResultData,
   ExtractResultResponse,
   ExtractResultError,
@@ -31,6 +27,14 @@ import type {
   RevokeKeyData,
   RevokeKeyResponse,
   RevokeKeyError,
+  ListParsersData,
+  ListParsersResponse,
+  ListEndpointsData,
+  ListEndpointsResponse,
+  ListEndpointsError,
+  SearchDeveloperData,
+  SearchDeveloperResponse,
+  SearchDeveloperError,
   SearchData,
   SearchResponse,
   SearchError,
@@ -91,38 +95,6 @@ export type Options<
 };
 
 /**
- * List every endpoint with its cost and input schema.
- */
-export const listEndpoints = <ThrowOnError extends boolean = false>(
-  options?: Options<ListEndpointsData, ThrowOnError>
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListEndpointsResponse,
-    unknown,
-    ThrowOnError
-  >({
-    url: "/v1/endpoints",
-    ...options,
-  });
-};
-
-/**
- * List the parsers: the sites scrape can return as JSON, the page each one reads, what it returns and what it costs.
- */
-export const listParsers = <ThrowOnError extends boolean = false>(
-  options?: Options<ListParsersData, ThrowOnError>
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListParsersResponse,
-    unknown,
-    ThrowOnError
-  >({
-    url: "/v1/parsers",
-    ...options,
-  });
-};
-
-/**
  * Read what an extract found. Results are kept for 24 hours.
  */
 export const extractResult = <ThrowOnError extends boolean = false>(
@@ -146,7 +118,7 @@ export const extractResult = <ThrowOnError extends boolean = false>(
 
 /**
  * Ask your person to approve a Stophy account for you.
- * Free, and needs no key. Returns a claimUrl for your person and a secret code. Your person signs in with GitHub or Google and approves. A new account starts with $10.00 to spend. Then send the code to POST /v1/signup/poll to collect the key. Each IP address can sign up a few times a day, then the answer is rateLimited with retryAfterSeconds.
+ * Free, and needs no key. Returns a claimUrl for your person and a secret code. Your person signs in with GitHub or Google and approves. A new account starts with $2.00 to spend. Then send the code to POST /v1/signup/poll to collect the key. Each IP address can sign up a few times a day, then the answer is rateLimited with retryAfterSeconds.
  */
 export const signUp = <ThrowOnError extends boolean = false>(
   options: Options<SignUpData, ThrowOnError>
@@ -211,7 +183,7 @@ export const getLimits = <ThrowOnError extends boolean = false>(
 
 /**
  * See your balance and what you have used.
- * Free. The balance is in micro-credits. Use /v1/limits for credits.
+ * Free. balanceMicros is the balance in millionths of a dollar; balanceUsd is the same in dollars.
  */
 export const getUsage = <ThrowOnError extends boolean = false>(
   options?: Options<GetUsageData, ThrowOnError>
@@ -279,8 +251,68 @@ export const revokeKey = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Search the web, news and images in one call
- * Costs 2 credits per 10 results from each source, plus 1 credit for each web result that comes back with its page text when scrapeOptions is on. Works without an API key, within free limits.
+ * List the parsers: the sites scrape can return as JSON, the page each one reads, what it returns and what it costs.
+ */
+export const listParsers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListParsersData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListParsersResponse,
+    unknown,
+    ThrowOnError
+  >({
+    url: "/v1/parsers",
+    ...options,
+  });
+};
+
+/**
+ * List the endpoints with their prices, input schemas and examples.
+ * Free, and needs no key.
+ */
+export const listEndpoints = <ThrowOnError extends boolean = false>(
+  options?: Options<ListEndpointsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListEndpointsResponse,
+    ListEndpointsError,
+    ThrowOnError
+  >({
+    url: "/v1/endpoints",
+    ...options,
+  });
+};
+
+/**
+ * Search code docs, READMEs, issues, pull requests and releases.
+ * Costs $0.001 for each 10 results; no results cost nothing.
+ */
+export const searchDeveloper = <ThrowOnError extends boolean = false>(
+  options: Options<SearchDeveloperData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SearchDeveloperResponse,
+    SearchDeveloperError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/search/developer",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Search the web, news, images, scholarly papers and YouTube videos in one call
+ * Costs $0.001 for each 10 results from each source and each research or videos list ($1 per 1,000 searches of up to 10 results), plus $1 per 1,000 web or news results that come back with their page text when scrapeOptions has formats, and $3 per 1,000 more for each summary or json with a schema or prompt that returns something. Works without an API key, within free limits.
  */
 export const search = <ThrowOnError extends boolean = false>(
   options: Options<SearchData, ThrowOnError>
@@ -307,7 +339,7 @@ export const search = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape any public web page as markdown, HTML, links, a screenshot or JSON
- * Costs 1 credit for any page, however it is reached. json with a schema or a prompt, summary and highlights add 4 credits each when they return something. CSS rules and attributes add nothing. A PDF adds 1 credit for each page read. Each perform action adds 2 credits. An answer from a stored copy within maxAge is free. A page that comes back with a 404 or 410 status is charged like any page. A page that cannot be read costs nothing. Each page of a urls call is priced on its own. creditsUsed shows what the call cost. Works without an API key, within free limits.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. creditsUsed shows what the call cost. Works without an API key, within free limits.
  */
 export const scrape = <ThrowOnError extends boolean = false>(
   options: Options<ScrapeData, ThrowOnError>
@@ -334,7 +366,7 @@ export const scrape = <ThrowOnError extends boolean = false>(
 
 /**
  * Pull the fields you name from any public page as JSON, each checked against the page
- * Costs $0.01 for most pages: the page's own price plus $0.008. A call that finds none of the fields is free.
+ * Costs $5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free.
  */
 export const extract = <ThrowOnError extends boolean = false>(
   options: Options<ExtractData, ThrowOnError>
@@ -361,7 +393,7 @@ export const extract = <ThrowOnError extends boolean = false>(
 
 /**
  * Click through a public website in a real browser to search, filter or fill a form
- * Costs $0.006 for each step the task takes, up to maxSteps and maxCost. A task that ends before its first step costs nothing. Starting a task sets aside the most it can cost, and what it does not use comes back when it ends.
+ * Costs $0.84 per hour of browser time the task runs, billed by the minute, one minute at least, up to maxCost. A task that ends before its first step costs nothing. Starting a task sets aside the most it can cost, and what it does not use comes back when it ends.
  */
 export const browserTask = <ThrowOnError extends boolean = false>(
   options: Options<BrowserTaskData, ThrowOnError>
@@ -388,7 +420,7 @@ export const browserTask = <ThrowOnError extends boolean = false>(
 
 /**
  * Check a browser task and read its result
- * Costs 0 credits per call.
+ * Costs $0 per 1,000 calls.
  */
 export const browserTaskStatus = <ThrowOnError extends boolean = false>(
   options: Options<BrowserTaskStatusData, ThrowOnError>
@@ -414,8 +446,8 @@ export const browserTaskStatus = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Turn a PDF, Word, Excel, PowerPoint or HTML file into markdown
- * Costs 1 credit per call. Works without an API key, within free limits.
+ * Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into markdown
+ * Costs $0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. costUsd shows what the call cost. Works without an API key, within free limits.
  */
 export const parse = <ThrowOnError extends boolean = false>(
   options: Options<ParseData, ThrowOnError>
@@ -442,7 +474,7 @@ export const parse = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape the list of pages on a website
- * Costs 1 credit per call. Works without an API key, within free limits.
+ * Costs $0.50 per 1,000 calls. Works without an API key, within free limits.
  */
 export const map = <ThrowOnError extends boolean = false>(
   options: Options<MapData, ThrowOnError>
@@ -469,7 +501,7 @@ export const map = <ThrowOnError extends boolean = false>(
 
 /**
  * Crawl a website in the background
- * Costs 1 credit a page, however it is reached. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.
  */
 export const crawl = <ThrowOnError extends boolean = false>(
   options: Options<CrawlData, ThrowOnError>
@@ -496,7 +528,7 @@ export const crawl = <ThrowOnError extends boolean = false>(
 
 /**
  * Stop a background crawl and keep the pages already read
- * Costs 0 credits per call.
+ * Costs $0 per 1,000 calls.
  */
 export const crawlCancel = <ThrowOnError extends boolean = false>(
   options: Options<CrawlCancelData, ThrowOnError>
@@ -519,7 +551,7 @@ export const crawlCancel = <ThrowOnError extends boolean = false>(
 
 /**
  * Check a background crawl and read the finished pages
- * Costs 0 credits per call. Pages with cursor.
+ * Costs $0 per 1,000 calls. Pages with cursor.
  */
 export const crawlStatus = <ThrowOnError extends boolean = false>(
   options: Options<CrawlStatusData, ThrowOnError>
@@ -542,7 +574,7 @@ export const crawlStatus = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape many pages in the background
- * Costs 1 credit a page, however it is reached. json with a schema or a prompt, summary and highlights add 4 credits each when they return something. CSS rules and attributes add nothing. A PDF adds 1 credit for each page read. Each perform action adds 2 credits. An answer from a stored copy within maxAge is free. A page that comes back with a 404 or 410 status is charged like any page. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.
  */
 export const batchScrape = <ThrowOnError extends boolean = false>(
   options: Options<BatchScrapeData, ThrowOnError>
@@ -569,7 +601,7 @@ export const batchScrape = <ThrowOnError extends boolean = false>(
 
 /**
  * Stop a batch scrape and keep the pages already read
- * Costs 0 credits per call.
+ * Costs $0 per 1,000 calls.
  */
 export const batchScrapeCancel = <ThrowOnError extends boolean = false>(
   options: Options<BatchScrapeCancelData, ThrowOnError>
@@ -592,7 +624,7 @@ export const batchScrapeCancel = <ThrowOnError extends boolean = false>(
 
 /**
  * Check a batch scrape and read the finished pages
- * Costs 0 credits per call. Pages with cursor.
+ * Costs $0 per 1,000 calls. Pages with cursor.
  */
 export const batchScrapeStatus = <ThrowOnError extends boolean = false>(
   options: Options<BatchScrapeStatusData, ThrowOnError>

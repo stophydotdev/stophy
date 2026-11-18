@@ -21,7 +21,7 @@ def test_async_scrape_and_crawl_cancel():
             json={
                 "success": True,
                 "data": {"markdown": "# Example"},
-                "creditsUsed": 1,
+                "costUsd": 0.001,
                 "requestId": "req_1",
             },
             request=request,
@@ -80,7 +80,7 @@ def test_async_client_reads_environment(monkeypatch):
         assert request.url.host == "env.stophy.dev"
         return httpx.Response(
             200,
-            json={"balanceMicros": 1, "creditsUsed": 0, "requestCount": 0},
+            json={"balanceMicros": 1, "balanceUsd": 0, "costUsd": 0, "requestCount": 0},
             request=request,
         )
 

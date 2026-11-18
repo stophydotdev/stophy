@@ -1,7 +1,7 @@
 ---
 name: stophy-extract
 description: |
-  Pull the fields you name from up to 10 pages as JSON, each value checked against its page, from a plain-words prompt or a JSON schema. Use for "get the price and release date from these pages", "pull every plan and its price", "fill this schema from these sites". For one page, a json format on stophy-scrape is faster. For a site that has a parser, like Amazon or LinkedIn, use that parser instead.
+  Pull the fields you name from up to 25 pages as JSON, each value checked against its page, from a plain-words prompt or a JSON schema. Use for "get the price and release date from these pages", "pull every plan and its price", "fill this schema from these sites". For one page, a json format on stophy-scrape is faster. For a site that has a parser, like Amazon or LinkedIn, use that parser instead.
 metadata:
   author: stophy
   version: "5.0.0"
@@ -15,7 +15,7 @@ allowed-tools:
 
 Turn pages into the exact fields you need.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Extract needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Extract needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -39,8 +39,8 @@ stophy scrape "https://www.notion.com/pricing" --formats '[{"type":"json","schem
 ## Tips
 
 - A schema gives steadier fields than a prompt. Use one when you need a list, like every plan on a pricing page.
-- `--urls` takes up to 10 pages, separated by commas.
-- `extract` costs 5 credits for most pages: the page's own price plus 4. A call that finds none of the fields is free. A json format on a scrape costs 1 credit plus 4 when it returns something.
+- `--urls` takes up to 25 pages, separated by commas.
+- `extract` costs $0.005 for most pages: the page's own $0.001 plus $0.004. A call that finds none of the fields is free. A json format on a scrape costs $0.001 plus $0.003 when it returns something.
 
 ## See also
 

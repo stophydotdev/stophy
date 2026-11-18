@@ -15,7 +15,7 @@ allowed-tools:
 
 Find pages, news and images on any topic.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Search works without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Search works without a key, 10 calls a minute and 50 a day. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -40,11 +40,11 @@ stophy search "bun sqlite" --limit 2 --scrapeOptions.formats '["markdown"]'
 ## Tips
 
 - `--sources` takes `web`, `news` and `images`, in one call. Results come back grouped by source.
-- `--tbs` filters by time: `qdr:h`, `qdr:d`, `qdr:w`, `qdr:m` or `qdr:y`. News takes only these; web also takes a date range, `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY`.
-- `--categories` takes `research`, `pdf`, `developer` and `gov`. `--includeDomains` and `--excludeDomains` take up to 10 sites.
+- `--tbs` filters by time: `qdr:d`, `qdr:w`, `qdr:m` or `qdr:y`. Add `sbd:1` to sort newest first, like `sbd:1,qdr:w`. News takes only these; web also takes a date range, `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY`. Images take none.
+- `--categories` takes `research`, `pdf` and `videos`. `--includeDomains` and `--excludeDomains` take up to 10 sites.
 - `--location "Berlin,Germany"` or `--country de` searches from that place.
 - Search first, then scrape the two or three results that matter. Quote each result's `url`.
-- A search costs 2 credits per 10 results from each source. With `--scrapeOptions`, each web result that comes back with its text adds 1 credit.
+- A search costs $0.001 per 10 results from each source. With `--scrapeOptions`, each web result that comes back with its text adds $0.001.
 
 ## See also
 
