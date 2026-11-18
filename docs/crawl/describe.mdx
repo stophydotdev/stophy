@@ -5,11 +5,11 @@ og:title: "Describe a crawl | Stophy"
 og:description: "Turn a plain-language request such as only the blog posts into the options a crawl takes, without starting one. Check the options, then send them."
 ---
 
-`POST /v1/crawl/params-preview` turns what you want into crawl options. Send a site and a sentence, read the options it picks, and pass them to [Crawl](/crawl/overview) yourself. Nothing is crawled and no page is read.
+Describe the pages you want in plain words to get crawl options without starting a job. Use the preview when you do not know which path patterns or depth to set. We do not read any pages.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request asks for the blog posts of a site, two links deep.
+To preview the options for blog posts up to two links deep, send the site URL and a `prompt`. Get an API key in the [Quickstart](/quickstart).
 
 <CodeGroup>
 ```bash cURL
@@ -55,7 +55,7 @@ print(response.json()["data"])
 
 ## Read the response
 
-`data` holds the crawl options the request maps to. A field the sentence does not mention is left out.
+Check `data` before you start a crawl. It holds the suggested options, with fields you did not ask for left out. Here, `includePaths` keeps the blog paths and `maxDiscoveryDepth` sets how far to follow links.
 
 ```json
 {
@@ -66,26 +66,15 @@ print(response.json()["data"])
     "maxDiscoveryDepth": 2
   },
   "costUsd": 0.003,
-  "creditsUsed": 2,
   "requestId": "2d1687ce-601b-4ad6-9757-79d9030b22da"
 }
 ```
 
-Check the options, change what you want, and send them to `POST /v1/crawl`:
-
-```bash
-curl -X POST https://api.stophy.dev/v1/crawl \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://bun.com/",
-    "includePaths": ["blog/.*"],
-    "maxDiscoveryDepth": 2,
-    "limit": 20
-  }'
-```
+Send the checked options to `POST /v1/crawl`. Add `"limit": 20` if you want to stop after at most 20 pages.
 
 ## Options
+
+Use `prompt` for the scope you want us to turn into crawl settings.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -95,6 +84,8 @@ curl -X POST https://api.stophy.dev/v1/crawl \
 The answer can hold these fields, each described in [Scope and limits](/crawl/scope): `url`, `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `allowExternalLinks`, `sitemap`, `ignoreQueryParameters` and `limit`. It never sets `scrapeOptions`, so choose the page [formats and filters](/crawl/page-content) yourself.
 
 ## Limits and errors
+
+Check the response for missing or capped options before you start the job.
 
 - The options are a suggestion made from your sentence. Read them before you start a crawl.
 - Each pattern in `includePaths` and `excludePaths` is checked as a valid regular expression, and a pattern that is not valid is dropped. At most 20 patterns of each are returned.
@@ -107,6 +98,8 @@ The answer can hold these fields, each described in [Scope and limits](/crawl/sc
 $3 per 1,000 calls. A call that finds nothing to set is free. See [Pricing](/account/pricing).
 
 ## Related
+
+Look up each option before sending it to Crawl.
 
 - [Crawl overview](/crawl/overview) starts a crawl with these options.
 - [Scope and limits](/crawl/scope) describes every field in the answer.

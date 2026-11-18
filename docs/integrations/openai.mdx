@@ -5,11 +5,11 @@ og:title: "OpenAI | Stophy"
 og:description: "Give an OpenAI model live web search with Stophy. Save one search function, pass it as a tool, and send the results back when the model asks."
 ---
 
-Give an OpenAI model live web search. The model asks for a search, your code calls Stophy, and the model answers from the results.
+Add live web search to an app that uses the OpenAI Responses API. When the model asks to search, your app calls Stophy and sends the results back.
 
 ## The search tool
 
-Install the SDK with `npm install stophy`, then save this as `stophy.ts`. A failed search throws a `StophyError`. When the model calls it, it returns the top 5 web results as JSON.
+Start with a function that accepts the model's query. Run `npm install stophy`, then put the function in `stophy.ts`. It asks for up to 5 web results and returns them as JSON. A failed search throws a `StophyError`.
 
 ```ts stophy.ts
 import { Stophy } from "stophy";
@@ -24,13 +24,9 @@ export async function stophySearch(query: string): Promise<string> {
 
 ## Give it to an OpenAI model
 
-```bash
-npm install openai
-```
+Register the tool with the Responses API so the model can request a search. Run `npm install openai`. Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
-Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
-
-Pass the search as a function tool to the Responses API. While the model keeps calling it, run the search and send the result back.
+For each `function_call`, read `query` and run the search. Send the JSON back as `function_call_output` with the matching `call_id`. Use `previous_response_id` to continue the same response. When the model sends no more calls, read `output_text`.
 
 ```ts
 import OpenAI from "openai";

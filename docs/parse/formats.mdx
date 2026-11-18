@@ -5,11 +5,11 @@ og:title: "Formats | Stophy"
 og:description: "List the file types Parse reads with GET /v1/parse/formats, and choose how PDFs, HTML files and pictures are read. Listing formats is free."
 ---
 
-Parse reads PDF, Word, OpenDocument, Excel, PowerPoint and HTML files, and pictures of text. `GET /v1/parse/formats` lists them, and `parsers` and a few other fields change how a file is read.
+Check whether Parse can read your file before choosing how to send it. Parse reads PDF, Word, OpenDocument, Excel, PowerPoint, HTML and pictures of text. `GET /v1/parse/formats` lists them, and `parsers` and a few other fields change how a file is read.
 
 ## List the formats
 
-Get an API key in the [Quickstart](/quickstart). The call is free.
+List formats to see the file extensions and options available to you. Get an API key in the [Quickstart](/quickstart). The call is free.
 
 <CodeGroup>
 ```bash cURL
@@ -38,7 +38,7 @@ print([format["name"] for format in response.json()["data"]["formats"]])
 
 ## Read the response
 
-`data.formats` has one entry for each kind of file. This real response is cut to two of its seven entries.
+Check `data.formats` for your file type. There are seven entries. This response shows the PDF entry.
 
 ```json
 {
@@ -51,28 +51,14 @@ print([format["name"] for format in response.json()["data"]["formats"]])
         "extensions": [".pdf"],
         "mimeTypes": ["application/pdf"],
         "available": true,
-        "name": "pdf",
-        "types": [".pdf", "application/pdf"],
-        "options": ["formats", "zeroDataRetention", "parsers"],
-        "note": "Up to 100 pages; pages with no text layer are read from their picture, up to 20."
-      },
-      {
-        "format": "html",
-        "kind": "document",
-        "extensions": [".html", ".htm"],
-        "mimeTypes": ["text/html"],
-        "available": true,
-        "name": "html",
-        "types": [".html", ".htm", "text/html"],
-        "options": ["formats", "zeroDataRetention", "onlyMainContent", "includeTags", "excludeTags", "removeBase64Images"],
-        "note": "html and rawHtml formats and the tag options apply to HTML files only."
+        "options": ["formats", "zeroDataRetention", "parsers"]
       }
     ]
   }
 }
 ```
 
-`options` names the request fields that apply to that kind of file. `kind` is `document` or `image`. Parse finds the type from the bytes of the file, so `filename` is only a hint.
+Read `available` to see whether the format is available. `extensions` and `mimeTypes` identify it. `options` names the request fields that apply to that kind of file. `kind` is `document` or `image`. Parse finds the type from the bytes of the file, so `filename` is only a hint.
 
 | Format | Extensions | What you get |
 | - | - | - |
@@ -86,7 +72,7 @@ print([format["name"] for format in response.json()["data"]["formats"]])
 
 ## Read a PDF
 
-`parsers` takes one entry for a PDF. Other files ignore it.
+Use `parsers` to choose between the text layer and OCR, or to keep page breaks for citations. It takes one entry for a PDF. Other files ignore it.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -101,6 +87,8 @@ print([format["name"] for format in response.json()["data"]["formats"]])
 
 ## Read an HTML file
 
+Use the HTML options to keep navigation or select only the part of the document you need.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `onlyMainContent` | `boolean` | `true` | Send `false` to keep navigation and footers. |
@@ -112,12 +100,16 @@ print([format["name"] for format in response.json()["data"]["formats"]])
 
 ## Limits and errors
 
+Check file size and access before sending it.
+
 - Up to 36 MB for a file, and 2 MB without an API key. A password-protected file and a file that cannot be opened return `400 invalidRequest`.
-- A PDF is read up to 100 pages. `isTruncated` says when the file had more.
+- A PDF is read up to 100 pages. `data.warning` says `The file text was cut short.` when the file had more pages than the limit.
 - Without an API key, scanned pages and pictures of text are not read, and `mode: "ocr"`, `summary` and `json` return `400 invalidRequest`.
 - A file with no readable text comes back as a `notFound` error and costs nothing.
 
 ## Related
+
+Use Large files for an upload, or Scrape if you already have a public URL.
 
 - [Parse documents](/parse/overview) sends a file and lists every field.
 - [Large files](/parse/large-files) sends a file up to 36 MB.

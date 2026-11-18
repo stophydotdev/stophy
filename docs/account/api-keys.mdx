@@ -5,11 +5,7 @@ og:title: "API keys | Stophy"
 og:description: "Create an API key, let an agent sign up for one, check when a key expires, revoke it, and see which calls work without an API key."
 ---
 
-An API key identifies your account on every call. Send it as a bearer token. Your account holds one balance, and every key on it spends from that balance.
-
-```bash
-curl https://api.stophy.dev/v1/limits -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+An API key identifies your account on every call. Send it in `Authorization: Bearer $STOPHY_API_KEY`. Your account holds one balance, and every key on it spends from that balance.
 
 ## Create a key
 
@@ -25,28 +21,11 @@ An agent can request an API key for you. You only approve it.
 2. You open `claimUrl`, sign in with GitHub or Google and approve.
 3. The agent calls `POST /v1/signup/poll` with the `code` every few seconds. It gets `202` with `status: "waiting"` until you approve, then `200` with the `apiKey`, once.
 
-```bash
-curl -X POST https://api.stophy.dev/v1/signup -H "Content-Type: application/json" -d '{}'
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "claimUrl": "https://stophy.dev/claim/<id>",
-    "code": "<secret code>",
-    "expiresAt": "<24 hours from now>"
-  },
-  "costUsd": 0,
-  "requestId": "<request id>"
-}
-```
-
-This is the response shape from the [API reference](/api-reference/endpoint/sign-up), with placeholders for the values. The link and the code work for 24 hours. A code that is unknown, expired or already collected answers `404` with code `notFound`. Sign up again. Each IP address can start 5 signups a day, then the answer is `429` with code `rateLimited`. The full steps are in the [Agent quickstart](/agent-quickstart). Over MCP, the `stophy_signup` tool does the same.
+See the [sign-up response](/api-reference/endpoint/sign-up) for the full shape. Read `expiresAt` to see when the claim expires. The link and the code work for 24 hours. A code that is unknown, expired or already collected answers `404` with code `notFound`. Sign up again. Each IP address can start 5 signups a day, then the answer is `429` with code `rateLimited`. The full steps are in the [Agent quickstart](/agent-quickstart). Over MCP, the `stophy_signup` tool does the same.
 
 ## Check a key and its expiry
 
-`GET /v1/limits` shows a key's rate limit and when it stops working. This real response is cut to those fields.
+Call `GET /v1/limits` with the key you want to check. Read `data.rateLimit` for the minute limit, remaining calls and reset time. This real response is cut to those fields.
 
 ```json
 {
@@ -63,24 +42,11 @@ This is the response shape from the [API reference](/api-reference/endpoint/sign
 
 `keyExpiresAt` is `null` when the key does not expire, as for a key an agent collected. When a key has an expiry, `keyExpiresAt` is that time, and after it the key answers `401` with code `unauthorized`. A key that is wrong, revoked or expired gets the same answer.
 
-```json
-{
-  "success": false,
-  "error": "This API key is not valid or has expired. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
-  "code": "unauthorized",
-  "retryable": false,
-  "signupUrl": "https://stophy.dev/signup",
-  "signup": "POST https://api.stophy.dev/v1/signup"
-}
-```
+The error includes `signupUrl` and `signup` if you need a new key.
 
 ## Revoke a key
 
 `DELETE /v1/key` revokes the key you call it with. It is free, and the key stops working at once. It needs an API key, not a signed-in session.
-
-```bash
-curl -X DELETE https://api.stophy.dev/v1/key -H "Authorization: Bearer $STOPHY_API_KEY"
-```
 
 The answer is `{ "success": true }`. `stophy logout` revokes the CLI's key the same way. To replace a key, create the new one, update your app, then revoke the old one. Every call counts against the key that made it. Filter [`GET /v1/logs`](/production/usage-and-logs) and [`GET /v1/usage/history`](/account/usage) by `apiKeyId` to see one key's calls.
 
@@ -103,19 +69,13 @@ On search, `scrapeOptions` also needs an API key. Without one, that call answers
 
 `GET /v1/keyless/eligibility` needs no API key. It tells you whether your IP address can still make calls without an API key.
 
-```json
-{
-  "success": true,
-  "eligible": true,
-  "remainingToday": 50,
-  "remainingThisMinute": 10,
-  "costUsd": 0
-}
-```
+Read `eligible`, `remainingToday` and `remainingThisMinute` to decide whether to make a keyless call now. The check costs $0.
 
 Over the limit, a keyless call answers `429` with code `freeLimit`, a `signupUrl` and `retryAfterSeconds`. See [Rate limits](/production/rate-limits).
 
 ## Related
+
+Use these guides to set up an agent or check what your keys spend.
 
 * [Agent quickstart](/agent-quickstart)
 * [Pricing](/account/pricing)

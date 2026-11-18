@@ -6,11 +6,11 @@ og:title: "Browser sessions | Stophy"
 og:description: "Open a cloud browser, drive it over CDP with Playwright or Puppeteer or run code in it, then close it. $0.06 per hour open, plus traffic per GB."
 ---
 
-A browser session is a real browser in the cloud that stays open between your calls. You pay for the time it is open, so close every session you open.
+Open a browser session when you need the same page, tabs or login across calls. For one page read without clicks, use [Scrape](/scrape/overview). You pay for the time it is open, so close every session you open.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). Browser sessions need an API key. This request opens a session that lives for at most 5 minutes and closes itself after 60 seconds with no calls.
+Set the maximum lifetime and the idle time when you open the browser. Get an API key in the [Quickstart](/quickstart). Browser sessions need an API key. This request opens a session that lives for at most 5 minutes and closes itself after 60 seconds with no calls.
 
 <CodeGroup>
 ```bash cURL
@@ -61,14 +61,9 @@ Keep `id`: every other call on the session uses it. This real response is cut to
   "createdAt": "2026-11-17T18:14:38.043Z",
   "timeoutAt": "2026-11-17T18:15:38.043Z",
   "expiresAt": "2026-11-17T18:19:38.038Z",
-  "metadata": {},
-  "networkPolicyId": null,
   "cdpUrl": "wss://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/cdp?token=…",
   "liveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…",
-  "interactiveLiveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…",
-  "recordingStatus": "none",
-  "costUsd": 0,
-  "requestId": "6a40d94c-7192-41df-b4ba-6c3aea8c76ed"
+  "interactiveLiveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…"
 }
 ```
 
@@ -76,71 +71,17 @@ Keep `id`: every other call on the session uses it. This real response is cut to
 
 ## Connect over CDP
 
-Any client that speaks the Chrome DevTools Protocol can drive the session. Connect to `cdpUrl`, and use the page that is already open.
+Any client that speaks the Chrome DevTools Protocol can drive the session. Use CDP when you want to drive the session from your own client.
 
-<CodeGroup>
-```typescript Playwright
-import { chromium } from "playwright-core";
+In Playwright, call `chromium.connectOverCDP(cdpUrl)`. In Puppeteer, use `puppeteer.connect` with `browserWSEndpoint` set to `cdpUrl`. Use the page that is already open.
 
-const headers = {
-  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-  "Content-Type": "application/json",
-};
-
-const opened = await fetch("https://api.stophy.dev/v1/browser", {
-  method: "POST",
-  headers,
-  body: JSON.stringify({ ttl: 300, activityTtl: 60 }),
-});
-const session = await opened.json();
-
-const browser = await chromium.connectOverCDP(session.cdpUrl);
-const context = browser.contexts()[0] ?? (await browser.newContext());
-const page = context.pages()[0] ?? (await context.newPage());
-await page.goto("https://example.com");
-console.log(await page.title());
-await browser.close();
-
-const closed = await fetch(`https://api.stophy.dev/v1/browser/${session.id}`, {
-  method: "DELETE",
-  headers,
-});
-console.log(await closed.json());
-```
-```typescript Puppeteer
-import puppeteer from "puppeteer-core";
-
-const headers = {
-  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-  "Content-Type": "application/json",
-};
-
-const opened = await fetch("https://api.stophy.dev/v1/browser", {
-  method: "POST",
-  headers,
-  body: JSON.stringify({ ttl: 300, activityTtl: 60 }),
-});
-const session = await opened.json();
-
-const browser = await puppeteer.connect({ browserWSEndpoint: session.cdpUrl });
-const [page = await browser.newPage()] = await browser.pages();
-await page.goto("https://example.com");
-console.log(await page.title());
-await browser.disconnect();
-
-const closed = await fetch(`https://api.stophy.dev/v1/browser/${session.id}`, {
-  method: "DELETE",
-  headers,
-});
-console.log(await closed.json());
-```
-</CodeGroup>
-
-The Playwright example printed `Example Domain`, then the closing bill. Disconnecting does not close the session: it keeps running, and billing, until you send `DELETE` or it times out. The link carries a token for this session, so keep it private. Activity on the CDP connection counts as a call for `activityTtl`.
+Disconnecting does not close the session: it keeps running, and billing, until you send `DELETE` or it times out. The link carries a token for this session, so keep it private. Activity on the CDP connection counts as a call for `activityTtl`.
 
 You do not need a CDP client to use a session. [Run code or a prompt](/browser/execute) in it with one HTTP call.
 
 ## Set how long it lives
+
+Set an idle limit to close an unused session and a lifetime limit to cap how long it can stay open.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -153,53 +94,7 @@ The session closes at the earlier of `expiresAt` (`ttl` after it opened) and the
 
 Send `DELETE` as soon as you are done. This is when the time and traffic are billed.
 
-<CodeGroup>
-```bash cURL
-SESSION_ID="<the id your session returned>"
-curl -X DELETE https://api.stophy.dev/v1/browser/$SESSION_ID \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const sessionId = "<the id your session returned>";
-const response = await fetch(`https://api.stophy.dev/v1/browser/${sessionId}`, {
-  method: "DELETE",
-  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
-});
-console.log(await response.json());
-```
-```python Python
-import os
-
-import requests
-
-session_id = "<the id your session returned>"
-response = requests.delete(
-    f"https://api.stophy.dev/v1/browser/{session_id}",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-print(response.json())
-```
-</CodeGroup>
-
-This real session was open for 34 seconds.
-
-```json
-{
-  "success": true,
-  "recordingStatus": "none",
-  "sessionDurationMs": 34117,
-  "proxyBytes": 34603,
-  "exitBytes": {
-    "managed": 34603,
-    "direct": 0,
-    "custom": 0
-  },
-  "creditsBilled": 2,
-  "costUsd": 0.004,
-  "creditsUsed": 2,
-  "requestId": "2e9de582-5085-46f4-a5d6-907b4279e406"
-}
-```
+Send it to `/v1/browser/{session_id}` with your API key. Read `recordingStatus` if you asked the session to record.
 
 `sessionDurationMs` is how long the session was open. `proxyBytes` is all its traffic, and `exitBytes` splits it by how the session reached the web, because each kind has its own price. See [Network location](/browser/network-location). `costUsd` is the bill. `creditsBilled` and `creditsUsed` are the older fields for the same amount, in steps of $0.002. Closing a session that is already closed returns the same bill and charges nothing more.
 
@@ -207,28 +102,7 @@ This real session was open for 34 seconds.
 
 `GET /v1/browser/{session_id}` returns one session, and is free. A running session also lists its `downloads` and `uploads`. After it closes, the same call shows what it cost: `proxyUsedMb`, `browserCostUsd` and `proxyCostUsd`.
 
-```bash
-curl https://api.stophy.dev/v1/browser/$SESSION_ID \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real closed session shows the bill split in two. The links are cut.
-
-```json
-{
-  "success": true,
-  "id": "96aa4901-52b9-440a-9dab-5df9b53a5387",
-  "status": "destroyed",
-  "finishedAt": "2026-11-17T18:17:01.010Z",
-  "timeoutAt": "2026-11-17T18:17:01.010Z",
-  "proxyUsedMb": 0.035,
-  "browserCostUsd": 0.002,
-  "proxyCostUsd": 0.002,
-  "downloads": [],
-  "uploads": [],
-  "costUsd": 0
-}
-```
+A closed session has `status: "destroyed"` and `finishedAt`. Use the cost fields to tell the time charge from the traffic charge.
 
 `GET /v1/browser` lists your sessions, newest first, and is free.
 
@@ -239,10 +113,7 @@ This real closed session shows the bill split in two. The links are cut.
 | `limit` | `number` | `50` | Sessions per page, 1 to 100. |
 | `cursor` | `string` | none | `nextCursor` from the last page. |
 
-```bash
-curl "https://api.stophy.dev/v1/browser?status=active&limit=5" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+To check for open sessions, add `?status=active`. If none match, `sessions` is empty.
 
 Each session in `sessions` has the fields above. `hasMore` is `true` while `nextCursor` holds a cursor for the next page. Run this before you stop work, to confirm no session is still open.
 
@@ -270,6 +141,8 @@ These fields go in the body of `POST /v1/browser`. Every field is optional.
 
 ## Price
 
+Budget for open time and traffic. Running a prompt raises the time rate for the whole session.
+
 | What | Price |
 | - | - |
 | Browser time | $0.06 per hour open, $0.001 a minute |
@@ -281,6 +154,8 @@ Time is billed when the session closes, with one minute at least. Amounts are ro
 
 ## Limits and errors
 
+Check your open sessions and balance before starting another browser.
+
 - You can have 3 sessions open at once on the `free` tier and 10 on the `paid` tier. Another `POST /v1/browser` returns `429 rateLimited` and says how many are open. Close one to open another. See [Rate limits](/production/rate-limits).
 - A balance too low to cover the `ttl` returns `402 insufficientCredits` and no session opens.
 - A call on a session that has ended returns `410 notFound` with `This browser session has ended.` Calls that need a running session, such as listing downloads, return `409 invalidRequest`.
@@ -288,6 +163,8 @@ Time is billed when the session closes, with one minute at least. Amounts are ro
 - `allowedDomains` and `networkPolicyId` together, `profile` with `zeroDataRetention`, and `recording` with `zeroDataRetention` each return `400 invalidRequest` that names the two fields.
 
 ## Choose another API
+
+Use a managed task or a scrape if you do not need to keep a browser open yourself.
 
 - [Execute](/browser/execute) runs code or a prompt in a session you opened.
 - [Tasks](/browser/tasks) does a few steps on a public site without you opening a session.

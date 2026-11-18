@@ -5,11 +5,11 @@ og:title: "Filter and search | Stophy"
 og:description: "Narrow a Map result by topic with search, choose whether sitemaps are used, include subdomains, and keep or drop query strings."
 ---
 
-Send these fields to `POST /v1/map` along with `url`. Start with the site, then add only the filters you need.
+Use Map filters to get a short list of URLs before you scrape or batch them. `search` matches the address, not the text of the page.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request lists the pages of one site that mention `sqlite`, best matches first.
+Get an API key in the [Quickstart](/quickstart). This request keeps up to five URLs that match `sqlite`. It stays on the starting host and uses the sitemap as well as links on the site.
 
 <CodeGroup>
 ```bash cURL
@@ -56,7 +56,7 @@ print([link["url"] for link in result["links"]])
 
 ## Read the response
 
-The list holds only URLs that mention `sqlite`.
+Read `links` for the matching URLs, best matches first. `costUsd` is the price of the Map call, not the price to read those pages.
 
 ```json
 {
@@ -69,12 +69,13 @@ The list holds only URLs that mention `sqlite`.
     { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_DENY" }
   ],
   "costUsd": 0.0005,
-  "creditsUsed": 1,
   "requestId": "b9ee351a-3f85-47da-bd08-3d92bfe39065"
 }
 ```
 
 ## Options
+
+Set these fields alongside `url` to decide where we look and how many URLs we return.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -90,6 +91,8 @@ The list holds only URLs that mention `sqlite`.
 
 ## Limits and errors
 
+Check whether your filters need a key or a sitemap before you send the request.
+
 - `search` can be a word or several words. Matches that include only some of them rank lower.
 - `sitemap: "only"` on a site with no sitemap returns `404 notFound`.
 - `includeSubdomains: true` without an API key returns `401 apiKeyRequired`.
@@ -100,6 +103,8 @@ The list holds only URLs that mention `sqlite`.
 $0.50 per 1,000 calls. Filters add nothing.
 
 ## Related
+
+Once you have the URLs, choose how to read them.
 
 - [Map](/map/overview) covers the request and the response.
 - [Scrape](/scrape/overview) reads the pages you choose.

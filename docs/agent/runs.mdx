@@ -5,11 +5,11 @@ og:title: "Runs | Stophy"
 og:description: "List, read, stop and replay agent runs. Read the steps and snapshots of a run, and ask a follow-up in the same thread. Every run is kept for 24 hours."
 ---
 
-Every [agent](/agent/overview) run has an `id`. Use it to read the answer, follow the steps, stop the run, or ask a follow-up. All of these calls are free, and a run is kept for 24 hours.
+Use the `id` of an [agent](/agent/overview) run to read its answer, inspect its steps or stop it. Reading and stopping are free. We keep a run for 24 hours, or at most one hour with `zeroDataRetention`.
 
 ## Read a run
 
-Get an API key in the [Quickstart](/quickstart). `GET /v1/agent/{id}` returns the state of a run.
+Get an API key in the [Quickstart](/quickstart). Call `GET /v1/agent/{id}` to see whether the run has finished.
 
 <CodeGroup>
 ```bash cURL
@@ -59,44 +59,9 @@ The response is in [Agent](/agent/overview#read-the-response). These are its fie
 
 ## List runs
 
-`GET /v1/agent` lists your runs from the last 24 hours, newest first, 20 to a page. Each row has the `id`, `createdAt`, `status`, `targetHint` and the `options` the run started with.
+If you did not keep the ID, `GET /v1/agent` lists your runs from the last 24 hours, newest first, 20 to a page. Each row has the `id`, `createdAt`, `status`, `targetHint` and the `options` the run started with.
 
-```bash
-curl https://api.stophy.dev/v1/agent \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real response is cut to the first run of three.
-
-```json
-{
-  "success": true,
-  "agents": [
-    {
-      "id": "job_u8CXI2icHrwCUpX-DP_5Cg",
-      "createdAt": "2026-11-17T18:10:37.282Z",
-      "status": "completed",
-      "targetHint": "https://bun.com/docs/runtime/sqlite",
-      "origin": "api",
-      "options": {
-        "urls": ["https://bun.com/docs/runtime/sqlite"],
-        "prompt": "Which of those modes does a plain transaction use?",
-        "schema": {
-          "type": "object",
-          "properties": {
-            "module": { "type": "string" },
-            "transactionModes": { "type": "array", "items": { "type": "string" } }
-          }
-        },
-        "model": "spark-2",
-        "effort": "low"
-      }
-    }
-  ],
-  "costUsd": 0,
-  "requestId": "2c2e7178-7528-49ff-88af-dc927af2cdaf"
-}
-```
+Read the rows in `agents`. The list is empty if you have no recent runs. `origin` tells you where each run started.
 
 When more runs follow, `next` holds the address of the next page. Or send `before`, a time in unix milliseconds, and read runs made before it. `limit` is 1 to 20.
 
@@ -104,107 +69,19 @@ When more runs follow, `next` holds the address of the next page. Or send `befor
 
 `DELETE /v1/agent/{id}` stops a run that is still working and keeps what it has read. What it spent is charged. The answer has `status` of `cancelled`.
 
-```bash
-curl -X DELETE https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-A run that already ended cannot be stopped. This real answer came from a run that had finished, with HTTP status `409`.
-
-```json
-{
-  "retryable": false,
-  "requestId": "35660548-bae0-4170-972e-bbf2cbd30c47",
-  "success": false,
-  "error": "This agent run already finished, so there is nothing to cancel. Read its pages with GET /v1/agent/job_1U1n0vXaDokDUHZFMGj1rA.",
-  "code": "jobFinished"
-}
-```
+If the run already ended, the call returns `409 jobFinished`.
 
 ## Read the trace
 
-`GET /v1/agent/{id}/trace` returns every step of a run, in order, as events: when the run started, each step with what it cost, a snapshot of the answer after each round, the final answer, and when the run finished. A page the run could not read is an `error.occurred` event.
+Use the trace to see why a field was missed or where the money went. `GET /v1/agent/{id}/trace` returns every step of a run, in order, as events: when the run started, each step with what it cost, a snapshot of the answer after each round, the final answer, and when the run finished. A page the run could not read is an `error.occurred` event.
 
-```bash
-curl https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA/trace \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real response is cut to four of its eight events.
-
-```json
-{
-  "success": true,
-  "id": "job_1U1n0vXaDokDUHZFMGj1rA",
-  "events": [
-    {
-      "schemaVersion": 1,
-      "eventId": "9df57ba1-be45-5127-989e-861cacb2a00a",
-      "runId": "job_1U1n0vXaDokDUHZFMGj1rA",
-      "occurredAt": "2026-11-17T18:10:05.379Z",
-      "producerSequence": 0,
-      "agent": { "id": "system", "role": "system", "name": "stophy" },
-      "type": "run.started"
-    },
-    {
-      "schemaVersion": 1,
-      "eventId": "3c9e7b67-a18e-582f-82ee-b90a273bfe54",
-      "runId": "job_1U1n0vXaDokDUHZFMGj1rA",
-      "occurredAt": "2026-11-17T18:10:07.271Z",
-      "producerSequence": 2,
-      "agent": { "id": "agent", "role": "orchestrator", "name": "stophy-agent" },
-      "n": 1,
-      "stepType": "step",
-      "action": "open",
-      "detail": "read the page",
-      "snapshotId": null,
-      "type": "tool_call.finished",
-      "toolCallId": "job_1U1n0vXaDokDUHZFMGj1rA:1",
-      "toolName": "open",
-      "result": { "costUsd": 0.001 }
-    },
-    {
-      "schemaVersion": 1,
-      "eventId": "1f8733a1-fdcd-5ea5-9577-7d27fbc2ce03",
-      "runId": "job_1U1n0vXaDokDUHZFMGj1rA",
-      "occurredAt": "2026-11-17T18:10:08.566Z",
-      "producerSequence": 5,
-      "agent": { "id": "agent", "role": "orchestrator", "name": "stophy-agent" },
-      "n": 3,
-      "stepType": "snapshot",
-      "action": "snapshot",
-      "detail": "after round 1",
-      "snapshotId": "round-1",
-      "type": "artifact.updated",
-      "artifact": { "kind": "json", "artifactId": "answer", "snapshotId": "round-1", "change": "update" }
-    },
-    {
-      "schemaVersion": 1,
-      "eventId": "475e41c0-cde2-5b14-a0fa-022ba3e99e36",
-      "runId": "job_1U1n0vXaDokDUHZFMGj1rA",
-      "occurredAt": "2026-11-17T18:10:08.567Z",
-      "producerSequence": 7,
-      "agent": { "id": "system", "role": "system", "name": "stophy" },
-      "type": "run.finished",
-      "outcome": "succeeded",
-      "error": null
-    }
-  ],
-  "costUsd": 0.004,
-  "requestId": "3f5cefcb-aefd-4382-864f-3a413faef74a"
-}
-```
+Use `producerSequence` to order the `events`. Each has an `eventId`, `runId`, `occurredAt`, `schemaVersion` and `agent`. A changed snapshot appears as `artifact.updated`.
 
 A tool step has a `tool_call.started` event and a `tool_call.finished` event, and `result.costUsd` is what the step cost. `stepType` is `step`, `snapshot` or `answer`. The `outcome` of `run.finished` is `succeeded`, `failed`, `cancelled` or `credit_limit_reached`.
 
 ## Read a snapshot
 
-A run takes up to three rounds, and the trace has a snapshot after each: its `snapshotId` is `round-1`, `round-2` and so on. `GET /v1/agent/{id}/snapshots/{snapshotId}` returns the answer the run had at that point. Use it to see how the answer grew, or to keep an earlier round.
-
-```bash
-curl https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA/snapshots/round-1 \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+Read a snapshot to keep the answer from an earlier round. A run takes up to three rounds, and the trace has a snapshot after each: its `snapshotId` is `round-1`, `round-2` and so on. `GET /v1/agent/{id}/snapshots/{snapshotId}` returns the answer the run had at that point.
 
 ```json
 {
@@ -227,121 +104,23 @@ curl https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA/snapshots/round-
 
 Send `threadId` with a new `prompt` to ask in the same thread. The run sees your earlier question and answer, and `urls`, `schema`, `effort`, `mode`, `location` and `safe` carry over unless you send new ones. With `"mode": "chat"`, a follow-up that needs no new data gets a short reply in `message`, for $3 per 1,000 pages, and a follow-up that needs more reads the pages again.
 
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/agent \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Which of those modes does a plain transaction use?",
-    "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
-    "mode": "chat",
-    "maxCredits": 25
-  }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/agent", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    prompt: "Which of those modes does a plain transaction use?",
-    threadId: "job_1U1n0vXaDokDUHZFMGj1rA",
-    mode: "chat",
-    maxCredits: 25,
-  }),
-});
-const followUp = await response.json();
-console.log(followUp.id, followUp.threadTurn);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/agent",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "prompt": "Which of those modes does a plain transaction use?",
-        "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
-        "mode": "chat",
-        "maxCredits": 25,
-    },
-)
-follow_up = response.json()
-print(follow_up["id"], follow_up["threadTurn"])
-```
-</CodeGroup>
+Send the follow-up to `POST /v1/agent`. For example, add `"maxCredits": 25` to cap it at $0.05.
 
 The follow-up is a new run with its own `id`. It keeps the `threadId` and has `threadTurn` of 2.
 
-```json
-{
-  "success": true,
-  "id": "job_u8CXI2icHrwCUpX-DP_5Cg",
-  "url": "https://api.stophy.dev/v1/agent/job_u8CXI2icHrwCUpX-DP_5Cg",
-  "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
-  "threadTurn": 2,
-  "costUsd": 0,
-  "requestId": "7cf70786-b777-49ac-809e-2c3ab4f8b0d1"
-}
-```
-
-In this run the first step was `chat`, which tried to answer from the earlier answer at no cost. The earlier answer did not hold the modes, so the run read the page again and charged $0.004.
+If the earlier answer lacks the facts you need, the `chat` step can cost $0 and the run can still charge for reading and extracting again. A SQLite follow-up that had to reread the page cost $0.004.
 
 ## Read a thread
 
-`GET /v1/agent/threads/{threadId}` returns every turn of a thread, oldest first. Add `includeData=true` to get the `data` of each finished run.
+Use the thread view to see what each question asked and what it cost. `GET /v1/agent/threads/{threadId}` returns every turn of a thread, oldest first. Add `includeData=true` to get the `data` of each finished run.
 
-```bash
-curl "https://api.stophy.dev/v1/agent/threads/job_1U1n0vXaDokDUHZFMGj1rA?includeData=true" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real response is cut to the second turn.
-
-```json
-{
-  "success": true,
-  "thread": {
-    "id": "job_1U1n0vXaDokDUHZFMGj1rA",
-    "createdAt": "2026-11-17T18:10:05.379Z",
-    "updatedAt": "2026-11-17T18:10:41.817Z",
-    "status": "idle",
-    "runs": [
-      {
-        "id": "job_u8CXI2icHrwCUpX-DP_5Cg",
-        "turn": 2,
-        "mode": "chat",
-        "prompt": "Which of those modes does a plain transaction use?",
-        "urls": ["https://bun.com/docs/runtime/sqlite"],
-        "schema": {
-          "type": "object",
-          "properties": {
-            "module": { "type": "string" },
-            "transactionModes": { "type": "array", "items": { "type": "string" } }
-          }
-        },
-        "effort": "low",
-        "status": "succeeded",
-        "createdAt": "2026-11-17T18:10:37.282Z",
-        "finishedAt": "2026-11-17T18:10:41.817Z",
-        "costUsd": 0.004,
-        "data": { "module": "bun:sqlite" }
-      }
-    ]
-  },
-  "costUsd": 0,
-  "requestId": "e8912ff8-6efa-4997-bb8d-5b880065670a"
-}
-```
+Read the rows in `thread.runs`. Each row includes its turn, inputs, timestamps and `costUsd`.
 
 The `status` of a thread is `running` while a turn works and `idle` otherwise. A run's `status` is `processing`, `succeeded`, `failed`, `cancelled` or `credit_limit_reached`.
 
 ## Options
+
+Choose what to include when you read runs, or how to ask a follow-up.
 
 | Field | Where | Effect |
 | - | - | - |
@@ -354,6 +133,8 @@ The `status` of a thread is `running` while a turn works and `idle` otherwise. A
 
 ## Limits and errors
 
+Save any answer or trace you need before it expires.
+
 - Runs, threads, traces and snapshots are kept for 24 hours. An unknown run returns `404 notFound`. An unknown thread returns `404 notFound` with `No agent thread with that id. Threads are kept for 24 hours.` An unknown snapshot returns `404 notFound` with `No snapshot with that id for this run.`
 - `DELETE` on a run that already ended returns `409 jobFinished`.
 - `zeroDataRetention` cannot be sent with `threadId`: a thread keeps what it has said.
@@ -361,6 +142,8 @@ The `status` of a thread is `running` while a turn works and `idle` otherwise. A
 - You can read only your own runs.
 
 ## Related
+
+Start a new run or set up a webhook if you do not want to poll.
 
 - [Agent](/agent/overview) starts a run and sets its cap.
 - [Webhooks](/webhooks) pushes `started`, `page`, `action`, `completed`, `failed` and `cancelled` events.

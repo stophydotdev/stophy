@@ -19,7 +19,7 @@ After a top-up you can turn on auto top-up at [stophy.dev/billing](https://stoph
 
 ## What a call costs
 
-These are the list prices. `GET /v1/endpoints` also shows each endpoint's price. Its `costUsd` is the lowest a call can cost, and `maxCostUsd` the most.
+Use the list prices below to estimate a run. You can also read them from `GET /v1/endpoints`. Its `costUsd` is the lowest a call can cost, and `maxCostUsd` the most.
 
 | Endpoint | Price |
 | - | - |
@@ -39,7 +39,7 @@ These are the list prices. `GET /v1/endpoints` also shows each endpoint's price.
 
 ### Scrape options
 
-These add to the $1 per 1,000 pages when they return something.
+Use the table to estimate the extra cost of a scrape. These options add to the $1 per 1,000 pages when they return something.
 
 | Option | Adds |
 | - | - |
@@ -69,6 +69,8 @@ The [parser list](https://api.stophy.dev/v1/parsers) has every parser's `price`.
 
 ## What is free
 
+You can check a job or look up what it cost without spending from your balance.
+
 * A call that fails costs nothing.
 * A page that comes back with a 404 or 410 status, or cannot be read, costs nothing.
 * Extract with none of the fields found costs nothing.
@@ -79,14 +81,7 @@ The [parser list](https://api.stophy.dev/v1/parsers) has every parser's `price`.
 
 ## Read what you were charged
 
-Every response has the `x-cost-usd` header. A scrape has its cost in `data.metadata.costUsd`. The other endpoints keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
-
-```json
-{
-  "success": true,
-  "data": { "metadata": { "statusCode": 200, "costUsd": 0.001 } }
-}
-```
+Read `x-cost-usd` to see what a call actually cost. A scrape has its cost in `data.metadata.costUsd`. The other endpoints keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
 
 On the other endpoints, `creditsUsed` and `x-credits-used` are older fields that count the same cost in steps of $0.002. Use `costUsd`.
 
@@ -94,7 +89,7 @@ On the other endpoints, `creditsUsed` and `x-credits-used` are older fields that
 
 ## When your balance runs out
 
-A call your balance cannot cover fails with status `402` and code `insufficientCredits`, and charges nothing. The balance is checked against the most the call can cost, so a call whose price depends on what comes back can fail while the balance still covers the usual price. The error names the balance, the most the call can cost, and where to add money.
+A call your balance cannot cover fails with status `402` and code `insufficientCredits`, and charges nothing. The balance is checked against the most the call can cost, so a call whose price depends on what comes back can fail while the balance still covers the usual price. Read `availableUsd` for your balance, `requiredUsd` for the most the call can cost, and `billingUrl` to top up.
 
 ```json
 {
@@ -114,6 +109,8 @@ This is the shape from the [API reference](/api-reference/errors). The numbers a
 A bad rating on a call refunds what that call cost, up to $0.10 a day. See [Agent feedback](/production/agent-feedback).
 
 ## Related
+
+Use these guides to check your calls or manage access to your balance.
 
 * [API keys](/account/api-keys)
 * [Usage](/account/usage)

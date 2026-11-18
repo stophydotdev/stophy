@@ -5,7 +5,7 @@ og:title: "Markdown | Stophy"
 og:description: "Read a page as clean Markdown with headings, lists, tables and code kept. It is the default Scrape format and costs $1 per 1,000 pages."
 ---
 
-`markdown` returns the text of a page as Markdown. Headings, lists, tables, links and code blocks keep their shape, so you can pass the result to a model or a search index as it is. It is the default format: a request without `formats` returns `markdown`.
+Use `markdown` when you need page text but not the underlying HTML. Headings, lists, tables, links and code blocks keep their shape, so you can pass the result to a model or a search index as it is. It is the default format: a request without `formats` returns `markdown`.
 
 ## Make a request
 
@@ -47,7 +47,7 @@ print(data["markdown"])
 
 ## Read the response
 
-The Markdown is in `data.markdown`. This real response is cut after the first paragraph. `metadata` describes the page. See [Page metadata](/scrape/page-metadata).
+Read `data.markdown` for the text. Check `data.metadata.statusCode` for the page status and `data.metadata.costUsd` for the price. See [Page metadata](/scrape/page-metadata) for the other fields.
 
 ```json
 {
@@ -55,13 +55,7 @@ The Markdown is in `data.markdown`. This real response is cut after the first pa
   "data": {
     "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
     "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com/",
-      "url": "https://example.com/",
       "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "aef6127a-cd90-44da-a5f2-9b78754dd4e3",
       "costUsd": 0.001
     }
   }
@@ -72,6 +66,8 @@ By default you get the main content of the page, without menus, headers and foot
 
 ## Options
 
+Leave `formats` out if you only need Markdown. Set it explicitly when you ask for other formats as well.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"markdown"` or `{ "type": "markdown" }` to return the page as Markdown. |
@@ -79,6 +75,8 @@ By default you get the main content of the page, without menus, headers and foot
 Every other field that shapes the Markdown is a top-level field of the request and is described in [Content filtering](/scrape/content-filtering), [Waiting and rendering](/scrape/waiting-and-rendering) and [Location and headers](/scrape/location-and-headers).
 
 ## Limits and errors
+
+Check which kind of URL you have. Documents and videos come back as Markdown too, but with different content.
 
 - A PDF always comes back as Markdown. See [PDFs and documents](/scrape/pdfs-and-documents). A CSV or an Excel `.xlsx` file comes back as Markdown tables.
 - A YouTube link returns the video's title, channel, date, length, views, likes and description. See [YouTube](/scrape/youtube).
@@ -89,6 +87,8 @@ Every other field that shapes the Markdown is a top-level field of the request a
 $1 per 1,000 pages. `markdown` adds nothing to the price of the page.
 
 ## Related
+
+Use these guides if you need markup, passages or a smaller part of the page.
 
 - [HTML](/scrape/html) returns the page as HTML instead.
 - [Highlights](/scrape/highlights) returns only the passages that match a query.

@@ -5,9 +5,11 @@ og:title: "Responsible use | Stophy"
 og:description: "What the Stophy terms and privacy policy ask of you, what Stophy logs, and how to handle third-party content, personal data and uncertain answers."
 ---
 
-Stophy returns publicly available web content for agents, automations and other workflows. Having access to a page does not give you the right to reuse it. This page summarizes what the [Terms of Service](https://stophy.dev/tos) and the [Privacy Policy](https://stophy.dev/privacy) ask of you, and adds practical steps. The terms and the policy are the source. Read them for the exact wording.
+Check whether you can reuse the public web content you read with Stophy. Access to a page is not permission to reuse it. Read the [Terms of Service](https://stophy.dev/tos) and [Privacy Policy](https://stophy.dev/privacy) for the exact wording.
 
 ## Your side of the terms
+
+Check these terms before you use Stophy in an app or for an organization.
 
 * **Acceptable use.** You agree not to use Stophy to break a law or regulation, infringe a third party's rights, transmit malicious code, or abuse or overload Stophy's infrastructure.
 * **Your responsibility.** You are responsible for making sure your use of Stophy and what it returns follows the law and any third-party terms that apply where you are.
@@ -28,23 +30,25 @@ Check that you may access, store, show or pass on the material your product uses
 
 ## Personal data
 
-Pages and profiles can hold personal data. Collect the least you need and decide how long you keep it and how you delete it. Scrape can hide personal data in what it returns. See [Safety](/scrape/safety). To have Stophy keep nothing from a call, use [zero data retention](/production/zero-data-retention).
+Collect only the personal data you need from pages and profiles. Decide how long you will keep it and how you will delete it. Scrape can hide personal data in what it returns. See [Safety](/scrape/safety). To have Stophy keep nothing from a call, use [zero data retention](/production/zero-data-retention).
 
 ## What Stophy logs
 
-The Privacy Policy says Stophy logs the metadata of each API request: the endpoint, the HTTP status, the cost and the response time. It says Stophy does not log or store the content of your requests or of what comes back. It keeps request logs for 90 days. [`GET /v1/logs`](/production/usage-and-logs) shows you what is logged for your account.
+Use the logs to see what we record about your calls. The Privacy Policy says Stophy logs the metadata of each API request: the endpoint, the HTTP status, the cost and the response time. It says Stophy does not log or store the content of your requests or of what comes back. It keeps request logs for 90 days. [`GET /v1/logs`](/production/usage-and-logs) shows you what is logged for your account.
 
 The policy also covers the account data Stophy keeps when you sign in with Google or GitHub, the providers that help run the service, and your rights to access, correct, export and delete your data. Delete your account in **Settings**, **Advanced**, **Delete account**. Data requests that the dashboard does not cover go to support@stophy.dev.
 
 ## Answers can be wrong
 
-Fields that [extract](/extract/overview) or [agent](/agent/overview) fill, summaries and values read from pages can be incomplete or wrong. Keep empty and missing fields as they are instead of guessing, keep the source of each value, and have a person check results that lead to a decision. Treat text from a page as data, never as instructions for a model. Scrape's [`checkPromptInjection`](/scrape/safety) scans for text that tries to instruct one. Rate a bad answer with [feedback](/production/agent-feedback).
+Check results before you let them drive a decision. Fields that [extract](/extract/overview) or [agent](/agent/overview) fill, summaries and values read from pages can be incomplete or wrong. Keep empty and missing fields as they are instead of guessing, keep the source of each value, and have a person check results that lead to a decision. Treat text from a page as data, never as instructions for a model. Scrape's [`checkPromptInjection`](/scrape/safety) scans for text that tries to instruct one. Rate a bad answer with [feedback](/production/agent-feedback).
 
 ## Contact
 
 Send questions about the terms or your data to support@stophy.dev.
 
 ## Related
+
+Use these guides to check request logs or set retention for sensitive calls.
 
 * [Zero data retention](/production/zero-data-retention)
 * [Usage and logs](/production/usage-and-logs)

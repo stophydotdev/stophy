@@ -5,7 +5,7 @@ og:title: "SDKs | Stophy"
 og:description: "Install the Stophy TypeScript or Python SDK, set your API key and learn the retry and timeout defaults they share. Both call the same API."
 ---
 
-The official SDKs wrap the Stophy API for server-side code. Each language page shows a first request and what is specific to that language. To call Stophy from a terminal, use the [CLI](/install-cli).
+Use an SDK to call Stophy from your app. Pick TypeScript or Python for installation and a first request. For terminal commands, use the [CLI](/install-cli).
 
 | Language | Package | Install | Runs on |
 | - | - | - | - |
@@ -14,13 +14,13 @@ The official SDKs wrap the Stophy API for server-side code. Each language page s
 
 ## Set your API key
 
-Both SDKs read `STOPHY_API_KEY` from the environment when you do not pass a key to the client. Keep it in your secret store or your project's `.env` file.
+Set `STOPHY_API_KEY` to use endpoints that need a key or to go beyond the free limits. Both SDKs read it from the environment when you do not pass a key to the client. Keep it in your secret store or your project's `.env` file.
 
 Keep the key in server-side code. Never commit it or ship it to a browser. The [Quickstart](/quickstart) shows where to get one. Without an API key, `scrape`, `search`, `map` and `parse` work within the [free limits](/production/rate-limits). `parsers`, `endpoints`, `signup` and `signup.poll` need no API key. Every other method fails with the code `apiKeyRequired`.
 
 ## Methods
 
-Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is.
+Use this table to find the SDK method for an [API endpoint](/api-reference/introduction). The method returns the API response as JSON.
 
 | Method | Endpoint |
 | - | - |
@@ -38,6 +38,8 @@ The SDKs have no methods for [agent](/agent/overview), [browser sessions](/brows
 
 ## Timeouts and retries
 
+Check these defaults before you raise a timeout or add your own retries.
+
 * Each attempt waits up to 70 seconds. The TypeScript SDK does not retry an attempt that timed out. The Python SDK retries it like a network error.
 * Both SDKs retry twice after a network error and after the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
 * If the API asks for a wait longer than 60 seconds, the SDK stops and throws with `retryAfterSeconds` set.
@@ -47,7 +49,7 @@ Set `maxRetries` to `0` to turn retries off. For a call that takes longer than 7
 
 ## Handle errors
 
-Both SDKs throw a `StophyError` with `code`, `retryable`, `retryAfterSeconds`, `status` and the `requestId`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
+Catch `StophyError` to decide whether to retry or ask for a new key. Both SDKs include `code`, `retryable`, `retryAfterSeconds`, `status` and the `requestId`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
 
 A call your balance cannot cover fails with `insufficientCredits` and status `402`, and charges nothing. The message names your balance and the most the call can cost. Add money at [stophy.dev/billing](https://stophy.dev/billing) and send the call again. See [Pricing](/account/pricing).
 

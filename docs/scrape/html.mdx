@@ -49,7 +49,7 @@ print(data["rawHtml"])
 
 ## Read the response
 
-Each format is a string in `data`. This real response is cut after the first paragraph of each format.
+Read `data.html` for the cleaned document and `data.rawHtml` for the full document. Both are strings. The two strings below are shortened.
 
 ```json
 {
@@ -58,13 +58,7 @@ Each format is a string in `data`. This real response is cut after the first par
     "html": "<!DOCTYPE html><html lang=\"en\"><body><p lang=\"en\">This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.</p>…</body></html>",
     "rawHtml": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><link rel=\"icon\" href=\"data:,\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Example Domain</title>…",
     "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com/",
-      "url": "https://example.com/",
-      "statusCode": 200,
       "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "4ef36448-ea5e-4154-8f67-8f0448724c1f",
       "costUsd": 0.001
     }
   }
@@ -75,6 +69,8 @@ Each format is a string in `data`. This real response is cut after the first par
 
 ## Options
 
+Ask for only the format you need. Use content filters to change what the cleaned HTML keeps.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"html"` for the cleaned page and `"rawHtml"` for the page as sent. |
@@ -84,6 +80,8 @@ Each format is a string in `data`. This real response is cut after the first par
 
 ## Limits and errors
 
+Choose Markdown instead if the URL points to a PDF.
+
 - A PDF comes back as Markdown only. Asking for `html` on a PDF returns `400 invalidRequest` with the message `formats: a PDF comes back as markdown only. Ask for markdown.`
 - A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
 
@@ -92,6 +90,8 @@ Each format is a string in `data`. This real response is cut after the first par
 $1 per 1,000 pages, whether you ask for `html`, `rawHtml` or both.
 
 ## Related
+
+Use these guides to get text or bytes instead, or to change the page before we read it.
 
 - [Markdown](/scrape/markdown) returns the text instead.
 - [Bytes](/scrape/bytes) returns the bytes the site sent, Base64 encoded.

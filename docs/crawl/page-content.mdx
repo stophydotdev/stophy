@@ -5,11 +5,11 @@ og:title: "Page content | Stophy"
 og:description: "Choose what each crawled page returns with scrapeOptions: formats, main content, selectors, waits, actions and more, the same options as Scrape."
 ---
 
-`scrapeOptions` sets how every page of a crawl is read. It takes the same fields as [Scrape](/scrape/overview), so a crawl can return Markdown, links, HTML, a screenshot, JSON and the rest. Without it, each page comes back as `markdown`.
+Use `scrapeOptions` when you need more than Markdown for each page of a crawl, or when you want to filter each page before reading it. It takes the same fields as [Scrape](/scrape/overview), so a crawl can return Markdown, links, HTML, a screenshot, JSON and the rest. Without it, each page comes back as `markdown`.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request crawls a site for 3 pages and returns each as Markdown plus its links, keeping only the main content and dropping the footer.
+Get an API key in the [Quickstart](/quickstart). This request crawls a site for 3 pages and returns each as Markdown plus its links, keeping only the main content and dropping the footer. `waitFor: 500` gives each page another 500 milliseconds to load before we read it.
 
 <CodeGroup>
 ```bash cURL
@@ -65,45 +65,26 @@ print(result["id"])
 
 ## Read the response
 
-Each page in `data` has the formats you asked for and its own `metadata`, as a [Scrape](/scrape/overview) response has. The first page of this crawl was the start URL. This real answer is cut. The Markdown and the links are shortened, and only two of the three pages are shown.
+Poll the crawl's `id` to read `data`. Each finished page has the formats you asked for and its own `metadata`. This crawl returned the start URL first.
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "markdown": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n“The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.”by Albert Einstein …",
+      "markdown": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n…",
       "links": [
         "https://quotes.toscrape.com/",
         "https://quotes.toscrape.com/login",
         "https://quotes.toscrape.com/author/Albert-Einstein"
       ],
       "metadata": {
-        "title": "Quotes to Scrape",
-        "language": "en",
-        "sourceURL": "https://quotes.toscrape.com/",
         "url": "https://quotes.toscrape.com/",
-        "statusCode": 200,
-        "contentType": "text/html",
-        "cacheState": "miss",
-        "costUsd": 0.001
-      }
-    },
-    {
-      "markdown": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\nIn 1879, Albert Einstein was born in U…",
-      "links": ["https://quotes.toscrape.com/", "https://quotes.toscrape.com/login"],
-      "metadata": {
-        "sourceURL": "https://quotes.toscrape.com/author/Albert-Einstein",
-        "url": "https://quotes.toscrape.com/author/Albert-Einstein/",
-        "statusCode": 200,
         "costUsd": 0.001
       }
     }
   ],
   "status": "completed",
-  "total": 3,
-  "completed": 3,
-  "failed": 0,
   "costUsd": 0.003
 }
 ```
@@ -112,7 +93,7 @@ Each page in `data` has the formats you asked for and its own `metadata`, as a [
 
 ## Options
 
-`scrapeOptions` is an object. Every field below is a field of Scrape, and means the same here.
+Put your page formats and filters in the `scrapeOptions` object. Every field below is a field of Scrape, and means the same here.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -133,7 +114,9 @@ These Scrape fields are not allowed in `scrapeOptions`: `url`, `linkStyle`, `max
 
 ## Limits and errors
 
-- Each page gets about 20 seconds plus your `waitFor`. A `timeout` inside `scrapeOptions` is replaced by that value.
+Check these constraints before you add waits or a browser profile to a crawl.
+
+- By default, each page gets 20 seconds plus your `waitFor`. Set `scrapeOptions.timeout` to give it a different budget, from 1,000 to 300,000 milliseconds. A page cannot use more than the time left in the crawl.
 - With a profile that saves changes, a crawl reads one page at a time, so it is slower. Send `"saveChanges": false` in `profile` to read at full speed.
 - A page that fails does not stop the crawl, and it is listed in the crawl's errors. See [Read a crawl](/crawl/async).
 - Options that need an API key in Scrape, such as `actions` and `waitFor`, work here, because Crawl always needs an API key.
@@ -143,6 +126,8 @@ These Scrape fields are not allowed in `scrapeOptions`: `url`, `linkStyle`, `max
 $1 per 1,000 pages, plus what the formats and options you choose add in Scrape: for example `summary`, `json` with a schema and `question` add $3 per 1,000 pages each, and `checkPromptInjection` adds $2.50. See the [Scrape price](/scrape/overview#price). A page that comes back with a 404 or 410 status, or cannot be read, costs nothing.
 
 ## Related
+
+Use these guides to set the scope of the job or read the results.
 
 - [Scrape overview](/scrape/overview) lists every format and option.
 - [Scope and limits](/crawl/scope) chooses which pages are read.

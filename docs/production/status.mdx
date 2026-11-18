@@ -5,9 +5,11 @@ og:title: "Status | Stophy"
 og:description: "Check which Stophy sources passed their last checks with GET /v1/status, and see how the API stays stable: one version at /v1, and how changes reach you."
 ---
 
-`GET /v1/status` shows which sources passed their last health checks. It is free and needs no API key, so a monitor or an agent can call it at any time.
+Check which sources are working before you retry a failed call. `GET /v1/status` shows which sources passed their last health checks. It is free and needs no API key, so a monitor or an agent can call it at any time.
 
 ## Make a request
+
+Check the status route from your app or agent without signing in.
 
 <CodeGroup>
 ```bash cURL
@@ -28,22 +30,11 @@ print(body["updatedAt"], [s["id"] for s in body["sources"] if s["state"] != "up"
 
 ## Read the response
 
-<Accordion title="Response">
-This real response is cut to three of its 32 sources.
+Check `state` for the source you call and `failing` for the endpoints that failed. This response shows one source from a list of 32.
 
 ```json
 {
   "sources": [
-    {
-      "id": "amazon",
-      "name": "amazon",
-      "state": "up",
-      "passed": 5,
-      "total": 5,
-      "failing": [],
-      "medianMs": 1149,
-      "lastCheckAt": "2026-11-17T13:34:17.409Z"
-    },
     {
       "id": "ebay",
       "name": "ebay",
@@ -53,22 +44,11 @@ This real response is cut to three of its 32 sources.
       "failing": ["ebay.search"],
       "medianMs": 5618,
       "lastCheckAt": "2026-11-17T13:35:37.751Z"
-    },
-    {
-      "id": "expedia",
-      "name": "expedia",
-      "state": "down",
-      "passed": 0,
-      "total": 1,
-      "failing": ["expedia.hotels"],
-      "medianMs": 1439,
-      "lastCheckAt": "2026-11-17T09:59:16.557Z"
     }
   ],
   "updatedAt": "2026-11-17T13:35:51.437Z"
 }
 ```
-</Accordion>
 
 Each source is a site or a group of endpoints, such as `amazon` or `google`. Stophy checks each source on a schedule, with one check for each endpoint it covers.
 
@@ -85,17 +65,21 @@ Use it to tell a problem on Stophy's side from a problem with your request. If a
 
 ## How the API stays stable
 
-* **One version.** Every endpoint is under `/v1`. There is no other version. A path that is not an endpoint answers `404` with code `notFound`, and the answer links to the [OpenAPI document](https://api.stophy.dev/openapi.json).
-* **Strict requests.** An endpoint rejects a field it does not take with `400 invalidRequest`, and the answer lists the fields it does take. A typo cannot change what a call does without telling you.
-* **Missing is empty.** Most responses leave out `null`, empty strings, empty objects and empty lists. Read optional fields with a default, and never depend on a field being present.
+Use `/v1` and the live reference when you update a client or check an error.
+
+* **One version.** Use `/v1` for API operations. There is no other version. A path that is not an endpoint answers `404` with code `notFound`, and the answer links to the [OpenAPI document](https://api.stophy.dev/openapi.json).
+* **Strict requests.** Many endpoints reject unknown fields with `400 invalidRequest` and list the fields you can send. Use the reference to check field names rather than relying on that error.
+* **Optional fields.** Responses can omit `null` and empty strings, objects or lists. Use defaults for optional fields and handle both missing and empty values.
 * **Older fields stay.** When a field is replaced, the older one stays in responses next to the new one, and the OpenAPI document marks it as an older field. For example `costUsd` replaced the cost in steps of $0.002 that `creditsUsed` counts. Move to the new field when you can.
 * **One source of truth.** The OpenAPI document at `https://api.stophy.dev/openapi.json` and the list at `https://api.stophy.dev/v1/endpoints` are generated from the running API. Every field, limit and price in them is what is live. The [SDKs](/sdks) are generated from it too.
 
 ## How changes reach you
 
-The [changelog](/changelog) lists each release, newest first. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard. Pin your SDK version, and read the changelog before you update.
+Check for changes before you upgrade your SDK. The [changelog](/changelog) lists each release, newest first. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard. Pin your SDK version, and read the changelog before you update.
 
 ## Related
+
+Use Troubleshooting to decide whether a failed source is worth retrying.
 
 * [Troubleshooting](/production/troubleshooting)
 * [Rate limits](/production/rate-limits)

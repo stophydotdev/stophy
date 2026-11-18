@@ -11,17 +11,13 @@ The skills run on the [Stophy CLI](/install-cli). If `stophy` is missing or too 
 
 ## Install
 
-For any agent that supports the Agent Skills format, install every skill.
+Install the full set if your agent supports the Agent Skills format and you want it to pick the right skill for each task.
 
 ```bash
 npx skills add stophydotdev/stophy
 ```
 
-To install only the skills you need, name them.
-
-```bash
-npx skills add stophydotdev/stophy --skill stophy-web --skill stophy-video
-```
+To install only the skills you need, add `--skill` once for each name, for example `--skill stophy-web --skill stophy-video`.
 
 `stophy init` runs this command for you, and also logs you in and adds the MCP server. See [Install the CLI](/install-cli).
 
@@ -41,17 +37,15 @@ For Claude Code, the marketplace entry points at the repository root (`source: .
 
 ## Sign in
 
-The skills call the CLI, which needs a login for everything except search, scrape, map, parse and the parsers that need no API key. Those work up to 10 calls a minute and 50 calls a day per IP address. Log in with your browser, or set `STOPHY_API_KEY`.
-
-```bash
-stophy login --browser
-```
+The skills call the CLI, which needs a login for everything except search, scrape, map, parse and the parsers that need no API key. Those work up to 10 calls a minute and 50 calls a day per IP address. For other calls, run `stophy login --browser` or set `STOPHY_API_KEY`.
 
 ## What each skill is for
 
 Start with `stophy`. It names the skill and the command for your task. The others cover one kind of task or one kind of site.
 
 ### Start here and tasks
+
+Pick a task skill when you want the agent to run a command for you.
 
 | Skill | What it does |
 | - | - |
@@ -68,6 +62,8 @@ Start with `stophy`. It names the skill and the command for your task. The other
 
 ### Build with Stophy
 
+Use these when the agent is writing an app or script instead of fetching data once.
+
 | Skill | What it does |
 | - | - |
 | `stophy-build` | Adds Stophy to an app or script with the TypeScript or Python SDK or the REST API, including the API key, errors and paging |
@@ -75,6 +71,8 @@ Start with `stophy`. It names the skill and the command for your task. The other
 | `stophy-build-search` | Writes code that searches the web, news and images, with each result's page text if you ask |
 
 ### Workflows
+
+Pick a workflow when your task needs more than one lookup.
 
 | Skill | What it does |
 | - | - |
@@ -85,6 +83,8 @@ Start with `stophy`. It names the skill and the command for your task. The other
 | `stophy-deep-research` | Answers a hard question from many sources, reads the best in full and cites each claim |
 
 ### Site data
+
+Pick a site skill when you know where the data lives.
 
 | Skill | What it does |
 | - | - |
@@ -100,15 +100,13 @@ Start with `stophy`. It names the skill and the command for your task. The other
 
 ## Check that it loaded
 
-Start a new agent session and ask this.
-
-```text
-Using the Stophy skills, which command reads https://bun.com/docs? Don't run it.
-```
+Start a new agent session. Ask which Stophy command reads `https://bun.com/docs`, and tell the agent not to run it.
 
 A loaded skill answers with `stophy scrape "https://bun.com/docs"`. If the agent answers with a plain HTTP fetch instead, check that each skill sits in a folder your agent reads, as `<name>/SKILL.md`, and restart the agent session.
 
 ## Related
+
+Use these guides to set up the rest of your agent.
 
 * [Install MCP](/install-mcp)
 * [Install the CLI](/install-cli)

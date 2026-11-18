@@ -5,11 +5,11 @@ og:title: "Zero data retention | Stophy"
 og:description: "Send zeroDataRetention to keep nothing from a call: no stored copy read or made, nothing logged. Which endpoints take it, what it changes and what it costs."
 ---
 
-Send `zeroDataRetention: true` and Stophy keeps nothing from that call: no stored copy of the page is read or made, and nothing from the call is logged. You set it on each call. There is nothing to switch on in your account.
+Set `zeroDataRetention: true` on calls that should not leave a stored copy. We read the page live and do not save a copy for later use. Billing still leaves a record, and some jobs keep results briefly so you can collect them. You set it per call, not per account.
 
 ## Make a request
 
-This request reads `example.com` with zero data retention.
+Set the flag on the request that reads the page. This example returns Markdown from `example.com`.
 
 <CodeGroup>
 ```bash cURL
@@ -50,8 +50,7 @@ print(body["data"]["metadata"]["cacheState"], body["data"]["metadata"]["scrapeId
 
 ## Read the response
 
-<Accordion title="Response">
-This real response is cut to a few fields.
+Read the Markdown from the first response. You will not be able to fetch it later.
 
 ```json
 {
@@ -69,40 +68,14 @@ This real response is cut to a few fields.
   }
 }
 ```
-</Accordion>
 
 The answer is the same shape as any scrape. `cacheState` is `miss` because no stored copy was read. The call cost $0.003: $0.001 for the page and $0.002 for zero data retention.
 
-To check that nothing was kept, read the result again. A normal scrape can be read for 24 hours with `GET /v1/scrape/{id}`. A zero-data-retention scrape answers `404`.
-
-```bash
-curl https://api.stophy.dev/v1/scrape/f9a3f2e7-124d-4623-9bba-6408b5eebfa3 \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": false,
-  "error": "No scrape with that id. Results are kept for 24 hours.",
-  "code": "notFound",
-  "retryable": false
-}
-```
-
-The call is still billed, so it still shows in [`GET /v1/logs`](/production/usage-and-logs), with its endpoint, status and cost. This entry is cut to the fields it holds.
-
-```json
-{
-  "id": "8dea175f-e1e4-4bd9-9e0e-bacc2f64c130",
-  "requestId": "f9a3f2e7-124d-4623-9bba-6408b5eebfa3",
-  "endpoint": "scrape",
-  "method": "POST",
-  "status": 200,
-  "costUsd": 0.003
-}
-```
+A normal scrape can be read for 24 hours with `GET /v1/scrape/{id}`. For this scrape, the same call returns `404 notFound` even if you have the ID. The call still appears in [`GET /v1/logs`](/production/usage-and-logs) as a bill with its request ID, endpoint, method, status and cost, not the page text.
 
 ## Where to send it
+
+Set the flag where the endpoint takes its page or file options.
 
 | Endpoint | Where | What it adds |
 | - | - | - |
@@ -120,17 +93,21 @@ The call is still billed, so it still shows in [`GET /v1/logs`](/production/usag
 
 ## What changes
 
+Save results you need before they expire. Check which features need to store data and cannot run with this setting.
+
 * **Stored copies.** No stored copy of the page is read or made, so every read is live.
 * **Results.** A zero-data-retention scrape is not kept, so `GET /v1/scrape/{id}` answers `404` and the scrape cannot be interacted with. Start a session with `POST /v1/browser` and open the page there.
 * **Jobs.** A crawl, a batch or an extract with zero data retention keeps its results for 1 hour after it finishes instead of 24 hours. After that they are gone, and so are their pages. A webhook delivery for such a job is recorded without its payload.
 * **Agent.** The prompt, the steps and the result are held for one hour at most.
-* **Logs.** Nothing from the call is logged except the bill: the endpoint, the time and the cost.
+* **Logs.** We keep the billing record, not the request or response content.
 * **Browser sessions.** A session has no [replay](/browser/recordings-and-replay). It cannot be recorded, and it cannot use a [profile](/browser/profiles), because a profile keeps cookies.
 * **Interact.** Send `zeroDataRetention` on the first call. If the scrape's session is already open without it, stop that session with `DELETE /v1/scrape/{id}/interact` and start again.
 
 Your own app stays responsible for what it stores and logs from the answers.
 
 ## Limits and errors
+
+Remove settings that need a stored copy before you retry an incompatible request.
 
 | Case | Answer |
 | - | - |
@@ -141,6 +118,8 @@ Your own app stays responsible for what it stores and logs from the answers.
 | Reading a zero-data-retention scrape by id | `404 notFound` |
 
 ## Related
+
+Use the logs guide to see what remains on your bill.
 
 * [Usage and logs](/production/usage-and-logs)
 * [Responsible use](/production/responsible-use)

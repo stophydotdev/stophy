@@ -5,11 +5,11 @@ og:title: "Vercel AI SDK | Stophy"
 og:description: "Give any AI SDK model live web search with Stophy. Save one search function, wrap it in tool() with zod, and let the model call it in generateText."
 ---
 
-Give any AI SDK model live web search. The model asks for a search, `execute` calls Stophy, and the model answers from the results.
+Give your AI SDK model a live search tool. The model supplies the query and the tool calls Stophy.
 
 ## The search tool
 
-Install the SDK with `npm install stophy`, then save this as `stophy.ts`. A failed search throws a `StophyError`. When `execute` calls it, it returns the top 5 web results as JSON.
+Put the search in a function you can call from `execute`. Run `npm install stophy`, then save the function in `stophy.ts`. It asks for up to 5 web results and returns them as JSON. A failed search throws a `StophyError`.
 
 ```ts stophy.ts
 import { Stophy } from "stophy";
@@ -24,13 +24,9 @@ export async function stophySearch(query: string): Promise<string> {
 
 ## Give it to the AI SDK
 
-```bash
-npm install ai @ai-sdk/openai zod
-```
+Pass the tool to `generateText` to let the model decide whether to search. Run `npm install ai @ai-sdk/openai zod`. Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
-Set `OPENAI_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
-
-Wrap the search in `tool()`. `stopWhen` lets the model search, read the results and answer in up to five steps. Any AI SDK model works, so swap `openai(...)` for another provider.
+Use `inputSchema` to ask the model for a `query` string, then call the search function from `execute`. `stopWhen` caps the tool and answer loop at five steps. To use another AI SDK provider, replace `openai(...)` with its model and set that provider's API key.
 
 ```ts
 import { openai } from "@ai-sdk/openai";

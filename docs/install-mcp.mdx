@@ -7,15 +7,11 @@ og:description: "Connect Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claud
 
 The hosted MCP server gives a compatible agent live Stophy tools for search, scrape, map, parse, crawl, extract, agent, browsers and monitors. Clients sign in with your browser, so there is no API key to copy.
 
-<Note>
-**Server URL:** `https://mcp.stophy.dev/mcp`
-
-Use the exact URL, including `/mcp`. It is a server URL for your client, not a page to open in a browser.
-</Note>
+Enter `https://mcp.stophy.dev/mcp` in your client, including `/mcp`. Do not open that URL as a web page.
 
 ## Let your agent connect it
 
-Paste this into the coding agent you want to connect.
+If you want your agent to edit its own client setup, paste this prompt into it.
 
 ```text
 Use curl to read https://docs.stophy.dev/agent-quickstart.md and connect the Stophy MCP server to this agent.
@@ -71,10 +67,14 @@ In Windsurf, open `mcp_config.json` with **Open MCP config file** in the Cascade
 
 ## Add Stophy to a chat app
 
+Add Stophy as a custom connector when you use a chat app instead of a coding agent.
+
 * **Claude** on the web, desktop or mobile: open **Customize > Connectors**, click **+ Add**, then **Add custom connector**, and paste `https://mcp.stophy.dev/mcp`. See [Claude Desktop](/integrations/claude-desktop).
 * **Grok** on grok.com: open [grok.com/connectors](https://grok.com/connectors), click **New Connector**, then **Custom**, paste `https://mcp.stophy.dev/mcp` and sign in.
 
 ## Choose how to connect
+
+Use browser sign-in when your client supports it. Use an API key for clients that take a bearer header, or start without a key to try the free tools.
 
 | | URL | Tools |
 | - | - | - |
@@ -110,12 +110,7 @@ With browser sign-in or an API key, it also lists a tool for each product.
 
 Ask *"What are people saying about Bun on Reddit?"* and your agent calls `stophy_scrape` with a Reddit search page and the `reddit-search` [parser](/scrape/prebuilt-parsers).
 
-```json
-{
-  "url": "https://www.reddit.com/search/?q=bun+runtime",
-  "formats": [{ "type": "json", "parser": "reddit-search" }]
-}
-```
+It sends the Reddit search URL and `"formats": [{ "type": "json", "parser": "reddit-search" }]`.
 
 A crawl runs in the background. Your agent reads it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
 
@@ -137,13 +132,7 @@ A session is billed from `browserOpen` until `browserClose`, at the prices on [B
 
 ## Add tools for more endpoints
 
-Add `toolsets` to the URL with a source name.
-
-```text
-https://api.stophy.dev/mcp?toolsets=web
-```
-
-Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
+Add `?toolsets=web` to `https://api.stophy.dev/mcp` when the standard tool list is missing an endpoint you need. Your agent then gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
 
 ## Run it as a local server
 
@@ -169,15 +158,13 @@ With `STOPHY_API_KEY` set, your agent can use every tool. Without it, your agent
 
 ## Check it
 
-Ask your agent this.
-
-```text
-Search YouTube for "rust tutorial" and summarize the top three videos.
-```
+Test the connection by asking your agent to search YouTube for `rust tutorial` and summarize the top three videos.
 
 If `stophy` shows no tools, restart your client.
 
 ## Related
+
+Use these guides to change how your client connects or add another way to use Stophy.
 
 * [MCP with or without an API key](/mcp/keyless)
 * [Browser sign-in](/mcp/oauth)

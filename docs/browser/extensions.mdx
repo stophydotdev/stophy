@@ -9,7 +9,7 @@ Upload a Chrome extension once, then load it into any browser session you open. 
 
 ## Upload an extension
 
-Get an API key in the [Quickstart](/quickstart). Send the extension as a zip with `manifest.json` at its root, in a multipart form field named `file`. It must be Manifest V3. This small extension marks `example.com` pages.
+Upload the zip before you open a session that needs the extension. Get an API key in the [Quickstart](/quickstart). Send the extension as a zip with `manifest.json` at its root, in a multipart form field named `file`. It must be Manifest V3. This small extension marks `example.com` pages.
 
 ```json
 {
@@ -73,10 +73,7 @@ The answer has status `201`.
   "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
   "name": "Mark page",
   "version": "1.0.0",
-  "createdAt": "2026-11-17T18:18:06.606Z",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "c46820aa-00ae-4f36-8149-6a0aa4dcb7d0"
+  "createdAt": "2026-11-17T18:18:06.606Z"
 }
 ```
 
@@ -86,37 +83,13 @@ The answer has status `201`.
 
 Send the ids in `extensionIds` when you open a session, up to 3. They load before the first page opens and cannot change while the session runs.
 
-```json
-{
-  "ttl": 300,
-  "activityTtl": 60,
-  "extensionIds": ["f508b4d7-c3f8-43e7-91b4-000d69a53ef9"]
-}
-```
+For example, set `"extensionIds": ["f508b4d7-c3f8-43e7-91b4-000d69a53ef9"]` when opening a session. The response lists each extension's `id`, `runtimeId` and `version` in the order you sent them. Use `runtimeId` in `chrome-extension://{runtimeId}/` addresses.
 
-The session answer lists them in `extensions`, in the order you sent, with the id Chrome gave each one. Use `runtimeId` in `chrome-extension://{runtimeId}/` addresses.
-
-```json
-"extensions": [
-  {
-    "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
-    "runtimeId": "aoiflbanehlhbhadedjnlhobiemjeegc",
-    "version": "1.0.0"
-  }
-]
-```
-
-To check that it ran, [execute](/browser/execute) code that reads the mark.
-
-```json
-{
-  "code": "await page.goto('https://example.com');\nreturn await page.evaluate(() => document.documentElement.dataset.markedBy);"
-}
-```
-
-The real `result` was `mark-page`. Leave `extensionIds` out for a plain browser: an extension changes what sites can see, so only sessions opened with one have it.
+To check that the sample extension ran, [execute](/browser/execute) code that opens `example.com` and reads `document.documentElement.dataset.markedBy`. It should return `mark-page`. Leave `extensionIds` out when you want a plain browser. An extension changes what sites can see, and runs only in sessions that load it.
 
 ## List, read and delete
+
+Look up an ID before opening a session or removing an old extension.
 
 | Action | Call | Notes |
 | - | - | - |
@@ -124,57 +97,13 @@ The real `result` was `mark-page`. Leave `extensionIds` out for a plain browser:
 | Read | `GET /v1/browser/extensions/{extension_id}` | One extension. |
 | Delete | `DELETE /v1/browser/extensions/{extension_id}` | Sessions already open keep it until they close. New sessions cannot use the id. |
 
-<CodeGroup>
-```bash cURL
-curl "https://api.stophy.dev/v1/browser/extensions?pageSize=10" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const response = await fetch(
-  "https://api.stophy.dev/v1/browser/extensions?pageSize=10",
-  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
-);
-const { items, totalItems } = await response.json();
-console.log(totalItems, items);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.get(
-    "https://api.stophy.dev/v1/browser/extensions",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    params={"pageSize": 10},
-)
-body = response.json()
-print(body["totalItems"], body["items"])
-```
-</CodeGroup>
-
-```json
-{
-  "success": true,
-  "items": [
-    {
-      "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
-      "name": "Mark page",
-      "version": "1.0.0",
-      "createdAt": "2026-11-17T18:18:06.606Z"
-    }
-  ],
-  "totalItems": 1,
-  "pageNumber": 1,
-  "pageSize": 10,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "abd0161d-5e2b-4c8b-baee-82ee24e76e33"
-}
-```
+The list returns `items` with each extension's ID, name, version and creation time. Read `totalItems`, `pageNumber` and `pageSize` to page through it. If you have no extensions, `items` is empty.
 
 A delete answers `{ "success": true }`. After it, reading the id returns `404 notFound` with `No extension with that id.`
 
 ## Options
+
+Use these fields to upload a zip, attach extensions or page through them.
 
 | Field | Where | Type | Effect |
 | - | - | - | - |
@@ -184,12 +113,16 @@ A delete answers `{ "success": true }`. After it, reading the id returns `404 no
 
 ## Limits and errors
 
+Check the manifest and the IDs before you open a session.
+
 - Manifest V3 only. You can keep 100 extensions.
 - A `manifest.json` with a `key` field, or with the `debugger`, `proxy`, `processes`, `dns`, `experimental` or `enterprise.*` permission, returns `400 prohibitedPermission`. A real answer for `debugger`: `The debugger permission is not allowed.`
 - An id that does not exist, or was deleted, returns `404 notFound`.
 - More than 3 ids, or the same id twice, in `extensionIds` returns `400 invalidRequest`.
 
 ## Related
+
+Use the session guide to load an extension, or profiles to keep a login.
 
 - [Browser sessions](/browser/overview) opens the session that loads the extension.
 - [Profiles](/browser/profiles) keep logins between sessions.

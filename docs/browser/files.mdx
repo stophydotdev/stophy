@@ -59,77 +59,15 @@ print(response.json())
 ```
 </CodeGroup>
 
-```json
-{
-  "success": true,
-  "name": "notes.txt",
-  "size": 17,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "75628e66-b3cc-4ab4-972b-03878e9ce067"
-}
-```
-
-To have Stophy fetch the file, send `url` instead of `base64`. `name` is optional then, and defaults to the last part of the address.
-
-```json
-{
-  "name": "robots.txt",
-  "url": "https://httpbin.org/robots.txt"
-}
-```
-
-That upload answered with `size` 30. The address must open the file with no sign-in, and Stophy waits 30 seconds for it.
+Check `name` and `size` in the response. The example uploads `notes.txt` at 17 bytes. To fetch a file instead, send `url` without `base64`. The URL must open the file without signing in. We wait up to 30 seconds. You can omit `name` to use the last part of the address.
 
 ## Use the file on a page
 
-Point a file field at the uploaded name. This call opens an upload form, picks `notes.txt`, submits, and returns the name the page shows.
-
-```json
-{
-  "code": "await page.goto('https://the-internet.herokuapp.com/upload');\nawait page.locator('#file-upload').setInputFiles('notes.txt');\nawait page.locator('#file-submit').click();\nreturn await page.locator('#uploaded-files').innerText();"
-}
-```
-
-Send it to [Execute](/browser/execute). The real answer had `result` set to `notes.txt`, so the page took the file. A running session lists its uploads in `uploads` when you [read it](/browser/overview#read-and-list-sessions).
+Use [Execute](/browser/execute) to fill a file field with an uploaded file. After opening the page, pass the uploaded name to `setInputFiles('notes.txt')` on the file locator. Submit the form, then read the name shown by the page to check it accepted the file. A running session lists its uploads in `uploads` when you [read it](/browser/overview#read-and-list-sessions).
 
 ## Read downloads
 
-A file the page downloads is saved in the session. `GET /v1/browser/{session_id}/downloads` lists them, sorted by name. Add `includeUrls=true` to get a link for each file.
-
-<CodeGroup>
-```bash cURL
-SESSION_ID="<the id your session returned>"
-curl "https://api.stophy.dev/v1/browser/$SESSION_ID/downloads?includeUrls=true" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const sessionId = "<the id your session returned>";
-const response = await fetch(
-  `https://api.stophy.dev/v1/browser/${sessionId}/downloads?includeUrls=true`,
-  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
-);
-const { files } = await response.json();
-for (const file of files) {
-  const bytes = await (await fetch(file.url)).arrayBuffer();
-  console.log(file.name, bytes.byteLength);
-}
-```
-```python Python
-import os
-
-import requests
-
-session_id = "<the id your session returned>"
-response = requests.get(
-    f"https://api.stophy.dev/v1/browser/{session_id}/downloads",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    params={"includeUrls": "true"},
-)
-for file in response.json()["files"]:
-    print(file["name"], requests.get(file["url"]).content)
-```
-</CodeGroup>
+List downloads before you close the session. `GET /v1/browser/{session_id}/downloads` lists them, sorted by name. Add `includeUrls=true` to get a link for each file.
 
 This real session downloaded one file after a click on a link with a `download` name. The signature is cut.
 
@@ -152,9 +90,11 @@ This real session downloaded one file after a click on a link with a `download` 
 }
 ```
 
-The link needs no API key, so you can hand it to a browser or a download tool. It answered `200` with `text/plain` and the body `Hello from Stophy`. It stops working after 15 minutes. Read the list again for a new link.
+If nothing has downloaded, `files` is empty. If `hasMore` is `true`, send `nextCursor` as `cursor`. The link needs no API key, so you can hand it to a browser or a download tool. It answered `200` with `text/plain` and the body `Hello from Stophy`. It stops working after 15 minutes. Read the list again for a new link.
 
 ## Options
+
+Choose how to supply an upload or whether the download list should include links.
 
 | Field | Where | Type | Default | Effect |
 | - | - | - | - | - |
@@ -167,6 +107,8 @@ The link needs no API key, so you can hand it to a browser or a download tool. I
 
 ## Limits and errors
 
+Check the file size and whether your session is still open.
+
 - A file is at most 20 MB, and a session takes at most 100 MB of uploads. A larger file returns `400 invalidRequest` with `A file can be at most 20 MB.`
 - Sending both `base64` and `url` returns `400 invalidRequest` with `Send base64 or url, not both.` Sending neither, or `base64` with no `name`, returns `400 invalidRequest` with `Send the file as base64 with a name, or as a url.`
 - A `url` that does not answer with a success status returns `400 invalidRequest`. This real one pointed at a missing file: `The file address answered 404. Send an address that opens the file without signing in.`
@@ -174,6 +116,8 @@ The link needs no API key, so you can hand it to a browser or a download tool. I
 - Downloads and uploads are removed when the session closes. Fetch what you need first.
 
 ## Related
+
+Use the session guide to start a browser before moving files.
 
 - [Browser sessions](/browser/overview) opens and closes the session.
 - [Execute](/browser/execute) clicks the file field and downloads.

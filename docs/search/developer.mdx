@@ -6,7 +6,7 @@ og:description: "Search READMEs, issues, pull requests, releases and docs with p
 sidebarTitle: "Developer"
 ---
 
-`POST /v1/search/developer` finds READMEs, issues, pull requests, releases, API operations and docs for a query, each with the passage that matches. It needs an API key.
+Use Developer search when you need a passage you can cite from a README, issue, pull request, release, API operation or docs page. This endpoint needs an API key.
 
 ## Search issues of a repo
 
@@ -68,42 +68,22 @@ for result in response.json()["results"]:
 
 ## Read the response
 
-`results` holds the matches, best first. This real response is cut to one of the three results and to the start of its passage.
+Read `results` for the matches, best first. To cite a result, use the text and `citation_url` in its `passages`.
 
 ```json
 {
-  "success": true,
-  "partial": false,
   "results": [
     {
-      "id": "b564588afcdd8e50",
-      "url": "https://github.com/oven-sh/bun/issues/26044",
-      "title": "Incorrect example for `bun:sqlite` transaction",
       "passages": [
         {
           "text": "oven-sh/bun issue #26044 · open · labels: docs\n\n## What is the type of issue?\n\n_No response_\n\n## What is the issue?\n\nThe example for sqlite transaction should use spread operator instead of a single a…",
-          "citation_url": "https://github.com/oven-sh/bun/issues/26044",
-          "truncated": false
+          "citation_url": "https://github.com/oven-sh/bun/issues/26044"
         }
       ],
-      "type": "issue",
-      "repo": "oven-sh/bun",
-      "stars": 96579,
-      "language": "Rust",
-      "date": "2026-01-13T21:42:02Z",
-      "state": "open"
+      "type": "issue"
     }
   ],
-  "repos": [
-    {
-      "repo": "oven-sh/bun",
-      "canonicalRepo": "oven-sh/bun",
-      "indexed": true,
-      "types": { "issue": 26600, "pullRequest": 5780, "readme": 15 }
-    }
-  ],
-  "costUsd": 0.001,
-  "requestId": "51a442c6-cfe4-46dc-9a35-ddbe5d674bf0"
+  "costUsd": 0.001
 }
 ```
 
@@ -111,59 +91,15 @@ Each result has an `id`, the `url` and `title` of the item, its `type`, and the 
 
 ## Search one repo without passages
 
-Send `passages` as `false` when you only need the items. This request searches the READMEs, issues, pull requests and releases of one repo.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/search/developer \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "memory leak",
-    "k": 2,
-    "types": ["readme", "issue", "pull_request", "release"],
-    "repos": ["oven-sh/bun"],
-    "passages": false
-  }'
-```
-
-This real response is cut to its first result. `passages` is an empty list, and `repos` says how much of the repo Stophy holds.
-
-```json
-{
-  "success": true,
-  "partial": false,
-  "results": [
-    {
-      "id": "ac7ce69f8173e1c1",
-      "url": "https://github.com/oven-sh/bun/issues/28343",
-      "title": "Tracking: JavaScriptCore GC Memory Leaks - Upstream WebKit Issue",
-      "passages": [],
-      "type": "issue",
-      "repo": "oven-sh/bun",
-      "stars": 96579,
-      "language": "Rust",
-      "date": "2026-03-24T09:17:51Z",
-      "state": "closed"
-    }
-  ],
-  "repos": [
-    {
-      "repo": "oven-sh/bun",
-      "canonicalRepo": "oven-sh/bun",
-      "indexed": true,
-      "types": { "issue": 26600, "pullRequest": 5780, "readme": 15 }
-    }
-  ],
-  "costUsd": 0.001,
-  "requestId": "b15883f1-bfc9-4329-8c57-a1dec908b12e"
-}
-```
+Set `"passages": false` when you only need links and titles. Each result then has an empty `passages` list. For example, to look for a memory leak across one repo's discussion and release history, set `"types": ["readme", "issue", "pull_request", "release"]` and pass the repo's `owner/name` in `repos`. `repos` in the response shows whether we have indexed the repo and gives counts by type.
 
 ## Send a GET request
 
-`GET /v1/search/developer` takes the same fields as query parameters, with a list as comma-separated values, such as `?query=memory+leak&types=issue,pull_request&repos=oven-sh/bun`.
+Use GET if you want to pass filters in the URL. `GET /v1/search/developer` takes the same fields as query parameters, with a list as comma-separated values, such as `?query=memory+leak&types=issue,pull_request&repos=oven-sh/bun`.
 
 ## Options
+
+Narrow the search by repo or type when you already know where the answer should come from.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -178,6 +114,8 @@ This real response is cut to its first result. `passages` is an empty list, and 
 
 ## Limits and errors
 
+Check the repo spelling and filter ranges if a request fails.
+
 - Without an API key, the call returns `401 apiKeyRequired`.
 - `min_stars` above `max_stars` returns `400 invalidRequest` with `min_stars: must not be greater than max_stars.`
 - `operation` and `doc` results have no stars, so they are left out when you send `min_stars` or `max_stars`.
@@ -186,9 +124,11 @@ This real response is cut to its first result. `passages` is an empty list, and 
 
 ## Price
 
-$1 per 1,000 searches of up to 10 results: $0.001 for each 10 results. A search with no results costs nothing. See [Pricing](/account/pricing).
+$1 per 1,000 searches of up to 10 results: $0.001 for each 10 results. A search with an empty `results` list costs nothing. See [Pricing](/account/pricing).
 
 ## Related
+
+Pick a different search when your sources are not code or docs.
 
 - [Papers](/search/papers) searches research papers.
 - [Sources](/search/sources) searches the web, news, images and videos.

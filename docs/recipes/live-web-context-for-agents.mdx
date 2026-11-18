@@ -5,13 +5,13 @@ og:title: "Live web context for agents | Stophy"
 og:description: "Give an AI agent two tools, search the web and read a page, so it answers from live pages and cites a source URL for each claim. About $0.003 a question."
 ---
 
-Your agent should answer from pages it read today, not from what a model remembers. You build two small tools: one finds pages, one reads a page. The agent chooses which to call, and every answer can point to a URL.
+Give your agent a search tool and a page reader so it can cite what it read instead of answering from memory.
 
 You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). A question that takes one search and two page reads costs about $0.003.
 
 ## 1. Find pages
 
-Search returns a short list of pages for a query. This request asks for 3 results.
+Search first to find pages worth reading. This request asks for 3 results.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/search \
@@ -20,43 +20,13 @@ curl -X POST https://api.stophy.dev/v1/search \
   -d '{ "query": "bun release notes", "limit": 3 }'
 ```
 
-`data.web` holds the results. Each has a `url`, a `title` and usually a `description`. This is the real answer.
-
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://bun.com/",
-        "title": "Blog | Bun",
-        "description": "Fixes issue with bundling imported .wasm files in `bun build`. Fixes regression with `bun build` from v1.1.28. … This release fixes 40 bugs (addressing 51 👍).",
-        "position": 1
-      },
-      {
-        "url": "https://bun.com/blog",
-        "title": "Blog | Bun",
-        "description": "Release notes, engineering deep-dives and announcements from the team building Bun.",
-        "position": 2
-      },
-      {
-        "url": "https://www.youtube.com/watch?v=0tvA6yKP0ww",
-        "title": "Bun 1.3 Can Now Replace Your Entire JavaScript Stack - YouTube",
-        "position": 3
-      }
-    ]
-  },
-  "id": "029f4260-1c63-4977-af7e-c16a0d58d92f",
-  "costUsd": 0.001,
-  "requestId": "029f4260-1c63-4977-af7e-c16a0d58d92f"
-}
-```
+`data.web` holds the results. Each has a `url`, a `title` and usually a `description`. `position` is the rank in the results. If no web results match, the tool below returns `No results.`
 
 The search cost $0.001. The tool gives the agent titles, URLs and snippets only, so a result is a lead, not evidence. See [Search](/search/overview) for sources and filters.
 
 ## 2. Read one page
 
-Scrape reads a page the agent picked. `maxChars` keeps each answer short, so a long page does not fill the agent's context.
+Read the page before quoting a search result. `maxChars` keeps each answer short, so a long page does not fill the agent's context.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
@@ -65,7 +35,7 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{ "url": "https://bun.com/blog", "maxChars": 1500 }'
 ```
 
-This real answer is cut. The middle of the Markdown and most of `metadata` are left out.
+Read `data.markdown`. If the text was cut, the response includes `nextOffset` and a `warning`.
 
 ```json
 {
@@ -89,7 +59,7 @@ This real answer is cut. The middle of the Markdown and most of `metadata` are l
 
 ## 3. Wrap both as tools
 
-Each tool takes a string and returns a string. A failed call returns the error as text, so the model can try something else instead of the loop crashing.
+Wrap each call so the model gets text it can read. The search tool takes a query, and the page tool takes a URL and optional offset. Both turn an API error into text so the model can try another input.
 
 <CodeGroup>
 ```typescript TypeScript
@@ -186,50 +156,19 @@ def read_page(url: str, offset: int | None = None) -> str:
 
 ## 4. Describe the tools to the model
 
-Give the model one definition for each tool. The shape below works with the [Anthropic](/integrations/anthropic), [OpenAI](/integrations/openai) and [Vercel AI SDK](/integrations/vercel-ai-sdk) tool calls, with the field names each one uses.
+Register `search_web` with a required string `query`. Explain that it returns up to 3 titles, URLs and snippets, but does not read the pages. Register `read_page` with a required string `url` and an optional integer `offset`. Tell the model to call again with the returned offset when the Markdown is cut at 1,500 characters.
 
-```json
-[
-  {
-    "name": "search_web",
-    "description": "Search the web. Returns up to 3 results with a title, URL and snippet. It finds pages and does not read them.",
-    "input_schema": {
-      "type": "object",
-      "properties": { "query": { "type": "string" } },
-      "required": ["query"]
-    }
-  },
-  {
-    "name": "read_page",
-    "description": "Read one page as markdown, 1,500 characters at a time. When the text says it was cut, call again with the offset it gives.",
-    "input_schema": {
-      "type": "object",
-      "properties": { "url": { "type": "string" }, "offset": { "type": "integer" } },
-      "required": ["url"]
-    }
-  }
-]
-```
+Use your provider's schema field, as shown in the [Anthropic](/integrations/anthropic), [OpenAI](/integrations/openai) and [Vercel AI SDK](/integrations/vercel-ai-sdk) guides.
 
 Add one rule to the system prompt: answer only from text the tools returned, and end each claim with the `Source:` URL it came from.
 
 ## 5. Try the failures first
 
-Before you connect a model, call each tool with input that fails. A page that is not public returns `400 invalidRequest`, and the tool turns it into text. This is the real error for `http://localhost/admin`.
-
-```json
-{
-  "success": false,
-  "error": "url: Expected a public website URL",
-  "code": "invalidRequest",
-  "retryable": false,
-  "requestId": "50e4b010-0a17-4760-a7c3-c73b457847cb"
-}
-```
-
-`readPage("http://localhost/admin")` returned `Read failed: url: Expected a public website URL`. A failed call costs nothing.
+Test how your tool handles a rejected request before connecting a model. A non-public URL returns `400 invalidRequest`. For example, `readPage("http://localhost/admin")` returned `Read failed: url: Expected a public website URL`. A failed call costs nothing.
 
 ## What to check
+
+Use a real question to check the tool order and the citations.
 
 - The agent calls `search_web` first and `read_page` on one or two of the URLs it got back.
 - Every URL in the answer appeared in a tool result. Open two of them and check the claim.
@@ -237,6 +176,8 @@ Before you connect a model, call each tool with input that fails. A page that is
 - A failing tool leaves the loop running.
 
 ## What it costs
+
+Budget for the search and each page you read.
 
 | Step | Price |
 | - | - |
@@ -247,6 +188,8 @@ Before you connect a model, call each tool with input that fails. A page that is
 A search with no results, and a page that cannot be read, cost nothing. See [Pricing](/account/pricing).
 
 ## Related
+
+Use the search or scrape guides if the agent needs different sources or less page text.
 
 - [Search](/search/overview) for sources, filters and page text in the same call.
 - [Scrape](/scrape/overview) for formats such as `highlights`, which returns only the passages that match a query.

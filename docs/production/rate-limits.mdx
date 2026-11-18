@@ -5,9 +5,11 @@ og:title: "Rate limits | Stophy"
 og:description: "Stophy limits calls a minute, calls at once, jobs and browser sessions by tier. Without an API key, 10 calls a minute and 50 a day per IP address."
 ---
 
-Stophy limits how many calls you can make in a minute and how many can run at once. The limits depend on your tier: `free` until your first top-up, then `paid`. `GET /v1/limits` returns yours. A call over a limit answers `429` and costs nothing.
+Check your rate limits before you increase traffic or add workers. We limit calls per minute and calls running at once. The limits depend on your tier: `free` until your first top-up, then `paid`. `GET /v1/limits` returns yours. A call over a limit answers `429` and costs nothing.
 
 ## Limits
+
+Use your tier to choose how many requests to send and how much work to queue.
 
 | | `free` | `paid` |
 | - | - | - |
@@ -26,34 +28,11 @@ Without an API key you can call [search](/search/overview), [scrape](/scrape/ove
 
 ## Read your limits
 
-`GET /v1/limits` returns your tier, limits and what is left this minute. It counts as one call. On the `free` tier, `paidLimits` shows the limits you get after a top-up.
-
-```bash
-curl https://api.stophy.dev/v1/limits -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "tier": "paid",
-    "rateLimit": { "limitPerMinute": 600, "remaining": 597, "resetsAt": "2026-11-17T17:44:00.000Z" },
-    "perMinute": { "calls": 600, "jobs": 100, "interact": 100, "reads": 1500 },
-    "concurrency": { "limit": 10, "inUse": 1 },
-    "jobsAtOnce": 10,
-    "queuedJobs": 20,
-    "sessionsAtOnce": 10,
-    "paidLimits": null
-  },
-  "costUsd": 0
-}
-```
-
-This real response is cut to the limit fields. See [Usage](/account/usage) for every field.
+Use `GET /v1/limits` to see your tier and remaining calls this minute. It counts as one call. Read `data.rateLimit` for the limit and reset time, and `data.perMinute` for the limits by type. `data.concurrency` gives you the current and maximum calls at once. `jobsAtOnce`, `queuedJobs` and `sessionsAtOnce` show the other limits. On the `free` tier, `paidLimits` shows the limits after a top-up; on `paid`, it is `null`. See [Usage](/account/usage) for the full response.
 
 ## Check calls running at once
 
-`GET /v1/concurrency-check` is free. It returns how many of your calls are running and how many can run at once.
+Use `GET /v1/concurrency-check` to size your worker pool. It is free and returns how many of your calls are running and how many can run at once.
 
 <CodeGroup>
 ```bash cURL
@@ -96,33 +75,15 @@ print(body["concurrency"], "of", body["maxConcurrency"], "calls running")
 
 ## Check calls without an API key
 
-`GET /v1/keyless/eligibility` needs no API key. It says whether your IP address can still make calls without an API key, and how many it has left.
-
-```bash
-curl https://api.stophy.dev/v1/keyless/eligibility
-```
-
-```json
-{
-  "success": true,
-  "eligible": true,
-  "remainingToday": 50,
-  "remainingThisMinute": 10,
-  "costUsd": 0
-}
-```
+Use `GET /v1/keyless/eligibility` to see whether your IP address can still make calls without a key. The check costs $0. Read `eligible`, `remainingThisMinute` and `remainingToday` before you try the next call.
 
 ## Headers
 
-Responses include `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`, the Unix time in seconds when the window resets. Without an API key they count the day's calls. These headers came from a real scrape without an API key.
-
-```text
-x-ratelimit-limit: 50
-x-ratelimit-remaining: 48
-x-ratelimit-reset: 1794960000
-```
+Read `X-RateLimit-Limit` and `X-RateLimit-Remaining` to see how many calls fit in the window. `X-RateLimit-Reset` gives the reset as Unix seconds. On calls without a key, the headers describe the day's allowance.
 
 ## When you go over
+
+Read the error message as well as the code. Different limits return the same `429` status.
 
 | Code | Status | Cause | What to do |
 | - | - | - | - |
@@ -132,21 +93,11 @@ x-ratelimit-reset: 1794960000
 | `freeLimit` | `429` | The 10 calls a minute or 50 a day without an API key are used | Get an API key at `signupUrl`, or wait `retryAfterSeconds`. A daily wait can be hours. |
 | `rateLimited` | `429` | Five signups from one IP address in a day | Wait `retryAfterSeconds`, or sign up at [stophy.dev/signup](https://stophy.dev/signup) |
 
-A `rateLimited` answer looks like this. This is the shape from the [API reference](/api-reference/errors), and the numbers are an example.
-
-```json
-{
-  "success": false,
-  "error": "Too many requests this minute. Send the call again after the number of seconds in retryAfterSeconds.",
-  "code": "rateLimited",
-  "retryable": true,
-  "retryAfterSeconds": 12
-}
-```
-
-Before you retry, wait as long as the answer says, and add random jitter to the wait. [Troubleshooting](/production/troubleshooting) has a retry loop.
+Before you retry, wait as long as the answer says, and add random jitter to the wait. See [Troubleshooting](/production/troubleshooting) for retry limits.
 
 ## Related
+
+Use the usage guide to see your current limits and balance.
 
 * [Usage](/account/usage)
 * [API keys](/account/api-keys)

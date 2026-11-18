@@ -5,7 +5,7 @@ og:title: "Search | Stophy"
 og:description: "Find web pages, news, images, papers and videos from a query in one request. Add the page text of each result. $1 per 1,000 searches of up to 10 results."
 ---
 
-Search finds pages from a query and returns them ranked, grouped by source. Pick the sources in `sources`; with no `sources` you get web results.
+Use Search when you have a query instead of a URL. We rank results within each source you ask for. By default you get web results.
 
 ## Make a request
 
@@ -55,7 +55,7 @@ You can try Search without an API key, up to 10 calls a minute and 50 calls a da
 
 ## Read the response
 
-`data` holds one list for each source you asked for. Every row has a `position`. This real response is cut to the first rows of each list. Each news row also has an `imageUrl`.
+Look in `data` for one list per source. Read `position` for the rank within that source. Each news row also has an `imageUrl`.
 
 ```json
 {
@@ -63,33 +63,19 @@ You can try Search without an API key, up to 10 calls a minute and 50 calls a da
   "data": {
     "news": [
       {
-        "title": "Bun v1.4.4 | Bun Blog",
         "url": "https://bun.com/blog/bun-v1.4.4",
-        "snippet": "Build errors are shown once, not twice, when a file is bundled for both the server and the browser, like a stylesheet imported by a page.",
-        "date": "2026-10-18T07:38:17.000Z",
         "position": 2
       }
     ],
     "web": [
       {
         "url": "https://github.com/oven-sh/bun",
-        "title": "GitHub - oven-sh/bun: Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one · GitHub",
-        "description": "At its core is the Bun runtime, a fast JavaScript runtime designed as a drop-in replacement for Node.js.",
         "position": 1,
-        "category": "github",
-        "date": "2026-11-13T00:00:00.000Z"
-      },
-      {
-        "url": "https://bun.com/docs/runtime",
-        "title": "Bun Runtime | Bun Docs",
-        "description": "Execute JavaScript/TypeScript files, package.json scripts, and executable packages with Bun's fast runtime.",
-        "position": 2
+        "category": "github"
       }
     ]
   },
-  "id": "4d7b5096-0898-4a64-8438-5048c681b2b1",
-  "costUsd": 0.002,
-  "requestId": "4d7b5096-0898-4a64-8438-5048c681b2b1"
+  "costUsd": 0.002
 }
 ```
 
@@ -99,6 +85,8 @@ If a source answers with fewer results than you asked for, or fails while the ot
 
 ## Options
 
+Choose sources for the kind of result you want. Add filters if you need a smaller set, or add page content if snippets are not enough.
+
 | Option | What you get | Guide |
 | - | - | - |
 | `sources`, `categories` | Web, news and image results, and lists of papers, PDFs and YouTube videos | [Sources](/search/sources) |
@@ -107,11 +95,11 @@ If a source answers with fewer results than you asked for, or fails while the ot
 | `POST /v1/search/developer` | Code docs, READMEs, issues, pull requests and releases | [Developer search](/search/developer) |
 | `POST /v1/search/research/papers` | Research papers by title and abstract, one paper by id, and similar papers | [Papers](/search/papers) |
 
-These fields belong to this page.
+Set these fields to control the size, age and wait time of a search.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
-| `query` | `string` | none | What to search for, 1 to 500 characters. Required. Web results take the operators `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Image results take `imagesize:WIDTHxHEIGHT` for that size and larger, and `larger:WIDTHxHEIGHT` for at least that size. |
+| `query` | `string` | none | What to search for, 1 to 500 characters. Required. Web results take the operators `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Image results take `imagesize:WIDTHxHEIGHT` for exactly that size, and `larger:WIDTHxHEIGHT` for at least that size. |
 | `limit` | `number` | 10, or 5 with `scrapeOptions.formats` | The most results from each source, 1 to 100. News returns at most 50. |
 | `scrapeLimit` | `number` | `limit` | With `scrapeOptions.formats`, read only the top this many web results and the top this many news results. The rest come back without page text. Not more than `limit`. See [Page content](/search/page-content). |
 | `maxAge` | `number` | 1 hour, or 15 minutes with `news` | Accept a stored answer up to this many milliseconds old, at most 30 days. `0` always searches live. An answer that was stored has `cachedAt`. |
@@ -125,6 +113,8 @@ The full field list is in the [API reference](/api-reference/endpoint/search).
 $1 per 1,000 searches of up to 10 results: $0.001 for each 10 results from each source, and for each list of papers or videos. A search that returns nothing costs nothing. Page text adds $1 per 1,000 results read, and `summary` or `json` with a schema or a prompt add $3 per 1,000 more each. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Use a different call if you already have a URL or need fields rather than ranked results.
 
 - [Scrape](/scrape/overview) reads one page you already know.
 - [Extract](/extract/overview) pulls the fields you name from pages, each checked against the page.

@@ -5,7 +5,7 @@ og:title: "Limits and errors | Stophy"
 og:description: "Cancel a batch, know how many batches run at once and how many wait, handle pages that fail, retry them in a new batch, and read every error a batch returns."
 ---
 
-A batch can fail in three places: the call that starts it, a page inside it, and the batch as a whole. This page covers each, and how to stop a batch you no longer need.
+Stop a batch you no longer need, or use its errors to retry only the pages that failed.
 
 ## Cancel a batch
 
@@ -35,35 +35,15 @@ print(result)
 ```
 </CodeGroup>
 
-```json
-{
-  "success": true,
-  "status": "cancelled",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "9bb054fc-4ddd-4648-a48f-336b848b1dc0"
-}
-```
-
-This real batch had 3 pages and was cancelled right after it started. Reading it showed `status` `cancelled`, `total` 3, `completed` 0 and `costUsd` 0. no page was read, so nothing was charged. A batch cancelled later is charged for the pages it finished. Reading the batch then gives its final counts, and `data` holds the pages read.
+The cancel call itself costs $0. If you cancel before any page finishes, the batch costs nothing and its `data` is empty. If you cancel later, you pay for the pages that finished. Read the batch for its final `total`, `completed` and `costUsd`, and look in `data` for the pages it read.
 
 Cancelling a batch that already ended returns `409 jobFinished`.
-
-```json
-{
-  "success": false,
-  "error": "This batch scrape already finished, so there is nothing to cancel. Read its pages with GET /v1/batch/scrape/job_FcxIcgRhtA3DhBn2UjZEFA.",
-  "code": "jobFinished",
-  "retryable": false,
-  "requestId": "c82a2d11-028d-4bef-945d-a7e0dd6e4110"
-}
-```
 
 To remove a finished batch's pages, see [Delete the results](/batches/results#delete-the-results). A batch also deletes itself 24 hours after it starts.
 
 ## Jobs at once
 
-Batches share three limits with crawls, extracts and agent runs. They depend on your tier, which `GET /v1/limits` returns.
+Check how much room you have before submitting several batches. Batches share job limits with crawls, extracts and agent runs. They depend on your tier, which `GET /v1/limits` returns.
 
 | Limit | `free` | `paid` |
 | - | - | - |
@@ -78,7 +58,7 @@ A batch holds 1 to 10,000 URLs, and is kept for 24 hours. Pages are read at most
 
 ## Pages that fail
 
-A failed page never makes the call fail. The batch goes on, the page is listed in `errors` with a `code`, and a failed page costs nothing.
+Read `errors` to see which pages the batch could not read. An individual page error does not make the request fail. The batch goes on, the page is listed in `errors` with a `code`, and a failed page costs nothing.
 
 ```json
 {
@@ -111,70 +91,15 @@ A batch ends `failed` when the batch itself stops, not when some pages fail. It 
 
 ## Retry the failed pages
 
-Collect the `url` of every retryable error, then submit them as a new batch.
+Retry only failed pages that can succeed on another attempt.
 
-<CodeGroup>
-```bash cURL
-BATCH_ID="<the id your batch returned>"
-URLS=$(curl -s https://api.stophy.dev/v1/batch/scrape/$BATCH_ID/errors \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  | jq -c '[.errors[] | select(.retryable) | .url]')
-
-if [ "$URLS" != "[]" ]; then
-  curl -X POST https://api.stophy.dev/v1/batch/scrape \
-    -H "Authorization: Bearer $STOPHY_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d "{\"urls\": $URLS, \"formats\": [\"markdown\"]}"
-fi
-```
-```typescript TypeScript
-const id = "<the id your batch returned>";
-const headers = {
-  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-  "Content-Type": "application/json",
-};
-const errors = await fetch(`https://api.stophy.dev/v1/batch/scrape/${id}/errors`, {
-  headers,
-}).then((response) => response.json());
-
-const urls = errors.errors
-  .filter((error: { retryable: boolean }) => error.retryable)
-  .map((error: { url: string }) => error.url);
-
-if (urls.length > 0) {
-  const retry = await fetch("https://api.stophy.dev/v1/batch/scrape", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ urls, formats: ["markdown"] }),
-  });
-  console.log((await retry.json()).id);
-}
-```
-```python Python
-import os
-
-import requests
-
-batch_id = "<the id your batch returned>"
-headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
-errors = requests.get(
-    f"https://api.stophy.dev/v1/batch/scrape/{batch_id}/errors", headers=headers
-).json()["errors"]
-
-urls = [error["url"] for error in errors if error["retryable"]]
-if urls:
-    retry = requests.post(
-        "https://api.stophy.dev/v1/batch/scrape",
-        headers=headers,
-        json={"urls": urls, "formats": ["markdown"]},
-    )
-    print(retry.json()["id"])
-```
-</CodeGroup>
+Read `/v1/batch/scrape/{id}/errors` and take the `url` from each row with `retryable: true`. Put those URLs in `urls` on `POST /v1/batch/scrape`. If none are retryable, do not submit another batch.
 
 Send the same `formats` and options as the first batch. When the first batch is still running, add the URLs to it instead with `appendToId`. See [Submit](/batches/submit#add-urls-to-a-running-batch). Wait a few seconds before you retry `sourceUnavailable` and `sourceRefused`, and do not retry a code marked No.
 
 ## Errors from the calls
+
+Use the HTTP status and `code` to fix a failed batch request.
 
 | Status | `code` | Cause | What to do |
 | - | - | - | - |
@@ -186,9 +111,11 @@ Send the same `formats` and options as the first batch. When the first batch is 
 | 429 | `rateLimited` | Too many jobs, or too many calls this minute. | Wait `retryAfterSeconds`, then send it again. |
 | 503 | `busy`, `internalError` | Stophy is busy, or a fault on its side. | Wait and retry. A retry with the same `Idempotency-Key` is safe. |
 
-Failed calls cost nothing. [Troubleshooting](/production/troubleshooting) has a retry loop.
+Failed calls cost nothing. See [Troubleshooting](/production/troubleshooting) for retry timing.
 
 ## Related
+
+Use the batch guides to submit URLs or read the pages that finished.
 
 - [Batches](/batches/overview) explains the statuses and the price.
 - [Submit a batch](/batches/submit) covers webhooks, `appendToId` and `Idempotency-Key`.

@@ -5,11 +5,11 @@ og:title: "Submit a batch | Stophy"
 og:description: "Send up to 10,000 URLs with the formats and options every page uses, add a webhook, add URLs to a running batch, and retry a submit without a duplicate."
 ---
 
-`POST /v1/batch/scrape` takes a list of `urls` and the options every page shares, and answers with an `id`. This page covers what you can send. [Results](/batches/results) covers how to read the pages.
+`POST /v1/batch/scrape` takes a list of `urls` and the options every page shares, and answers with an `id`. Save the ID to read pages as they finish. [Results](/batches/results) covers how to read the pages.
 
 ## Send a list
 
-Get an API key in the [Quickstart](/quickstart). The options are the ones [Scrape](/scrape/overview) takes, sent at the top level next to `urls`. This request reads two pages as `markdown` and `links`, keeping only the main content.
+Use one batch when the same scrape settings apply to every URL. Get an API key in the [Quickstart](/quickstart). The options are the ones [Scrape](/scrape/overview) takes, sent at the top level next to `urls`. This request reads two pages as `markdown` and `links`, keeping only the main content.
 
 <CodeGroup>
 ```bash cURL
@@ -64,6 +64,8 @@ The answer is the one in the [overview](/batches/overview#read-the-response): `i
 
 ## Options
 
+Set the formats once for the whole batch. Use `ignoreInvalidURLs` to decide whether one bad address should stop submission.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `urls` | `array of string` | none | The pages or PDFs to read, 1 to 10,000, each up to 2,048 characters. An address sent twice is read once. Required. |
@@ -77,19 +79,7 @@ Every scrape option works on a batch, and applies to every page. Those include `
 
 ## Get told when pages finish
 
-Send `webhook` as an address, or as an object, and Stophy sends a JSON `POST` when the batch starts, for each finished page and when it ends.
-
-```json
-{
-  "urls": ["https://bun.com/docs/runtime/env"],
-  "webhook": {
-    "url": "https://app.example.com/hooks/stophy",
-    "headers": { "X-Source": "batch-import" },
-    "metadata": { "import": "2026-11" },
-    "events": ["page", "completed"]
-  }
-}
-```
+Send `webhook` if you want updates without polling. Use an address for all events, or an object to pick them. For example, set `"events": ["page", "completed"]` to hear when a page finishes and when the batch completes.
 
 | Field | Type | Effect |
 | - | - | - |
@@ -102,65 +92,23 @@ Each call is signed, and a call that gets no `2xx` is sent again, up to 3 times.
 
 ## Add URLs to a running batch
 
-Send `appendToId` with the new `urls` while the batch is still running. The batch keeps its own options and webhook, and the new URLs are read with them. A URL the batch already has is skipped.
+To reuse a running batch, send its ID in `appendToId` and the new addresses in `urls`. The batch keeps its own options and webhook, and the new URLs are read with them. A URL the batch already has is skipped.
 
-```json
-{
-  "appendToId": "job_rmBUA_bFeF_ah47HLpgftQ",
-  "urls": ["https://bun.com/docs/runtime/templating"]
-}
-```
-
-The answer has the same `id`. This real batch started with 4 URLs, and its status then showed `total` 5 and all five pages in `data`. When the batch is over, the call returns `409 jobFinished`: `This batch scrape already finished, so pages cannot be added. Start a new batch, or read the pages with GET /v1/batch/scrape/{id}.` The most pages in one batch is still 10,000, new ones included.
+The answer has the same `id`. Read `total` in the batch status to confirm the new URLs were added. When the batch is over, the call returns `409 jobFinished`: `This batch scrape already finished, so pages cannot be added. Start a new batch, or read the pages with GET /v1/batch/scrape/{id}.` The most pages in one batch is still 10,000, new ones included.
 
 ## Send the same batch twice safely
 
 Add an `Idempotency-Key` header, any text you choose. If the same key and the same body arrive again within 24 hours, Stophy returns the first answer instead of starting a second batch.
 
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/batch/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: site-import-2026-11-17" \
-  -d '{ "urls": ["https://example.com"], "formats": ["markdown"] }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/batch/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-    "Idempotency-Key": "site-import-2026-11-17",
-  },
-  body: JSON.stringify({ urls: ["https://example.com"], formats: ["markdown"] }),
-});
-console.log(response.headers.get("idempotent-replayed"), await response.json());
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/batch/scrape",
-    headers={
-        "Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}",
-        "Idempotency-Key": "site-import-2026-11-17",
-    },
-    json={"urls": ["https://example.com"], "formats": ["markdown"]},
-)
-print(response.headers.get("idempotent-replayed"), response.json())
-```
-</CodeGroup>
-
-Sent twice, both answers had the same `id`, and the second had the header `idempotent-replayed: true`. Only one batch ran. A different body with the same key starts a new batch, so keep the key and the body together when you retry. Use it for every submit you might send again after a timeout.
+For example, send `Idempotency-Key: site-import-2026-11-17`. A replay has the same `id` as the first answer and the header `idempotent-replayed: true`. A different body with the same key starts a new batch. Keep the key and body together so you can retry after a timeout.
 
 ## Price
 
-A page costs what a scrape costs: $1 per 1,000 pages, plus the extras of the options you send. `checkPromptInjection` adds $2.50 per 1,000 pages when the scan runs. `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu` and `changeTracking` in `json` mode add $3 per 1,000 pages each when they return something. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture, that come back. Browser actions and CSS rules add nothing. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes, and starting the job is free. See [Pricing](/account/pricing).
+Estimate the cost from the pages you send and the options you choose. A page costs what a scrape costs: $1 per 1,000 pages, plus the extras of the options you send. `checkPromptInjection` adds $2.50 per 1,000 pages when the scan runs. `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu` and `changeTracking` in `json` mode add $3 per 1,000 pages each when they return something. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture, that come back. Browser actions and CSS rules add nothing. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes, and starting the job is free. See [Pricing](/account/pricing).
 
 ## Limits and errors
+
+Check your URL list and available job slots before you submit. If the batch fails later, read the pages it finished before you start a new one.
 
 - A batch holds at most 10,000 URLs. More returns `400 invalidRequest`: `A batch holds at most 10000 pages. Send fewer.`
 - An empty `urls` returns `400 invalidRequest`: `urls: Send at least 1 item.` A list with no public website URL returns `400 invalidRequest`: `urls: None of these is a public website URL.`
@@ -169,6 +117,8 @@ A page costs what a scrape costs: $1 per 1,000 pages, plus the extras of the opt
 - Your balance is checked as pages are read, not when you submit. A batch that runs out of balance ends as `failed` with `Your balance ran out. The pages already read are kept. Add funds, then start a new job for the pages left.` Adding URLs with `appendToId` returns `402 insufficientCredits` when your balance cannot cover them.
 
 ## Related
+
+Use the results guide after you have an ID.
 
 - [Batches](/batches/overview) explains what a batch is and what it costs.
 - [Results](/batches/results) reads the pages, the errors and the list of batches.

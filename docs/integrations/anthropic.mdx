@@ -5,11 +5,11 @@ og:title: "Anthropic | Stophy"
 og:description: "Give Claude live web search with Stophy. Save one search function, define it as a tool, and let the tool runner call it when Claude asks."
 ---
 
-Give Claude live web search. Claude asks for a search, your code calls Stophy, and Claude answers from the results.
+Add live web search to an app that uses the Anthropic SDK. When Claude asks to search, your app calls Stophy and passes the results back to Claude.
 
 ## The search tool
 
-Install the SDK with `npm install stophy`, then save this as `stophy.ts`. A failed search throws a `StophyError`. When Claude calls it, it returns the top 5 web results as JSON.
+Start with a function that takes only a query. Install `stophy` with `npm install stophy`, then put the function in `stophy.ts`. It asks for up to 5 web results and returns them as JSON. A failed search throws a `StophyError`.
 
 ```ts stophy.ts
 import { Stophy } from "stophy";
@@ -24,13 +24,9 @@ export async function stophySearch(query: string): Promise<string> {
 
 ## Give it to Claude
 
-```bash
-npm install @anthropic-ai/sdk zod
-```
+Use the tool runner if you want the SDK to make the tool calls for you. Run `npm install @anthropic-ai/sdk zod`. Set `ANTHROPIC_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
 
-Set `ANTHROPIC_API_KEY` in your environment, and `STOPHY_API_KEY` to go past the free limits.
-
-`betaZodTool` defines the search as a tool. The tool runner calls it whenever Claude asks, and returns Claude's final message.
+Define `web_search` with `betaZodTool`. Its schema tells Claude to supply a string named `query`. The tool runner passes that string to your function and returns the final message. Read its text blocks for the answer.
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";

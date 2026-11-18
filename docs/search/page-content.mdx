@@ -5,7 +5,7 @@ og:title: "Page content | Stophy"
 og:description: "Read the text of every search result, or only the passages that match your query. A result stays useful when its page cannot be read, and costs nothing for it."
 ---
 
-Add `scrapeOptions` to a [search](/search/overview) to read each web and news result, or set `highlights` to get the passages that match your query. A result stays in the answer even when its page cannot be read.
+Add `scrapeOptions` when a search snippet is not enough and you need the page behind a web or news result. If you only need matching passages from pages we already have, set `highlights` instead.
 
 ## Read each result
 
@@ -62,7 +62,7 @@ for result in data["web"]:
 
 ## Read the response
 
-Each web row gets `markdown` and `metadata`, the same as a [scrape](/scrape/page-metadata) of that page. `metadata.costUsd` is what reading that page cost. This real response is cut to one row. The Markdown was 38,988 characters long.
+Look for `markdown` on each web row we read. Its `metadata` is the same as in a [scrape](/scrape/page-metadata), and `metadata.costUsd` tells you what reading that page cost.
 
 ```json
 {
@@ -71,25 +71,14 @@ Each web row gets `markdown` and `metadata`, the same as a [scrape](/scrape/page
     "web": [
       {
         "url": "https://bun.com/docs/runtime/sqlite",
-        "title": "SQLite | Bun Docs",
-        "description": "Bun natively implements a high-performance SQLite3 driver.",
-        "position": 1,
         "markdown": "# SQLite\n\n> Bun natively implements a high-performance SQLite3 driver.\n\n…",
         "metadata": {
-          "title": "SQLite",
-          "sourceURL": "https://bun.com/docs/runtime/sqlite",
-          "url": "https://bun.com/docs/runtime/sqlite",
-          "statusCode": 200,
-          "contentType": "text/markdown",
-          "cacheState": "hit",
           "costUsd": 0.001
         }
       }
     ]
   },
-  "id": "3291abae-3e8d-4b28-b3d4-1f064024090b",
-  "costUsd": 0.003,
-  "requestId": "3291abae-3e8d-4b28-b3d4-1f064024090b"
+  "costUsd": 0.003
 }
 ```
 
@@ -97,97 +86,13 @@ Each web row gets `markdown` and `metadata`, the same as a [scrape](/scrape/page
 
 ## Get highlights
 
-Send `highlights` as `true` to get the passages of each page that best match `query`. They replace the `description`, in Markdown, up to about 2,000 characters. A result whose page Stophy has already read gets passages. The others keep their usual description. Highlights add nothing to the price.
+Set `"highlights": true` when you only need passages that match `query`. For pages we already have, passages replace the web result's `description` in Markdown, up to about 2,000 characters. The `…` between passages marks skipped text. Other results keep their usual description, if they have one. This option adds nothing to the price.
 
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/search \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "bun sqlite transactions",
-    "limit": 3,
-    "highlights": true
-  }'
-```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data } = await stophy.search({
-  query: "bun sqlite transactions",
-  limit: 3,
-  highlights: true,
-});
-console.log(data?.web?.map((result) => result.description));
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-data = stophy.search(query="bun sqlite transactions", limit=3, highlights=True)["data"]
-print([result.get("description") for result in data["web"]])
-```
-</CodeGroup>
-
-This real response is cut to two of the three rows. The first row has no `description` to show. In the second, the `…` between passages marks where text was skipped.
-
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://www.youtube.com/watch?v=xE5SP2VYMMo",
-        "title": "Bun JS SQLite Crash Course (2024) - YouTube",
-        "position": 1
-      },
-      {
-        "url": "https://bun.com/docs/runtime/sqlite",
-        "title": "SQLite | Bun Docs",
-        "description": "Credit to better-sqlite3 and its contributors for inspiring the API of bun:sqlite. Features include: Transactions Parameters (named & positional) Prepared statements …\n\n## Transactions\nCreate a transaction with the `db.transaction()` method:\n…\n## Transactions\n<Note> **Nested transactions** — You can call transaction functions from inside other transaction functions.",
-        "position": 2
-      }
-    ]
-  },
-  "id": "9480aea1-f5dd-4990-b604-53f9fa7e396b",
-  "costUsd": 0.001,
-  "requestId": "9480aea1-f5dd-4990-b604-53f9fa7e396b"
-}
-```
-
-To get the passages as their own list, with your own query and count, add a `highlights` format with a `query` to `scrapeOptions.formats`. See [Highlights](/scrape/highlights).
+To get passages in a separate list, put `{ "type": "highlights", "query": "refund policy" }` in `scrapeOptions.formats`. You can set a separate `count`. See [Highlights](/scrape/highlights).
 
 ## Read each outcome
 
-A page that cannot be read does not fail the search. The row keeps its `url`, `title` and `description`, has no `markdown`, and its `metadata.error` says why. A row with an error is not charged for the page. This real call asked for a site that Stophy does not read as a page.
-
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://www.linkedin.com/pulse/revolutionizing-javascript-runtimes-bun-breakthrough",
-        "title": "Revolutionizing JavaScript Runtimes: The Bun Breakthrough",
-        "description": "As mentioned earlier, Bun serves as an all-encompassing JavaScript runtime, doubling as a Node.js-compatible package manager.",
-        "position": 1,
-        "metadata": {
-          "error": "Stophy does not read pages on linkedin.com. If a parser takes this page, send its URL with {\"type\":\"json\",\"parser\":\"<name>\"}: GET /v1/parsers lists them. Otherwise search the web with POST /v1/search to find what linkedin.com covers."
-        },
-        "date": "2023-10-04T00:00:00.000Z"
-      }
-    ]
-  },
-  "id": "59072bce-14c9-4036-a60b-e29bcb9e3735",
-  "costUsd": 0.001,
-  "requestId": "59072bce-14c9-4036-a60b-e29bcb9e3735"
-}
-```
-
-Check `metadata.error` before you use `markdown`. The request was `{"query": "site:linkedin.com bun runtime", "limit": 2, "scrapeOptions": {"formats": ["markdown"]}}`, and the response is cut to one of its two rows. These are the other messages you can meet:
+Check `metadata.error` before using `markdown`. A failed page does not fail the search. The row keeps its URL, title and description, but it has no Markdown and we do not charge for reading it. If we do not read the site as a page, check the [parser list](https://api.stophy.dev/v1/parsers) for a parser that takes the URL. Otherwise, use search without page text.
 
 | `metadata.error` | Meaning |
 | - | - |
@@ -198,7 +103,7 @@ Check `metadata.error` before you use `markdown`. The request was `{"query": "si
 
 ## Options
 
-These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scrape/overview), so every Scrape page applies here.
+Set `scrapeOptions.formats` to read pages. Set `scrapeLimit` at the top level if you want to read fewer pages than the number of results. `scrapeOptions` takes the options of [Scrape](/scrape/overview), so every Scrape page applies here.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -214,6 +119,8 @@ These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scra
 
 ## Limits and errors
 
+Use an API key and ask only for sources whose pages we can read.
+
 - Only web and news results are read. `scrapeOptions.formats` with `images` in `sources` returns `400 invalidRequest`. The error says `Page text is only added to web and news results. Drop images.`
 - Without an API key, `scrapeOptions` returns `401 apiKeyRequired` with `scrapeOptions: Reading result pages needs an API key. Get one at https://stophy.dev/signup, or leave scrapeOptions out.`
 - Up to 10 pages are read at once. The search `timeout` is 60,000 ms by default when pages are read.
@@ -223,6 +130,8 @@ These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scra
 $1 per 1,000 results whose page is read, on top of the search price. `summary` and `json` with a schema or a prompt add $3 per 1,000 more each when they return something. A result with a `metadata.error` is not charged for its page. A result that is not read because of `scrapeLimit` is not charged for a page. A search with `limit: 20` and `scrapeLimit: 3` costs $0.002 for the 20 results plus $0.001 for each of the 3 pages that are read. See [Pricing](/account/pricing).
 
 ## Related
+
+Use these guides to pick a format or troubleshoot an unread page.
 
 - [Scrape](/scrape/overview) lists every format a result can return.
 - [Highlights](/scrape/highlights) returns passages as their own list.

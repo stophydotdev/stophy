@@ -5,7 +5,7 @@ og:title: "Troubleshooting | Stophy"
 og:description: "Read the Stophy error code, retry only rate limits and outages, wait for Retry-After and back off. Every code, its status and what to do, with a retry loop."
 ---
 
-Every error has the same flat shape. Save the HTTP status, the `code`, the `requestId` and a copy of your input, and compare your request with the endpoint's [API reference](/api-reference/introduction) before you retry. A failed call costs nothing, so a retry costs nothing extra.
+Read the error before you retry. Compare your input with the [API reference](/api-reference/introduction), and keep the HTTP status, `code` and `requestId` to trace the failure. A failed call costs nothing. If your client timed out, check the original request before you retry because it may still finish.
 
 ```json
 {
@@ -20,6 +20,8 @@ Every error has the same flat shape. Save the HTTP status, the `code`, the `requ
 This is a real answer with its field list cut. `error` says what went wrong and what to do next. `retryable` is `true` when trying again can help. `retryAfterSeconds`, when present, is also the `Retry-After` header. The `X-Request-ID` header names the request. Include it when you contact support.
 
 ## Start with the status
+
+Use the HTTP status to narrow down what went wrong, then read the message for the cause.
 
 | Status | What to check |
 | - | - |
@@ -75,69 +77,15 @@ After the last try, stop and log the `requestId`. Three tries are enough for a r
 
 ## Real errors
 
-**No API key on an endpoint that needs one.** `401 apiKeyRequired`, from crawl.
+Use the message to tell a bad request from a missing resource. Crawl without a key returns `401 apiKeyRequired` with `signupUrl` and `signup`. A keyless scrape with `waitFor` returns the same code; leave the field out or get a key. An invalid or expired key returns `401 unauthorized` instead.
 
-```json
-{
-  "success": false,
-  "error": "This needs an API key. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
-  "code": "apiKeyRequired",
-  "retryable": false,
-  "signupUrl": "https://stophy.dev/signup",
-  "signup": "POST https://api.stophy.dev/v1/signup"
-}
-```
+An unknown crawl ID returns `404 notFound`. Check the ID and whether the result has expired after 24 hours. Sending `DELETE` to `/v1/scrape` returns `405 methodNotAllowed`; use `POST` with a JSON body.
 
-**A field that needs an API key.** `401 apiKeyRequired`, from a scrape without an API key that sent `waitFor`.
-
-```json
-{
-  "success": false,
-  "error": "waitFor: Waiting on a page needs an API key. Get one at https://stophy.dev/signup, or leave waitFor out.",
-  "code": "apiKeyRequired",
-  "retryable": false
-}
-```
-
-**A key that is not valid.** `401 unauthorized`. See [API keys](/account/api-keys) for the body.
-
-**A job that does not exist.** `404 notFound`, from `GET /v1/crawl/not-a-crawl`.
-
-```json
-{
-  "success": false,
-  "error": "No crawl with that id. Results are kept for 24 hours.",
-  "code": "notFound",
-  "retryable": false
-}
-```
-
-**The wrong method.** `405 methodNotAllowed`, from a `DELETE` to `/v1/scrape`.
-
-```json
-{
-  "success": false,
-  "error": "This path only takes POST. Send a POST request with a JSON body.",
-  "code": "methodNotAllowed",
-  "retryable": false
-}
-```
-
-**A site that is not answering.** `503 sourceUnavailable`, with a wait. See [Timeouts](/production/timeouts).
-
-```json
-{
-  "success": false,
-  "error": "The source is not answering right now. Try again shortly.",
-  "code": "sourceUnavailable",
-  "retryable": true,
-  "retryAfterSeconds": 5
-}
-```
+A site that does not answer can return `503 sourceUnavailable` with `retryable: true`. Wait the returned `retryAfterSeconds` before trying again.
 
 ## Retry with the SDK
 
-The [SDKs](/sdks) retry network errors and the statuses 429, 500, 502, 503 and 504. They wait as long as the answer asks and stop after `maxRetries` retries, 2 by default. A call that still fails throws a `StophyError` with `code`, `retryable`, `retryAfterSeconds` and `requestId`.
+Use the [SDKs](/sdks) to handle retryable errors. They honor `retryable` when it is present. If it is missing, the retryable statuses are `429`, `500`, `502`, `503` and `504`. They also retry network errors. They wait as long as the answer asks and stop after `maxRetries` retries, 2 by default. A call that still fails throws a `StophyError` with `code`, `retryable`, `retryAfterSeconds` and `requestId` in TypeScript or `request_id` in Python.
 
 <CodeGroup>
 
@@ -172,72 +120,17 @@ except StophyError as error:
 
 ## A retry loop for other calls
 
-The SDKs do not cover every call yet. This loop retries any call over HTTP. It retries only when the answer says `retryable`, waits as long as the answer asks and stops after three tries.
+Use a retry loop for calls the SDK does not cover. Return on success. Otherwise stop if `retryable` is not `true`, if you have already made three attempts, or if the requested delay is more than 60 seconds. Wait `retryAfterSeconds` if present. Otherwise wait half a second before the first retry and double the delay for each retry. Add random jitter so your workers do not all retry at once.
 
-<CodeGroup>
-
-```ts TypeScript
-async function call(path: string, input: object, attempts = 3) {
-  for (let attempt = 0; ; attempt++) {
-    const response = await fetch(`https://api.stophy.dev${path}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-      signal: AbortSignal.timeout(65_000),
-    });
-    const body = await response.json();
-    if (response.ok) return body;
-    if (!body.retryable || attempt + 1 >= attempts) {
-      throw new Error(`${body.code}: ${body.error} (${response.headers.get("x-request-id")})`);
-    }
-    const seconds = body.retryAfterSeconds ?? 0.5 * 2 ** attempt;
-    if (seconds > 60) throw new Error(`${body.code}: wait ${seconds} seconds`);
-    await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
-  }
-}
-
-const page = await call("/v1/scrape", { url: "https://bun.com/docs/runtime/bunfig" });
-```
-
-```python Python
-import os
-import time
-
-import requests
-
-
-def call(path, payload, attempts=3):
-    for attempt in range(attempts):
-        response = requests.post(
-            f"https://api.stophy.dev{path}",
-            headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-            json=payload,
-            timeout=65,
-        )
-        body = response.json()
-        if response.ok:
-            return body
-        if not body.get("retryable") or attempt + 1 >= attempts:
-            raise RuntimeError(f"{body['code']}: {body['error']} ({response.headers.get('x-request-id')})")
-        seconds = body.get("retryAfterSeconds", 0.5 * 2**attempt)
-        if seconds > 60:
-            raise RuntimeError(f"{body['code']}: wait {seconds} seconds")
-        time.sleep(seconds)
-
-
-page = call("/v1/scrape", {"url": "https://bun.com/docs/runtime/bunfig"})
-```
-
-</CodeGroup>
+Keep your client timeout longer than the API deadline. If the client did not get an HTTP response, check whether the original call finished before sending it again. Log `X-Request-ID` on the last error.
 
 ## Report a problem
 
 If an answer is wrong or differs from these docs, send [feedback](/production/agent-feedback) with the `requestId`. To reach support, email support@stophy.dev with the `requestId`.
 
 ## Related
+
+Use the logs to tell a failed request from one that was still running when your client stopped waiting.
 
 * [Rate limits](/production/rate-limits)
 * [Timeouts](/production/timeouts)

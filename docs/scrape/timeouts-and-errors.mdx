@@ -5,7 +5,7 @@ og:title: "Timeouts and errors | Stophy"
 og:description: "Set how long a scrape may run with timeout, read the error code Scrape returns, and learn what to do for each. A failed read costs nothing."
 ---
 
-`timeout` sets how long Scrape keeps trying to read a page. When a read fails, you get an error with a stable `code` and nothing is charged. This page lists every code Scrape returns and what to do about it.
+Set `timeout` to limit how long we try to read a page. If the call fails, use its `code` to decide whether to retry or change the request. A failed read costs nothing.
 
 ## Make a request
 
@@ -54,7 +54,7 @@ except StophyError as error:
 
 ## Read the response
 
-The read ran out of time, so the call failed with HTTP `504` and a `Retry-After` header of `5`. Nothing was charged. The SDKs retry this error by default. `maxRetries: 0` (`max_retries=0` in Python) shows the first answer.
+Check the HTTP status and `retryable` before you use the result. Here the read ran out of time, so the call failed with HTTP `504` and a `Retry-After` header of `5`. Nothing was charged. The SDKs retry this error by default. `maxRetries: 0` (`max_retries=0` in Python) shows the first answer.
 
 ```json
 {
@@ -71,6 +71,8 @@ Every error has this flat shape. `code` is stable, so branch on it. `error` says
 
 ## Options
 
+Raise the timeout for a page that needs longer to load or run actions.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `timeout` | `number` | `60000` | How long to keep trying, in milliseconds, from 1,000 to 300,000. |
@@ -78,6 +80,8 @@ Every error has this flat shape. `code` is stable, so branch on it. `error` says
 A page that needs a browser needs at least 5 seconds. A slow page can need 10 to 30 seconds the first time. [Waits](/scrape/waiting-and-rendering) and [actions](/scrape/browser-actions) use up the same time. Set your own client timeout longer than `timeout`, with a few seconds to spare.
 
 ## Error codes
+
+Use the error code to pick the next action. Retrying will not fix an invalid request or a missing key.
 
 | `code` | Status | What happened | What to do |
 | - | - | - | - |
@@ -97,13 +101,15 @@ A page that needs a browser needs at least 5 seconds. A slow page can need 10 to
 | `sourceRefused` | 503 | The site is refusing the read right now. | Retry after `retryAfterSeconds`, usually minutes. |
 | `sourceTimeout` | 504 | The page did not answer within `timeout`. The `Retry-After` header and `retryAfterSeconds` are 5. | Retry after `retryAfterSeconds`. If it keeps failing, raise `timeout`, or ask for less: fewer formats, fewer actions. |
 
-A page that answers 404 or 410 comes back as a page, with that `metadata.statusCode` and `metadata.error` set to `The page answered with status 404.` It costs nothing. The same holds for each page of a [crawl](/crawl/async).
+A page that answers 404 or 410 comes back as a page, with that `metadata.statusCode` and an error such as `The page answered with status 404.` It costs nothing. The same holds for each page of a [crawl](/crawl/async).
 
 ## Retry a failed read
 
 Retry only when `retryable` is `true`. Wait `retryAfterSeconds`, or back off 0.5, 1 and 2 seconds. After three tries, stop and log the `requestId`. A retry costs nothing extra, because a failed read is free. [Production troubleshooting](/production/troubleshooting) has a retry loop.
 
 ## Many pages
+
+Use a batch if you have a list of URLs and need to tell which pages failed.
 
 Scrape reads one URL. A body with `urls` returns `400 invalidRequest` with the message `urls: Send url. To read many pages in one call, use POST /v1/batch/scrape.` To read a list of URLs, send them to a [batch](/batches/overview). Each page of a batch or a [crawl](/crawl/async) succeeds or fails on its own, so one bad page does not fail the rest. The failed pages are listed with their own `code`, `message` and `retryable`.
 
@@ -117,11 +123,15 @@ Some problems do not fail the call. The page still comes back, with a `warning` 
 
 ## Limits and errors
 
+Check the time and size limits before you retry.
+
 - `timeout` outside 1,000 to 300,000 returns `400 invalidRequest`.
 - The most a single call can run is 5 minutes plus a few seconds.
 - A page with more than 8 MB of text, or a file larger than 20 MB, returns `400 invalidRequest`.
 
 ## Related
+
+Use these guides to set a client timeout or troubleshoot a failed batch.
 
 - [Production timeouts](/production/timeouts) shows how to set client timeouts.
 - [Production troubleshooting](/production/troubleshooting) covers retries and support.

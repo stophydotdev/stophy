@@ -10,6 +10,8 @@ Connect to `https://api.stophy.dev/mcp` without an API key to try Stophy, then a
 
 ## Connect without an API key
 
+Pick your client and add the HTTP server with no authorization header if you only need the free tools.
+
 <CodeGroup>
 
 ```bash Claude Code
@@ -56,36 +58,9 @@ Without an API key, your agent can search, scrape, map and parse, and use the pa
 
 For every tool, [create an API key](https://stophy.dev/signup) and send it to the same URL. Keep it in `STOPHY_API_KEY` or your client's secret settings, never in a file you commit.
 
-<CodeGroup>
+In Claude Code, add a bearer header with `--header`. In Codex, add `--bearer-token-env-var STOPHY_API_KEY` when you register the server. In OpenCode, set `--header 'Authorization=Bearer {env:STOPHY_API_KEY}'`.
 
-```bash Claude Code
-claude mcp add --transport http stophy https://api.stophy.dev/mcp --header "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```bash Codex
-codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
-```
-
-```json VS Code (.vscode/mcp.json)
-{
-  "inputs": [
-    { "type": "promptString", "id": "stophy-key", "description": "Stophy API key", "password": true }
-  ],
-  "servers": {
-    "stophy": {
-      "type": "http",
-      "url": "https://api.stophy.dev/mcp",
-      "headers": { "Authorization": "Bearer ${input:stophy-key}" }
-    }
-  }
-}
-```
-
-```bash OpenCode
-opencode mcp add stophy --url https://api.stophy.dev/mcp --header 'Authorization=Bearer {env:STOPHY_API_KEY}'
-```
-
-</CodeGroup>
+In `.vscode/mcp.json`, add an input with `"type": "promptString"`, `"id": "stophy-key"`, `"description": "Stophy API key"` and `"password": true`. Under `servers.stophy`, use `"type": "http"`, set `url` to `https://api.stophy.dev/mcp` and add `"headers": { "Authorization": "Bearer ${input:stophy-key}" }`.
 
 VS Code asks for the key the first time the server starts and stores it. The server refuses a wrong key. Remove the header to go back to the free endpoints. In Cursor, Windsurf and Gemini CLI, use [browser sign-in](/mcp/oauth) instead of a key.
 
@@ -93,15 +68,13 @@ An agent without an API key can get one on its own with the `stophy_signup` tool
 
 ## Check it
 
-Ask your agent this.
-
-```text
-Search YouTube for "rust tutorial" and summarize the top three videos.
-```
+Test the connection by asking your agent to search YouTube for `rust tutorial` and summarize the top three videos.
 
 If `stophy` shows no tools, restart your client.
 
 ## Related
+
+Use these guides to switch to browser sign-in or see how the free limits work.
 
 * [Install MCP](/install-mcp)
 * [Browser sign-in](/mcp/oauth)

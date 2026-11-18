@@ -5,11 +5,11 @@ og:title: "Schedules | Stophy"
 og:description: "Set when a monitor checks, in plain words or a cron expression, from every 5 minutes. Check now, pause and resume, and learn when a monitor pauses itself."
 ---
 
-A monitor checks on its `schedule`, from every 5 minutes up. You can also check now, and pause and resume a monitor without losing its history.
+Set when a monitor checks, or run a check now without moving the regular schedule. Pause and resume without losing the monitor's history.
 
 ## Change the schedule
 
-Get an API key in the [Quickstart](/quickstart). The samples read the monitor's id from `MONITOR_ID`. Send `schedule` when you create a monitor, or change it later with `PATCH /v1/monitor/{id}`. This request moves a monitor to 9:00 every day in Ljubljana.
+Change `schedule` when you need a different time or frequency. Get an API key in the [Quickstart](/quickstart). The samples read the monitor's id from `MONITOR_ID`. Send `schedule` when you create a monitor, or change it later with `PATCH /v1/monitor/{id}`. This request moves a monitor to 9:00 every day in Ljubljana.
 
 <CodeGroup>
 ```bash cURL
@@ -50,7 +50,7 @@ print(response.json()["data"]["schedule"])
 
 ## Read the response
 
-The call answers with the monitor. `schedule` holds the plain words as a cron expression. This real answer is cut to `schedule`. The next check of that monitor was due at `2026-11-18T08:00:00.000Z`, which is 09:00 in Ljubljana.
+Check `data.schedule` and `data.nextRunAt` to make sure you got the time you wanted. A daily time is returned as a cron expression. This real answer is cut to `schedule`. The next check of that monitor was due at `2026-11-18T08:00:00.000Z`, which is 09:00 in Ljubljana.
 
 ```json
 {
@@ -66,7 +66,7 @@ A check starts at its time, or within about a minute of it. Checks of one monito
 
 ## Options
 
-Send `cron` or `text`, not both.
+Use `text` for a plain schedule or `cron` to choose exact times. Do not send both.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -88,72 +88,29 @@ The older `interval` field takes seconds, or text such as `30m`, `6h` or `1d`, f
 
 ## Run a check now
 
-`POST /v1/monitor/{id}/run` queues a check outside the schedule. It answers at once with the queued check, and its `id` is the check's id. The schedule does not move. A check you run costs the same as a scheduled one.
+Use `POST /v1/monitor/{id}/run` when you do not want to wait for the next check. It queues a check outside the schedule. It answers at once with the queued check, and its `id` is the check's id. The schedule does not move. A check you run costs the same as a scheduled one.
 
-```bash
-curl -X POST https://api.stophy.dev/v1/monitor/$MONITOR_ID/run \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real answer is cut. The check started 52 seconds later and was `completed`.
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "8e19c453-d27e-4680-b10b-e294225d9fd1",
-    "monitorId": "mon_2f3L73izJTdaA1AQ",
-    "status": "queued",
-    "trigger": "manual",
-    "estimatedCostUsd": 0.001,
-    "billingStatus": "reserved",
-    "summary": { "totalPages": 1, "same": 0, "changed": 0, "new": 0, "removed": 0, "error": 0 }
-  },
-  "id": "8e19c453-d27e-4680-b10b-e294225d9fd1",
-  "costUsd": 0,
-  "creditsUsed": 0
-}
-```
+The response shows `status: "queued"`, `trigger: "manual"` and `billingStatus: "reserved"`, with the estimate in `estimatedCostUsd`. One manual check started 52 seconds after it queued.
 
 Read the result with `GET /v1/monitor/{id}/checks/{checkId}`. See [Checks and changes](/monitors/checks-and-changes).
 
 A monitor runs one check at a time. While a check is queued or running, a second run returns `409 checkRunning`.
 
-```json
-{
-  "success": false,
-  "error": "A check of this monitor is already running. Wait for it to finish, then run it again.",
-  "code": "checkRunning",
-  "retryable": false,
-  "requestId": "cab2af1f-a17a-40f0-b637-161f8bb368e3"
-}
-```
-
 A paused monitor cannot run a check. The call returns `409 invalidRequest` with `This monitor is paused. Send PATCH with status active to resume it, then run it again.` Nothing is queued, and nothing is charged. Resume the monitor first.
 
 ## Pause and resume
 
-Send `status` to `PATCH /v1/monitor/{id}`.
+Pause a monitor to stop future checks without deleting its history. Send `"status": "paused"` to `PATCH /v1/monitor/{id}`.
 
-```json
-{ "status": "paused" }
-```
-
-A paused monitor reads nothing and costs nothing, and its `nextRunAt` is `null`. This real answer is cut.
-
-```json
-{ "data": { "id": "mon_hpJ-ZKa4FJLr4h1m", "status": "paused", "nextRunAt": null } }
-```
+A paused monitor reads nothing and costs nothing, and its `nextRunAt` is `null`.
 
 Send `{ "status": "active" }` to resume it. A resumed monitor checks again at once: `nextRunAt` was the moment of the call, and the check ran within a minute and cost $0.001.
-
-```json
-{ "data": { "id": "mon_hpJ-ZKa4FJLr4h1m", "status": "active", "nextRunAt": "2026-11-17T18:23:01.881Z" } }
-```
 
 Changing the schedule of a paused monitor keeps it paused. A paused monitor still counts toward your limit of 25 monitors and 1,000 pages. See [Limits and errors](/monitors/limits-and-errors).
 
 ## When a monitor pauses itself
+
+Read `pausedReason` if checks stopped, or the page errors if the monitor is still active.
 
 - **Your balance ran out.** The monitor pauses, `pausedReason` is `insufficientCredits`, and a `monitor.failed` event is sent if you subscribed to it. Add funds, then send `{ "status": "active" }`.
 - **A page cannot be read.** The monitor keeps running. The check shows the page as `error` and costs nothing for it. After 5 checks in a row that fail to read the same page, a `monitor.failed` event is sent once.
@@ -162,7 +119,7 @@ A check where every page failed for lack of balance is recorded as `skipped_no_c
 
 ## Limits and errors
 
-Every `400` below has the code `invalidRequest`.
+Check the schedule format and whether a check is already in progress. Every `400` below has the code `invalidRequest`.
 
 | Error | When |
 | - | - |
@@ -177,6 +134,8 @@ Every `400` below has the code `invalidRequest`.
 | `409` `invalidRequest` | You ran a check on a paused monitor. |
 
 ## Related
+
+Use the check history to see what your schedule ran.
 
 - [Targets](/monitors/targets) sets what each check reads.
 - [Checks and changes](/monitors/checks-and-changes) reads what a check found.

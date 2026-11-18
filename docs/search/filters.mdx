@@ -5,7 +5,7 @@ og:title: "Filters | Stophy"
 og:description: "Narrow a search to chosen sites, a time window, a place or a language. Use includeDomains, tbs, location, country, lang and safe in one request."
 ---
 
-Filters narrow the results of a [search](/search/overview) by site, time, place, language and safety. Send them next to `query`.
+Use filters when the query alone brings back results from the wrong site, time or place. Send them next to `query` in [Search](/search/overview).
 
 ## Search selected sites
 
@@ -53,7 +53,7 @@ print([result["url"] for result in data["web"]])
 
 ## Read the response
 
-Every result is on one of the sites you named. This real response is cut to a shorter description for each row.
+Check `data.web` for results from the domains you named. The service returns `date` where it is known.
 
 ```json
 {
@@ -62,28 +62,16 @@ Every result is on one of the sites you named. This real response is cut to a sh
     "web": [
       {
         "url": "https://bun.com/",
-        "title": "Bun — A fast all-in-one JavaScript runtime",
-        "description": "import { dlopen, FFIType, suffix } from \"bun:ffi\"; // \"dylib\" on macOS, \"so\" on Linux, \"dll\" on Windows …",
         "position": 1
       },
       {
         "url": "https://bun.com/blog/bun-v1.3.3",
-        "title": "Bun v1.3.3 | Bun Blog",
-        "description": "bun:sqlite has been updated to SQLite v3.51.0.",
         "position": 2,
         "date": "2025-11-21T00:00:00.000Z"
-      },
-      {
-        "url": "https://bun.com/blog/bun-v1.4.4",
-        "title": "Bun v1.4.4 | Bun Blog",
-        "description": "We reworked Bun.SQL, bun:sqlite and node:sqlite in a single change that replaces 149 open pull requests and fixes 51 issues.",
-        "position": 3
       }
     ]
   },
-  "id": "ab7b621b-14a0-460c-8546-7cc62739420b",
-  "costUsd": 0.001,
-  "requestId": "ab7b621b-14a0-460c-8546-7cc62739420b"
+  "costUsd": 0.001
 }
 ```
 
@@ -91,87 +79,11 @@ A filter can leave fewer results than `limit`. A call that returns nothing costs
 
 ## Search from a place
 
-`location` and `lang` steer which pages come back. This request searches from Berlin and asks for German pages.
-
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/search \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "bakery",
-    "location": "Berlin,Germany",
-    "lang": "de",
-    "limit": 3
-  }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/search", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    query: "bakery",
-    location: "Berlin,Germany",
-    lang: "de",
-    limit: 3,
-  }),
-});
-const { data } = await response.json();
-console.log(data.web.map((result) => result.title));
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/search",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "query": "bakery",
-        "location": "Berlin,Germany",
-        "lang": "de",
-        "limit": 3,
-    },
-)
-data = response.json()["data"]
-print([result["title"] for result in data["web"]])
-```
-</CodeGroup>
-
-This real response is cut to two of the three rows.
-
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://www.tripadvisor.com/Restaurants-g187323-zfg9901-Berlin.html",
-        "title": "THE 10 BEST Bakeries in Berlin - Tripadvisor",
-        "description": "Bakeries in Berlin, Germany: Find Tripadvisor traveler reviews of Berlin Bakeries and search by price, location, and more.",
-        "position": 1
-      },
-      {
-        "url": "https://www.visitberlin.de/en/blog/11-top-bakeries-berlin",
-        "title": "11 top bakeries in Berlin - visitberlin.de",
-        "description": "Artisan bakeries in Berlin - sourdough, wholemeal and gluten-free - Find out more at visitberlin.de",
-        "position": 3
-      }
-    ]
-  },
-  "id": "b6c151b4-22d8-45c1-8714-5846147281fc",
-  "costUsd": 0.001,
-  "requestId": "b6c151b4-22d8-45c1-8714-5846147281fc"
-}
-```
-
-`lang` steers which pages come back, but some results can still be in other languages.
+Set `location` when a city or country matters to the query. For a bakery search from Berlin, add `"location": "Berlin,Germany"`. Add `"lang": "de"` to prefer German results. Some results can still be in other languages.
 
 ## Options
+
+Choose the filters each source can use. Web results accept the most filters.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -187,6 +99,8 @@ A filter sent at the top level applies to every source it fits. To give web resu
 
 ### Time window
 
+Use `tbs` to restrict dates or show the newest results first.
+
 | `tbs` | Effect |
 | - | - |
 | `qdr:d`, `qdr:w`, `qdr:m`, `qdr:y` | The past day, week, month or year. |
@@ -197,6 +111,8 @@ Join values with a comma, such as `sbd:1,qdr:w` for the past week, newest first.
 
 ## Limits and errors
 
+Check the error before retrying. Some filters cannot be combined or used with a particular source.
+
 - `includeDomains` together with `excludeDomains` returns `400 invalidRequest`. The error says `Send includeDomains or excludeDomains, not both.`
 - A `tbs` that is not in the table returns `400 invalidRequest`, and the error names the part it did not understand. `qdr` takes `d`, `w`, `m` or `y`, and `cd_min` must be on or before `cd_max`.
 - A date range (`cdr`) with `news` in `sources` returns `400 invalidRequest`. The error says `News takes qdr and sbd only.`
@@ -206,6 +122,8 @@ Join values with a comma, such as `sbd:1,qdr:w` for the past week, newest first.
 - With `categories` of `research` and `web` in `sources`, `includeDomains` and `excludeDomains` return `400 invalidRequest`, because research already limits the search to academic sites.
 
 ## Related
+
+Use these guides to choose sources or read the pages you find.
 
 - [Sources](/search/sources) lists what each source and category returns.
 - [Page content](/search/page-content) reads each result.

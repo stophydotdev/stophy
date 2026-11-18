@@ -10,13 +10,11 @@ The `stophy` package calls the Stophy API from TypeScript, with a type for every
 
 ## Install
 
-```bash
-npm install stophy
-```
+Run `npm install stophy` to add the client to your project.
 
 ## Scrape a page without an API key
 
-Save this as `scrape.ts` and run it. It prints the page's title and its Markdown, then three search results.
+Save this as `scrape.ts` and run it. It prints the page's title and Markdown.
 
 ```ts
 import { Stophy } from "stophy";
@@ -26,9 +24,6 @@ const stophy = new Stophy();
 const page = await stophy.scrape({ url: "https://example.com", formats: ["markdown"] });
 console.log(page.data.metadata.title);
 console.log(page.data.markdown);
-
-const results = await stophy.search({ query: "bun runtime", sources: ["web"], limit: 3 });
-console.log(results.data?.web);
 ```
 
 The output starts like this.
@@ -38,17 +33,13 @@ Example Domain
 This domain is for use in documentation examples without needing permission. …
 ```
 
+To try a search, pass `query: "bun runtime"`, `sources: ["web"]` and `limit: 3` to `stophy.search()`. Read the results in `data.web`.
+
 `scrape`, `search`, `map` and `parse` work without an API key, up to 10 calls a minute and 50 calls a day per IP address. `parsers`, `endpoints`, `signup` and `signup.poll` need no API key. Every other method throws a `StophyError` with the code `apiKeyRequired`.
 
 ## Use an API key
 
-Get an API key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in.
-
-```ts
-const stophy = new Stophy({ apiKey: "st_..." });
-```
-
-`new Stophy("st_...")` works too.
+Get an [API key](https://stophy.dev/signup) to call endpoints that require one. Set `STOPHY_API_KEY`, or pass the key as the `apiKey` option or as the only argument to `new Stophy()`.
 
 Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is. `scrape` returns `{ success, data }`, `search` returns `{ success, data }` with a list for each source, and `map` returns `{ success, links }`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. `search` and `map` also have `costUsd`, what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
 
@@ -56,25 +47,11 @@ Each method sends one call to the [Stophy API](/api-reference/introduction) and 
 
 A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the parser's name and the page URL.
 
-```ts
-const posts = await stophy.parsed(
-  "reddit-search",
-  "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
-);
-console.log(posts.data.json);
-```
+For a Reddit search page, pass `"reddit-search"` and its URL to `stophy.parsed()`. Read the result at `data.json`.
 
 `parsed` calls `scrape` with the format `{ type: "json", parser }`. The parser name is typed, so your editor lists every parser. `await stophy.parsers()` returns each parser with the page it reads and what it returns.
 
-The third argument sends the parser's options, such as the next page.
-
-```ts
-const next = await stophy.parsed(
-  "google-maps",
-  "https://www.google.com/maps/search/dentists+in+Ljubljana",
-  { page: 2 },
-);
-```
+Pass parser options as the third argument. For example, pass `{ page: 2 }` with a `google-maps` search URL to fetch the second page.
 
 Paging needs an API key. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
@@ -82,13 +59,7 @@ Paging needs an API key. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
 `crawl` answers at once with an `id`. Ask `crawl.status` for the pages.
 
-```ts
-const job = await stophy.crawl({ url: "https://bun.com/docs", limit: 20 });
-if (job.id) {
-  const status = await stophy.crawl.status({ id: job.id });
-  console.log(status.status, status.completed, status.total, status.data);
-}
-```
+Pass `url` and `limit: 20` to `stophy.crawl()` to read up to 20 pages. Pass the returned `id` to `crawl.status()`, then read `data`, `completed` and `total`.
 
 `status` is `scraping` while the crawl runs. Call `crawl.status` again until it is `completed`, `failed` or `cancelled`. A status answer holds up to 100 finished pages or 2 MB. When the answer has a `next` link, send the `cursor` value from that link with the same `id` to get the rest. `crawl.cancel({ id })` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours. See [Read a crawl](/crawl/async).
 
@@ -96,40 +67,21 @@ if (job.id) {
 
 ## Extract fields from pages
 
-```ts
-const job = await stophy.extract({
-  urls: ["https://example.com"],
-  prompt: "What is this page for?",
-});
-if (job.id) {
-  const result = await stophy.extract.result({ id: job.id });
-  console.log(result.data, result.confidence);
-}
-```
+Use `stophy.extract()` with `urls` and a `prompt` when you need fields instead of a whole page. Pass the returned `id` to `extract.result()` to read `data` and `confidence`.
 
 `extract` answers when the fields are ready, so `extract.result` returns them at once. Results are kept for 24 hours. After that, or for an unknown `id`, `extract.result` throws a `StophyError` with the code `notFound`. See [Extract](/extract/overview).
 
 ## Handle errors
 
-```ts
-import { StophyError } from "stophy";
-
-try {
-  await stophy.scrape({ url: "not a url" });
-} catch (error) {
-  if (error instanceof StophyError) {
-    console.log(error.code, error.message, error.retryable);
-  }
-}
-```
-
-This prints `invalidRequest`, the message, and `false`. `StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status` and `requestId`. The message says what went wrong and what to do next.
+Catch errors and check `error instanceof StophyError` before you read its fields. If you pass `url: "not a url"` to `scrape`, the error code is `invalidRequest` and `retryable` is `false`. `StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status` and `requestId`. The message says what went wrong and what to do next.
 
 A call your balance cannot cover throws `insufficientCredits` with status `402` and charges nothing. Add money at [stophy.dev/billing](https://stophy.dev/billing), then send the call again.
 
 The SDK retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
 
 ## Options
+
+Pass these options to the constructor when the defaults do not fit your app.
 
 | Option | Default | What it does |
 | - | - | - |
@@ -145,15 +97,13 @@ Each method also takes `signal` as its second argument to cancel the request.
 
 ## Check your account
 
-```ts
-const limits = await stophy.limits();
-const usage = await stophy.usage();
-const logs = await stophy.logs({ days: 7 });
-```
+Check your balance or recent calls before troubleshooting usage. Use `stophy.logs({ days: 7 })` to read a week of calls.
 
 `limits` returns your balance, your rate limits and when the key expires. `usage` returns your balance and your all-time usage. `logs` returns your recent calls. All three need an API key. See [Usage](/account/usage).
 
 ## Related
+
+Use these references for shared defaults or the fields an endpoint accepts.
 
 * [SDKs](/sdks)
 * [Python SDK](/sdks/python)

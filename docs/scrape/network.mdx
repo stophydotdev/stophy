@@ -5,11 +5,11 @@ og:title: "Network | Stophy"
 og:description: "Get the JSON responses a page loaded while it rendered, with their URLs and bodies. Read the data behind a page directly. $1 per 1,000 pages."
 ---
 
-`network` returns the JSON responses the page loaded while it rendered. Use it to read the data behind a page that fills itself from an API, without parsing the HTML.
+Use `network` to read the JSON a page loads instead of pulling fields from the rendered HTML.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request reads a search page that loads its results from an API.
+Get an API key in the [Quickstart](/quickstart). This request reads a package page and collects the JSON responses it loads.
 
 <CodeGroup>
 ```bash cURL
@@ -59,7 +59,7 @@ for call in data["network"]:
 
 ## Read the response
 
-`data.network` is an array in the order the responses arrived. This real response is cut to two of its three entries, and each body to its first characters. The full second body was 20,927 characters.
+Read `data.network` in the order responses arrived. Look at each `url` and `status` to find the call you need. Parse its `body` as JSON. The body below is shortened.
 
 ```json
 {
@@ -72,24 +72,8 @@ for call in data["network"]:
         "status": 200,
         "contentType": "application/json",
         "body": "{\"summary\":{\"subjectAlternativeName\":\"https://github.com/colinhacks/zod/.github/workflows/…"
-      },
-      {
-        "url": "https://api.github.com/repos/colinhacks/zod/pulls?per_page=1",
-        "method": "GET",
-        "status": 200,
-        "contentType": "application/json; charset=utf-8",
-        "body": "[{\"url\": \"https://api.github.com/repos/colinhacks/zod/pulls/6768\",\"id\"…"
       }
-    ],
-    "metadata": {
-      "title": "zod - npm",
-      "sourceURL": "https://www.npmjs.com/package/zod",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "615d2f30-f0f3-4f9a-8379-cb72a795738b",
-      "costUsd": 0.001
-    }
+    ]
   }
 }
 ```
@@ -104,6 +88,8 @@ for call in data["network"]:
 
 ## Options
 
+Ask for `network` when you need request results, and add other formats only if you need them.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"network"` to return the JSON the page loaded. |
@@ -111,6 +97,8 @@ for call in data["network"]:
 Use `waitFor` or [browser actions](/scrape/browser-actions) when the data loads after a click or a delay.
 
 ## Limits and errors
+
+Check whether the page loaded JSON and whether any responses were too large to return.
 
 - Only `fetch` and `XMLHttpRequest` responses with a JSON content type are kept. Images, scripts and styles are not.
 - At most 30 responses are returned. A body larger than 256 KB is left out, and the bodies together are capped at 2 MB. `data.networkDropped` counts the responses left out. It is left out when no response was dropped.
@@ -122,6 +110,8 @@ Use `waitFor` or [browser actions](/scrape/browser-actions) when the data loads 
 $1 per 1,000 pages, the same as any page. `network` adds nothing.
 
 ## Related
+
+Use these guides when the data loads late or you need fields from the page text instead.
 
 - [Browser actions](/scrape/browser-actions) click and scroll before the page is read.
 - [Waiting and rendering](/scrape/waiting-and-rendering) lets slow requests finish.

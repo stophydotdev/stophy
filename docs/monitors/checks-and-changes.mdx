@@ -5,11 +5,11 @@ og:title: "Checks and changes | Stophy"
 og:description: "Read each check of a monitor and what it found, per monitor and across all your monitors, with the diff of every changed page. All reads are free."
 ---
 
-Every pass over a monitor's pages is a check. A check holds one result for each page: `same`, `new`, `changed`, `removed` or `error`. A page that changed comes with its diff. You can read all of it whether or not you use a webhook, and every read is free.
+Read checks to see what a monitor found on each pass. Read changes if you want a history for a page or across monitors. A check holds one result for each page: `same`, `new`, `changed`, `removed` or `error`. A page that changed comes with its diff. You can read all of it whether or not you use a webhook, and every read is free.
 
 ## List the checks
 
-Get an API key in the [Quickstart](/quickstart). The samples read the monitor's id from `MONITOR_ID`. `GET /v1/monitor/{id}/checks` lists the checks of one monitor, newest first.
+List checks to find a check ID, its outcome and cost. Get an API key in the [Quickstart](/quickstart). The samples read the monitor's id from `MONITOR_ID`. `GET /v1/monitor/{id}/checks` lists the checks of one monitor, newest first.
 
 <CodeGroup>
 ```bash cURL
@@ -48,22 +48,14 @@ This real answer is the first check of a monitor, cut to the fields that matter.
   "data": [
     {
       "id": "bfdcccc0-40ed-4305-84fb-708ec7044e8b",
-      "monitorId": "mon_2f3L73izJTdaA1AQ",
       "status": "completed",
       "trigger": "scheduled",
-      "scheduledFor": "2026-11-17T18:19:53.976Z",
-      "startedAt": "2026-11-17T18:19:53.983Z",
-      "finishedAt": "2026-11-17T18:19:54.886Z",
-      "estimatedCostUsd": 0.001,
       "actualCostUsd": 0.001,
       "billingStatus": "confirmed",
       "summary": { "totalPages": 1, "same": 0, "changed": 0, "new": 1, "removed": 0, "error": 0 },
       "error": null
     }
-  ],
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "06c3b242-ef56-498b-8887-59a7d3f03337"
+  ]
 }
 ```
 
@@ -82,67 +74,9 @@ A check that stays `running` for 30 minutes is shown as `failed`. Send `status` 
 
 ## Read one check
 
-`GET /v1/monitor/{id}/checks/{checkId}` returns the check with a result for each page, and the diff of each changed page. Use the `id` of a check from the list, or from [Run now](/monitors/schedules#run-a-check-now).
+Read one check when you need the individual pages and their diffs. `GET /v1/monitor/{id}/checks/{checkId}` returns the check with a result for each page, and the diff of each changed page. Use the `id` of a check from the list, or from [Run now](/monitors/schedules#run-a-check-now).
 
-```bash
-curl "https://api.stophy.dev/v1/monitor/$MONITOR_ID/checks/$CHECK_ID" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real answer is a check that found a changed page, cut to the fields that matter. The monitor had a `goal`, so the page holds a judgment, and the check cost $0.002: $0.001 for the page and $0.001 for the judge.
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "8e19c453-d27e-4680-b10b-e294225d9fd1",
-    "monitorId": "mon_2f3L73izJTdaA1AQ",
-    "status": "completed",
-    "trigger": "manual",
-    "scheduledFor": null,
-    "startedAt": "2026-11-17T18:20:53.978Z",
-    "finishedAt": "2026-11-17T18:20:56.463Z",
-    "estimatedCostUsd": 0.001,
-    "actualCostUsd": 0.002,
-    "billingStatus": "confirmed",
-    "summary": { "totalPages": 1, "same": 0, "changed": 1, "new": 0, "removed": 0, "error": 0 },
-    "error": null,
-    "pages": [
-      {
-        "id": "1ec7bf8a-0988-4cb2-8e59-d4084a62827d",
-        "targetId": "6948afed-e9eb-43be-8f2c-67ad4c3370c5",
-        "url": "https://httpbin.org/uuid",
-        "status": "changed",
-        "statusCode": 200,
-        "error": null,
-        "judgment": {
-          "meaningful": true,
-          "confidence": "high",
-          "reason": "The uuid value changed, which is exactly what the goal tracks.",
-          "meaningfulChanges": [
-            {
-              "type": "changed",
-              "before": "0714c38d-30cf-4c11-9c7a-801260afcaba",
-              "after": "ec011f90-1296-47af-8911-bad9f9aa5314",
-              "reason": "The uuid field now has a different value."
-            }
-          ]
-        },
-        "diff": {
-          "text": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"0714c38d-30cf-4c11-9c7a-801260afcaba\"\n+  \"uuid\": \"ec011f90-1296-47af-8911-bad9f9aa5314\"\n }\n\\ No newline at end of file\n"
-        },
-        "creditsUsed": 1,
-        "costUsd": 0.002,
-        "createdAt": "2026-11-17T18:20:56.463Z"
-      }
-    ]
-  },
-  "next": null,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "a2508c35-ff67-4c49-a39b-2f40a861a8f1"
-}
-```
+Read `data.pages` for the results. With a `goal`, a changed page can have both a `diff` and a `judgment`. In one check, the page cost $0.001 and the judge added $0.001, for $0.002 in `actualCostUsd`.
 
 | Page field | What it holds |
 | - | - |
@@ -158,6 +92,8 @@ A check holds up to 100 pages in one answer. Send `limit` and `skip`, or call th
 
 ### Page statuses
 
+Use the page status to tell a first read from a change or a failure.
+
 | `status` | Meaning |
 | - | - |
 | `new` | The page was read for the first time, or it came back after it was removed. On the first check of a monitor this is the baseline, and no event is sent. For a [crawl or search target](/monitors/targets), a page or result found after the first check is a change and is sent. |
@@ -168,23 +104,7 @@ A check holds up to 100 pages in one answer. Send `limit` and `skip`, or call th
 
 ### Search results
 
-For a search target, each page is a result. `metadata.searchStatus` says what happened to it. This real result was read and judged, and the judge decided it did not match the goal.
-
-```json
-{
-  "url": "https://github.com/n8n-io/n8n/releases",
-  "status": "same",
-  "metadata": { "searchStatus": "ignored" },
-  "judgment": {
-    "meaningful": false,
-    "confidence": "high",
-    "reason": "This is an n8n release page, not a Bun release or breaking change.",
-    "meaningfulChanges": []
-  },
-  "creditsUsed": 1,
-  "costUsd": 0.001
-}
-```
+For a search target, each page is a result. `metadata.searchStatus` says what happened to it. Use it to distinguish an old result from one the judge checked and rejected.
 
 | `searchStatus` | Meaning |
 | - | - |
@@ -195,40 +115,7 @@ For a search target, each page is a result. `metadata.searchStatus` says what ha
 
 ## List the changes
 
-`GET /v1/monitor/{id}/changes` lists the page results of a monitor, newest first: one row for each page in each check. Send `status=changed` to keep the changes. Send `url` to keep one page.
-
-```bash
-curl "https://api.stophy.dev/v1/monitor/$MONITOR_ID/changes?limit=2" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "at": "2026-11-17T18:20:53.979Z",
-      "url": "https://httpbin.org/uuid",
-      "changeStatus": "changed",
-      "creditsUsed": 1,
-      "costUsd": 0.002,
-      "diff": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"0714c38d-30cf-4c11-9c7a-801260afcaba\"\n+  \"uuid\": \"ec011f90-1296-47af-8911-bad9f9aa5314\"\n }\n\\ No newline at end of file\n"
-    },
-    {
-      "at": "2026-11-17T18:19:54.237Z",
-      "url": "https://httpbin.org/uuid",
-      "changeStatus": "new",
-      "creditsUsed": 1,
-      "costUsd": 0.001,
-      "diff": null
-    }
-  ],
-  "next": null,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "2ea4ec46-efd2-4081-937d-d8fd93284f9d"
-}
-```
+Use the changes list to follow one page across checks. `GET /v1/monitor/{id}/changes` lists the page results of a monitor, newest first: one row for each page in each check. Send `status=changed` to keep the changes. Send `url` to keep one page.
 
 | Field | What it holds |
 | - | - |
@@ -248,68 +135,17 @@ A monitor keeps its last 1,000 rows for its `retentionDays`.
 
 ## Read all monitors at once
 
-Two calls cover every monitor you have.
+Use account-wide reads for a dashboard or digest that covers several monitors.
 
 `GET /v1/monitor/checks` lists checks across monitors. Filter with `monitorId`, `status`, `trigger` (`scheduled` or `manual`), `limit` up to 100 and `cursor`. The answer holds `data.checks` and `data.cursor`.
 
-`GET /v1/monitor/changes` lists page results across monitors. Filter with `monitorId`, `status`, `url`, `limit` up to 100 and `cursor`. Each row also has its `id` and its `monitorId` and `monitorName`. This real answer listed three rows, two of them `new` first reads. It is cut to the changed row.
-
-```bash
-curl "https://api.stophy.dev/v1/monitor/changes?limit=5" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "changes": [
-      {
-        "id": "mon_2f3L73izJTdaA1AQ.1794939656196.HJ5ZyIKOK5CtGMcA",
-        "monitorId": "mon_2f3L73izJTdaA1AQ",
-        "monitorName": "Page that changes",
-        "at": "2026-11-17T18:20:53.979Z",
-        "url": "https://httpbin.org/uuid",
-        "changeStatus": "changed",
-        "creditsUsed": 1,
-        "costUsd": 0.002
-      }
-    ]
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "8b28bbea-f081-48d0-9597-b51d276f7703"
-}
-```
+`GET /v1/monitor/changes` lists page results across monitors. Filter with `monitorId`, `status`, `url`, `limit` up to 100 and `cursor`. Each row also has its `id` and its `monitorId` and `monitorName`. Read rows in `data.changes`. If none match, that list is empty.
 
 The list leaves out the diff. `GET /v1/monitor/changes/{id}` reads one row with its `diff`, and its `json` when the monitor compares fields.
 
-```bash
-curl "https://api.stophy.dev/v1/monitor/changes/$CHANGE_ID" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "mon_2f3L73izJTdaA1AQ.1794939656196.HJ5ZyIKOK5CtGMcA",
-    "monitorId": "mon_2f3L73izJTdaA1AQ",
-    "monitorName": "Page that changes",
-    "at": "2026-11-17T18:20:53.979Z",
-    "url": "https://httpbin.org/uuid",
-    "changeStatus": "changed",
-    "creditsUsed": 1,
-    "costUsd": 0.002,
-    "diff": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"0714c38d-30cf-4c11-9c7a-801260afcaba\"\n+  \"uuid\": \"ec011f90-1296-47af-8911-bad9f9aa5314\"\n }\n\\ No newline at end of file\n"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "98aab511-d588-41e7-bf96-356179cd0cf3"
-}
-```
-
 ## Limits and errors
+
+Save check IDs and diffs you need before the retention window ends.
 
 - A monitor id that does not exist, or a check or change id that is not yours or has expired, returns `404 notFound`.
 - A `cursor` that is not the one from the last answer returns `400 invalidRequest`. Send it unchanged.
@@ -320,6 +156,8 @@ curl "https://api.stophy.dev/v1/monitor/changes/$CHANGE_ID" \
 Free. Reading checks and changes costs nothing. The pages a check reads are charged when the check runs, at the price in [Monitors](/monitors/overview#price).
 
 ## Related
+
+Use webhooks to get changes as they happen or the recipe to group them in a digest.
 
 - [Webhooks](/monitors/webhooks) sends each change to you as it happens.
 - [Schedules](/monitors/schedules) runs a check now, pauses and resumes.

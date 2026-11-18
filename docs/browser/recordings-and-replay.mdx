@@ -5,11 +5,11 @@ og:title: "Recordings and replay | Stophy"
 og:description: "Record a browser session as an MP4 video for free, then read it back, delete it, or list the pages the session visited and the steps run on each."
 ---
 
-A recording and a replay are two ways to look back at a closed session. A recording is a video of every tab, made when you ask for it. A replay is a list of the pages the session visited, with a screenshot and the steps run on each. Both are free.
+Record a session if you need a video of every tab. Use replay if you only need to inspect the pages, screenshots and steps afterward. Both are free.
 
 ## Record a session
 
-Get an API key in the [Quickstart](/quickstart). Send `recording: true` when you open the session.
+Turn recording on before you start the session you want to review. Get an API key in the [Quickstart](/quickstart). Send `recording: true` when you open the session.
 
 <CodeGroup>
 ```bash cURL
@@ -61,7 +61,7 @@ The answer has `recordingStatus` set to `recording` and `recordingAvailable` set
 
 ## Read the recording
 
-`GET /v1/browser/{session_id}/recording` returns the status and, when it is `ready`, a link to the video.
+After closing the session, use `GET /v1/browser/{session_id}/recording` to check whether the video is ready. It returns the status and, when it is `ready`, a link to the video.
 
 <CodeGroup>
 ```bash cURL
@@ -116,83 +116,21 @@ A real session that ran for 27 seconds had a ready video seconds after it closed
 
 ## Delete the recording
 
-`DELETE /v1/browser/{session_id}/recording` removes the video at once.
-
-```bash
-curl -X DELETE https://api.stophy.dev/v1/browser/$SESSION_ID/recording \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "recordingStatus": "none",
-  "recordingAvailable": false,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "27af7441-1578-4903-80cc-fad92c62ad6e"
-}
-```
+Use `DELETE /v1/browser/{session_id}/recording` if you no longer need the video. It removes the video at once and returns `recordingStatus: "none"` with `recordingAvailable: false`.
 
 Reading the recording after that returns `404 notFound` with `This browser session has no recording.` Deleting the video does not remove the replay.
 
 ## Read the replay
 
-A closed session keeps a replay for 24 hours. `GET /v1/browser/{session_id}/replay` lists the pages it visited, in order, with the steps run on each. You do not need `recording` for it.
+Use replay to find a specific visit or step without watching the video. We keep it for 24 hours after the session closes. `GET /v1/browser/{session_id}/replay` lists the pages it visited, in order, with the steps run on each. You do not need `recording` for it.
 
-```bash
-curl https://api.stophy.dev/v1/browser/$SESSION_ID/replay \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+`pages` has each `pageId`, `url`, `title`, `at` and `steps`. If there are no visits, `pages` is empty. `at` is when the page was shown, in milliseconds since 1970. `steps` are the calls your code made on that page.
 
-```json
-{
-  "success": true,
-  "id": "daabeb27-b413-4e17-a7c7-e394b7549035",
-  "pages": [
-    {
-      "pageId": "ca7dc91a-0693-4b5d-bf57-e2d4d93d6911",
-      "url": "https://example.com/",
-      "title": "Example Domain",
-      "at": 1794939669855,
-      "steps": []
-    },
-    {
-      "pageId": "e845c075-1381-486f-a519-251d8229201f",
-      "url": "https://www.iana.org/help/example-domains",
-      "title": "Example Domains",
-      "at": 1794939675262,
-      "steps": ["waitForTimeout(5000)"]
-    }
-  ],
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "c96d17af-ae03-4534-875b-61e24be09c8c"
-}
-```
-
-`at` is when the page was shown, in milliseconds since 1970. `steps` are the calls your code made on that page.
-
-`GET /v1/browser/{session_id}/replay/{page_id}` reads one page and adds its `screenshot`, a Base64 JPEG. This real answer is cut.
-
-```json
-{
-  "success": true,
-  "page": {
-    "pageId": "e845c075-1381-486f-a519-251d8229201f",
-    "url": "https://www.iana.org/help/example-domains",
-    "title": "Example Domains",
-    "at": 1794939675262,
-    "steps": ["waitForTimeout(5000)"],
-    "screenshot": "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAAB…"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "fcadec00-945b-4eca-a422-5c9633bb5eee"
-}
-```
+`GET /v1/browser/{session_id}/replay/{page_id}` reads one page and adds its `screenshot`, a Base64 JPEG.
 
 ## Options
+
+Turn on video recording when you open the session, or shorten replay text when you read it.
 
 | Field | Where | Type | Default | Effect |
 | - | - | - | - | - |
@@ -201,12 +139,16 @@ curl https://api.stophy.dev/v1/browser/$SESSION_ID/replay \
 
 ## Limits and errors
 
+Check whether the session recorded and whether the video is ready before reading or deleting it.
+
 - `recording` with `zeroDataRetention` returns `400 invalidRequest`: `zeroDataRetention keeps nothing from the session, so it cannot be recorded. Send one of them.` A session with `zeroDataRetention` has no replay.
 - Reading a recording of a session that was not recorded returns `404 notFound`.
 - Deleting a video that is still being made returns `409 invalidRequest`: `The video is not ready yet. Delete it when recordingStatus is ready or failed.` Deleting when there is none returns `404 notFound`.
 - A replay page id that does not exist returns `404 notFound` with `No replay page with that id.`
 
 ## Related
+
+Use the session guide to start and stop the browser that makes the recording.
 
 - [Browser sessions](/browser/overview) opens and closes the session.
 - [Execute](/browser/execute) runs the steps a replay lists.

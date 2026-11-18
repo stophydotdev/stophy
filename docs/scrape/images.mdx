@@ -5,7 +5,7 @@ og:title: "Images | Stophy"
 og:description: "Get the URL of every image on a page as an absolute URL. Use it to download or inspect the pictures a page shows. $1 per 1,000 pages."
 ---
 
-`images` returns the URL of every image on the page, as an absolute URL.
+Use `images` to get URLs you can download or inspect. To see the pictures in the layout of the page, ask for a [screenshot](/scrape/screenshot).
 
 ## Make a request
 
@@ -47,7 +47,7 @@ print(data["images"])
 
 ## Read the response
 
-`data.images` is an array of strings. This is the real response for that page.
+Read `data.images` for the absolute URLs. The response lists the addresses, not the image files.
 
 ```json
 {
@@ -56,18 +56,9 @@ print(data["images"])
     "images": [
       "https://bun.com/logo.svg",
       "https://bun.com/bun-homepage-cc-boris-poster.webp",
-      "https://bun.com/bun-homepage-midjourney-cheng-poster.webp",
-      "https://bun.com/bun-homepage-railway-jake-poster.webp",
-      "https://bun.com/bun-homepage-cursor-leerob-1-poster.webp"
+      "https://bun.com/bun-homepage-midjourney-cheng-poster.webp"
     ],
     "metadata": {
-      "title": "Bun — A fast all-in-one JavaScript runtime",
-      "sourceURL": "https://bun.com/",
-      "url": "https://bun.com/",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "6f5f8ef3-3a3e-4499-a179-3a64cf5ae5a7",
       "costUsd": 0.001
     }
   }
@@ -78,11 +69,15 @@ Each URL comes from the `src` of an `img` tag on the whole page. Relative URLs a
 
 ## Options
 
+Add `images` to `formats` to get URLs alongside any other format you need.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"images"` to return every image URL on the page. |
 
 ## Limits and errors
+
+Use this format on web pages. It does not extract pictures from PDF files.
 
 - A PDF comes back as Markdown only. Asking for `images` on a PDF returns `400 invalidRequest`.
 - A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
@@ -92,6 +87,8 @@ Each URL comes from the `src` of an `img` tag on the whole page. Relative URLs a
 $1 per 1,000 pages. `images` adds nothing to the price of the page.
 
 ## Related
+
+Use these formats when you need the logo or a picture of the entire page.
 
 - [Screenshot](/scrape/screenshot) captures how the page looks.
 - [Branding](/scrape/branding) reads the logo, colors and fonts.

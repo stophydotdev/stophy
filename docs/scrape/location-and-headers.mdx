@@ -5,11 +5,11 @@ og:title: "Location and headers | Stophy"
 og:description: "Read a page from another country, ask the site for a language, send your own request headers, and read a page with an expired certificate."
 ---
 
-`location` reads a page from another country and asks the site for the languages you want. `headers` sends your own request headers to the site. These fields change what the site shows you, so a read that uses `headers`, `location.languages` or `skipTlsVerification` is always live.
+Set `location` if the site shows different pages by country or language. Use `headers` when the site needs an extra header. These fields change what the site shows you, so a read that uses `headers`, `location.languages` or `skipTlsVerification` is always live.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request reads a page that echoes the headers it received, from Germany, in German, with one custom header.
+Get an API key in the [Quickstart](/quickstart). This request reads a page that echoes the headers it received, from Germany, with German as the first language choice and one custom header.
 
 <CodeGroup>
 ```bash cURL
@@ -58,7 +58,7 @@ print(response.json()["data"]["markdown"])
 
 ## Read the response
 
-The page lists the headers it got. Two of them are the ones you sent: the languages, best first, and your `x-plan` header. This real response is cut to those two headers.
+Check the echoed headers in `data.markdown`. The language list went out as `Accept-Language`, with German first. `X-Plan` has the custom value you sent.
 
 ```json
 {
@@ -66,12 +66,7 @@ The page lists the headers it got. Two of them are the ones you sent: the langua
   "data": {
     "markdown": "{\n  \"headers\": {\n    \"Accept-Language\": \"de-DE,en;q=0.9\",\n    …\n    \"X-Plan\": \"pro\"\n  }\n}",
     "metadata": {
-      "sourceURL": "https://httpbin.org/headers",
-      "url": "https://httpbin.org/headers",
-      "statusCode": 200,
-      "contentType": "application/json",
       "cacheState": "miss",
-      "scrapeId": "b519c656-9983-485b-a247-8e4449e16208",
       "costUsd": 0.001
     }
   }
@@ -79,6 +74,8 @@ The page lists the headers it got. Two of them are the ones you sent: the langua
 ```
 
 ## Options
+
+Change the country when you need a regional version. Set languages separately if you want the site to prefer a particular language.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -90,6 +87,8 @@ The page lists the headers it got. Two of them are the ones you sent: the langua
 
 ## Headers
 
+Use `headers` for the destination site, not for authenticating your request to us.
+
 - Send at most 30 headers.
 - A name uses letters, digits and `-`, up to 64 characters. A value is up to 2,000 printable characters with no line breaks.
 - `Host`, `Content-Length`, `Connection`, `Transfer-Encoding`, `Upgrade`, `TE` and `Proxy-Authorization` are refused, because Stophy sets them itself.
@@ -97,6 +96,8 @@ The page lists the headers it got. Two of them are the ones you sent: the langua
 - Send `Cookie` or `Authorization` only for a site you are allowed to read as that user.
 
 ## Limits and errors
+
+An invalid country code or a header we set ourselves fails the request. A valid location does not guarantee different content.
 
 - A country that is not a two-letter code returns `400 invalidRequest` with the message `country: Expected a two-letter country code such as DE`.
 - The country is a request. A site can still show the same page to everyone.
@@ -108,6 +109,8 @@ The page lists the headers it got. Two of them are the ones you sent: the langua
 $1 per 1,000 pages. A country, languages, headers and `skipTlsVerification` add nothing.
 
 ## Related
+
+Use these guides to combine location with rendering options or check when a copy can be reused.
 
 - [Waiting and rendering](/scrape/waiting-and-rendering) reads a page as a phone would.
 - [Browser actions](/scrape/browser-actions) work with the same location.

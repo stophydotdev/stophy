@@ -5,7 +5,7 @@ og:title: "Results | Stophy"
 og:description: "Check a batch, read its pages a page at a time, list the pages that failed, delete the stored results, and find your earlier batches. Kept for 24 hours."
 ---
 
-A batch and its pages are kept for 24 hours. Check the batch until its `status` is final, then read its pages, its errors, or both. All of these calls are free.
+Read pages and errors as your batch runs, or wait until its `status` is final. We keep the batch and its pages for 24 hours. All of these calls are free.
 
 ## Check status
 
@@ -35,46 +35,16 @@ print(batch["status"], batch["completed"], "of", batch["total"])
 ```
 </CodeGroup>
 
-This real batch read one page and could not read the other, because its domain does not exist. The page text is cut.
+Read `status` and the counts first. This batch returned one page. The other URL had no website, so it appears in `errors` as `notFound`.
 
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "markdown": "This domain is for use in documentation examples without needing permi…",
-      "metadata": {
-        "title": "Example Domain",
-        "sourceURL": "https://example.com/",
-        "statusCode": 200,
-        "contentType": "text/html",
-        "cacheState": "miss",
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      }
-    }
-  ],
   "status": "completed",
   "total": 2,
   "completed": 1,
   "failed": 1,
-  "creditsUsed": 1,
-  "costUsd": 0.001,
-  "createdAt": "2026-11-17T18:13:10.052Z",
-  "completedAt": "2026-11-17T18:13:12.695Z",
-  "duration": 2.643,
-  "expiresAt": "2026-11-18T18:13:10.052Z",
-  "errors": [
-    {
-      "id": "err_73cdb4935459e2da",
-      "url": "https://this-domain-does-not-exist-stophy.com",
-      "code": "notFound",
-      "message": "That address has no website behind it. Check the spelling of the domain, then try again.",
-      "retryable": false,
-      "at": "2026-11-17T18:13:12.314Z"
-    }
-  ],
-  "requestId": "4a3309b0-9ac9-4d52-a50c-3e52abc18d1d"
+  "costUsd": 0.001
 }
 ```
 
@@ -95,192 +65,29 @@ A page that answered `404` or `410` is not an error. It counts as `completed`, i
 
 ## Read the results in parts
 
-`GET /v1/batch/scrape/{id}/results` returns the same pages in a shape made for paging. Send `limit` and `cursor`.
+Use `GET /v1/batch/scrape/{id}/results` when you want to page through finished results rather than get them with status. Send `limit` and `cursor`.
 
-<CodeGroup>
-```bash cURL
-BATCH_ID="<the id your batch returned>"
-curl "https://api.stophy.dev/v1/batch/scrape/$BATCH_ID/results?limit=2" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const id = "<the id your batch returned>";
-const headers = { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` };
-const pages = [];
-let cursor: string | undefined;
-do {
-  const url = new URL(`https://api.stophy.dev/v1/batch/scrape/${id}/results`);
-  url.searchParams.set("limit", "100");
-  if (cursor) url.searchParams.set("cursor", cursor);
-  const { data } = await (await fetch(url, { headers })).json();
-  pages.push(...data.results);
-  cursor = data.cursor;
-} while (cursor);
-console.log(pages.length);
-```
-```python Python
-import os
-
-import requests
-
-batch_id = "<the id your batch returned>"
-headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
-pages = []
-cursor = None
-while True:
-    params = {"limit": 100, **({"cursor": cursor} if cursor else {})}
-    data = requests.get(
-        f"https://api.stophy.dev/v1/batch/scrape/{batch_id}/results",
-        headers=headers,
-        params=params,
-    ).json()["data"]
-    pages.extend(data["results"])
-    cursor = data.get("cursor")
-    if not cursor:
-        break
-print(len(pages))
-```
-</CodeGroup>
-
-This real answer used `limit` 2. The page text is cut. The cURL tab reads one part, and the TypeScript and Python tabs read every part, 100 results at a time.
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "job_WFIhxsA_0rgzF5l4imub_A",
-    "status": "completed",
-    "total": 3,
-    "completed": 3,
-    "failed": 0,
-    "creditsUsed": 1,
-    "costUsd": 0.002,
-    "errors": [],
-    "results": [
-      {
-        "markdown": "This domain is for use in documentation examples without needing permi…",
-        "isTruncated": false,
-        "metadata": {
-          "title": "Example Domain",
-          "sourceURL": "https://example.com/",
-          "statusCode": 200,
-          "contentType": "text/html",
-          "cacheState": "miss"
-        },
-        "url": "https://example.com",
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      },
-      {
-        "markdown": "# Environment Variables\n\n> Read and configure environment variables in…",
-        "isTruncated": false,
-        "metadata": {
-          "title": "Environment Variables",
-          "sourceURL": "https://bun.com/docs/runtime/env",
-          "statusCode": 200
-        },
-        "url": "https://bun.com/docs/runtime/env",
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      }
-    ],
-    "cursor": "rplw_0tfpage_2"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "027413d7-81dc-4edc-95bd-aab743207c93"
-}
-```
+Use `?limit=2` if you want two records at a time. Read `data.results` for the pages and `data.cursor` for the next part. `isTruncated` on a result tells you whether its text was cut.
 
 `limit` is 20 by default and at most 100. Send `cursor` from the answer, with the same `limit`, to read the next part. A part can hold fewer results than `limit`, so keep going until there is no `cursor`. Each result has its own `url`, `creditsUsed` and `costUsd`.
 
-Pages that failed show up in the `errors` of the part where they landed. This real second part of a two-page batch had no results and one error.
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "job_FcxIcgRhtA3DhBn2UjZEFA",
-    "status": "completed",
-    "total": 2,
-    "completed": 1,
-    "failed": 1,
-    "errors": [
-      {
-        "url": "https://this-domain-does-not-exist-stophy.com",
-        "code": "notFound",
-        "message": "That address has no website behind it. Check the spelling of the domain, then try again.",
-        "retryable": false,
-        "at": 1794939192314
-      }
-    ],
-    "results": []
-  }
-}
-```
+Failed pages appear in `data.errors` in the part where they landed. A part can have an empty `results` array and still have errors. On this route, an error's `at` is in Unix milliseconds.
 
 ## Read the errors
 
-`GET /v1/batch/scrape/{id}/errors` lists only the pages that could not be read, with the reason for each.
-
-```bash
-curl https://api.stophy.dev/v1/batch/scrape/$BATCH_ID/errors \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "status": "completed",
-  "failed": 1,
-  "errors": [
-    {
-      "id": "err_73cdb4935459e2da",
-      "timestamp": "2026-11-17T18:13:12.314Z",
-      "error": "That address has no website behind it. Check the spelling of the domain, then try again.",
-      "url": "https://this-domain-does-not-exist-stophy.com",
-      "code": "notFound",
-      "message": "That address has no website behind it. Check the spelling of the domain, then try again.",
-      "retryable": false,
-      "at": "2026-11-17T18:13:12.314Z"
-    }
-  ],
-  "robotsBlocked": [],
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "4a1ff560-bc22-4173-bc75-70a9db0251fe"
-}
-```
+Use `GET /v1/batch/scrape/{id}/errors` when you need only failed pages. Read `status`, `failed` and `errors`. If nothing failed, `errors` is empty. Each error has `id`, `url`, `code`, `message` and `retryable`; `at` and `timestamp` are date strings on this route.
 
 `code` is one of the [error codes](/api-reference/errors). `retryable: true` means a new batch with that URL can work. A batch does not apply robots rules, so `robotsBlocked` is always empty. At most 1,000 errors are listed, and `isTruncated` is `true` when there were more. See [Limits and errors](/batches/limits-and-errors).
 
 ## Delete the results
 
-`DELETE /v1/batch/scrape/{id}/results` removes the stored pages at once. It works once the batch is `completed`, `failed` or `cancelled`. The batch keeps its counts.
-
-```bash
-curl -X DELETE https://api.stophy.dev/v1/batch/scrape/$BATCH_ID/results \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "job_WFIhxsA_0rgzF5l4imub_A",
-    "deletedPages": 3
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "b8687973-d893-4307-925b-03a65618ec38"
-}
-```
+Use `DELETE /v1/batch/scrape/{id}/results` to remove stored pages before they expire. It removes the stored pages at once. It works once the batch is `completed`, `failed` or `cancelled`. The batch keeps its counts. `data.deletedPages` tells you how many pages were removed.
 
 After the delete, reading the results answers with the counts, an empty `results`, and `message` set to `The stored results were deleted.` Deleting again returns `deletedPages` of `0`. A batch that is still running returns `400 invalidRequest`: `This batch scrape has not finished, so its results cannot be deleted yet. Wait until its status is completed, failed or cancelled, then send the call again.` To stop a batch first, see [Limits and errors](/batches/limits-and-errors#cancel-a-batch).
 
 ## List your batches
 
-`GET /v1/batch/scrape` lists your batches, newest first, and is free.
+Use `GET /v1/batch/scrape` to find a batch ID or check whether your batches are still running. It returns `data.batches` newest first, with counts, cost and timestamps. If none match, `data.batches` is empty. The call is free.
 
 | Query field | Type | Default | Effect |
 | - | - | - | - |
@@ -288,52 +95,11 @@ After the delete, reading the results answers with the counts, an empty `results
 | `limit` | `number` | `20` | Batches per page, 1 to 100. |
 | `cursor` | `string` | none | `cursor` from the last answer. |
 
-```bash
-curl "https://api.stophy.dev/v1/batch/scrape?limit=2" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "batches": [
-      {
-        "id": "job_FcxIcgRhtA3DhBn2UjZEFA",
-        "status": "completed",
-        "total": 2,
-        "completed": 1,
-        "failed": 1,
-        "creditsUsed": 1,
-        "costUsd": 0.001,
-        "createdAt": "2026-11-17T18:13:10.052Z",
-        "completedAt": "2026-11-17T18:13:12.695Z",
-        "expiresAt": "2026-11-18T18:13:10.052Z"
-      },
-      {
-        "id": "job_WFIhxsA_0rgzF5l4imub_A",
-        "status": "completed",
-        "total": 3,
-        "completed": 3,
-        "failed": 0,
-        "creditsUsed": 1,
-        "costUsd": 0.002,
-        "createdAt": "2026-11-17T18:12:52.872Z",
-        "completedAt": "2026-11-17T18:12:56.792Z",
-        "expiresAt": "2026-11-18T18:12:52.872Z"
-      }
-    ],
-    "cursor": "r1hWm-iB1794939172872:job_WFIhxsA_0rgzF5l4imub_A"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "b5282986-a53a-4dd6-bc49-9456082f995b"
-}
-```
-
 A page can hold fewer batches than `limit`, so keep sending `cursor` until it is missing. A batch that stopped early has its reason in `message`. Run this to confirm that no batch you started is still reading.
 
 ## Options
+
+Set the page size or cut long text before saving a result.
 
 | Field | Where | Type | Default | Effect |
 | - | - | - | - | - |
@@ -344,11 +110,15 @@ A page can hold fewer batches than `limit`, so keep sending `cursor` until it is
 
 ## Limits and errors
 
+Copy what you need before the batch expires.
+
 - A batch, its pages and its errors are kept for 24 hours after it starts. After that, reading it returns `404 notFound`: `No batch scrape with that id. Results are kept for 24 hours.` Copy what you need before then.
 - A status read returns at most 100 pages or 2 MB in one answer.
 - An id that is not yours returns `404 notFound` too.
 
 ## Related
+
+Use the submit guide to start a batch or the error guide to decide what to retry.
 
 - [Batches](/batches/overview) explains the statuses and the price.
 - [Submit a batch](/batches/submit) sends the list and the options.

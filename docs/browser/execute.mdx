@@ -9,7 +9,7 @@ og:description: "Run code or a plain-words prompt in an open browser session wit
 
 ## Run code
 
-[Open a session](/browser/overview) first. In your code, `page` is the session's page, with Playwright-style methods. Every `page` call is asynchronous, so `await` it. This call opens a page, then returns its title and address.
+Use code when you know the exact browser steps. [Open a session](/browser/overview) first. In your code, `page` is the session's page, with Playwright-style methods. Every `page` call is asynchronous, so `await` it. This call opens a page, then returns its title and address.
 
 <CodeGroup>
 ```bash cURL
@@ -72,12 +72,7 @@ print(response.json()["result"])
   "exitCode": 0,
   "killed": false,
   "truncated": false,
-  "cdpUrl": "wss://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/cdp?token=…",
-  "liveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…",
-  "interactiveLiveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "2bbe9943-fdf4-4fd7-97f4-92e999ddb15e"
+  "costUsd": 0
 }
 ```
 
@@ -93,93 +88,13 @@ Send `language` as `node` (the default), `python` or `bash`. Each reads the same
 | `python` | `page.goto(url)`, `page.locator(selector).click()`. `page.url` is a property, not a call. | Set a variable named `result` |
 | `bash` | `page goto https://example.com`, then `page title`, one command a line | Print it. There is no `result`. |
 
-This Python run returned `exitCode` 0 and the same `result` as the Node run above.
-
-```json
-{
-  "language": "python",
-  "code": "page.goto('https://example.com')\nresult = {'title': page.title(), 'url': page.url}"
-}
-```
+To get the same title and URL in Python, set `"language": "python"` and assign `result = {'title': page.title(), 'url': page.url}` after navigation.
 
 ## Run a prompt
 
-Send `prompt` instead of `code` to say what you want in plain words. Stophy clicks and types on the page for you, up to 50 steps, and answers in words.
+Use a prompt when you know the goal but not each click. Send `prompt` instead of `code`. Stophy clicks and types on the page for you, up to 50 steps, and answers in words.
 
-<CodeGroup>
-```bash cURL
-SESSION_ID="<the id your session returned>"
-curl -X POST https://api.stophy.dev/v1/browser/$SESSION_ID/execute \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Open https://example.com, then click the link on the page and tell me the title of the page it opens."
-  }'
-```
-```typescript TypeScript
-const sessionId = "<the id your session returned>";
-const response = await fetch(
-  `https://api.stophy.dev/v1/browser/${sessionId}/execute`,
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt:
-        "Open https://example.com, then click the link on the page and tell me the title of the page it opens.",
-    }),
-  },
-);
-const run = await response.json();
-console.log(run.result);
-console.log(run.steps);
-```
-```python Python
-import os
-
-import requests
-
-session_id = "<the id your session returned>"
-response = requests.post(
-    f"https://api.stophy.dev/v1/browser/{session_id}/execute",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "prompt": "Open https://example.com, then click the link on the page "
-        "and tell me the title of the page it opens."
-    },
-)
-run = response.json()
-print(run["result"])
-print(run["steps"])
-```
-</CodeGroup>
-
-This real run took about 13 seconds. The links are cut.
-
-```json
-{
-  "success": true,
-  "output": "The link on example.com ('Learn more') opened https://www.iana.org/help/example-domains, and the title of that page is \"Example Domains\".",
-  "result": "The link on example.com ('Learn more') opened https://www.iana.org/help/example-domains, and the title of that page is \"Example Domains\".",
-  "stderr": "",
-  "exitCode": 0,
-  "killed": false,
-  "truncated": false,
-  "steps": [
-    "open https://example.com",
-    "click link \"Learn more\""
-  ],
-  "page": {
-    "url": "https://www.iana.org/help/example-domains",
-    "title": "Example Domains"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "c03559db-7817-46d6-98c5-e10643d88269"
-}
-```
+For example, ask the browser to open `example.com`, follow its link and tell you the destination title. That run took about 13 seconds and returned the title `Example Domains`.
 
 `result` and `output` hold the answer. `steps` lists what was done, and `page` is where the session ended up. When the prompt could not be finished, `exitCode` is `1` and `stderr` says why.
 
@@ -196,6 +111,8 @@ Send `code` or `prompt`. A body with neither returns `400 invalidRequest` with `
 
 ## Read the response
 
+Check `exitCode` even if the request returned HTTP `200`. When code prints nothing, `output` is empty.
+
 | Field | What it holds |
 | - | - |
 | `output`, `stdout` | What the code printed, or the answer to a prompt. Cut with a note at 200,000 bytes, and `truncated` is `true`. |
@@ -209,9 +126,11 @@ Send `code` or `prompt`. A body with neither returns `400 invalidRequest` with `
 
 ## Price
 
-A call costs nothing. What changes is the session's price: a session is $0.06 per hour open, and once a prompt has run it is $0.84 per hour for its whole time. Code never raises the price. Traffic is billed as usual, per GB. A session that opened, ran one prompt and closed after 27 seconds cost $0.022: one minute of browser time at the prompt price, $0.014, and $0.008 for 1.3 MB of traffic. See [Browser sessions](/browser/overview#price).
+Choose code if you need the lower session price. An execute call costs nothing. What changes is the session's price: a session is $0.06 per hour open, and once a prompt has run it is $0.84 per hour for its whole time. Code never raises the price. Traffic is billed as usual, per GB. A session that opened, ran one prompt and closed after 27 seconds cost $0.022: one minute of browser time at the prompt price, $0.014, and $0.008 for 1.3 MB of traffic. See [Browser sessions](/browser/overview#price).
 
 ## Limits and errors
+
+Check the session and execution limits if your call stops early.
 
 - The first call right after a session opens can fail with `503 internalError` and the message `We couldn't complete your request. Try again shortly.` It is retryable: send it again.
 - Code that runs past `timeout` returns `killed: true` and `error` `The code ran out of time.`
@@ -219,6 +138,8 @@ A call costs nothing. What changes is the session's price: a session is $0.06 pe
 - `url` and `zeroDataRetention` are not accepted on this call. Open the page with `page.goto` in your code, and set zero data retention when you open the session.
 
 ## Related
+
+Use the session and files guides before you run code that needs a browser or an upload.
 
 - [Browser sessions](/browser/overview) opens and closes the session this call runs in.
 - [Files](/browser/files) puts a file in the session for a file field to use.

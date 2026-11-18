@@ -5,7 +5,7 @@ og:title: "YouTube | Stophy"
 og:description: "Scrape a YouTube video link for its title, channel, date, length, views, likes and description, and get its audio as M4A or its video as MP4."
 ---
 
-Send a YouTube video link to Scrape and `markdown` returns a short document about the video: its title, channel, publish date, length, views, likes and description. Add `audio` or `video` to also get the file.
+Use Scrape to read a YouTube video's details or get its audio or video file. For a transcript or comments instead, use a [YouTube parser](/scrape/prebuilt-parsers).
 
 ## Make a request
 
@@ -58,7 +58,7 @@ print(data["audio"])
 
 ## Read the response
 
-`markdown` is the video document. `audio` is a link to an M4A file that works for 1 hour. This real response is cut: the description and the link are shortened.
+Read `data.markdown` for the video details and `data.audio` for the link to the M4A file. Download it within an hour if you need to keep it. The link below is shortened.
 
 ```json
 {
@@ -67,23 +67,18 @@ print(data["audio"])
     "markdown": "# Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)\n\n[Rick Astley](https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw) · Published 2009-10-25 · Length 3:33 · 1,838,183,196 views · 19,509,472 likes\n\nThe official video for “Never Gonna Give You Up” by Rick Astley. …",
     "audio": "https://…/media/561cef5b-e737-4523-adc7-7c182f03179c.m4a?…",
     "metadata": {
-      "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
       "ogImage": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-      "sourceURL": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "statusCode": 200,
-      "contentType": "text/markdown",
-      "cacheState": "miss",
-      "scrapeId": "c9e9e5c0-4647-4807-8aeb-d587db57567d",
       "costUsd": 0.001
     }
   }
 }
 ```
 
-`metadata.title`, `description` and `ogImage` come from the video. To keep the audio, download it within the hour.
+`metadata.title`, `description` and `ogImage` come from the video.
 
 ## Options
+
+Ask for the video details or the file you need. Add `"video"` to `formats` if you want an MP4 with sound rather than just the audio.
 
 | Format | What you get |
 | - | - |
@@ -100,6 +95,8 @@ A scrape returns the document above, not the transcript, the comments or the cha
 
 ## Limits and errors
 
+Use an API key for downloads. Check that the URL points to a video rather than a channel or playlist.
+
 - `audio` and `video` need an API key. Without one, the call returns `401 apiKeyRequired`.
 - `audio` and `video` work only for a YouTube video link. Any other URL returns `400 invalidRequest` with a message that starts `formats: audio and video are available for YouTube video links`.
 - An audio file larger than 40 MB, or a video file larger than 100 MB, returns `400 invalidRequest` and says what to send instead.
@@ -111,6 +108,8 @@ A scrape returns the document above, not the transcript, the comments or the cha
 $1 per 1,000 videos. `audio` and `video` add nothing to the price.
 
 ## Related
+
+Use these formats to read the details without downloading a file.
 
 - [Pre-built parsers](/scrape/prebuilt-parsers) read a video's transcript, comments and channel.
 - [Markdown](/scrape/markdown) is the format that returns the video document.

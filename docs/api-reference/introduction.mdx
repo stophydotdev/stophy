@@ -10,13 +10,11 @@ The Stophy API takes JSON over HTTPS at one base URL and answers in JSON. Every 
 
 ## Base URL
 
-```text
-https://api.stophy.dev
-```
-
-Every operation is one HTTP call with a JSON body or query string. A field an operation does not take returns `400`. The reference has a page for each operation, with its fields, a real request in cURL, TypeScript and Python, and a real response.
+Send your calls to `https://api.stophy.dev`. Use the JSON body or query string shown for the operation. A field the operation does not take can return `400`. Each operation has a reference page with its fields, a real request in cURL, TypeScript and Python, and a real response.
 
 ## Operations
+
+Pick the group for the task you want to run. Each link opens its first operation.
 
 | Group | What it does |
 | --- | --- |
@@ -45,20 +43,13 @@ A site's own data, like a Reddit search or a YouTube transcript, comes from scra
 
 ## Authentication
 
-Create an API key at [stophy.dev/signup](https://stophy.dev/signup) and send it as a bearer token. An agent can ask its person for one with [Sign up](/api-reference/endpoint/sign-up).
-
-```bash
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com/docs/runtime/bunfig"}'
-```
+Create an API key at [stophy.dev/signup](https://stophy.dev/signup) and send it in `Authorization: Bearer $STOPHY_API_KEY`. An agent can ask its person for one with [Sign up](/api-reference/endpoint/sign-up).
 
 Without an API key, an operation that needs one returns `401` with code `apiKeyRequired`, a `signupUrl` for a person and a `signup` call for an agent. Search, scrape, map and parse also work without an API key, up to 10 calls a minute and 50 calls a day per IP address, with no paging. Sign up, collect the key, the parser list, the endpoint list, site status and keyless eligibility need no API key at all. See [Rate limits](/production/rate-limits).
 
 ## Responses
 
-Almost every answer is JSON with `success`. Most also carry `costUsd`, `creditsUsed` and `requestId`. This real [Map](/api-reference/endpoint/map) answer is cut to one link.
+Check `success` before you read the result. Almost every answer includes it. Most also carry `costUsd`, `creditsUsed` and `requestId`. This real [Map](/api-reference/endpoint/map) answer is cut to one link.
 
 ```json
 {
@@ -74,7 +65,7 @@ Almost every answer is JSON with `success`. Most also carry `costUsd`, `creditsU
 }
 ```
 
-`costUsd` is what the call cost, in dollars. `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. A scrape answer has none of `costUsd`, `creditsUsed`, `id` and `requestId`: its cost and id are in `data.metadata`, and the request id is in the `X-Request-ID` header. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
+`costUsd` is what the call cost, in dollars. `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. Scrape does not return `costUsd`, `creditsUsed`, `id` or `requestId` at the top level. Read the scrape cost and ID in `data.metadata` and the request ID in the `X-Request-ID` header. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
 
 Each answer has headers too: `X-Request-ID`, `x-cost-usd`, `x-credits-used` (the older one), `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. Some operations add `x-cache` and `x-cache-age`, which say whether the result came from a stored copy. Quote the request id when you contact support.
 
@@ -86,4 +77,4 @@ A failed call returns an error status and a flat body: `{ "success": false, "err
 
 ## Cost
 
-Each operation's page states its price in dollars. Reading a job, listing your own jobs, sessions and monitors, and the account calls are free, and a call that fails costs nothing. Where an operation takes `limit`, send it to get fewer results and pay for fewer. Your balance is in dollars. Read it with [Limits](/api-reference/endpoint/limits) or [Usage](/api-reference/endpoint/usage). See [Pricing](/account/pricing).
+Check the operation page for its price in dollars before you call it. Reading a job, listing your own jobs, sessions and monitors, and the account calls are free, and a call that fails costs nothing. Where an operation takes `limit`, send it to get fewer results and pay for fewer. Your balance is in dollars. Read it with [Limits](/api-reference/endpoint/limits) or [Usage](/api-reference/endpoint/usage). See [Pricing](/account/pricing).

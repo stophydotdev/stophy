@@ -5,7 +5,7 @@ og:title: "Results | Stophy"
 og:description: "Read what an extract found with GET /v1/extract/{id}. See the page behind each value, set timeouts, get a webhook, and know how long results are kept."
 ---
 
-An extract answers with an `id`. `GET /v1/extract/{id}` returns what it found, for 24 hours, and costs nothing.
+Use the extract ID to read the fields we found. Reading is free, and results are available for 24 hours unless you used zero data retention.
 
 ## Read a result
 
@@ -36,7 +36,7 @@ print(result["status"], result["data"])
 
 ## Read the response
 
-This is the real result of the request on [Extract](/extract/overview).
+Check `status` before reading the fields in `data`. This result comes from the request on [Extract](/extract/overview).
 
 ```json
 {
@@ -46,11 +46,6 @@ This is the real result of the request on [Extract](/extract/overview).
     "module": "bun:sqlite",
     "queryMethods": ["all", "get", "run", "values", "iterate"],
     "transactionModes": ["deferred", "immediate", "exclusive"]
-  },
-  "confidence": {
-    "module": 0.9627,
-    "queryMethods": 0.7573,
-    "transactionModes": 0.9246
   },
   "urls": ["https://bun.com/docs/runtime/sqlite"],
   "costUsd": 0.005,
@@ -72,54 +67,25 @@ This is the real result of the request on [Extract](/extract/overview).
 
 ## Show sources
 
-Send `"showSources": true` with the extract to get `sources`: for each field, the pages whose text states the value. Use it to link a value back to its page. This real result came from a call that also sent `showSources`.
-
-```json
-{
-  "sources": {
-    "module": ["https://bun.com/docs/runtime/sqlite"],
-    "queryMethods": ["https://bun.com/docs/runtime/sqlite"],
-    "transactionModes": ["https://bun.com/docs/runtime/sqlite"]
-  }
-}
-```
+If you need to link each value to a page, send `"showSources": true` when you start the extract. `sources` maps each field to the URLs that state its value.
 
 A field that is not in `data` is not in `sources`. The full request is on [Schema](/extract/schema).
 
 ## Set a timeout
 
-`timeout` is how long to keep reading the pages, in milliseconds, from 1,000 to 300,000. The default is 30,000 ms. A page that is not read by then is skipped, named in `warning`, and costs nothing. The call fails only when no page can be read.
-
-```json
-{
-  "urls": ["https://bun.com/docs/runtime/sqlite", "https://bun.com/docs/runtime/bunfig"],
-  "schema": { "type": "object", "properties": { "module": { "type": "string" } } },
-  "timeout": 60000
-}
-```
+Raise `timeout` if the pages you need are slow. For example, `"timeout": 60000` gives them 60 seconds. `timeout` is how long to keep reading the pages, in milliseconds, from 1,000 to 300,000. The default is 30,000 ms. A page that is not read by then is skipped, named in `warning`, and costs nothing. The call fails only when no page can be read.
 
 After the pages are read, the answer takes up to 45 more seconds. Set your client timeout above `timeout` plus 45 seconds. `warning` reads like `Read 1 of 2 pages. Skipped <url>: <reason>`, and like `1 of 1 pages were longer than 50000 characters and were cut there.` when a page is long. With several pages, each page gets a smaller share, and all together are read up to 150,000 characters.
 
 ## Get a webhook
 
-Send `webhook` with a public address, or with an object, to be told when the extract ends instead of asking.
-
-```json
-{
-  "urls": ["https://bun.com/docs/runtime/sqlite"],
-  "prompt": "the import path of the SQLite driver",
-  "webhook": {
-    "url": "https://example.com/hooks/extract",
-    "headers": { "X-Source": "docs" },
-    "metadata": { "job": "sqlite-check" },
-    "events": ["completed", "failed"]
-  }
-}
-```
+Use a webhook if you want to be notified when the extract ends instead of polling. Send `webhook` as a public address, or as an object with `url`. For example, send `"events": ["failed"]` in the object if you only want failures.
 
 Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event` (`completed` or `failed`), an `eventId`, `success` (`false` for `failed`), the `status`, the `data`, `confidence`, `urls`, `warning`, `sources`, `costUsd` and your `metadata`. Each call is signed: `Stophy-Signature` holds `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. See [Webhooks](/webhooks).
 
 ## Options
+
+Set these when you start the extract.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -129,12 +95,16 @@ Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event`
 
 ## Limits and errors
 
+Save results before they expire. If no page could be read, check the returned error before retrying.
+
 - A result is kept for 24 hours. With `zeroDataRetention` it is kept for 1 hour. After that, `GET` returns `404 notFound` with `No extract with that id. Results are kept for 24 hours.`
 - A call that cannot read any page fails with the error of the page, such as `sourceTimeout` or `siteNotRead`. A failed call costs nothing, and a failed extract can be read back with `status` of `failed` and `success` of `false`.
 - Without an API key, `GET /v1/extract/{id}` returns `401 apiKeyRequired`. You can read only your own results.
 - More than 25 `urls` returns `400 invalidRequest`. `urls` with no public page in them returns `400 invalidRequest` with `None of these is a public website URL.`
 
 ## Related
+
+Use the schema guide to choose the fields you want to see in the result.
 
 - [Extract overview](/extract/overview) lists every request field.
 - [Schema](/extract/schema) describes the fields you want.
