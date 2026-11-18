@@ -4,6 +4,7 @@ import asyncio
 import random
 import re
 import time
+import uuid
 from email.utils import parsedate_to_datetime
 from importlib.metadata import version
 from typing import Any, Mapping
@@ -16,6 +17,7 @@ from .errors import StophyError
 DEFAULT_BASE_URL = "https://api.stophy.dev"
 MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+KEYED_WRITES = {"/v1/batch/scrape", "/v1/crawl", "/v1/browser/task"}
 ENVELOPE_FIELDS = {
     "success",
     "error",
@@ -136,6 +138,12 @@ class _RetryConfig:
         return float(seconds)
 
 
+def _keyed(client: httpx.Client | httpx.AsyncClient, method: str, path: str) -> dict[str, Any]:
+    if method == "POST" and path in KEYED_WRITES and "idempotency-key" not in client.headers:
+        return {"headers": {"Idempotency-Key": str(uuid.uuid4())}}
+    return {}
+
+
 class SyncTransport(_RetryConfig):
     def __init__(
         self,
@@ -150,6 +158,7 @@ class SyncTransport(_RetryConfig):
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
+        kwargs = {**kwargs, **_keyed(self.client, method, path)}
         while True:
             try:
                 response = self.client.request(method, path, **kwargs)
@@ -180,6 +189,7 @@ class AsyncTransport(_RetryConfig):
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
+        kwargs = {**kwargs, **_keyed(self.client, method, path)}
         while True:
             try:
                 response = await self.client.request(method, path, **kwargs)

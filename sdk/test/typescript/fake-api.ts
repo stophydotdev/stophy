@@ -11,6 +11,7 @@ type Answer = { status: number; body: JsonValue; headers?: Record<string, string
 
 export async function fakeApi(answer: (received: Received, count: number) => Answer) {
   const received: Received[] = [];
+  const answered = Promise.withResolvers<void>();
   const server = createServer((req, res) => {
     const chunks: Buffer[] = [];
     req.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -25,7 +26,7 @@ export async function fakeApi(answer: (received: Received, count: number) => Ans
       const reply = answer(item, received.length);
       if (reply === "drop") return req.socket.destroy();
       res.writeHead(reply.status, { "content-type": "application/json", ...reply.headers });
-      res.end(JSON.stringify(reply.body));
+      res.end(JSON.stringify(reply.body), () => answered.resolve());
     });
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -34,6 +35,7 @@ export async function fakeApi(answer: (received: Received, count: number) => Ans
   return {
     baseUrl: `http://127.0.0.1:${address.port}`,
     received,
+    answered: answered.promise,
     close: () => server.close(),
   };
 }

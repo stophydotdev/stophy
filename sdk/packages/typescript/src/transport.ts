@@ -6,6 +6,7 @@ const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
 const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const KEYED_WRITES = new Set(["/v1/batch/scrape", "/v1/crawl", "/v1/browser/task"]);
 const USER_AGENT = `stophy-typescript/${version}`;
 
 export interface CallOptions {
@@ -57,6 +58,9 @@ export function createCaller(options: TransportOptions): Caller {
     }
     headers.set("accept", "application/json");
     if (spec.body !== undefined) headers.set("content-type", "application/json");
+    if (spec.method === "POST" && KEYED_WRITES.has(spec.path) && !headers.has("idempotency-key")) {
+      headers.set("idempotency-key", crypto.randomUUID());
+    }
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
     return send<Result>(
@@ -109,7 +113,7 @@ async function send<Result>(
     } finally {
       deadline.clear();
     }
-    await sleep(waitMs);
+    await sleep(waitMs, signal);
   }
 }
 
@@ -254,6 +258,17 @@ function backoffMs(attempt: number, base: number): number {
   return window / 2 + Math.random() * (window / 2);
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
