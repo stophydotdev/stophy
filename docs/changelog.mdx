@@ -7,7 +7,7 @@ og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, newes
 
 Each entry covers one week and is named for the Monday it starts. The linked pages describe current behavior. Endpoint names from before November 5, 2026, such as `google.search`, belong to the per-site API that API v1 replaced.
 
-<Update label="Week of November 16, 2026" description="Lower prices, costUsd on webhooks and Google Scholar removed">
+<Update label="Week of November 16, 2026" description="Lower prices, costUsd on webhooks, a tool for each product on MCP, and GitHub search and Google Scholar removed">
 
 **New**
 
@@ -29,9 +29,12 @@ Each entry covers one week and is named for the Monday it starts. The linked pag
   - These did not change: browser sessions and tasks, session traffic at $5 per GB, Instagram and TikTok audio transcripts, `zeroDataRetention`, and `zillow-search`.
 
   See [Pricing](/account/pricing).
+- The MCP server lists a tool for each product. Without an API key it lists `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. With one it adds tools for crawl, extract, agent, browsers, developer and paper search, and monitors, such as `stophy_crawl_status` and `stophy_monitor_create`. `?toolsets=` adds a tool for each other endpoint of a source. See [Install MCP](/install-mcp#what-your-agent-sees).
 
 **Removed**
 
+- The MCP tools `stophy_search_endpoints`, `stophy_describe_endpoint` and `stophy_call` are gone. Use the tool for the product, or `stophy_scrape` with a parser in `formats` for a site's data.
+- GitHub search is gone. `GET` and `POST /v1/search/research/github` answer `410`. Search READMEs, issues, pull requests and releases with [developer search](/search/developer).
 - The `google-scholar` parser is gone. Read papers with `categories: ["research"]` on [search](/search/papers), or `POST /v1/search/research/papers`.
 
 **Improved**

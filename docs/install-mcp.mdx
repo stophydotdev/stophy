@@ -86,19 +86,27 @@ In Windsurf, open `mcp_config.json` with **Open MCP config file** in the Cascade
 
 ## What your agent sees
 
-Without an API key, `https://api.stophy.dev/mcp` lists these nine tools.
+Without an API key, `https://api.stophy.dev/mcp` lists these five tools.
 
 | Tool | What it does |
 | - | - |
 | `stophy_search` | Searches the web, news, images, research papers and YouTube videos |
 | `stophy_scrape` | Reads a page as Markdown, HTML, links, a screenshot or JSON |
 | `stophy_map` | Lists the pages on a site |
-| `stophy_crawl` | Starts a crawl of a site in the background and returns its `id` |
-| `stophy_extract` | Pulls the fields you name from pages as JSON |
-| `stophy_search_endpoints` | Finds the endpoint for a task, with its cost. Free |
-| `stophy_describe_endpoint` | Shows an endpoint's inputs, an example and what it returns. Free |
-| `stophy_call` | Runs any endpoint by `id` with `input`, and optional `fields` and `maxTextLength` |
+| `stophy_parse` | Turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown |
 | `stophy_signup` | Gets your agent an API key. It returns a link for you to approve and a code, then the key when called again with the code |
+
+With browser sign-in or an API key, it also lists a tool for each product.
+
+| Tools | What they do |
+| - | - |
+| `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel` | Start a crawl of a site in the background, read its pages, or stop it |
+| `stophy_extract` | Pulls the fields you name from pages as JSON, each checked against the page |
+| `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel` | Start a task that searches, reads pages and fills your fields, read its answer, or stop it |
+| `stophy_developer_search` | Searches code docs, READMEs, issues, pull requests and releases |
+| `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, or find papers like it |
+| `stophy_monitor_create`, `stophy_monitor_list`, `stophy_monitor_get`, `stophy_monitor_update`, `stophy_monitor_delete`, `stophy_monitor_run`, `stophy_monitor_checks`, `stophy_monitor_check` | Watch pages on a schedule and read what changed |
+| `browserOpen`, `browserRun`, `browserClose` and six more | Drive a cloud browser. See [Drive a browser](#drive-a-browser) |
 
 Ask *"What are people saying about Bun on Reddit?"* and your agent calls `stophy_scrape` with a Reddit search page and the `reddit-search` [parser](/scrape/prebuilt-parsers).
 
@@ -109,7 +117,7 @@ Ask *"What are people saying about Bun on Reddit?"* and your agent calls `stophy
 }
 ```
 
-A crawl runs in the background. Your agent reads it with `stophy_call`, `id` `crawlStatus` and the crawl's `id`. Over MCP, endpoint ids are camelCase, like `crawlStatus` or `batchScrape`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
+A crawl runs in the background. Your agent reads it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
 
 ## Drive a browser
 
@@ -135,7 +143,7 @@ Add `toolsets` to the URL with a source name.
 https://api.stophy.dev/mcp?toolsets=web
 ```
 
-Your agent then also gets `scrape`, `crawlStatus`, `batchScrape`, `agent` and every other web endpoint as tools. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
+Your agent then also gets a tool for each web endpoint that has none yet, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
 
 ## Run it as a local server
 
