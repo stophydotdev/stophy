@@ -1,0 +1,112 @@
+---
+title: "Links"
+description: "Get every link on a page as a list of absolute URLs, menus and footers included. Use it to find the next pages to read. $1 per 1,000 pages."
+og:title: "Links | Stophy"
+og:description: "Get every link on a page as a list of absolute URLs, menus and footers included. Use it to find the next pages to read. $1 per 1,000 pages."
+---
+
+`links` returns every link on the page as an absolute URL, in page order.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request lists the links of a small page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.iana.org/help/example-domains",
+    "formats": ["links"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://www.iana.org/help/example-domains",
+    formats: ["links"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.links.length);
+console.log(data.links.slice(0, 5));
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://www.iana.org/help/example-domains",
+        "formats": ["links"],
+    },
+)
+data = response.json()["data"]
+print(len(data["links"]))
+print(data["links"][:5])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.links` is an array of strings. This page has 26 links. The real response is cut to the first four.
+
+```json
+{
+  "success": true,
+  "data": {
+    "links": [
+      "https://www.iana.org/",
+      "https://www.iana.org/domains",
+      "https://www.iana.org/protocols",
+      "https://www.iana.org/numbers"
+    ],
+    "metadata": {
+      "title": "Example Domains",
+      "sourceURL": "https://www.iana.org/help/example-domains",
+      "url": "https://www.iana.org/help/example-domains",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "61ae432b-8a05-43fc-b8bf-90d4cc017ba4",
+      "costUsd": 0.001
+    }
+  },
+  "id": "61ae432b-8a05-43fc-b8bf-90d4cc017ba4",
+  "costUsd": 0.001,
+  "requestId": "61ae432b-8a05-43fc-b8bf-90d4cc017ba4"
+}
+```
+
+Links come from the whole page, so the list includes menus, headers and footers even when `onlyMainContent` is `true`. Links inside the Markdown follow `linkStyle` instead. See [Content filtering](/scrape/content-filtering).
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"links"` to return every link on the page. |
+
+## Limits and errors
+
+- A PDF comes back as Markdown only. Asking for `links` on a PDF returns `400 invalidRequest`.
+- A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Price
+
+$1 per 1,000 pages. `links` adds nothing to the price of the page.
+
+## Related
+
+- [Map](/map/overview) lists the pages of a whole site without reading them.
+- [Crawl](/crawl/overview) follows links and reads every page of a site.
+- [Images](/scrape/images) lists the image URLs on a page.
+- [Content filtering](/scrape/content-filtering) controls how links appear in the Markdown.

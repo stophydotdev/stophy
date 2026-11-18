@@ -1,0 +1,202 @@
+---
+title: "Usage and logs"
+description: "List your recent billed calls with their cost, read one call by its request id, see your running jobs, and read what extract and agent used this month."
+og:title: "Usage and logs | Stophy"
+og:description: "List your recent billed calls with their cost, read one call by its request id, see your running jobs, and read what extract and agent used this month."
+---
+
+Stophy keeps a record of each call you paid for: which endpoint, when, with which key and what it cost. It never keeps what you sent or what came back. These calls are free and need an API key. For your balance and spending over time, see [Usage](/account/usage).
+
+## List your recent calls
+
+`GET /v1/logs` lists your billed calls, newest first, 50 to a page.
+
+<CodeGroup>
+```bash cURL
+curl "https://api.stophy.dev/v1/logs?days=1&endpoint=scrape" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/logs?days=1&endpoint=scrape", {
+  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
+});
+const { logs, total } = await response.json();
+console.log(total, logs[0]);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.get(
+    "https://api.stophy.dev/v1/logs",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    params={"days": 1, "endpoint": "scrape"},
+)
+body = response.json()
+print(body["total"], body["logs"][0])
+```
+</CodeGroup>
+
+<Accordion title="Response">
+This real response is cut to two calls. The key id and name are examples.
+
+```json
+{
+  "logs": [
+    {
+      "id": "8dea175f-e1e4-4bd9-9e0e-bacc2f64c130",
+      "requestId": "f9a3f2e7-124d-4623-9bba-6408b5eebfa3",
+      "createdAt": "2026-11-17T17:48:15.571Z",
+      "endpoint": "scrape",
+      "method": "POST",
+      "status": 200,
+      "response": "success",
+      "costUsd": 0.003,
+      "apiKeyId": "key_example",
+      "apiKeyName": "My app"
+    },
+    {
+      "id": "fa81a102-c6be-4ab4-902f-68d39e42bca3",
+      "requestId": "5ab0dd3c-e4e8-4402-b88e-5d477628b0b6",
+      "createdAt": "2026-11-17T17:48:15.038Z",
+      "endpoint": "scrape",
+      "method": "POST",
+      "status": 200,
+      "response": "success",
+      "costUsd": 0.001,
+      "apiKeyId": "key_example",
+      "apiKeyName": "My app"
+    }
+  ],
+  "page": 0,
+  "pageSize": 50,
+  "total": 126,
+  "totalPages": 3
+}
+```
+</Accordion>
+
+The answer also has an `endpoints` list with every endpoint id you can filter by.
+
+| Parameter | Default | What it does |
+| - | - | - |
+| `days` | 7 | How far back to look, 1 to 90 |
+| `page` | 0 | The page number, from 0 |
+| `apiKeyId` | All | Only calls made with this key |
+| `endpoint` | All | Only calls to this endpoint id, such as `scrape` or `crawl` |
+
+Only calls that were billed are logged. A free call, an error and an empty result have no entry. A call with [zero data retention](/production/zero-data-retention) is logged with its endpoint and cost, and nothing else. Logs are kept for 90 days.
+
+## Read one call
+
+`GET /v1/logs/{id}` takes the `requestId` of any answer. It looks back `days` days, 7 by default and up to 90.
+
+```bash
+curl https://api.stophy.dev/v1/logs/29911e6f-d14d-4fe1-a355-caf317d4a4e2 \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "requestId": "29911e6f-d14d-4fe1-a355-caf317d4a4e2",
+    "createdAt": "2026-11-17T17:42:47.598Z",
+    "endpoint": "scrape",
+    "costUsd": 0.004,
+    "charges": 1,
+    "apiKeyId": "key_example",
+    "apiKeyName": "My app"
+  },
+  "costUsd": 0
+}
+```
+
+`charges` is how many times the call was charged. A crawl or a batch is charged once for each page, so one request id can have many charges. A request id that was not billed in that time answers `404` with code `notFound`.
+
+## List your billed calls by cursor
+
+`GET /v1/team/activity` returns the same calls in a shorter shape, with a cursor instead of page numbers. It is free.
+
+```bash
+curl "https://api.stophy.dev/v1/team/activity?limit=2" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": [
+    { "id": "b1012a17-f033-45fb-818d-5443ab68a738", "endpoint": "scrape", "api_version": "v1", "created_at": "2026-11-17T17:43:39.567Z" },
+    { "id": "b82f0825-248d-42bf-8bee-a8c34091e133", "endpoint": "scrape", "api_version": "v1", "created_at": "2026-11-17T17:43:39.564Z" }
+  ],
+  "cursor": "b82f0825-248d-42bf-8bee-a8c34091e133",
+  "has_more": true,
+  "costUsd": 0
+}
+```
+
+| Parameter | Default | What it does |
+| - | - | - |
+| `endpoint` | All | Only calls to this endpoint, such as `scrape` |
+| `limit` | 50 | Calls a page, 1 to 100 |
+| `cursor` | None | The `cursor` the last page returned. Stop when `has_more` is `false`. |
+
+## See your running jobs
+
+`GET /v1/team/queue-status` counts your crawl, batch and agent jobs that are running or waiting.
+
+```bash
+curl https://api.stophy.dev/v1/team/queue-status \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "activeJobsInQueue": 0,
+  "waitingJobsInQueue": 0,
+  "jobsInQueue": 0,
+  "maxConcurrency": 10,
+  "mostRecentSuccess": "2026-11-17T17:43:39.567Z",
+  "costUsd": 0
+}
+```
+
+`maxConcurrency` is how many jobs can run at once on your tier. `mostRecentSuccess` is when your last billed call finished. See [Rate limits](/production/rate-limits).
+
+## See what extract and agent used
+
+Extract and agent use a model. `GET /v1/team/token-usage` shows this month's use, in tokens: 15 tokens for each $0.002 that extract and agent cost.
+
+```bash
+curl https://api.stophy.dev/v1/team/token-usage \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "remainingTokens": 187500,
+    "tokensUsed": 1200,
+    "usedSince": "2026-11-01T00:00:00.000Z",
+    "byEndpoint": { "extract": 1100, "agent": 100 }
+  },
+  "costUsd": 0
+}
+```
+
+This is the real shape with example numbers. `remainingTokens` is your balance counted in tokens, and the plan and period fields are `null` because there are no plans. `GET /v1/team/token-usage/historical` returns one row for each month with `tokensUsed`, and `byApiKey=true` splits each month by key.
+
+## Match a request to its log
+
+Save the `requestId` of every call you care about. It is in the body of each answer and in the `X-Request-ID` header, and it is the id `GET /v1/logs/{id}` and [feedback](/production/agent-feedback) take. See [Troubleshooting](/production/troubleshooting).
+
+## Related
+
+* [Usage](/account/usage)
+* [Pricing](/account/pricing)
+* [Zero data retention](/production/zero-data-retention)
+* [Agent feedback](/production/agent-feedback)

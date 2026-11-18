@@ -1,0 +1,226 @@
+---
+title: "Agent"
+description: "Give a task in plain words and the agent searches, reads pages and fills your fields, with the quote behind each value. You set the most a run may spend."
+og:title: "Agent | Stophy"
+og:description: "Give a task in plain words and the agent searches, reads pages and fills your fields, with the quote behind each value. You set the most a run may spend."
+---
+
+Agent takes a task, searches and reads pages, and fills your fields. The call answers at once with an `id`, and you read the answer from `GET /v1/agent/{id}`.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). Agent needs an API key. This request reads one page, in one round, with a cap of $0.10. The cURL tab reads the run once. The TypeScript and Python tabs ask again until the run ends.
+
+<CodeGroup>
+```bash cURL
+AGENT_ID=$(curl -s -X POST https://api.stophy.dev/v1/agent \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Which module do I import to use SQLite in Bun, and which transaction modes does it support?",
+    "urls": ["https://bun.com/docs/runtime/sqlite"],
+    "schema": {
+      "type": "object",
+      "properties": {
+        "module": { "type": "string" },
+        "transactionModes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "effort": "low",
+    "strictConstrainToURLs": true,
+    "maxCredits": 50
+  }' | jq -r .id)
+
+sleep 5
+curl https://api.stophy.dev/v1/agent/$AGENT_ID \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const headers = {
+  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+  "Content-Type": "application/json",
+};
+const started = await fetch("https://api.stophy.dev/v1/agent", {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    prompt:
+      "Which module do I import to use SQLite in Bun, and which transaction modes does it support?",
+    urls: ["https://bun.com/docs/runtime/sqlite"],
+    schema: {
+      type: "object",
+      properties: {
+        module: { type: "string" },
+        transactionModes: { type: "array", items: { type: "string" } },
+      },
+    },
+    effort: "low",
+    strictConstrainToURLs: true,
+    maxCredits: 50,
+  }),
+}).then((response) => response.json());
+
+let run;
+do {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  run = await fetch(`https://api.stophy.dev/v1/agent/${started.id}`, { headers }).then(
+    (response) => response.json(),
+  );
+} while (run.status === "processing");
+console.log(run.status, run.data);
+```
+```python Python
+import os
+import time
+
+import requests
+
+headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
+started = requests.post(
+    "https://api.stophy.dev/v1/agent",
+    headers=headers,
+    json={
+        "prompt": "Which module do I import to use SQLite in Bun, and which transaction modes does it support?",
+        "urls": ["https://bun.com/docs/runtime/sqlite"],
+        "schema": {
+            "type": "object",
+            "properties": {
+                "module": {"type": "string"},
+                "transactionModes": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        "effort": "low",
+        "strictConstrainToURLs": True,
+        "maxCredits": 50,
+    },
+).json()
+
+while True:
+    time.sleep(3)
+    run = requests.get(f"https://api.stophy.dev/v1/agent/{started['id']}", headers=headers).json()
+    if run["status"] != "processing":
+        break
+print(run["status"], run["data"])
+```
+</CodeGroup>
+
+## Read the response
+
+The call that starts the run answers at once. `threadId` names the thread of the run, and `threadTurn` is 1 for a first question. Starting a run costs nothing.
+
+```json
+{
+  "success": true,
+  "id": "job_1U1n0vXaDokDUHZFMGj1rA",
+  "url": "https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA",
+  "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
+  "threadTurn": 1,
+  "costUsd": 0,
+  "requestId": "a0008ff9-3d36-4c2e-84f2-8b5ce7da989c"
+}
+```
+
+`GET /v1/agent/{id}` answers with `status` of `processing`, `completed` or `failed`. While it is `processing`, wait a few seconds and ask again. This is the real answer of the run above, a few seconds later.
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "data": {
+    "module": "bun:sqlite"
+  },
+  "confidence": {
+    "module": 0.9388
+  },
+  "sources": {
+    "module": {
+      "url": "https://bun.com/docs/runtime/sqlite",
+      "quote": "To use it, import from the built-in bun:sqlite module."
+    }
+  },
+  "stoppedBy": "rounds",
+  "model": "spark-2",
+  "mode": "extract",
+  "effort": "low",
+  "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
+  "threadTurn": 1,
+  "steps": [
+    { "n": 1, "action": "open", "detail": "read the page", "costUsd": 0.001 },
+    { "n": 2, "action": "extract", "detail": "fill the fields from 1 pages", "costUsd": 0.003 }
+  ],
+  "skipped": [],
+  "costUsd": 0.004,
+  "createdAt": "2026-11-17T18:10:05.379Z",
+  "completedAt": "2026-11-17T18:10:09.969Z",
+  "expiresAt": "2026-11-18T18:10:05.379Z"
+}
+```
+
+`data` holds the fields the agent found, and `confidence` says how sure it is of each. `sources` gives the page and the exact words each value came from. `transactionModes` is not in `data`: the agent did not find it on the page in one round, so the field is left out. `steps` lists what the run did and what each step cost. `stoppedBy` says why it ended: `done`, `rounds` or `maxCredits`. See [Runs](/agent/runs) for the rest.
+
+## Cap what a run spends
+
+`maxCredits` is the most a run may spend. It counts in steps of $0.002, so `500` is $1 and the default of `2500` is $5. Every step is checked against what is left before it runs, so a run never goes over. What it spent before it stopped is charged.
+
+A run that cannot answer inside the cap ends with `status` of `failed` and `stopReason` of `credit_limit_reached`. What it found is in `partial`, and `partialSchemaValid` says whether `partial` fills your schema. This real run was sent `maxCredits` of `1`, which is $0.002, so it could not pay for a page and an answer. The answer is cut to the fields that matter.
+
+```json
+{
+  "prompt": "Which module do I import to use SQLite in Bun?",
+  "urls": ["https://bun.com/docs/runtime/sqlite"],
+  "schema": {
+    "type": "object",
+    "properties": { "module": { "type": "string" } }
+  },
+  "maxCredits": 1
+}
+```
+
+```json
+{
+  "success": true,
+  "status": "failed",
+  "error": "Agent reached its spending limit",
+  "stopReason": "credit_limit_reached",
+  "message": "Spending limit reached; this result is incomplete.",
+  "stoppedBy": "maxCredits",
+  "model": "spark-2",
+  "mode": "extract",
+  "effort": "high",
+  "steps": [],
+  "skipped": [],
+  "costUsd": 0
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `prompt` | `string` | none | What to find, in plain words, 1 to 10,000 characters. Required. |
+| `schema` | `object` | none | The fields to fill, as a JSON Schema. Up to 100 top-level fields and 32 KB. See [Schema](/extract/schema). |
+| `urls` | `array of string` | none | Pages to start from, up to 20. An address with `*`, such as `https://qdrant.tech/blog/*`, is expanded from the site's own page list, up to 10 pages. With no `urls` the agent searches the web. |
+| `effort` | `string` | `high` | How many search-and-read rounds the agent may take: `low` is 1, `medium` is 2 and `high` is 3. |
+| `mode` | `string` | `extract` | `extract` fills your fields on every turn. `chat` lets a follow-up that asks for no new data get a short reply in `message`, for $3 per 1,000 pages. It needs `threadId`. |
+| `model` | `string` | `spark-2` | Any name up to 100 characters is accepted. Every name runs the same agent, and the name you send comes back. |
+| `maxCredits` | `number` | `2500` | The most the run may spend, in steps of $0.002. `2500` is $5. |
+| `includeSources` | `boolean` | `true` | Send `false` to leave `sources` out. They cost nothing. |
+| `location` | `object` | none | `{ "country": "DE" }` searches and reads pages as from that country, and localizes results. |
+| `strictConstrainToURLs` | `boolean` | `false` | Read only the pages in `urls`, with no searching, in one round. It needs `urls`, or a thread that has them. |
+| `threadId` | `string` | none | Ask a follow-up in the same thread. See [Runs](/agent/runs). |
+| `safe` | `boolean` | `false` | Hide explicit results from every web search in the run. Pages in `urls` and pages the agent opens are not filtered. |
+| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the run. It is held for 1 hour at most. Each page read adds $2 per 1,000 pages. Not with `threadId`. |
+| `auditMetadata` | `object` | none | `{ "username": "..." }`. Who made the request, kept with the run and read back by the status call. |
+| `webhook` | `string` or `object` | none | Where to be told as the run goes: `started`, `page`, `action`, `completed`, `failed` and `cancelled`. See [Webhooks](/webhooks). |
+
+## Price
+
+Each search and page costs its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, up to your cap, which is $5 when you leave `maxCredits` out. Starting the run is free, and each step is charged when it finishes. A run that finds nothing within the cap still pays for the steps it took. See [Pricing](/account/pricing).
+
+## Choose another API
+
+- [Extract](/extract/overview) fills your fields from pages you name, in one call.
+- [Search](/search/overview) finds pages from a query, and you read them yourself.
+- [Scrape](/scrape/overview) reads one page.
+- [Crawl](/crawl/overview) reads every page of a site in the background.
+- [Browser](/browser/overview) drives a page when a task needs clicks and typing.

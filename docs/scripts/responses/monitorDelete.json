@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "DELETE",
+    "path": "/v1/monitor/mon_gYdxFOZnpRdWHJUN"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "8ce23bb1-6b8a-4530-9e8c-6b26cda584aa"
+  }
+}

@@ -1,47 +1,131 @@
 ---
 title: "Introduction"
-description: "Give your agents the live web. Search, scrape any page as markdown, crawl a site, extract fields, and read 103 sites as JSON through parsers."
+description: "Stophy is one API for the live web. Scrape pages, map and crawl sites, search, extract fields, parse files, run browsers and watch pages for changes."
 og:title: "Introduction | Stophy"
-og:description: "Give your agents the live web. Search, scrape any page as markdown, crawl a site, extract fields, and read 103 sites as JSON through parsers."
+og:description: "Stophy is one API for the live web. Scrape pages, map and crawl sites, search, extract fields, parse files, run browsers and watch pages for changes."
 ---
 
-Stophy is one API for the live web. Your agent can:
+Stophy gives your agents and apps the live web through one API. Send a URL or a question and get Markdown, links, a screenshot or JSON in the shape you ask for. Every price is in dollars, and you pay for what you use.
 
-- [Search](/api-reference/endpoint/search) the web, news and images.
-- [Scrape](/api-reference/endpoint/scrape) any public page as markdown, HTML, links, a screenshot or JSON.
-- [Map](/api-reference/endpoint/map) a site's pages, [crawl](/api-reference/endpoint/crawl) a site, or [batch scrape](/api-reference/endpoint/batch-scrape) many pages.
-- [Extract](/api-reference/endpoint/extract) the fields you name from a page.
-- Read a site's own data, like a Reddit search, a YouTube transcript or Google Maps places, through one of 103 [parsers](/guides/parsers).
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first request and read the result.
+  </Card>
+  <Card title="Agent quickstart" icon="robot" href="/agent-quickstart">
+    Let your coding agent sign up and set Stophy up for you.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Check each endpoint's fields and responses.
+  </Card>
+</CardGroup>
 
-Search, scrape, map and parse work without a key, within [free limits](/rate-limits).
+## Make a request
 
-## Connect your agent
+This request reads `example.com` and returns its main content as Markdown. Search, scrape, map and parse also work without an API key, within [free limits](/production/rate-limits). Get an API key in the [Quickstart](/quickstart).
 
 <CodeGroup>
-```bash Claude Code
-claude mcp add --transport http stophy https://api.stophy.dev/mcp
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["markdown"],
+    "onlyMainContent": true
+  }'
 ```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: ["markdown"],
+    onlyMainContent: true,
+  }),
+});
+const { data } = await response.json();
+console.log(data.markdown);
+```
+```python Python
+import os
 
-```bash Codex
-codex mcp add stophy --url https://api.stophy.dev/mcp
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": ["markdown"],
+        "onlyMainContent": True,
+    },
+)
+print(response.json()["data"]["markdown"])
 ```
 </CodeGroup>
 
-Your agent can call the free endpoints right away. For every endpoint, add `https://mcp.stophy.dev/mcp` instead and sign in with your browser. [MCP server](/mcp-server) covers Cursor, Claude Desktop and other clients.
+<Accordion title="Response">
+This real response is cut to a few lines. The page text is in `data.markdown`, and `costUsd` is what the call cost in dollars.
 
-## Next
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
+    "metadata": {
+      "title": "Example Domain",
+      "language": "en",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "5ab0dd3c-e4e8-4402-b88e-5d477628b0b6",
+      "costUsd": 0.001
+    }
+  },
+  "id": "5ab0dd3c-e4e8-4402-b88e-5d477628b0b6",
+  "costUsd": 0.001,
+  "requestId": "5ab0dd3c-e4e8-4402-b88e-5d477628b0b6"
+}
+```
+</Accordion>
 
-<CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Make a call from cURL, TypeScript or Python.
-  </Card>
-  <Card title="Parsers" icon="brackets-curly" href="/guides/parsers">
-    Read a site's own data as JSON.
-  </Card>
-  <Card title="Pricing" icon="coins" href="/billing">
-    Most calls cost 1 credit, and you start with 5,000 free.
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Every endpoint, with its inputs, outputs and price.
-  </Card>
-</CardGroup>
+## What you can do
+
+* **Read a page.** [Scrape](/scrape/overview) returns Markdown, HTML, links, images, a screenshot, a summary or JSON in a shape you describe. Add [browser actions](/scrape/browser-actions) to click and type before the page is read.
+* **Read a site's own data.** A [pre-built parser](/scrape/prebuilt-parsers) returns a video, a listing or a profile as JSON instead of page text.
+* **Work on many pages.** [Map](/map/overview) lists a site's pages, [crawl](/crawl/overview) reads them in the background, and [batches](/batches/overview) read a list of URLs.
+* **Find pages.** [Search](/search/overview) returns web, news, image, research and video results, and can read each result.
+* **Pull fields.** [Extract](/extract/overview) fills the fields you name from pages, each checked against the page. [Agent](/agent/overview) searches and reads on its own to fill them.
+* **Read files.** [Parse](/parse/overview) turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown.
+* **Use a browser.** [Browser sessions](/browser/overview) give you a cloud browser to drive with code or a prompt. [Browser tasks](/browser/tasks) click through a public site and return what they find.
+* **Watch for changes.** [Monitors](/monitors/overview) check pages on a schedule and tell you what changed. They can send each change to a [webhook](/webhooks).
+
+## Choose an API
+
+| You have | You want | Use |
+| - | - | - |
+| A URL | The page as Markdown, links, a screenshot or JSON | [Scrape](/scrape/overview) |
+| A site | Every URL on it | [Map](/map/overview) |
+| A site | The content of many of its pages | [Crawl](/crawl/overview) |
+| A list of URLs | Their content, as a background job | [Batches](/batches/overview) |
+| A question | Ranked web, news, image or research results | [Search](/search/overview) |
+| Pages and the fields you want | The values, each checked against the page | [Extract](/extract/overview) |
+| A task in plain words | An answer with a quote for each field | [Agent](/agent/overview) |
+| A PDF, Word, Excel or PowerPoint file | Its text as Markdown | [Parse](/parse/overview) |
+| A site that needs clicks or a login | A browser you control | [Browser sessions](/browser/overview) |
+| A site with a search box or a form | What the form returns | [Browser tasks](/browser/tasks) |
+| A page that changes | A record of each change | [Monitors](/monitors/overview) |
+
+## Use Stophy from an agent
+
+The [Agent quickstart](/agent-quickstart) shows how an agent signs itself up and sets Stophy up in a project. To set up one piece yourself, connect the [MCP server](/install-mcp), add the [agent skills](/install-skill) or install the [CLI](/install-cli). Search, scrape, map and parse work from MCP without an API key.
+
+## Before you ship
+
+Your balance is prepaid dollars, and every endpoint has a list price. See [Pricing](/account/pricing). The [production checklist](/production/checklist) covers timeouts, retries and rate limits. Official [SDKs](/sdks) for TypeScript and Python handle retries for you.

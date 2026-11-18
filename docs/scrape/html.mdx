@@ -1,0 +1,111 @@
+---
+title: "HTML"
+description: "Get the cleaned HTML of a page, or the raw HTML exactly as the site sent it. Both come in one request at $1 per 1,000 pages."
+og:title: "HTML | Stophy"
+og:description: "Get the cleaned HTML of a page, or the raw HTML exactly as the site sent it. Both come in one request at $1 per 1,000 pages."
+---
+
+`html` returns the cleaned page and `rawHtml` returns the page as the site sent it. Use `html` to keep the structure of the content, and `rawHtml` when you need every tag, script and style.
+
+## Make a request
+
+This request asks for both formats so you can compare them.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["html", "rawHtml"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: ["html", "rawHtml"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.html);
+console.log(data.rawHtml);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": ["html", "rawHtml"],
+    },
+)
+data = response.json()["data"]
+print(data["html"])
+print(data["rawHtml"])
+```
+</CodeGroup>
+
+## Read the response
+
+Each format is a string in `data`. This real response is cut after the first paragraph of each format.
+
+```json
+{
+  "success": true,
+  "data": {
+    "html": "<!DOCTYPE html><html lang=\"en\"><body><p lang=\"en\">This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.</p>…</body></html>",
+    "rawHtml": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><link rel=\"icon\" href=\"data:,\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Example Domain</title>…",
+    "metadata": {
+      "title": "Example Domain",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "4ef36448-ea5e-4154-8f67-8f0448724c1f",
+      "costUsd": 0.001
+    }
+  },
+  "id": "4ef36448-ea5e-4154-8f67-8f0448724c1f",
+  "costUsd": 0.001,
+  "requestId": "4ef36448-ea5e-4154-8f67-8f0448724c1f"
+}
+```
+
+`html` has no `head` or styles, and by default only the main content of the page. `rawHtml` is the whole document.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"html"` for the cleaned page and `"rawHtml"` for the page as sent. |
+| `removeBase64Images` | `boolean` | `true` | Drops images that carry their data in the URL (`data:image`). Send `false` to keep them in `html`. |
+
+`onlyMainContent`, `includeTags` and `excludeTags` are described in [Content filtering](/scrape/content-filtering).
+
+## Limits and errors
+
+- A PDF comes back as Markdown only. Asking for `html` on a PDF returns `400 invalidRequest` with the message `formats: a PDF comes back as markdown only. Ask for markdown.`
+- A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Price
+
+$1 per 1,000 pages, whether you ask for `html`, `rawHtml` or both.
+
+## Related
+
+- [Markdown](/scrape/markdown) returns the text instead.
+- [Bytes](/scrape/bytes) returns the bytes the site sent, Base64 encoded.
+- [Content filtering](/scrape/content-filtering) keeps or removes parts of the page.
+- [Browser actions](/scrape/browser-actions) change the page before it is read.

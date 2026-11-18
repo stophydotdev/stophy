@@ -13,9 +13,12 @@ test("only the published MCP URLs and no Cursor Marketplace link pass", () => {
 
 test("MCP pages name endpoints in camelCase", () => {
   expect(
-    findings("docs/mcp-server.mdx", "your agent finds `reddit.search` and calls it"),
+    findings("docs/install-mcp.mdx", "your agent finds `reddit.search` and calls it"),
   ).toHaveLength(1);
-  expect(findings("docs/mcp-server.mdx", "your agent finds `redditSearch` and calls it")).toEqual(
+  expect(
+    findings("docs/mcp/keyless.mdx", "your agent finds `reddit.search` and calls it"),
+  ).toHaveLength(1);
+  expect(findings("docs/install-mcp.mdx", "your agent finds `redditSearch` and calls it")).toEqual(
     [],
   );
   expect(findings("docs/quickstart.mdx", "call `reddit.search`")).toEqual([]);
@@ -38,7 +41,7 @@ test("a key never appears on a command line", () => {
 
 test("the Claude Desktop page uses the connector, not the local package", () => {
   expect(
-    findings("docs/quickstarts/claude-desktop.mdx", '"args": ["-y", "@stophy/mcp"]'),
+    findings("docs/integrations/claude-desktop.mdx", '"args": ["-y", "@stophy/mcp"]'),
   ).toHaveLength(1);
   expect(findings("mcp/README.md", '"args": ["-y", "@stophy/mcp"]')).toEqual([]);
 });

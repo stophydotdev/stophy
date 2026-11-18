@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/batch/scrape/job__SDlT-N1YqzQRoYCvKUTAg/errors"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "status": "completed",
+    "failed": 0,
+    "errors": [],
+    "robotsBlocked": [],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "b8df862e-fbd4-4fd7-97f4-92e999ddb15e"
+  }
+}

@@ -1,0 +1,201 @@
+---
+title: "Monitors"
+description: "Watch pages, a section of a site or a search on a schedule. Each change comes with its diff, by signed webhook or by reading checks. $1 per 1,000 pages."
+og:title: "Monitors | Stophy"
+og:description: "Watch pages, a section of a site or a search on a schedule. Each change comes with its diff, by signed webhook or by reading checks. $1 per 1,000 pages."
+---
+
+A monitor reads its pages on a schedule, compares each page with the last read and records what changed. It bills for every page it reads on every check, so a monitor keeps costing money until you pause or delete it.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). Monitors need an API key. This request watches one page once a week and sends a webhook after each check.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/monitor \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Example home page",
+    "targets": [{ "type": "scrape", "urls": ["https://example.com"] }],
+    "schedule": { "text": "weekly" },
+    "webhook": {
+      "url": "https://example.com/stophy-hook",
+      "events": ["monitor.page", "monitor.check.completed"],
+      "metadata": { "project": "docs" }
+    }
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/monitor", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Example home page",
+    targets: [{ type: "scrape", urls: ["https://example.com"] }],
+    schedule: { text: "weekly" },
+    webhook: {
+      url: "https://example.com/stophy-hook",
+      events: ["monitor.page", "monitor.check.completed"],
+      metadata: { project: "docs" },
+    },
+  }),
+});
+const { data } = await response.json();
+console.log(data.id, data.nextRunAt);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/monitor",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "name": "Example home page",
+        "targets": [{"type": "scrape", "urls": ["https://example.com"]}],
+        "schedule": {"text": "weekly"},
+        "webhook": {
+            "url": "https://example.com/stophy-hook",
+            "events": ["monitor.page", "monitor.check.completed"],
+            "metadata": {"project": "docs"},
+        },
+    },
+)
+data = response.json()["data"]
+print(data["id"], data["nextRunAt"])
+```
+</CodeGroup>
+
+`name`, `targets` and `schedule` are required. Creating a monitor is free.
+
+## Read the response
+
+The call answers with the monitor. This real response is cut to the fields that matter.
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "mon_hpJ-ZKa4FJLr4h1m",
+    "name": "Example home page",
+    "status": "active",
+    "schedule": { "cron": "0 0 * * 1", "timezone": "UTC", "everySeconds": null },
+    "nextRunAt": "2026-11-17T18:19:27.540Z",
+    "lastRunAt": null,
+    "currentCheckId": null,
+    "targets": [
+      {
+        "type": "scrape",
+        "urls": ["https://example.com/"],
+        "id": "106a99c9-e5d1-45ed-ade2-89290c57bb25"
+      }
+    ],
+    "goal": null,
+    "judgeEnabled": false,
+    "retentionDays": 30,
+    "estimatedCostUsdPerMonth": 0.004,
+    "webhook": {
+      "url": "https://example.com/stophy-hook",
+      "events": ["monitor.page", "monitor.check.completed"],
+      "metadata": { "project": "docs" }
+    },
+    "createdAt": "2026-11-17T18:19:27.540Z",
+    "checks": 0,
+    "costUsd": 0
+  },
+  "id": "mon_hpJ-ZKa4FJLr4h1m",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "191df718-7777-4b7b-a0d7-3058e2b47ad6"
+}
+```
+
+The first check starts at once and usually within a minute. It reads every page and keeps what it read as the baseline, so it reports no change. Later checks compare with the baseline. In this example the check ran 26 seconds after the monitor was created and found the page `new`.
+
+| Field | What it holds |
+| - | - |
+| `status` | `active` or `paused`. A paused monitor reads nothing and costs nothing. |
+| `pausedReason` | Why Stophy paused it, such as `insufficientCredits` when your balance ran out. |
+| `schedule` | A `cron` expression or `everySeconds`, and the `timezone`. See [Schedules](/monitors/schedules). |
+| `nextRunAt`, `lastRunAt` | When the next scheduled check is due, and when the last one ran. `nextRunAt` is `null` while paused. |
+| `currentCheckId` | The check that is queued or running now, or `null`. |
+| `targets` | What the monitor watches. See [Targets](/monitors/targets). |
+| `goal`, `judgeEnabled` | What matters to you, and whether each changed page is judged against it. |
+| `retentionDays` | How many days checks, diffs and snapshots are kept, 1 to 365. 30 by default. |
+| `estimatedCostUsdPerMonth` | Pages watched times the checks in 30 days, at $1 per 1,000 pages. `estimatedCreditsPerMonth` holds the same amount in steps of $0.002. |
+| `webhook` | Where Stophy sends events. See [Webhooks](/monitors/webhooks). |
+| `notification` | The email settings. See [Webhooks](/monitors/webhooks#get-an-email-instead). |
+| `checks`, `costUsd` | How many checks have run and what they cost so far. `creditsUsed` holds the same amount in steps of $0.002. |
+
+`urls`, `interval`, `formats`, `changeTracking`, `nextCheckAt` and `lastCheckAt` repeat other fields for older clients.
+
+## What a monitor can watch
+
+| Target `type` | What it watches | Guide |
+| - | - | - |
+| `scrape` | Up to 100 pages you list | [Targets](/monitors/targets) |
+| `crawl` | The pages under a start page, found again on every check | [Targets](/monitors/targets#crawl-targets) |
+| `search` | New results for up to 12 queries | [Targets](/monitors/targets#search-targets) |
+
+## Manage a monitor
+
+| Call | What it does | Guide |
+| - | - | - |
+| `GET /v1/monitor` | Lists your monitors, newest first. Send `limit` up to 100 (20 by default), and `cursor` from `next` for the next part. | This page |
+| `GET /v1/monitor/{id}` | Reads one monitor. | This page |
+| `PATCH /v1/monitor/{id}` | Changes the name, schedule, targets, goal, webhook or email, or pauses and resumes it. | [Schedules](/monitors/schedules) |
+| `DELETE /v1/monitor/{id}` | Deletes the monitor and stops its checks, so it stops billing. | This page |
+| `POST /v1/monitor/{id}/run` | Checks now, outside the schedule. | [Schedules](/monitors/schedules#run-a-check-now) |
+| `GET /v1/monitor/{id}/checks`, `GET /v1/monitor/{id}/changes` | Reads what each check found. | [Checks and changes](/monitors/checks-and-changes) |
+| `GET /v1/monitor/limits`, `GET /v1/monitor/usage` | Reads your allowance and what monitors cost. | [Limits and errors](/monitors/limits-and-errors) |
+
+Reading, listing, updating and deleting are free. A request for a monitor that does not exist, or that belongs to another account, returns `404 notFound`.
+
+## List and delete
+
+`GET /v1/monitor?limit=1` returns `data`, a list of monitors in the shape above, and `next`. This real answer came from an account with two monitors. The list is cut to the ids.
+
+```json
+{ "success": true, "data": [{ "id": "mon_2f3L73izJTdaA1AQ", … }], "next": "1" }
+```
+
+Send `cursor=1` to read the next part. `next` is `null` on the last part.
+
+Delete a monitor you no longer need. A deleted monitor never reads a page again.
+
+```bash
+MONITOR_ID="<the id your monitor returned>"
+curl -X DELETE https://api.stophy.dev/v1/monitor/$MONITOR_ID \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{ "success": true, "costUsd": 0, "creditsUsed": 0, "requestId": "4d730004-5983-4b6b-a9a2-f3688e52a103" }
+```
+
+## Before you rely on alerts
+
+- The first check completed, and `checks` on the monitor is 1 or more. See [Checks and changes](/monitors/checks-and-changes).
+- `goal` says what matters, so a change that does not matter is marked as such. See [Targets](/monitors/targets#goal-and-judge).
+- Your receiver verifies the signature and ignores an event it has already seen. See [Webhooks](/webhooks).
+- You know when it stops: the monitor pauses itself when your balance runs out, and sends `monitor.failed` if you subscribed to it.
+
+## Price
+
+Each page read costs $1 per 1,000 pages, which is $0.001, on every check, including the first. A page that cannot be read costs nothing. A page that is gone, with a 404 or 410 status, is charged once when it is first found gone.
+
+A `goal` adds $1 per 1,000 pages for each changed page it judges. `json` comparison adds $3 per 1,000 pages when it returns fields. A search target costs $1 per 1,000 searches of up to 10 results on every check. A monitor of one page checked daily costs about $0.03 a month. Calls that read, list, change, pause, resume and delete monitors cost nothing. See [Pricing](/account/pricing).
+
+## Choose another API
+
+- [Scrape](/scrape/overview) reads one page now. With [change tracking](/scrape/change-tracking) it compares with your last read.
+- [Crawl](/crawl/overview) reads every page of a site once, in the background.
+- [Batches](/batches/overview) read a list of URLs once, in the background.
+- [Search](/search/overview) finds pages from a query once.
+- [Webhooks](/webhooks) explains the signature and delivery of every call Stophy makes to you.

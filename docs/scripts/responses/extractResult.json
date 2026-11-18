@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "path": "/v1/extract/860b5104-c8fc-4a85-aff9-f826b15c5770"
+    "path": "/v1/extract/d3aa5deb-d81b-4b37-8e4a-4eb06b74cab9"
   },
   "status": 200,
   "response": {
@@ -11,8 +11,15 @@
       "file": "bunfig.toml"
     },
     "confidence": {
-      "file": 0.9432
+      "file": 0.7932
     },
-    "expiresAt": "2026-11-06T23:35:37.867Z"
+    "warning": "1 of 1 pages were longer than 50000 characters and were cut there.",
+    "urls": [
+      "https://bun.com/docs/runtime/bunfig"
+    ],
+    "creditsUsed": 3,
+    "costUsd": 0.005,
+    "tokensUsed": 75,
+    "expiresAt": "2026-11-18T17:50:19.636Z"
   }
 }

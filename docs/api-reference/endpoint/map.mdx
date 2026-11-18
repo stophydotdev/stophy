@@ -10,13 +10,13 @@ openapi: 'api-reference/openapi.json POST /v1/map'
 
 Best for finding the right page on a site before reading it with scrape. Add search to rank pages about one topic first.
 
-<Note>Works without an API key, up to 10 calls a minute and 50 a day per IP. See [Rate limits](/rate-limits).</Note>
+<Note>Works without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).</Note>
 
 ## Price
 
-1 credit per call.
+$0.50 per 1,000 calls.
 
-See [Pricing](/billing) for what credits cost.
+See [Pricing](/account/pricing).
 
 <RequestExample>
 ```bash cURL
@@ -58,7 +58,10 @@ print(response.json())
     {
       "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE"
     }
-  ]
+  ],
+  "costUsd": 0.0005,
+  "creditsUsed": 1,
+  "requestId": "9d2b3b18-77cf-481b-9f95-9852459caf48"
 }
 ```
 </ResponseExample>

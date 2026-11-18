@@ -1,0 +1,222 @@
+---
+title: "Website change digest"
+description: "Watch pages with a monitor, receive each change by signed webhook, and send a daily digest that leaves out noise. A page checked daily costs $0.03 a month."
+og:title: "Website change digest | Stophy"
+og:description: "Watch pages with a monitor, receive each change by signed webhook, and send a daily digest that leaves out noise. A page checked daily costs $0.03 a month."
+---
+
+You want one message a day that says which watched pages changed and why it matters, not an alert for every edit. A monitor reads the pages and judges each change against your goal. A receiver stores the events. A small job turns them into the digest.
+
+You need an API key in `STOPHY_API_KEY` and a public address that can take a `POST`. See the [Quickstart](/quickstart). A page checked once a day costs $0.03 a month.
+
+## 1. Create the monitor
+
+`goal` says what matters, so the judge can mark noise. `webhook` says where events go. This request watches a page that returns a new identifier on every read, so a change is certain. Replace the page with one you care about, and the example address with your receiver. The schedule is monthly so this test costs almost nothing. Use `{ "text": "daily" }` for a real digest.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/monitor \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Page that changes",
+    "targets": [{ "type": "scrape", "urls": ["https://httpbin.org/uuid"] }],
+    "schedule": { "cron": "0 0 1 * *" },
+    "goal": "Tell me whenever the uuid changes.",
+    "webhook": {
+      "url": "https://example.com/stophy-hook",
+      "events": ["monitor.page", "monitor.check.completed"]
+    }
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/monitor", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Page that changes",
+    targets: [{ type: "scrape", urls: ["https://httpbin.org/uuid"] }],
+    schedule: { cron: "0 0 1 * *" },
+    goal: "Tell me whenever the uuid changes.",
+    webhook: {
+      url: "https://example.com/stophy-hook",
+      events: ["monitor.page", "monitor.check.completed"],
+    },
+  }),
+});
+const { data } = await response.json();
+console.log(data.id);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/monitor",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "name": "Page that changes",
+        "targets": [{"type": "scrape", "urls": ["https://httpbin.org/uuid"]}],
+        "schedule": {"cron": "0 0 1 * *"},
+        "goal": "Tell me whenever the uuid changes.",
+        "webhook": {
+            "url": "https://example.com/stophy-hook",
+            "events": ["monitor.page", "monitor.check.completed"],
+        },
+    },
+)
+print(response.json()["data"]["id"])
+```
+</CodeGroup>
+
+The answer holds the monitor's `id`, here `mon_2f3L73izJTdaA1AQ`, with `judgeEnabled: true` because you sent a goal. Keep the `id` in `MONITOR_ID` for the next steps. The first check starts at once and reads the page for the first time. It sends `monitor.check.completed` and no `monitor.page`. See [Targets](/monitors/targets).
+
+## 2. Receive and store events
+
+Get your signing secret once with `POST /v1/webhook/secret` and keep it in `STOPHY_WEBHOOK_SECRET` on your server. Verify every call, store it, and answer `200`. The receiver is the one from [Webhooks](/webhooks#verify-signatures), with `verify.ts` next to it. It stores each body once, so a call Stophy sends again changes nothing.
+
+```typescript
+import { Database } from "bun:sqlite";
+import { verifySignature } from "./verify.ts";
+
+const db = new Database("events.sqlite");
+db.run("CREATE TABLE IF NOT EXISTS events (key TEXT PRIMARY KEY, body TEXT NOT NULL)");
+
+const secret = process.env.STOPHY_WEBHOOK_SECRET ?? "";
+
+export async function handle(request: Request): Promise<Response> {
+  const body = await request.text();
+  if (!verifySignature(secret, body, request.headers.get("Stophy-Signature"))) {
+    return new Response("bad signature", { status: 401 });
+  }
+  const key = new Bun.CryptoHasher("sha256").update(body).digest("hex");
+  db.run("INSERT OR IGNORE INTO events (key, body) VALUES (?, ?)", [key, body]);
+  return new Response("ok");
+}
+```
+
+A monitor event has no id of its own, and the `id` field is the monitor's, so the hash of the body is the key. A retry sends the same bytes.
+
+## 3. See a change
+
+The first check only sets the baseline. To get a change now, run a check by hand.
+
+```bash
+curl -X POST https://api.stophy.dev/v1/monitor/$MONITOR_ID/run \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+The check starts within a minute. The page has changed, so your receiver gets a `monitor.page` call. This is the real body, with the judgment of the goal.
+
+```json
+{
+  "id": "mon_2f3L73izJTdaA1AQ",
+  "event": "monitor.page",
+  "url": "https://httpbin.org/uuid",
+  "changeStatus": "changed",
+  "at": "2026-11-17T18:20:53.979Z",
+  "diff": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"0714c38d-30cf-4c11-9c7a-801260afcaba\"\n+  \"uuid\": \"ec011f90-1296-47af-8911-bad9f9aa5314\"\n }\n\\ No newline at end of file\n",
+  "judgment": {
+    "meaningful": true,
+    "confidence": "high",
+    "reason": "The uuid value changed, which is exactly what the goal tracks.",
+    "meaningfulChanges": [ … ]
+  }
+}
+```
+
+The check cost $0.002: $0.001 for the page and $0.001 for the judge. `GET /v1/monitor/$MONITOR_ID/checks/$CHECK_ID` shows the same result with the diff, whether or not your receiver was up. See [Checks and changes](/monitors/checks-and-changes).
+
+## 4. Build the digest
+
+The digest job runs once a day from your scheduler, such as cron. It reads the stored events, keeps the `monitor.page` events from the last day, drops the ones the judge called not meaningful, and prints one line per change with the judge's reason.
+
+```typescript
+import { Database } from "bun:sqlite";
+
+interface PageEvent {
+  id: string;
+  event: string;
+  url: string;
+  changeStatus: "new" | "changed" | "removed";
+  at: string;
+  judgment?: { meaningful: boolean; reason: string };
+}
+
+export function buildDigest(db: Database, since: Date): string {
+  const rows = db.query<{ body: string }, []>("SELECT body FROM events").all();
+  const events: PageEvent[] = rows.map((row) => JSON.parse(row.body));
+  const worthReading = events.filter(
+    (event) =>
+      event.event === "monitor.page" &&
+      event.at >= since.toISOString() &&
+      event.judgment?.meaningful !== false,
+  );
+  if (worthReading.length === 0) return "No changes worth reading in this window.";
+  const lines = worthReading.map(
+    (event) => `- ${event.changeStatus}: ${event.url}\n  ${event.judgment?.reason ?? "No judgment."}`,
+  );
+  const count = `${worthReading.length} ${worthReading.length === 1 ? "change" : "changes"}`;
+  return [`${count} since ${since.toISOString()}`, ...lines].join("\n");
+}
+```
+
+Called with the stored events of the run above, it returned:
+
+```text
+1 change since 2026-11-17T00:00:00.000Z
+- changed: https://httpbin.org/uuid
+  The uuid value changed, which is exactly what the goal tracks.
+```
+
+With a `since` after the change, and with the same event marked `meaningful: false`, it returned `No changes worth reading in this window.` Send the text wherever you read your day: email, a chat message or a file.
+
+## 5. Catch what you missed
+
+A receiver can be down. Once a day, before you build the digest, read the deliveries that failed and send them again.
+
+```bash
+curl "https://api.stophy.dev/v1/webhook/deliveries?sourceType=monitor&status=failed" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+For each `id` in `data.deliveries`, call `POST /v1/webhook/deliveries/{id}/retry`. A retry works for 7 days, and your receiver ignores a body it has already stored. Pages that could not be read are not events. They show as `error` in `GET /v1/monitor/{id}/changes`. See [Webhooks](/webhooks#delivery-history-and-retry).
+
+## 6. Clean up
+
+A monitor bills on its schedule until you remove it. Delete the test monitor, then point a new one at your pages.
+
+```bash
+curl -X DELETE https://api.stophy.dev/v1/monitor/$MONITOR_ID \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+## What to check
+
+- `GET /v1/monitor/$MONITOR_ID/checks` shows a `completed` first check, and your table has its `monitor.check.completed` event.
+- A call with a wrong signature gets `401` and stores nothing. The same call twice stores one row.
+- The digest lists the changes you made and leaves out a change the judge called noise.
+- `GET /v1/monitor/limits` shows the monitors and pages you use, so you know how many more fit.
+- `GET /v1/webhook/deliveries?status=failed` is empty on a normal day.
+
+## What it costs
+
+| Item | Price |
+| - | - |
+| A page read, on every check | $0.001 |
+| A changed page judged against a goal | $0.001 more |
+| One page checked daily | $0.03 a month |
+| Events, deliveries, retries and reads | Free |
+
+`estimatedCostUsdPerMonth` on the monitor shows its cost at the current schedule. See [Monitors](/monitors/overview#price).
+
+## Related
+
+- [Targets](/monitors/targets) watches a whole section or a search instead of one page.
+- [Monitor webhooks](/monitors/webhooks) lists every event and its fields.
+- [Webhooks](/webhooks) explains signatures, retries and replay.
+- [Schedules](/monitors/schedules) sets how often a monitor checks.

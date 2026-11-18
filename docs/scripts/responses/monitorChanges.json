@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/monitor/mon_gYdxFOZnpRdWHJUN/changes"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": [
+      {
+        "at": "2026-11-17T17:53:54.066Z",
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "changeStatus": "new",
+        "creditsUsed": 1,
+        "costUsd": 0.001,
+        "diff": null
+      }
+    ],
+    "next": null,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "36693a61-b0c9-4d1c-91ac-fa4625df6ead"
+  }
+}

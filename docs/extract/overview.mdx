@@ -1,0 +1,166 @@
+---
+title: "Extract"
+description: "Pull the fields you name from one or more pages as JSON. Each value is checked against the page text and left out when it is not there. $5 per 1,000 pages."
+og:title: "Extract | Stophy"
+og:description: "Pull the fields you name from one or more pages as JSON. Each value is checked against the page text and left out when it is not there. $5 per 1,000 pages."
+---
+
+Extract reads pages and fills the fields you name, and leaves out a field the page does not state. The call answers with an `id`, and you read the fields from `GET /v1/extract/{id}`.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). Extract needs an API key. This request reads a documentation page and fills four fields, then reads the result with the `id` it gets back.
+
+<CodeGroup>
+```bash cURL
+EXTRACT_ID=$(curl -s -X POST https://api.stophy.dev/v1/extract \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://bun.com/docs/runtime/sqlite"],
+    "schema": {
+      "type": "object",
+      "properties": {
+        "module": { "type": "string", "description": "The import path of the SQLite driver" },
+        "queryMethods": { "type": "array", "items": { "type": "string" } },
+        "transactionModes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["deferred", "immediate", "exclusive"] }
+        },
+        "pricePerMonth": { "type": ["number", "null"] }
+      }
+    }
+  }' | jq -r .id)
+
+curl https://api.stophy.dev/v1/extract/$EXTRACT_ID \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const headers = {
+  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+  "Content-Type": "application/json",
+};
+const started = await fetch("https://api.stophy.dev/v1/extract", {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    urls: ["https://bun.com/docs/runtime/sqlite"],
+    schema: {
+      type: "object",
+      properties: {
+        module: { type: "string", description: "The import path of the SQLite driver" },
+        queryMethods: { type: "array", items: { type: "string" } },
+        transactionModes: {
+          type: "array",
+          items: { type: "string", enum: ["deferred", "immediate", "exclusive"] },
+        },
+        pricePerMonth: { type: ["number", "null"] },
+      },
+    },
+  }),
+}).then((response) => response.json());
+const result = await fetch(`https://api.stophy.dev/v1/extract/${started.id}`, { headers }).then(
+  (response) => response.json(),
+);
+console.log(result.data);
+```
+```python Python
+import os
+
+import requests
+
+headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
+started = requests.post(
+    "https://api.stophy.dev/v1/extract",
+    headers=headers,
+    json={
+        "urls": ["https://bun.com/docs/runtime/sqlite"],
+        "schema": {
+            "type": "object",
+            "properties": {
+                "module": {"type": "string", "description": "The import path of the SQLite driver"},
+                "queryMethods": {"type": "array", "items": {"type": "string"}},
+                "transactionModes": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["deferred", "immediate", "exclusive"]},
+                },
+                "pricePerMonth": {"type": ["number", "null"]},
+            },
+        },
+    },
+).json()
+result = requests.get(f"https://api.stophy.dev/v1/extract/{started['id']}", headers=headers).json()
+print(result["data"])
+```
+</CodeGroup>
+
+## Read the response
+
+The call that starts the extract answers with the `id` of the result. `invalidURLs` lists addresses it skipped because they are not public pages.
+
+```json
+{
+  "success": true,
+  "id": "8ae7db78-aab6-43c1-872f-bdedfea0afd9",
+  "invalidURLs": [],
+  "costUsd": 0.005,
+  "requestId": "51358460-993d-4ad0-ba69-f6d4697584ef"
+}
+```
+
+`GET /v1/extract/{id}` returns the fields.
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "data": {
+    "module": "bun:sqlite",
+    "queryMethods": ["all", "get", "run", "values", "iterate"],
+    "transactionModes": ["deferred", "immediate", "exclusive"]
+  },
+  "confidence": {
+    "module": 0.9627,
+    "queryMethods": 0.7573,
+    "transactionModes": 0.9246
+  },
+  "urls": ["https://bun.com/docs/runtime/sqlite"],
+  "costUsd": 0.005,
+  "expiresAt": "2026-11-18T18:09:35.938Z"
+}
+```
+
+`pricePerMonth` is not in `data`: the page does not state it, so the field is left out. Each value is checked against the page text, and `confidence` says how sure Stophy is that it is there, from 0 to 1. See [Results](/extract/results) for the rest of the fields.
+
+## Request fields
+
+The `schema` is described in [Schema](/extract/schema). `showSources`, `timeout` and `webhook` are described in [Results](/extract/results). These fields belong to this page.
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `urls` | `array of string` | none | The pages to read, up to 25. An address ending in `/*`, such as `https://bun.com/blog/*`, reads pages under it, found through the site's sitemap. With several pages, the fields are filled from all of them together. Leave `urls` out and send a `prompt` to search the web instead. |
+| `prompt` | `string` | none | What to pull, in plain words, up to 10,000 characters. Send a `schema`, a `prompt`, or both. |
+| `systemPrompt` | `string` | none | Standing instructions, such as units or how to write dates, up to 10,000 characters. A value is still copied from the page. |
+| `enableWebSearch` | `boolean` | `false` | Also search the web for your `prompt` and read up to 3 more pages. With no `urls`, the search runs without this. |
+| `allowExternalLinks` | `boolean` | `false` | Also read up to 5 pages on other sites that the pages link to, picking the links whose address mentions your prompt. |
+| `ignoreSitemap` | `boolean` | `false` | For an address ending in `/*`, find pages by links instead of the sitemap. |
+| `includeSubdomains` | `boolean` | `true` | For an address ending in `/*`, also read subdomains. |
+| `limit` | `number` | none | For an address ending in `/*`, read at most this many pages. At most 25 are read in all. |
+| `scrapeOptions` | `object` | none | How each page is read, with the options of [Scrape](/scrape/overview). |
+| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the call. Adds $2 per 1,000 pages. See [Zero data retention](/production/zero-data-retention). |
+| `ignoreInvalidURLs` | `boolean` | `true` | Skip addresses that are not public pages. Send `false` to refuse the call instead. |
+| `agent` | `object` | none | Accepted so a client that always sends `{ "model": "..." }` works. It changes nothing, and `warning` says so. To navigate a site, use [Agent](/agent/overview). |
+
+With a `prompt` and no `schema`, the model names up to 20 fields in camelCase.
+
+## Price
+
+$5 per 1,000 pages for most calls: $1 for the page and $4 for the extraction. Each page after the first adds $1 per 1,000 pages, and a long answer adds $1 per 1,000 pages for every 64 values after the first 64, for each 40,000 characters of page text read. `enableWebSearch` adds $1 per 1,000 searches, and `allowExternalLinks` adds $1 per 1,000 pages read. A call that finds none of the fields is free. See [Pricing](/account/pricing).
+
+## Choose another API
+
+- [Scrape](/scrape/overview) returns the whole page, and `json` fills a schema from one page.
+- [Agent](/agent/overview) searches and reads several pages, then fills your fields with a quote for each.
+- [Search](/search/overview) finds pages from a query.
+- [Crawl](/crawl/overview) reads every page of a site in the background.
+- [Parse documents](/parse/overview) turns a file you hold into Markdown.

@@ -1,30 +1,42 @@
 {
   "groups": [
     {
-      "group": "Read pages",
+      "group": "Scrape",
       "operations": [
         "scrape",
-        "search",
-        "map",
-        "parse"
+        "scrapeResult",
+        "scrapeInteract",
+        "scrapeInteractStop"
       ]
     },
     {
-      "group": "Crawl a site",
+      "group": "Map",
+      "operations": [
+        "map"
+      ]
+    },
+    {
+      "group": "Crawl",
       "operations": [
         "crawl",
+        "crawlList",
+        "crawlActive",
         "crawlStatus",
+        "crawlResults",
         "crawlErrors",
-        "crawlCancel"
+        "crawlCancel",
+        "crawlParams-preview"
       ]
     },
     {
-      "group": "Batch scrape",
+      "group": "Search",
       "operations": [
-        "batchScrape",
-        "batchScrapeStatus",
-        "batchScrapeErrors",
-        "batchScrapeCancel"
+        "search",
+        "searchFeedback",
+        "searchDeveloper",
+        "searchResearchPapers",
+        "researchPaper",
+        "researchPaperSimilar"
       ]
     },
     {
@@ -35,6 +47,73 @@
       ]
     },
     {
+      "group": "Agent",
+      "operations": [
+        "agent",
+        "agentList",
+        "agentStatus",
+        "agentTrace",
+        "agentSnapshot",
+        "agentThread",
+        "agentCancel"
+      ]
+    },
+    {
+      "group": "Parse",
+      "operations": [
+        "parse",
+        "parseFormats",
+        "parseUploadUrl"
+      ]
+    },
+    {
+      "group": "Browser sessions",
+      "operations": [
+        "browserCreate",
+        "browserList",
+        "browserGet",
+        "browserExecute",
+        "browserUpload",
+        "browserDownloads",
+        "browserProxyGet",
+        "browserProxyUpdate",
+        "browserDelete",
+        "browserRecording",
+        "browserRecordingDelete",
+        "browserReplay",
+        "browserReplayPage"
+      ]
+    },
+    {
+      "group": "Browser profiles",
+      "operations": [
+        "browserProfileCreate",
+        "browserProfiles",
+        "browserProfileGet",
+        "browserProfileUpdate",
+        "browserProfileDelete"
+      ]
+    },
+    {
+      "group": "Browser extensions",
+      "operations": [
+        "browserExtensionUpload",
+        "browserExtensionList",
+        "browserExtensionGet",
+        "browserExtensionDelete"
+      ]
+    },
+    {
+      "group": "Network policies",
+      "operations": [
+        "browserNetworkPolicyCreate",
+        "browserNetworkPolicyList",
+        "browserNetworkPolicyGet",
+        "browserNetworkPolicyUpdate",
+        "browserNetworkPolicyDelete"
+      ]
+    },
+    {
       "group": "Browser tasks",
       "operations": [
         "browserTask",
@@ -42,49 +121,230 @@
       ]
     },
     {
-      "group": "Catalog",
+      "group": "Batches",
       "operations": [
-        "listParsers"
+        "batchScrape",
+        "batchScrapeList",
+        "batchScrapeStatus",
+        "batchScrapeResults",
+        "batchScrapeErrors",
+        "batchScrapeResultsDelete",
+        "batchScrapeCancel"
+      ]
+    },
+    {
+      "group": "Monitors",
+      "operations": [
+        "monitorCreate",
+        "monitorList",
+        "monitorGet",
+        "monitorUpdate",
+        "monitorRun",
+        "monitorChecks",
+        "monitorCheck",
+        "monitorChanges",
+        "monitorChecksAll",
+        "monitorChangesAll",
+        "monitorChange",
+        "monitorLimits",
+        "monitorUsage",
+        "monitorWebhookRotate-secret",
+        "monitorDelete"
+      ]
+    },
+    {
+      "group": "Webhooks",
+      "operations": [
+        "webhookSecret",
+        "webhookDeliveries",
+        "webhookDelivery",
+        "webhookDeliveryAttempts",
+        "webhookDeliveryRetry"
+      ]
+    },
+    {
+      "group": "Logs",
+      "operations": [
+        "getLogs",
+        "logsGet",
+        "teamActivity"
+      ]
+    },
+    {
+      "group": "Usage",
+      "operations": [
+        "getUsage",
+        "usageHistory",
+        "teamCreditUsage",
+        "teamCreditUsageHistorical",
+        "teamTokenUsage",
+        "teamTokenUsageHistorical",
+        "teamQueueStatus",
+        "concurrencyCheck"
       ]
     },
     {
       "group": "Account",
       "operations": [
-        "getLimits",
-        "getUsage",
-        "getLogs",
         "signUp",
         "pollSignUp",
+        "getLimits",
+        "keylessEligibility",
         "revokeKey"
+      ]
+    },
+    {
+      "group": "Catalog",
+      "operations": [
+        "listParsers",
+        "listEndpoints",
+        "siteStatus"
+      ]
+    },
+    {
+      "group": "Feedback",
+      "operations": [
+        "feedback"
       ]
     }
   ],
   "titles": {
     "scrape": "Scrape",
-    "search": "Search",
+    "scrapeResult": "Read a scrape",
+    "scrapeInteract": "Interact with a scrape",
+    "scrapeInteractStop": "Stop interacting",
     "map": "Map",
-    "parse": "Parse",
     "crawl": "Crawl",
-    "batchScrape": "Batch scrape",
+    "crawlList": "List crawls",
+    "crawlActive": "Active crawls",
+    "crawlStatus": "Crawl status",
+    "crawlResults": "Crawl results",
+    "crawlErrors": "Crawl errors",
+    "crawlCancel": "Cancel a crawl",
+    "crawlParams-preview": "Describe a crawl",
+    "search": "Search",
+    "searchFeedback": "Search feedback",
+    "searchDeveloper": "Developer search",
+    "searchDeveloperGet": "Developer search (GET)",
+    "searchResearchPapers": "Paper search",
+    "searchResearchPapersGet": "Paper search (GET)",
+    "researchPaper": "Read a paper",
+    "researchPaperSimilar": "Similar papers",
     "extract": "Extract",
+    "extractResult": "Extract result",
+    "agent": "Agent",
+    "agentList": "List agent runs",
+    "agentStatus": "Agent status",
+    "agentTrace": "Agent trace",
+    "agentSnapshot": "Agent snapshot",
+    "agentThread": "Agent thread",
+    "agentCancel": "Stop an agent run",
+    "parse": "Parse",
+    "parseFormats": "Parse formats",
+    "parseUploadUrl": "Upload a large file",
+    "browserCreate": "Open a session",
+    "browserList": "List sessions",
+    "browserGet": "Read a session",
+    "browserExecute": "Run code or a prompt",
+    "browserUpload": "Upload a file",
+    "browserDownloads": "List downloads",
+    "browserProxyGet": "Read the network location",
+    "browserProxyUpdate": "Change the network location",
+    "browserDelete": "Close a session",
+    "browserRecording": "Read a recording",
+    "browserRecordingDelete": "Delete a recording",
+    "browserReplay": "Replay pages",
+    "browserReplayPage": "Replay page",
+    "browserProfileCreate": "Create a profile",
+    "browserProfiles": "List profiles",
+    "browserProfileGet": "Read a profile",
+    "browserProfileUpdate": "Rename a profile",
+    "browserProfileDelete": "Delete a profile",
+    "browserExtensionUpload": "Upload an extension",
+    "browserExtensionList": "List extensions",
+    "browserExtensionGet": "Read an extension",
+    "browserExtensionDelete": "Delete an extension",
+    "browserNetworkPolicyCreate": "Create a network policy",
+    "browserNetworkPolicyList": "List network policies",
+    "browserNetworkPolicyGet": "Read a network policy",
+    "browserNetworkPolicyUpdate": "Change a network policy",
+    "browserNetworkPolicyDelete": "Delete a network policy",
     "browserTask": "Browser task",
     "browserTaskStatus": "Browser task status",
-    "crawlStatus": "Crawl status",
-    "crawlCancel": "Cancel a crawl",
+    "batchScrape": "Batch scrape",
+    "batchScrapeList": "List batch scrapes",
     "batchScrapeStatus": "Batch scrape status",
+    "batchScrapeResults": "Batch scrape results",
+    "batchScrapeErrors": "Batch scrape errors",
+    "batchScrapeResultsDelete": "Delete batch results",
     "batchScrapeCancel": "Cancel a batch scrape",
-    "extractResult": "Extract result",
-    "listParsers": "List parsers",
-    "getLimits": "Limits",
-    "getUsage": "Usage",
+    "monitorCreate": "Create a monitor",
+    "monitorList": "List monitors",
+    "monitorGet": "Read a monitor",
+    "monitorUpdate": "Change a monitor",
+    "monitorRun": "Run a monitor",
+    "monitorChecks": "List checks",
+    "monitorCheck": "Read a check",
+    "monitorChanges": "List changes",
+    "monitorChecksAll": "List all checks",
+    "monitorChangesAll": "List all changes",
+    "monitorChange": "Read a change",
+    "monitorLimits": "Monitor limits",
+    "monitorUsage": "Monitor usage",
+    "monitorWebhookRotate-secret": "Rotate a monitor secret",
+    "monitorDelete": "Delete a monitor",
+    "webhookSecret": "Webhook secret",
+    "webhookDeliveries": "List webhook calls",
+    "webhookDelivery": "Read a webhook call",
+    "webhookDeliveryAttempts": "List webhook tries",
+    "webhookDeliveryRetry": "Retry a webhook call",
     "getLogs": "Logs",
+    "logsGet": "Read a log",
+    "teamActivity": "Team activity",
+    "getUsage": "Usage",
+    "usageHistory": "Usage history",
+    "teamCreditUsage": "Balance",
+    "teamCreditUsageHistorical": "Monthly spend",
+    "teamTokenUsage": "Model use",
+    "teamTokenUsageHistorical": "Monthly model use",
+    "teamQueueStatus": "Queue status",
+    "concurrencyCheck": "Concurrency",
     "signUp": "Sign up",
     "pollSignUp": "Collect the key",
+    "getLimits": "Limits",
+    "keylessEligibility": "Keyless eligibility",
     "revokeKey": "Revoke your key",
-    "crawlErrors": "Crawl errors",
-    "batchScrapeErrors": "Batch scrape errors"
+    "listParsers": "List parsers",
+    "listEndpoints": "List endpoints",
+    "siteStatus": "Site status",
+    "feedback": "Send feedback"
   },
   "calls": {
+    "scrape": {
+      "keep": {
+        "scrapeId": "id",
+        "scrapeRequestId": "requestId"
+      }
+    },
+    "scrapeResult": {
+      "use": {
+        "id": "scrapeId"
+      }
+    },
+    "scrapeInteract": {
+      "body": {
+        "code": "console.log(await page.title())",
+        "language": "node"
+      },
+      "use": {
+        "id": "scrapeId"
+      }
+    },
+    "scrapeInteractStop": {
+      "use": {
+        "id": "scrapeId"
+      }
+    },
     "crawl": {
       "keep": {
         "crawlId": "id"
@@ -96,12 +356,22 @@
       },
       "until": "finished"
     },
+    "crawlResults": {
+      "use": {
+        "id": "crawlId"
+      }
+    },
+    "crawlErrors": {
+      "use": {
+        "id": "crawlId"
+      }
+    },
     "crawlCancel": {
       "before": {
         "operation": "crawl",
         "body": {
           "url": "https://bun.com/docs",
-          "limit": 50
+          "limit": 2
         },
         "keep": {
           "cancelCrawlId": "id"
@@ -111,35 +381,64 @@
         "id": "cancelCrawlId"
       }
     },
-    "batchScrape": {
-      "keep": {
-        "batchId": "id"
+    "crawlParams-preview": {
+      "body": {
+        "url": "https://bun.com/docs",
+        "prompt": "Only the runtime pages, at most 10"
       }
     },
-    "batchScrapeStatus": {
-      "use": {
-        "id": "batchId"
-      },
-      "until": "finished"
+    "search": {
+      "keep": {
+        "searchJobId": "requestId"
+      }
     },
-    "batchScrapeCancel": {
-      "before": {
-        "operation": "batchScrape",
-        "body": {
-          "urls": [
-            "https://bun.com/docs/runtime/bunfig",
-            "https://bun.com/docs/runtime/env",
-            "https://bun.com/docs/runtime/shell",
-            "https://bun.com/docs/runtime/sqlite",
-            "https://bun.com/docs/runtime/http/server"
-          ]
-        },
-        "keep": {
-          "cancelBatchId": "id"
-        }
+    "searchFeedback": {
+      "body": {
+        "rating": "good"
       },
       "use": {
-        "id": "cancelBatchId"
+        "jobId": "searchJobId"
+      }
+    },
+    "searchDeveloper": {
+      "body": {
+        "query": "bun sqlite",
+        "k": 5
+      }
+    },
+    "searchDeveloperGet": {
+      "query": {
+        "query": "bun sqlite",
+        "k": "5"
+      }
+    },
+    "searchResearchPapers": {
+      "body": {
+        "query": "retrieval augmented generation",
+        "k": 5
+      },
+      "keep": {
+        "paperId": "results.0.paperId"
+      }
+    },
+    "searchResearchPapersGet": {
+      "query": {
+        "query": "retrieval augmented generation",
+        "k": "5"
+      }
+    },
+    "researchPaper": {
+      "use": {
+        "id": "paperId"
+      }
+    },
+    "researchPaperSimilar": {
+      "use": {
+        "id": "paperId"
+      },
+      "query": {
+        "intent": "evaluating retrieval augmented generation",
+        "k": "5"
       }
     },
     "extract": {
@@ -152,6 +451,186 @@
         "id": "extractId"
       },
       "until": "finished"
+    },
+    "agent": {
+      "keep": {
+        "agentId": "id",
+        "agentThreadId": "threadId"
+      }
+    },
+    "agentStatus": {
+      "use": {
+        "id": "agentId"
+      },
+      "until": "finished"
+    },
+    "agentTrace": {
+      "use": {
+        "id": "agentId"
+      }
+    },
+    "agentThread": {
+      "use": {
+        "threadId": "agentThreadId"
+      }
+    },
+    "parse": {
+      "body": {
+        "file": "PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=",
+        "filename": "tides.html"
+      }
+    },
+    "parseUploadUrl": {
+      "body": {
+        "filename": "report.pdf",
+        "contentType": "application/pdf",
+        "declaredSizeBytes": 1048576
+      }
+    },
+    "browserCreate": {
+      "body": {
+        "ttl": 300,
+        "activityTtl": 60,
+        "recording": true,
+        "metadata": {
+          "purpose": "docs-example"
+        }
+      },
+      "keep": {
+        "sessionId": "id"
+      }
+    },
+    "browserGet": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserExecute": {
+      "body": {
+        "code": "await page.goto('https://example.com'); console.log(await page.title())",
+        "language": "node"
+      },
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserUpload": {
+      "body": {
+        "name": "notes.txt",
+        "base64": "SGVsbG8gZnJvbSB0aGUgZG9jcw=="
+      },
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserDownloads": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserProxyGet": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserProxyUpdate": {
+      "body": {
+        "mode": "managed",
+        "country": "us"
+      },
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserDelete": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserRecording": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserRecordingDelete": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
+    "browserReplay": {
+      "use": {
+        "session_id": "sessionId"
+      },
+      "keep": {
+        "replayPageId": "pages.0.pageId"
+      }
+    },
+    "browserReplayPage": {
+      "use": {
+        "session_id": "sessionId",
+        "page_id": "replayPageId"
+      }
+    },
+    "browserProfileCreate": {
+      "body": {
+        "name": "docs-example"
+      },
+      "keep": {
+        "profileName": "name"
+      }
+    },
+    "browserProfileGet": {
+      "use": {
+        "name": "profileName"
+      }
+    },
+    "browserProfileUpdate": {
+      "body": {
+        "name": "docs-example-renamed"
+      },
+      "use": {
+        "name": "profileName"
+      },
+      "keep": {
+        "profileName": "name"
+      }
+    },
+    "browserProfileDelete": {
+      "use": {
+        "name": "profileName"
+      }
+    },
+    "browserNetworkPolicyCreate": {
+      "body": {
+        "name": "docs-example",
+        "defaultAction": "block",
+        "allow": {
+          "domains": [
+            "bun.com"
+          ]
+        }
+      },
+      "keep": {
+        "policyId": "id"
+      }
+    },
+    "browserNetworkPolicyGet": {
+      "use": {
+        "policy_id": "policyId"
+      }
+    },
+    "browserNetworkPolicyUpdate": {
+      "body": {
+        "name": "docs-example-renamed"
+      },
+      "use": {
+        "policy_id": "policyId"
+      }
+    },
+    "browserNetworkPolicyDelete": {
+      "use": {
+        "policy_id": "policyId"
+      }
     },
     "browserTask": {
       "body": {
@@ -177,6 +656,136 @@
       },
       "until": "finished"
     },
+    "batchScrape": {
+      "keep": {
+        "batchId": "id"
+      }
+    },
+    "batchScrapeStatus": {
+      "use": {
+        "id": "batchId"
+      },
+      "until": "finished"
+    },
+    "batchScrapeResults": {
+      "use": {
+        "id": "batchId"
+      }
+    },
+    "batchScrapeErrors": {
+      "use": {
+        "id": "batchId"
+      }
+    },
+    "batchScrapeResultsDelete": {
+      "use": {
+        "id": "batchId"
+      }
+    },
+    "batchScrapeCancel": {
+      "before": {
+        "operation": "batchScrape",
+        "body": {
+          "urls": [
+            "https://bun.com/docs/runtime/bunfig",
+            "https://bun.com/docs/runtime/env"
+          ]
+        },
+        "keep": {
+          "cancelBatchId": "id"
+        }
+      },
+      "use": {
+        "id": "cancelBatchId"
+      }
+    },
+    "monitorCreate": {
+      "body": {
+        "name": "Docs example",
+        "targets": [
+          {
+            "type": "scrape",
+            "urls": [
+              "https://bun.com/docs/runtime/bunfig"
+            ]
+          }
+        ],
+        "schedule": {
+          "text": "daily"
+        }
+      },
+      "keep": {
+        "monitorId": "id"
+      }
+    },
+    "monitorGet": {
+      "use": {
+        "id": "monitorId"
+      }
+    },
+    "monitorUpdate": {
+      "body": {
+        "name": "Docs example, renamed"
+      },
+      "use": {
+        "id": "monitorId"
+      }
+    },
+    "monitorChecks": {
+      "use": {
+        "id": "monitorId"
+      },
+      "keep": {
+        "checkId": "0.id"
+      }
+    },
+    "monitorCheck": {
+      "use": {
+        "id": "monitorId",
+        "checkId": "checkId"
+      }
+    },
+    "monitorChanges": {
+      "use": {
+        "id": "monitorId"
+      }
+    },
+    "monitorChange": {
+      "use": {
+        "id": "changeId"
+      }
+    },
+    "monitorWebhookRotate-secret": {
+      "use": {
+        "id": "monitorId"
+      }
+    },
+    "monitorDelete": {
+      "use": {
+        "id": "monitorId"
+      }
+    },
+    "webhookSecret": {
+      "body": {}
+    },
+    "getLogs": {
+      "query": {
+        "limit": "3"
+      },
+      "keep": {
+        "logId": "logs.0.requestId"
+      }
+    },
+    "logsGet": {
+      "use": {
+        "id": "logId"
+      }
+    },
+    "teamActivity": {
+      "query": {
+        "limit": "3"
+      }
+    },
     "signUp": {
       "keep": {
         "signupCode": "code"
@@ -186,35 +795,113 @@
       "use": {
         "code": "signupCode"
       }
+    },
+    "feedback": {
+      "body": {
+        "rating": "good",
+        "endpoint": "scrape"
+      },
+      "use": {
+        "jobId": "scrapeRequestId"
+      }
     }
   },
   "notCalled": {
     "revokeKey": "Calling it would revoke the key that recorded these examples.",
-    "crawlErrors": "No example is recorded. The schema below lists every field.",
-    "batchScrapeErrors": "No example is recorded. The schema below lists every field."
+    "agentCancel": "No example is recorded: it needs a run that is still working, and every run costs money. The schema below lists every field.",
+    "agentSnapshot": "No example is recorded. The schema below lists every field.",
+    "browserExtensionUpload": "No example is recorded. Send the zip as multipart form data in the `file` field.",
+    "browserExtensionGet": "No example is recorded: it needs an uploaded extension.",
+    "browserExtensionDelete": "No example is recorded: it needs an uploaded extension.",
+    "monitorRun": "No example is recorded: a check reads every page of the monitor and costs what the pages cost.",
+    "webhookDelivery": "No example is recorded: it needs a webhook call, and this account has sent none.",
+    "webhookDeliveryAttempts": "No example is recorded: it needs a webhook call, and this account has sent none.",
+    "webhookDeliveryRetry": "No example is recorded: it needs a webhook call, and this account has sent none.",
+    "searchDeveloperGet": "No separate example is recorded. It takes the fields of the POST call as query parameters and returns the same answer.",
+    "searchResearchPapersGet": "No separate example is recorded. It takes the fields of the POST call as query parameters and returns the same answer.",
+    "monitorCheck": "No example is recorded: the monitor that recorded the other examples was deleted before this call. The schema below lists every field.",
+    "monitorChange": "No example is recorded: it needs a change with a diff, and the first read of a page has none. The schema below lists every field."
   },
   "masks": {
     "getLimits": {
-      "balanceCredits": 5000
+      "data.balanceCredits": 5000,
+      "data.balanceUsd": 10
     },
     "getUsage": {
       "balanceMicros": 10000000,
+      "balanceUsd": 10,
       "creditsUsed": 120,
+      "costUsd": 0.24,
       "requestCount": 85
+    },
+    "usageHistory": {
+      "data.totals.credits": 120,
+      "data.totals.costUsd": 0.24,
+      "data.totals.requests": 85,
+      "data.buckets.*.credits": 6,
+      "data.buckets.*.costUsd": 0.012,
+      "data.buckets.*.requests": 6
+    },
+    "teamCreditUsage": {
+      "data.remainingCredits": 5000,
+      "data.balanceUsd": 10
+    },
+    "teamTokenUsage": {
+      "data.remainingTokens": 5000,
+      "data.tokensUsed": 1200,
+      "data.byEndpoint.extract": 1100,
+      "data.byEndpoint.agent": 100
     },
     "getLogs": {
       "apiKeyId": "<apiKeyId>",
       "apiKeyName": "My key",
       "total": 85,
       "totalPages": 2
+    },
+    "logsGet": {
+      "data.apiKeyId": "<apiKeyId>",
+      "data.apiKeyName": "My key"
+    },
+    "signUp": {
+      "code": "<code>",
+      "claimUrl": "<claimUrl>"
+    },
+    "pollSignUp": {
+      "code": "<code>"
+    },
+    "browserProxyGet": {
+      "exitIp": "203.0.113.7"
+    },
+    "browserProxyUpdate": {
+      "exitIp": "203.0.113.7"
     }
   },
-  "parserPages": [
+  "prices": {
+    "extractResult": "Free.",
+    "listParsers": "Free.",
+    "agent": "Each search and page at its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, up to the limit you set with `maxCredits` ($5 when you leave it out). Starting the run is free.",
+    "browserCreate": "$0.06 per hour open, $0.84 per hour once a prompt has run, billed when it closes, one minute at least. Traffic adds $5 per GB through the managed network location, the default, and $0.2 per GB direct or through your own proxy.",
+    "browserDelete": "Closing a session bills the time it was open: $0.06 per hour, or $0.84 per hour once a prompt has run, one minute at least.",
+    "browserExecute": "No charge of its own. The session is billed when it closes, at $0.84 per hour once a prompt has run.",
+    "scrapeInteract": "Billed like a browser session: $0.06 per hour open, or $0.84 per hour once a prompt has run, one minute at least.",
+    "scrapeInteractStop": "Closing the session bills the time it was open: $0.06 per hour, or $0.84 per hour once a prompt has run, one minute at least.",
+    "monitorCreate": "$1 per 1,000 pages read, for every check. A json mode adds $3 per 1,000 pages when it returns something, and a judged change adds $1 per 1,000 pages.",
+    "monitorRun": "$1 per 1,000 pages read, the same as a scheduled check.",
+    "monitorList": "Free.",
+    "monitorGet": "Free.",
+    "monitorUpdate": "Free.",
+    "monitorDelete": "Free.",
+    "monitorChecks": "Free.",
+    "monitorCheck": "Free.",
+    "monitorChanges": "Free."
+  },
+  "descriptions": {
+    "browserExtensionUpload": "Upload a Chrome extension for browser sessions as a zip of up to 50 MiB with a Manifest V3 manifest. Uploading is free; open a session with its id."
+  },
+  "parserCategories": [
     {
       "slug": "web",
       "title": "Search and the web",
-      "icon": "magnifying-glass",
-      "description": "Read Google Patents and Google Trends as JSON, and pull the email addresses and phone numbers from any public web page.",
       "parsers": [
         "google-patents",
         "google-trends",
@@ -225,8 +912,6 @@
     {
       "slug": "video",
       "title": "Video",
-      "icon": "video",
-      "description": "Search YouTube and TikTok, open any video, channel or playlist, and read comments. Get transcripts from YouTube, TikTok and Instagram videos.",
       "parsers": [
         "youtube-search",
         "youtube-video",
@@ -244,14 +929,14 @@
         "tiktok-search",
         "tiktok-followers",
         "tiktok-following",
+        "tiktok-trending",
+        "tiktok-live",
         "instagram-transcript"
       ]
     },
     {
       "slug": "social",
       "title": "Social",
-      "icon": "users",
-      "description": "Search and read posts, profiles and comments on Reddit, Instagram, LinkedIn, Pinterest, Facebook, X and Threads, and get them back as JSON.",
       "parsers": [
         "reddit-search",
         "reddit-post",
@@ -275,14 +960,15 @@
         "facebook-comments",
         "linkedin-company",
         "linkedin-profile",
-        "linkedin-posts"
+        "linkedin-posts",
+        "bsky-profile",
+        "bsky-post",
+        "link-in-bio"
       ]
     },
     {
       "slug": "places-and-travel",
       "title": "Places and travel",
-      "icon": "map-location-dot",
-      "description": "Find places on Google Maps, Tripadvisor and Yelp, and search stays on Google Hotels, Airbnb, Booking.com and Expedia. Search flights and Luma events.",
       "parsers": [
         "google-maps",
         "google-maps-place",
@@ -309,8 +995,6 @@
     {
       "slug": "jobs",
       "title": "Jobs",
-      "icon": "briefcase",
-      "description": "Search job listings on LinkedIn, Indeed, Upwork and company careers pages. Get the full posting for any job, and Glassdoor reviews and salaries.",
       "parsers": [
         "linkedin-jobs",
         "linkedin-job",
@@ -328,8 +1012,6 @@
     {
       "slug": "shopping",
       "title": "Shopping",
-      "icon": "cart-shopping",
-      "description": "Search Amazon products, reviews and best sellers, and TikTok Shop. Search eBay, Craigslist and Facebook Marketplace, and read Trustpilot reviews.",
       "parsers": [
         "amazon-search",
         "amazon-product",
@@ -342,14 +1024,13 @@
         "craigslist-search",
         "trustpilot-search",
         "trustpilot-company",
-        "trustpilot-reviews"
+        "trustpilot-reviews",
+        "craigslist-listing"
       ]
     },
     {
       "slug": "apps",
       "title": "Apps",
-      "icon": "mobile-screen",
-      "description": "Search the App Store and Google Play, and get any app's details and reviews as JSON. The App Store top charts come back the same way.",
       "parsers": [
         "appstore-search",
         "appstore-app",
@@ -363,8 +1044,6 @@
     {
       "slug": "real-estate",
       "title": "Real estate",
-      "icon": "house",
-      "description": "Search homes for sale, for rent and sold on Zillow and Realtor.com, and get the price, photos and details for any listing as JSON.",
       "parsers": [
         "zillow-search",
         "zillow-property",
@@ -375,20 +1054,63 @@
     {
       "slug": "ads",
       "title": "Ads",
-      "icon": "bullhorn",
-      "description": "Search the public ad libraries of Meta, Google, TikTok and LinkedIn as JSON. Get each ad's creative and copy, and find the advertisers behind them.",
       "parsers": [
         "meta-ads",
         "google-ads",
         "tiktok-ads",
         "linkedin-ads"
       ]
+    },
+    {
+      "slug": "business",
+      "title": "Companies and reviews",
+      "parsers": [
+        "crunchbase-company",
+        "g2-reviews"
+      ]
     }
   ],
-  "inCredits": {
-    "extract": "5 credits for most pages: the page's own price plus 4 credits. A call that finds none of the fields is free",
-    "browserTask": "3 credits for each step the task takes, up to maxSteps and maxCost. A task that ends before its first step costs nothing. Starting a task sets aside the most it can cost, and what it does not use comes back when it ends",
-    "signUp": "Free, and needs no key. Returns a claimUrl for your person and a secret code. Your person signs in with GitHub or Google and approves. A new account starts with 5,000 free credits. Then send the code to POST /v1/signup/poll to collect the key. Each IP address can sign up a few times a day, then the answer is rateLimited with retryAfterSeconds.",
-    "getUsage": "Free. Your balance in credits is `balanceCredits` on [Limits](/api-reference/endpoint/limits). `balanceMicros` stays for older clients."
+  "parserBrands": {
+    "google": "Google",
+    "maps": "Maps",
+    "play": "Play",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "reddit": "Reddit",
+    "x": "X",
+    "threads": "Threads",
+    "pinterest": "Pinterest",
+    "facebook": "Facebook",
+    "yelp": "Yelp",
+    "tripadvisor": "Tripadvisor",
+    "booking": "Booking.com",
+    "expedia": "Expedia",
+    "airbnb": "Airbnb",
+    "luma": "Luma",
+    "indeed": "Indeed",
+    "upwork": "Upwork",
+    "glassdoor": "Glassdoor",
+    "amazon": "Amazon",
+    "ebay": "eBay",
+    "craigslist": "Craigslist",
+    "trustpilot": "Trustpilot",
+    "appstore": "App Store",
+    "zillow": "Zillow",
+    "realtor": "Realtor.com",
+    "meta": "Meta",
+    "crunchbase": "Crunchbase",
+    "g2": "G2",
+    "shop": "Shop",
+    "ads": "ads",
+    "trends": "Trends",
+    "patents": "Patents",
+    "flights": "Flights",
+    "hotels": "Hotels"
+  },
+  "alsoGet": {
+    "searchDeveloper": "searchDeveloperGet",
+    "searchResearchPapers": "searchResearchPapersGet"
   }
 }

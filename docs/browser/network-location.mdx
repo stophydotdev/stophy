@@ -1,0 +1,235 @@
+---
+title: "Network location"
+description: "Choose how a browser session reaches the web: appear in a country, use your own proxy, or use none. Read or change it while the session runs. Traffic is per GB."
+og:title: "Network location | Stophy"
+og:description: "Choose how a browser session reaches the web: appear in a country, use your own proxy, or use none. Read or change it while the session runs. Traffic is per GB."
+---
+
+Every browser session reaches the web one of three ways: as a visitor from a country, through a proxy of your own, or with no proxy. You pick it when you open the session, and you can change it while the session runs, with its tabs and logins kept.
+
+## Choose a country
+
+Get an API key in the [Quickstart](/quickstart). Send `location.country`, a two-letter code such as `DE` or `JP`. Sites see a visitor from that country. With no choice, the country is the United States.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/browser \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ttl": 300,
+    "activityTtl": 60,
+    "location": { "country": "DE" }
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/browser", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    ttl: 300,
+    activityTtl: 60,
+    location: { country: "DE" },
+  }),
+});
+const session = await response.json();
+console.log(session.id);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/browser",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={"ttl": 300, "activityTtl": 60, "location": {"country": "DE"}},
+)
+session = response.json()
+print(session["id"])
+```
+</CodeGroup>
+
+A country only works with the default network. A session that sends `location.country` with `proxy` set to `direct` or to your own proxy returns `400 invalidRequest`.
+
+## Read where a session appears
+
+`GET /v1/browser/{session_id}/proxy` shows how a running session reaches the web. It is free.
+
+```bash
+SESSION_ID="<the id your session returned>"
+curl https://api.stophy.dev/v1/browser/$SESSION_ID/proxy \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "mode": "managed",
+  "country": "de",
+  "exitIp": "203.0.113.37",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "49bcd667-a5ba-4111-a3da-0eefbf258cf2"
+}
+```
+
+`exitIp` is the address sites see, shown here as an example address. Loading `https://api.country.is` in that session answered with the same address and `"country":"DE"`.
+
+| `mode` | What it means | `string` | `exitIp` |
+| - | - | - | - |
+| `managed` | The default: a country you pick, or the United States | The country, lower case | The address sites see |
+| `direct` | No proxy | `null` | The address sites see |
+| `custom` | Your own proxy | `null` | `null` |
+
+When the address cannot be read, `exitIp` is `null` and `exitIpError` says so. Send the request again.
+
+## Change it while the session runs
+
+`PATCH /v1/browser/{session_id}/proxy` changes the network of a running session. Open tabs and logins stay. Connections open now end, and new ones use the new network. Send one of these bodies:
+
+| Body | You get |
+| - | - |
+| `{ "mode": "managed", "country": "JP" }` | A visitor from that country |
+| `{ "rotate": true }` | A new address in the current country |
+| `{ "mode": "direct" }` | No proxy |
+| `{ "mode": "custom", "customProxy": { "host": "proxy.example.net", "port": 8080 } }` | Your own proxy |
+
+<CodeGroup>
+```bash cURL
+SESSION_ID="<the id your session returned>"
+curl -X PATCH https://api.stophy.dev/v1/browser/$SESSION_ID/proxy \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "mode": "managed", "country": "JP" }'
+```
+```typescript TypeScript
+const sessionId = "<the id your session returned>";
+const response = await fetch(
+  `https://api.stophy.dev/v1/browser/${sessionId}/proxy`,
+  {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ mode: "managed", country: "JP" }),
+  },
+);
+console.log(await response.json());
+```
+```python Python
+import os
+
+import requests
+
+session_id = "<the id your session returned>"
+response = requests.patch(
+    f"https://api.stophy.dev/v1/browser/{session_id}/proxy",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={"mode": "managed", "country": "JP"},
+)
+print(response.json())
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "mode": "managed",
+  "country": "jp",
+  "exitIp": "203.0.113.218",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "992f3fc7-4c4e-4313-ae33-b225d1d34acd"
+}
+```
+
+The same page load now answered `"country":"JP"`. Sending `{ "rotate": true }` kept `jp` and returned a different `exitIp`. Sending `{ "mode": "direct" }` returned `"country": null`. A body with nothing to change answers as `GET` does.
+
+## Use your own proxy
+
+Send your proxy's address as `proxy` when you open the session. It must be an `http`, `https`, `socks5` or `socks5h` URL on a public host.
+
+```json
+{
+  "ttl": 300,
+  "activityTtl": 60,
+  "proxy": "http://user:password@proxy.example.net:8080"
+}
+```
+
+To switch a running session to your proxy, send `mode` `custom` with `customProxy`.
+
+```json
+{
+  "mode": "custom",
+  "customProxy": {
+    "host": "proxy.example.net",
+    "port": 8080,
+    "username": "user",
+    "password": "password",
+    "protocol": "http"
+  }
+}
+```
+
+`host` and `port` are required. `protocol` is `http`, `https`, `socks5` or `socks5h`. A host that is not public, such as `localhost`, returns `400 invalidRequest` with `customProxy: host must be a public address.`
+
+## Options
+
+| Field | Where | Type | Default | Effect |
+| - | - | - | - | - |
+| `location.country` | open | `string` | `US` | Two-letter country code. Only with the default network. |
+| `proxy` | open | `string` | `residential` | `residential` is the default network, where `location.country` applies. `direct` uses no proxy. A URL uses your own proxy. |
+| `mode` | change | string | none | `managed`, `direct` or `custom`. |
+| `country` | change | `string` | none | With `managed`: the country to appear in, such as `DE`. |
+| `rotate` | change | `boolean` | none | `true` gets a new address in the current country. |
+| `customProxy` | change | `object` | none | With `custom`: `host`, `port`, and optional `username`, `password` and `protocol`. |
+
+A profile keeps the country it first used. See [Profiles](/browser/profiles).
+
+## Price
+
+Traffic is billed when the session closes, by the choice that carried it.
+
+| Network | Traffic |
+| - | - |
+| A country, the default | $5 per GB |
+| No proxy | $0.20 per GB |
+| Your own proxy | $0.20 per GB |
+
+Traffic before and after a change is billed at the rate of its own network. The closing answer's `exitBytes` splits the bytes: `managed` for the default network, `direct` and `custom`. This real session spent 38,137 bytes in Japan and 13,328 bytes with no proxy, and its traffic and time cost $0.006 together.
+
+```json
+{
+  "success": true,
+  "recordingStatus": "none",
+  "sessionDurationMs": 28662,
+  "proxyBytes": 51465,
+  "exitBytes": { "managed": 38137, "direct": 13328, "custom": 0 },
+  "creditsBilled": 3,
+  "costUsd": 0.006,
+  "creditsUsed": 3,
+  "requestId": "2adef125-b958-442e-88af-bde8701dde73"
+}
+```
+
+Browser time is $0.06 per hour whatever you choose. See [Browser sessions](/browser/overview#price).
+
+## Limits and errors
+
+- `location.country` with `proxy` of `direct` or your own URL returns `400 invalidRequest`: `location.country picks a residential exit. Leave it out with your own proxy or direct.`
+- A country that is not two letters returns `400 invalidRequest`: `location.country: Expected a two-letter country code such as DE`.
+- A `proxy` that is not `residential`, `direct` or a public URL returns `400 invalidRequest`: `proxy: Expected residential, direct, or your own proxy as an http://, https:// or socks5:// URL on a public host`.
+- Reading or changing a session that is not running returns `409 invalidRequest` with `This browser session is not running.`
+
+## Related
+
+- [Browser sessions](/browser/overview) opens and closes the session.
+- [Network policies](/browser/network-policies) allow or block domains.
+- [Location and headers](/scrape/location-and-headers) picks a country for a scrape.
+- [Proxy reference](/api-reference/endpoint/browser-proxy-update) lists every field.

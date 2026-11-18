@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/crawl/job_qqmWroHTkWk61kDjA32Q3g/results"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "id": "job_qqmWroHTkWk61kDjA32Q3g",
+      "status": "completed",
+      "total": 2,
+      "completed": 2,
+      "failed": 0,
+      "creditsUsed": 1,
+      "costUsd": 0.002,
+      "errors": [],
+      "results": [
+        {
+          "markdown": "# Welcome to Bun\n\n> Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.\n…",
+          "url": "https://bun.com/docs",
+          "requestedUrl": "https://bun.com/docs",
+          "title": "Welcome to Bun",
+          "depth": 0,
+          "statusCode": 200,
+          "isTruncated": false,
+          "metadata": {
+            "title": "Welcome to Bun",
+            "sourceURL": "https://bun.com/docs",
+            "url": "https://bun.com/docs",
+            "statusCode": 200,
+            "contentType": "text/markdown",
+            "cacheState": "miss",
+            "proxyUsed": "basic"
+          },
+          "creditsUsed": 1,
+          "costUsd": 0.001
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "d25a99de-e954-4a4a-9642-8a514fadbde1"
+  }
+}

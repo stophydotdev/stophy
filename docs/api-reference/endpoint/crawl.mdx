@@ -12,13 +12,9 @@ Best for reading a whole section of a site without holding a call open. It answe
 
 ## Price
 
-1 credit a page, however it is reached. json with a schema or a prompt, summary and highlights add 4 credits each when they return something. CSS rules and attributes add nothing. A PDF adds 1 credit for each page read. Each perform action adds 2 credits. An answer from a stored copy within maxAge is free. A page that comes back with a 404 or 410 status is charged like any page. A page that cannot be read costs nothing. Each page is charged when it finishes. Starting the job is free.
+$1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.
 
-See [Pricing](/billing) for what credits cost.
-
-## Limits
-
-An account runs up to 5 crawls and batch scrapes at once. A sixth start answers 400 `invalidRequest`: `jobs: you already have 5 jobs running. Wait for one of them to finish, then try again.` Wait until one is `completed`, then start it again.
+See [Pricing](/account/pricing).
 
 <RequestExample>
 ```bash cURL
@@ -56,8 +52,11 @@ print(response.json())
 ```json 200
 {
   "success": true,
-  "id": "job_a-Bqc0NaZ8ADzLB4rhpeKA",
-  "url": "https://api.stophy.dev/v1/crawl/job_a-Bqc0NaZ8ADzLB4rhpeKA"
+  "id": "job_qqmWroHTkWk61kDjA32Q3g",
+  "url": "https://api.stophy.dev/v1/crawl/job_qqmWroHTkWk61kDjA32Q3g",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "36803e79-5195-413c-8d2b-6c873aac8990"
 }
 ```
 </ResponseExample>

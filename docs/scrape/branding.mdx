@@ -1,0 +1,194 @@
+---
+title: "Branding"
+description: "Read the colors, fonts, spacing, buttons and logo of a site from how the page looks. One request at $1 per 1,000 pages, with no extra fee."
+og:title: "Branding | Stophy"
+og:description: "Read the colors, fonts, spacing, buttons and logo of a site from how the page looks. One request at $1 per 1,000 pages, with no extra fee."
+---
+
+`branding` reads the look of a page: its colors, fonts, type scale, spacing, button and input styles, and its logo and brand images.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request reads the look of a home page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com",
+    "formats": ["branding"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com",
+    formats: ["branding"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.branding.colors);
+console.log(data.branding.fonts);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com",
+        "formats": ["branding"],
+    },
+)
+data = response.json()["data"]
+print(data["branding"]["colors"])
+print(data["branding"]["fonts"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.branding` is an object. This is the real response for that page.
+
+```json
+{
+  "success": true,
+  "data": {
+    "branding": {
+      "colorScheme": "light",
+      "logo": "https://bun.com/logo.svg",
+      "colors": {
+        "primary": "#ff1f8f",
+        "accent": "#ff6ab5",
+        "background": "#ffffff",
+        "textPrimary": "#0a0a0a",
+        "textSecondary": "#525252",
+        "link": "#ffffff"
+      },
+      "fonts": [
+        {
+          "family": "Segoe UI"
+        },
+        {
+          "family": "Martian Mono"
+        },
+        {
+          "family": "Archivo"
+        }
+      ],
+      "typography": {
+        "fontFamilies": {
+          "primary": "Segoe UI",
+          "heading": "Archivo",
+          "code": "Martian Mono"
+        },
+        "fontSizes": {
+          "h1": "76.2917px",
+          "h2": "16.8px",
+          "h3": "54.395px",
+          "body": "16px"
+        },
+        "fontWeights": {
+          "regular": 400,
+          "medium": 500,
+          "bold": 900
+        },
+        "lineHeights": {
+          "heading": "0.94",
+          "body": "1.5"
+        }
+      },
+      "spacing": {
+        "borderRadius": "3px",
+        "padding": {
+          "button": "0px 20px 0px 20px"
+        }
+      },
+      "components": {
+        "buttonPrimary": {
+          "background": "#ff1f8f",
+          "textColor": "#ffffff",
+          "borderRadius": "0px"
+        },
+        "buttonSecondary": {
+          "background": "#0a0a0a",
+          "textColor": "#ffffff",
+          "borderRadius": "999px"
+        }
+      },
+      "images": {
+        "logo": "https://bun.com/logo.svg",
+        "favicon": "https://bun.com/icons/icon-192x192.png",
+        "ogImage": "https://bun.com/share_v4.png"
+      },
+      "animations": {
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "cubic-bezier(0.22, 1, 0.36, 1)"
+      },
+      "layout": {
+        "headerHeight": "65px",
+        "maxContentWidth": "1216px"
+      }
+    },
+    "metadata": {
+      "title": "Bun — A fast all-in-one JavaScript runtime",
+      "sourceURL": "https://bun.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "31d8a13e-2bc6-47bc-bf52-b066c8c5e2b7",
+      "costUsd": 0.001
+    }
+  },
+  "id": "31d8a13e-2bc6-47bc-bf52-b066c8c5e2b7",
+  "costUsd": 0.001,
+  "requestId": "31d8a13e-2bc6-47bc-bf52-b066c8c5e2b7"
+}
+```
+
+Colors are hex values. A field the page does not show is left out, so check that a field is there before you use it.
+
+| Field | What it holds |
+| - | - |
+| `colorScheme` | `light` or `dark`. |
+| `logo` | The URL of the logo. |
+| `colors` | `primary`, `secondary`, `accent`, `background`, `textPrimary`, `textSecondary`, `link`, `success`, `warning` and `error`. |
+| `fonts` | The font families the page uses. |
+| `typography` | Font families, sizes, weights and line heights. |
+| `spacing` | Base unit, border radius, padding and margins. |
+| `components` | Styles of `buttonPrimary`, `buttonSecondary` and `input`. |
+| `images` | `logo`, `favicon` and `ogImage`. |
+| `icons`, `animations`, `layout`, `personality` | Other style facts, when the page shows them. |
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"branding"` to return the look of the page. |
+
+## Limits and errors
+
+- The page is read in a browser and never from a stored copy, so the call takes a few seconds.
+- A PDF comes back as Markdown only. Asking for `branding` on a PDF returns `400 invalidRequest`.
+- A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Price
+
+$1 per 1,000 pages, the same as any page. `branding` adds nothing.
+
+## Related
+
+- [Screenshot](/scrape/screenshot) captures how the page looks as an image.
+- [Images](/scrape/images) lists the image URLs on a page.
+- [Waiting and rendering](/scrape/waiting-and-rendering) lets a late page finish loading first.
+- [Scrape overview](/scrape/overview) lists every format.

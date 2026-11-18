@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "DELETE",
+    "path": "/v1/scrape/ac28ed59-d0d8-4639-92e1-e1b0db5e9abb/interact"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "sessionDurationMs": 4071,
+    "proxyBytes": 381770,
+    "creditsBilled": 2,
+    "costUsd": 0.004,
+    "creditsUsed": 2,
+    "requestId": "b691bccd-dd0e-441c-af03-6d955d5c401d"
+  }
+}

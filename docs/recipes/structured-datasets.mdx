@@ -1,0 +1,285 @@
+---
+title: "Structured datasets"
+description: "Turn a list of URLs into rows with a JSON schema. Submit a batch, read one object per page, handle missing fields, and write a CSV. 3 pages cost $0.012."
+og:title: "Structured datasets | Stophy"
+og:description: "Turn a list of URLs into rows with a JSON schema. Submit a batch, read one object per page, handle missing fields, and write a CSV. 3 pages cost $0.012."
+---
+
+You have a list of pages and want a table: one row per page, the same columns every time. You describe the columns as a JSON schema, a batch reads every page in the background, and you flatten the answers into rows.
+
+You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). Each page costs $0.004 with a schema. The run on this page read 3 pages and cost $0.012.
+
+## 1. Describe the row
+
+The schema is one row. Mark the fields every page has as `required`, and leave the others optional, so a page that lacks one still returns a row. `description` tells the model the format you want.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "author": { "type": "string" },
+    "publishedOn": { "type": "string", "description": "The publication date as YYYY-MM-DD." },
+    "topics": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["title", "publishedOn"]
+}
+```
+
+See [JSON](/scrape/json) for what a schema can hold.
+
+## 2. Submit the batch
+
+A batch reads a list of URLs in the background. It answers at once with an `id`. Send `formats` with the `json` format and your `schema`.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/batch/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": [
+      "https://bun.com/blog/bun-v1.4.4",
+      "https://bun.com/blog/bun-in-rust",
+      "https://bun.com/blog/behind-the-scenes-of-bun-install"
+    ],
+    "formats": [
+      {
+        "type": "json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "author": { "type": "string" },
+            "publishedOn": { "type": "string", "description": "The publication date as YYYY-MM-DD." },
+            "topics": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["title", "publishedOn"]
+        }
+      }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/batch/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    urls: [
+      "https://bun.com/blog/bun-v1.4.4",
+      "https://bun.com/blog/bun-in-rust",
+      "https://bun.com/blog/behind-the-scenes-of-bun-install",
+    ],
+    formats: [
+      {
+        type: "json",
+        schema: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            author: { type: "string" },
+            publishedOn: { type: "string", description: "The publication date as YYYY-MM-DD." },
+            topics: { type: "array", items: { type: "string" } },
+          },
+          required: ["title", "publishedOn"],
+        },
+      },
+    ],
+  }),
+});
+const { url } = await response.json();
+console.log(url);
+```
+```python Python
+import os
+
+import requests
+
+schema = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "author": {"type": "string"},
+        "publishedOn": {"type": "string", "description": "The publication date as YYYY-MM-DD."},
+        "topics": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["title", "publishedOn"],
+}
+response = requests.post(
+    "https://api.stophy.dev/v1/batch/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "urls": [
+            "https://bun.com/blog/bun-v1.4.4",
+            "https://bun.com/blog/bun-in-rust",
+            "https://bun.com/blog/behind-the-scenes-of-bun-install",
+        ],
+        "formats": [{"type": "json", "schema": schema}],
+    },
+)
+print(response.json()["url"])
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "id": "job_NPkRqt7D1NGSjp5d62VBew",
+  "url": "https://api.stophy.dev/v1/batch/scrape/job_NPkRqt7D1NGSjp5d62VBew",
+  "invalidURLs": [],
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "143ae94e-b233-49a5-9e71-a37c45737f87"
+}
+```
+
+`invalidURLs` lists addresses that were not public pages. They are left out and cost nothing. Starting a batch is free, and each page is charged when it finishes.
+
+## 3. Read the answers
+
+Call `url` until `status` is `completed`. This batch took 6 seconds. Each page in `data` holds its object in `json`, and its address in `metadata.url`. This is the real answer, cut.
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "total": 3,
+  "completed": 3,
+  "failed": 0,
+  "creditsUsed": 6,
+  "costUsd": 0.012,
+  "createdAt": "2026-11-17T18:27:21.838Z",
+  "completedAt": "2026-11-17T18:27:27.703Z",
+  "duration": 5.865,
+  "expiresAt": "2026-11-18T18:27:21.838Z",
+  "errors": [],
+  "data": [
+    {
+      "json": {
+        "title": "Bun v1.4.4",
+        "author": "example_user",
+        "publishedOn": "2026-10-22",
+        "topics": ["bun fmt", "bun check", "bun install", "Bun.SQL", "bun:sqlite", "WebSocket", "ws"]
+      },
+      "metadata": {
+        "url": "https://bun.com/blog/bun-v1.4.4",
+        "statusCode": 200,
+        "creditsUsed": 2,
+        "costUsd": 0.004
+      }
+    },
+    {
+      "json": {
+        "title": "Behind The Scenes of Bun Install",
+        "author": "example_user",
+        "publishedOn": "2025-09-10"
+      },
+      "metadata": {
+        "url": "https://bun.com/blog/behind-the-scenes-of-bun-install",
+        "statusCode": 200,
+        "creditsUsed": 2,
+        "costUsd": 0.004
+      }
+    }
+  ]
+}
+```
+
+The second page has no `topics`. The field was optional, and the page lists none. Your code has to expect that. `creditsUsed` is the charge in steps of $0.002, so 6 is $0.012.
+
+An answer holds up to 100 pages or 2 MB, so a long batch comes back in parts. Follow `next` until it is missing. `errors` lists the pages that could not be read, and a failed page costs nothing. See [Read a crawl](/crawl/async), which a batch works like.
+
+## 4. Write the rows
+
+This function waits for `completed`, follows `next`, turns each `json` into a flat row with its `url`, fills a missing field with an empty string, and writes a CSV.
+
+```typescript
+interface Post {
+  title: string;
+  author?: string;
+  publishedOn: string;
+  topics?: string[];
+}
+
+interface BatchAnswer {
+  status: string;
+  data: { json?: Post; metadata: { url: string } }[];
+  next?: string;
+}
+
+const headers = { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` };
+
+async function get(url: string): Promise<BatchAnswer> {
+  return (await fetch(url, { headers })).json();
+}
+
+export async function readRows(batchUrl: string): Promise<Record<string, string>[]> {
+  let answer = await get(batchUrl);
+  while (answer.status === "queued" || answer.status === "scraping") {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    answer = await get(batchUrl);
+  }
+  const rows: Record<string, string>[] = [];
+  for (;;) {
+    for (const page of answer.data) {
+      if (page.json === undefined) continue;
+      rows.push({
+        url: page.metadata.url,
+        title: page.json.title,
+        author: page.json.author ?? "",
+        publishedOn: page.json.publishedOn,
+        topics: (page.json.topics ?? []).join("; "),
+      });
+    }
+    if (answer.next === undefined) return rows;
+    answer = await get(answer.next);
+  }
+}
+
+export function toCsv(rows: Record<string, string>[]): string {
+  const first = rows[0];
+  if (first === undefined) return "";
+  const columns = Object.keys(first);
+  const cell = (value: string) => `"${value.replaceAll('"', '""')}"`;
+  const lines = rows.map((row) => columns.map((name) => cell(row[name] ?? "")).join(","));
+  return [columns.join(","), ...lines].join("\n");
+}
+```
+
+On the batch above it returned this CSV. The third page has an empty `topics` cell.
+
+```text
+url,title,author,publishedOn,topics
+"https://bun.com/blog/bun-v1.4.4","Bun v1.4.4","example_user","2026-10-22","bun fmt; bun check; bun install; Bun.SQL; bun:sqlite; WebSocket; ws"
+"https://bun.com/blog/bun-in-rust","Rewriting Bun in Rust","example_user","2026-07-08","Bun; Rust; Zig; software rewrites; LLM-assisted development"
+"https://bun.com/blog/behind-the-scenes-of-bun-install","Behind The Scenes of Bun Install","example_user","2025-09-10",""
+```
+
+## What to check
+
+- `completed` plus `failed` equals `total`, and your row count equals `completed`.
+- Open three pages and compare each cell with the page. The model fills a field from the page text, so a field the page does not state can come back wrong or empty.
+- `required` fields are never empty. Count the empty cells of each optional column, and decide if the column is worth keeping.
+- Dates are in one format. If not, tighten the `description` and read a few pages again.
+- Store `url` and the time you read it with each row, so you can tell how old a row is.
+
+## What it costs
+
+| Item | Price |
+| - | - |
+| A page read | $0.001 |
+| `json` with a schema or a prompt, when it returns fields | $0.003 more |
+| One row | $0.004 |
+| A page that cannot be read | Free |
+
+1,000 rows cost $4. Test the schema on 3 to 5 pages before you send the list. See [Pricing](/account/pricing).
+
+## Related
+
+- [JSON](/scrape/json) describes schemas and prompts for one page.
+- [Batches](/batches/overview) covers submitting, reading and cancelling a batch.
+- [Extract](/extract/overview) fills a schema across several pages and checks each value against the page.
+- [Monitors](/monitors/targets) keep a dataset fresh by telling you which pages changed.

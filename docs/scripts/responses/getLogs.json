@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "path": "/v1/logs"
+    "path": "/v1/logs?limit=3"
   },
   "status": 200,
   "response": {
@@ -14,13 +14,14 @@
       {
         "apiKeyId": "<apiKeyId>",
         "apiKeyName": "My key",
-        "createdAt": "2026-11-05T23:35:35.272Z",
-        "credits": 5,
+        "createdAt": "2026-11-17T17:48:33.329Z",
+        "credits": 1,
+        "costUsd": 0.001,
         "durationMs": null,
-        "endpoint": "extract",
-        "id": "8be659e2-a763-4e67-b8ac-e9eb53b89e4d",
+        "endpoint": "search",
+        "id": "d1199e34-7dbe-4354-9fd7-ab7d184bef50",
         "method": "POST",
-        "requestId": "b3b7fe02-9cf2-4339-b7f8-aa9e034be26f",
+        "requestId": "0664204e-ff95-4cc1-92f6-b346f6fbbd30",
         "response": "success",
         "status": 200
       }

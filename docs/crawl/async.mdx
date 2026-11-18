@@ -1,0 +1,345 @@
+---
+title: "Read a crawl"
+description: "Poll a crawl, page through its results, read its errors, cancel it, list your crawls, and get a webhook for each finished page."
+og:title: "Read a crawl | Stophy"
+og:description: "Poll a crawl, page through its results, read its errors, cancel it, list your crawls, and get a webhook for each finished page."
+---
+
+A crawl runs in the background. `POST /v1/crawl` answers at once with an `id`, and these calls let you follow it: read its status and finished pages, read its errors, cancel it, and list your crawls. All of them are free and need the same API key. A crawl and its pages are kept for 24 hours.
+
+## Poll a crawl and read every page
+
+Poll `GET /v1/crawl/{id}` until `status` is `completed`, `failed` or `cancelled`. Then follow `next` until the answer has none. This reads every page of a crawl.
+
+<CodeGroup>
+```bash cURL
+CRAWL_ID="<the id your crawl returned>"
+URL="https://api.stophy.dev/v1/crawl/$CRAWL_ID"
+
+while :; do
+  BODY=$(curl -s "$URL" -H "Authorization: Bearer $STOPHY_API_KEY")
+  case $(echo "$BODY" | jq -r .status) in completed|failed|cancelled) break ;; esac
+  sleep 2
+done
+
+echo "$BODY" | jq .data
+NEXT=$(echo "$BODY" | jq -r '.next // empty')
+while [ -n "$NEXT" ]; do
+  BODY=$(curl -s "$NEXT" -H "Authorization: Bearer $STOPHY_API_KEY")
+  echo "$BODY" | jq .data
+  NEXT=$(echo "$BODY" | jq -r '.next // empty')
+done
+```
+```typescript TypeScript
+const id = "<the id your crawl returned>";
+const headers = { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` };
+const url = `https://api.stophy.dev/v1/crawl/${id}`;
+const over = new Set(["completed", "failed", "cancelled"]);
+
+let status = await (await fetch(url, { headers })).json();
+while (!over.has(status.status)) {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  status = await (await fetch(url, { headers })).json();
+}
+
+const pages = [...status.data];
+let next: string | undefined = status.next;
+while (next !== undefined) {
+  const more = await (await fetch(next, { headers })).json();
+  pages.push(...more.data);
+  next = more.next;
+}
+```
+```python Python
+import os
+import time
+
+import requests
+
+crawl_id = "<the id your crawl returned>"
+headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
+url = f"https://api.stophy.dev/v1/crawl/{crawl_id}"
+
+status = requests.get(url, headers=headers).json()
+while status["status"] not in ("completed", "failed", "cancelled"):
+    time.sleep(2)
+    status = requests.get(url, headers=headers).json()
+
+pages = list(status["data"])
+next_url = status.get("next")
+while next_url:
+    more = requests.get(next_url, headers=headers).json()
+    pages.extend(more["data"])
+    next_url = more.get("next")
+```
+</CodeGroup>
+
+A status answer holds up to 100 finished pages or 2 MB, whichever comes first. That is separate from the `limit` you sent to the crawl, which is how many pages it reads in all. A crawl with `limit` 30 is usually read in one call once it is done, and one with `limit` 250 in three.
+
+`next` appears only when more finished pages are waiting, so it never leads to an empty `data`. It is a full URL on `api.stophy.dev`. Call it with the same API key.
+
+```json
+{ "status": "completed", "total": 250, "completed": 250, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=-IEUnTHVpage_100", "data": [ … ] }
+{ "status": "completed", "total": 250, "completed": 250, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=1owY_-gJpage_200", "data": [ … ] }
+{ "status": "completed", "total": 250, "completed": 250, "data": [ … ] }
+```
+
+## Read the status
+
+While a crawl runs, `status` is `scraping`. This real answer came right after the crawl started: one page is known and none is done.
+
+```json
+{
+  "success": true,
+  "data": [],
+  "status": "scraping",
+  "total": 1,
+  "completed": 0,
+  "failed": 0,
+  "creditsUsed": 0,
+  "costUsd": 0,
+  "createdAt": "2026-11-17T18:03:49.796Z",
+  "duration": 0.6,
+  "expiresAt": "2026-11-18T18:03:49.796Z",
+  "errors": [],
+  "requestId": "69f50aab-33c4-4cd0-96f0-34df0e1d0404"
+}
+```
+
+| Field | What it holds |
+| - | - |
+| `status` | `scraping`, `completed`, `failed` or `cancelled`. |
+| `queuePosition` | Where the crawl waits, when it has not started yet. |
+| `total` | The pages found so far. It grows while the crawl runs. |
+| `completed`, `failed` | Pages that finished, and pages that could not be read. |
+| `data` | The finished pages, in the shape the formats you chose give. See [Page content](/crawl/page-content). |
+| `errors` | The failed pages in this answer, each with `url`, `code`, `message`, `retryable` and `at`. |
+| `error` | Set only when the whole crawl failed, such as when the start page could not be read. |
+| `costUsd` | What the pages read so far cost. |
+| `createdAt`, `completedAt`, `duration`, `expiresAt` | Times, and the seconds the crawl ran. The pages are removed at `expiresAt`. |
+| `next` | The URL of the next answer, when more finished pages are waiting. |
+
+## Read page by page
+
+`GET /v1/crawl/{id}/results` returns the finished pages with more detail on each, 20 at a time. Send `limit` up to 100, and send `cursor` from the answer to read the next part. Keep going until `cursor` is missing.
+
+```bash
+curl "https://api.stophy.dev/v1/crawl/$CRAWL_ID/results?limit=2" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+This real answer is cut. The Markdown and the metadata of each page are shortened.
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "job_9FAn-0pRXhHk7olrXk0sVg",
+    "status": "completed",
+    "total": 3,
+    "completed": 3,
+    "failed": 0,
+    "creditsUsed": 2,
+    "costUsd": 0.003,
+    "errors": [],
+    "results": [
+      {
+        "markdown": "# Bun Runtime\n\n> Execute JavaScript/TypeScript files, package.json scripts, and …",
+        "url": "https://bun.com/docs/runtime",
+        "requestedUrl": "https://bun.com/docs/runtime",
+        "title": "Bun Runtime",
+        "depth": 0,
+        "statusCode": 200,
+        "creditsUsed": 1,
+        "costUsd": 0.001
+      },
+      {
+        "markdown": "# Archive\n\n> Create and extract tar archives with Bun's fast native implementation …",
+        "url": "https://bun.com/docs/runtime/archive",
+        "requestedUrl": "https://bun.com/docs/runtime/archive",
+        "title": "Archive",
+        "depth": 1,
+        "statusCode": 200,
+        "creditsUsed": 1,
+        "costUsd": 0.001
+      }
+    ],
+    "cursor": "eqfj7g9apage_2"
+  },
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "51b7bb02-7957-4ef4-a725-1b933a86ba56"
+}
+```
+
+Each result has the `url` the crawl ended on, the `requestedUrl` it followed, the page's `depth` (links from the start page), and its own `costUsd`. Sending `cursor=eqfj7g9apage_2` with the same `limit` returned the last page, with no `cursor`.
+
+## Read the errors
+
+`GET /v1/crawl/{id}/errors` lists the pages the crawl could not read, and why. This crawl had none.
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "failed": 0,
+  "errors": [],
+  "robotsBlocked": [],
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "3ee6db37-5029-47f7-8064-6ffcd8406ea3"
+}
+```
+
+Each item of `errors` has the page's `url`, a stable `code`, a `message`, whether trying again can help (`retryable`) and when it failed (`at`). The list holds up to 1,000 errors, and `isTruncated` says when there were more. A failed page costs nothing. Pages that the site's robots rules disallow are skipped, not counted as failures, so `robotsBlocked` stays empty.
+
+A page that answers with a 404 or 410 status is not an error. It is a finished page with `statusCode` 404 and `metadata.error`, and it costs nothing.
+
+## Cancel a crawl
+
+`DELETE /v1/crawl/{id}` stops a crawl and keeps the pages it already read. You are charged for those pages and no more.
+
+```bash
+curl -X DELETE https://api.stophy.dev/v1/crawl/$CRAWL_ID \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "status": "cancelled",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "d2fd225e-d90c-4d29-8599-b4f2f60c6dba"
+}
+```
+
+A crawl that already finished or failed cannot be cancelled. The call returns `409 jobFinished`.
+
+```json
+{
+  "retryable": false,
+  "requestId": "82e2d903-0c8f-415f-a638-daf74558d8f5",
+  "success": false,
+  "error": "This crawl already finished, so there is nothing to cancel. Read its pages with GET /v1/crawl/job_9FAn-0pRXhHk7olrXk0sVg.",
+  "code": "jobFinished"
+}
+```
+
+## List your crawls
+
+`GET /v1/crawl` lists your crawls, newest first, 20 at a time. Send `status` to keep one status, `limit` up to 100, and `cursor` from the answer for the next part. A page can hold fewer than `limit`, so keep going until `cursor` is missing.
+
+```bash
+curl "https://api.stophy.dev/v1/crawl?limit=2" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "crawls": [
+      {
+        "id": "job_9FAn-0pRXhHk7olrXk0sVg",
+        "status": "completed",
+        "total": 3,
+        "completed": 3,
+        "failed": 0,
+        "creditsUsed": 2,
+        "costUsd": 0.003,
+        "createdAt": "2026-11-17T18:03:18.610Z",
+        "completedAt": "2026-11-17T18:03:21.668Z",
+        "expiresAt": "2026-11-18T18:03:18.610Z"
+      },
+      {
+        "id": "job_gBYJAUeRxmUpVUmqEb-z_g",
+        "status": "completed",
+        "total": 1,
+        "completed": 1,
+        "failed": 0,
+        "creditsUsed": 1,
+        "costUsd": 0.001,
+        "createdAt": "2026-11-17T18:03:04.336Z",
+        "completedAt": "2026-11-17T18:03:07.286Z",
+        "expiresAt": "2026-11-18T18:03:04.336Z"
+      }
+    ],
+    "cursor": "kA3_tLN41794938584336:job_gBYJAUeRxmUpVUmqEb-z_g"
+  },
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "4a7604fc-285c-42a7-9b2f-4c4c9b9948e6"
+}
+```
+
+`GET /v1/crawl/active` lists only the crawls that are waiting or running, each with its `id`, `url`, `status` (`queued` or `scraping`), `createdAt` and the `options` it was started with.
+
+```json
+{
+  "success": true,
+  "crawls": [],
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "aa5316ea-0660-413c-bc97-be861c1f3314"
+}
+```
+
+## Get told with a webhook
+
+Send `webhook` when you start the crawl, instead of polling. It is a URL, or an object. Stophy sends a JSON `POST` when the crawl starts, for each finished page, and when it ends.
+
+```json
+{
+  "url": "https://bun.com/docs/runtime",
+  "limit": 3,
+  "webhook": {
+    "url": "https://example.com/hooks/crawl",
+    "metadata": { "project": "docs" },
+    "events": ["page", "completed"]
+  }
+}
+```
+
+| `webhook` field | Effect |
+| - | - |
+| `url` | Where to send the calls. Required. |
+| `headers` | Headers sent with every call. |
+| `metadata` | An object that comes back in every call. |
+| `events` | Which of `started`, `page`, `action`, `completed`, `failed` and `cancelled` to send. All by default. |
+
+Each call is signed in a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. If your endpoint answers slowly, a `page` event can carry only the page's `url`. Read that page with the status call. See [Webhooks](/webhooks).
+
+## Options
+
+These fields go in the body of `POST /v1/crawl`.
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `webhook` | `string` or `object` | none | Be told as the crawl runs. See above. |
+| `delay` | `number` | none | Seconds to wait between pages, up to 60. With `delay` the crawl reads one page at a time. |
+| `maxConcurrency` | `number` | none | The most pages read at once, 1 to 100. A crawl reads at most 4 pages at once, so a larger number gives the same speed. |
+| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the crawl: no stored copy is read or made, results are held for one hour at most, and nothing is logged. Adds $2 per 1,000 pages. |
+
+## Batches work the same way
+
+A [batch scrape](/batches/overview) is read like a crawl, at `https://api.stophy.dev/v1/batch/scrape/<id>`, with `/results` and `/errors` under it. Its pages are kept for 24 hours as well.
+
+## Limits and errors
+
+- A status answer holds up to 100 pages or 2 MB. `/results` holds up to 100 pages, 20 by default.
+- An `id` that does not exist, belongs to another account, or has expired returns `404 notFound`.
+- A `cursor` is only good for the crawl and the `limit` it came from. Send it unchanged.
+- A crawl that has failed shows `status` `failed` and the reason in `error`.
+- Without an API key, every call returns `401 apiKeyRequired`.
+
+## Price
+
+Free. Reading, listing, cancelling and reading errors cost nothing. The pages a crawl reads are charged when they finish, at the price in [Crawl](/crawl/overview#price).
+
+## Related
+
+- [Crawl overview](/crawl/overview) starts a crawl.
+- [Scope and limits](/crawl/scope) chooses the pages.
+- [Page content](/crawl/page-content) chooses what each page returns.
+- [Webhooks](/webhooks) explains signatures and retries.

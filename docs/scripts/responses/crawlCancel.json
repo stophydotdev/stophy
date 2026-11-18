@@ -1,10 +1,14 @@
 {
   "request": {
     "method": "DELETE",
-    "path": "/v1/crawl/job_LcaBuaAN-S2yX7jXmsgWTw"
+    "path": "/v1/crawl/job_WeSZsZn8aKCooRvKSRj2dA"
   },
   "status": 200,
   "response": {
-    "status": "cancelled"
+    "success": true,
+    "status": "cancelled",
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "b43440ca-9223-4ff3-b1c4-de816f9afffb"
   }
 }

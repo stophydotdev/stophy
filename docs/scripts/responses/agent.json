@@ -1,0 +1,32 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/agent",
+    "body": {
+      "prompt": "What is the name of the configuration file this page describes?",
+      "urls": [
+        "https://bun.com/docs/runtime/bunfig"
+      ],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          }
+        }
+      },
+      "maxCredits": 10
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "job_4kxytfWzbr774qn3-Ju4Qw",
+    "url": "https://api.stophy.dev/v1/agent/job_4kxytfWzbr774qn3-Ju4Qw",
+    "threadId": "job_4kxytfWzbr774qn3-Ju4Qw",
+    "threadTurn": 1,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "819c366d-5eca-4f8e-b91f-d6181b99951e"
+  }
+}

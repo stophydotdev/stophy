@@ -1,0 +1,82 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/scrape",
+    "body": {
+      "url": "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
+      "formats": [
+        {
+          "type": "json",
+          "parser": "reddit-search"
+        }
+      ]
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "json": {
+        "results": [
+          {
+            "id": "1vmwcb7",
+            "url": "https://www.reddit.com/r/InterstellarKinetics/comments/1vmwcb7/breaking_trump_is_being_sued_by_the_intercept/",
+            "title": "BREAKING: Trump Is Being Sued By The Intercept & Freedom Of The Press Foundation Over “Brazen” Scheme Charging Up To…",
+            "text": "President Trump is being sued by nonprofit news groups The Intercept and the Freedom of the Press Foundation over…",
+            "author": {
+              "id": "0",
+              "name": null,
+              "handle": "example_user",
+              "url": "https://example.com/example_user",
+              "avatarUrl": null,
+              "isVerified": null
+            },
+            "community": {
+              "name": "InterstellarKinetics",
+              "url": "https://www.reddit.com/r/InterstellarKinetics/"
+            },
+            "publishedAt": "2026-08-13T01:02:48.590Z",
+            "likes": 5481,
+            "comments": 59,
+            "shares": null,
+            "views": null,
+            "media": [],
+            "hashtags": [],
+            "score": 5481,
+            "upvotePercent": 99.4,
+            "flair": "FINANCIAL FRONTIERS",
+            "linkUrl": "https://arstechnica.com/tech-policy/2026/08/trump-sued-over-brazen-scheme-to-sell-truth-social-api-access-for-100k-a-mo…",
+            "thumbnailUrl": "https://external-preview.redd.it/zQG3SjQ_AvJknEM2xFLmeX-acdp5CN8PUgwKe9A2X5s.jpeg?auto=webp&s=248d4f38ccc72103e0c836158…",
+            "isNsfw": false,
+            "isVideo": false,
+            "isPinned": false,
+            "videoHlsUrl": null,
+            "videoDurationSeconds": null,
+            "pollOptions": [],
+            "pollTotalVotes": null,
+            "pollEndsAt": null,
+            "repostOfUrl": null
+          }
+        ],
+        "cursor": "MjQ=",
+        "page": null,
+        "total": null
+      },
+      "metadata": {
+        "sourceURL": "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
+        "url": "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
+        "statusCode": 200,
+        "contentType": "application/json",
+        "cacheState": "hit",
+        "cachedAt": "2026-11-17T17:53:24.463Z",
+        "scrapeId": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e",
+        "creditsUsed": 1,
+        "costUsd": 0.001
+      }
+    },
+    "id": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e",
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e"
+  }
+}

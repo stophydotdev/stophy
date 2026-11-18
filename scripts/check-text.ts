@@ -9,14 +9,14 @@ interface Rule {
 export const RULES: readonly Rule[] = [
   {
     message: "Over MCP, endpoint ids are camelCase, like redditSearch, not reddit.search.",
-    paths: /^(docs\/mcp-server|mcp\/README)/u,
+    paths: /^(docs\/install-mcp\.mdx|docs\/mcp\/|mcp\/README)/u,
     pattern:
       /`(airbnb|amazon|appstore|booking|careers|chatgpt|craigslist|ebay|expedia|facebook|gemini|glassdoor|google|indeed|instagram|linkedin|luma|meta|pinterest|realtor|reddit|threads|tiktok|tripadvisor|trustpilot|upwork|web|x|yelp|youtube|zillow)(\.[a-z]+)+`/u,
   },
   {
     message:
       "Claude Desktop connects to https://mcp.stophy.dev/mcp as a custom connector, not the local package.",
-    paths: /^docs\/quickstarts\/claude-desktop\.mdx$/u,
+    paths: /^docs\/integrations\/claude-desktop\.mdx$/u,
     pattern: /@stophy\/mcp/u,
   },
   {

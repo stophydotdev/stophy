@@ -10,37 +10,24 @@
   "response": {
     "success": true,
     "data": {
-      "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's configuration…",
+      "markdown": "# bunfig.toml\n\n> Configure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's…",
       "metadata": {
-        "viewport": "width=device-width, initial-scale=1",
-        "theme-color": [
-          "#ffffff",
-          "#0d0a0c"
-        ],
-        "og:type": "website",
-        "og:image": "https://bun.com/og/docs/runtime/bunfig.png",
-        "twitter:site": "@bunjavascript",
-        "twitter:card": "summary_large_image",
-        "ogTitle": "bunfig.toml | Bun Docs",
-        "ogDescription": "Configure Bun's behavior using its configuration file bunfig.toml",
-        "ogUrl": "https://bun.com/docs/runtime/bunfig",
-        "ogLocale": "en_US",
-        "ogSiteName": "Bun",
-        "favicon": "https://bun.com/favicon.ico",
-        "title": "bunfig.toml | Bun Docs",
-        "description": "Configure Bun's behavior using its configuration file bunfig.toml",
-        "language": "en",
-        "ogImage": "https://bun.com/og/docs/runtime/bunfig.png",
+        "proxyUsed": "basic",
+        "title": "bunfig.toml",
         "sourceURL": "https://bun.com/docs/runtime/bunfig",
         "url": "https://bun.com/docs/runtime/bunfig",
         "statusCode": 200,
-        "contentType": "text/html",
+        "contentType": "text/markdown",
         "cacheState": "hit",
-        "cachedAt": "2026-11-05T19:33:09.837Z",
-        "scrapeId": "f82a75f2-1f53-4abb-ac5a-9fdbc4314549",
-        "creditsUsed": 0
+        "cachedAt": "2026-11-16T09:58:50.588Z",
+        "scrapeId": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb",
+        "creditsUsed": 1,
+        "costUsd": 0.001
       }
     },
-    "creditsUsed": 0
+    "id": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb",
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb"
   }
 }

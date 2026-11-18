@@ -1,0 +1,171 @@
+---
+title: "Freshness and caching"
+description: "Choose how old a stored copy of a page may be with maxAge and minAge, skip storing with storeInCache, and read a finished scrape again by its id."
+og:title: "Freshness and caching | Stophy"
+og:description: "Choose how old a stored copy of a page may be with maxAge and minAge, skip storing with storeInCache, and read a finished scrape again by its id."
+---
+
+Scrape can answer from a stored copy of a page when one is recent enough. `maxAge` sets how old that copy may be, `minAge` and `lockdown` answer only from stored copies, and `storeInCache` turns storing off. `metadata.cacheState` tells you which one you got.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request asks for a live read, so the page is read as it is now.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["markdown"],
+    "maxAge": 0
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: ["markdown"],
+    maxAge: 0,
+  }),
+});
+const { data, id } = await response.json();
+console.log(data.metadata.cacheState);
+console.log(id);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": ["markdown"],
+        "maxAge": 0,
+    },
+)
+body = response.json()
+print(body["data"]["metadata"]["cacheState"])
+print(body["id"])
+```
+</CodeGroup>
+
+## Read the response
+
+`cacheState` is `miss`, which means the page was read live. This real response is cut after the first paragraph.
+
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
+    "metadata": {
+      "title": "Example Domain",
+      "language": "en",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8",
+      "costUsd": 0.001
+    }
+  },
+  "id": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8",
+  "costUsd": 0.001,
+  "requestId": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8"
+}
+```
+
+A read that came from a stored copy says so, and says when the copy was made.
+
+```json
+"metadata": {
+  "cacheState": "hit",
+  "cachedAt": "2026-11-17T17:53:54.433Z"
+}
+```
+
+| `cacheState` | What you got |
+| - | - |
+| `miss` | The page was read live. |
+| `hit` | A stored copy that was recent enough. `cachedAt` says when it was made. |
+| `stale` | A stored copy older than the default `maxAge`, returned at once while a fresh read runs. Only when the call does not send `maxAge`. |
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `maxAge` | `number` | 2 days | Accept a stored answer up to this many milliseconds old, at most 30 days (`2592000000`). The default is shorter for a site whose pages change often. When you leave `maxAge` out, a copy up to twice that age, at most 7 days, comes back at once as `stale` while a fresh read runs. `0` always reads the page live. |
+| `minAge` | `number` | none | Answer only from a stored copy at least this many milliseconds old, and never read the page live. `0` accepts any stored copy. |
+| `lockdown` | `boolean` | `false` | Answer only from a stored copy of any age and never read live. The same as `minAge: 0`. See [Safety](/scrape/safety). |
+| `storeInCache` | `boolean` | `true` | Send `false` to neither read nor keep a stored copy of this page. |
+
+For a page that changes slowly, send `"maxAge": 604800000` to accept a week-old copy.
+
+## Reads that are always live
+
+These reads are never answered from a stored copy, and they are not saved as one: a call with `headers`, `location.languages`, `profile`, `skipTlsVerification`, `actions`, PDF options in `parsers`, `zeroDataRetention`, `storeInCache: false`, or one of the formats `screenshot`, `rawBase64`, `audio`, `video`, `network`, `branding` and `changeTracking`.
+
+## Read a scrape again
+
+Every scrape keeps its answer for 24 hours under its `id`. `GET /v1/scrape/{id}` returns it again. It is free and needs the same API key.
+
+<CodeGroup>
+```bash cURL
+curl https://api.stophy.dev/v1/scrape/c6e9511e-0150-424c-80e0-a8af6cf4f4b8 \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const id = "c6e9511e-0150-424c-80e0-a8af6cf4f4b8";
+const again = await fetch(`https://api.stophy.dev/v1/scrape/${id}`, {
+  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
+});
+const result = await again.json();
+console.log(result.data.markdown);
+```
+```python Python
+import os
+
+import requests
+
+scrape_id = "c6e9511e-0150-424c-80e0-a8af6cf4f4b8"
+again = requests.get(
+    f"https://api.stophy.dev/v1/scrape/{scrape_id}",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+)
+print(again.json()["data"]["markdown"])
+```
+</CodeGroup>
+
+The answer is the original one, word for word, so `costUsd` still shows what the scrape cost. This read adds nothing to your bill.
+
+- After 24 hours, the `id` returns `404 notFound` with the message `No scrape with that id. Results are kept for 24 hours.`
+- A scrape sent with `zeroDataRetention` is not kept, and neither is an answer larger than 4 MB of text.
+- Only the account that sent a scrape can read it again. A scrape sent without an API key is not kept.
+
+## Limits and errors
+
+- `maxAge` below 0 or not a whole number returns `400 invalidRequest`. A value above 30 days is read as 30 days.
+- `minAge` or `lockdown` on a page with no stored copy returns `404 notFound` with the message `Stophy has no stored copy of that page. Remove minAge or lockdown to read the page live.`
+- Without an API key, `GET /v1/scrape/{id}` returns `401 apiKeyRequired`.
+
+## Price
+
+$1 per 1,000 pages. A stored copy costs the same as a live read. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Related
+
+- [Change tracking](/scrape/change-tracking) compares a page with your last read.
+- [Safety](/scrape/safety) uses `lockdown` to answer only from stored pages.
+- [Page metadata](/scrape/page-metadata) lists `cacheState` and `cachedAt`.
+- [Monitors](/monitors/overview) read a page on a schedule.

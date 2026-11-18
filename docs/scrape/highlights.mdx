@@ -1,0 +1,125 @@
+---
+title: "Highlights"
+description: "Get the passages of a page that best match a query, ready to drop into a prompt. Costs $3 per 1,000 pages on top of the $1 page price."
+og:title: "Highlights | Stophy"
+og:description: "Get the passages of a page that best match a query, ready to drop into a prompt. Costs $3 per 1,000 pages on top of the $1 page price."
+---
+
+`highlights` returns the passages of a page that best match a query. Use it to give a model only the part of a long page that matters.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). Send `highlights` as an object with your query. This request asks for the three best passages.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime/bunfig",
+    "formats": [
+      {
+        "type": "highlights",
+        "query": "global config file location",
+        "count": 3
+      }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime/bunfig",
+    formats: [
+      {
+        type: "highlights",
+        query: "global config file location",
+        count: 3,
+      },
+    ],
+  }),
+});
+const { data } = await response.json();
+console.log(data.highlights);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "formats": [
+            {
+                "type": "highlights",
+                "query": "global config file location",
+                "count": 3,
+            },
+        ],
+    },
+)
+data = response.json()["data"]
+print(data["highlights"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.highlights` is one string. The passages are separated by a blank line, and a table row keeps its header.
+
+```json
+{
+  "success": true,
+  "data": {
+    "highlights": "Set it in the global `.bunfig.toml` (see Global vs. local) or in a file passed with `--config`. Bun ignores it in a project's `bunfig.toml`.\n\nWhen `XDG_CONFIG_HOME` is set to an absolute path, Bun reads the file there and not the one in `$HOME`.\n\n| Key | Value | Flag |\n| --- | --- | --- |\n| `suppressionsLocation` | path | `--suppressions-location` |",
+    "metadata": {
+      "title": "bunfig.toml | Bun Docs",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "227220e1-49fb-4763-9f4d-2e39d9b4249d",
+      "costUsd": 0.004
+    }
+  },
+  "id": "227220e1-49fb-4763-9f4d-2e39d9b4249d",
+  "costUsd": 0.004,
+  "requestId": "227220e1-49fb-4763-9f4d-2e39d9b4249d"
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `type` | `string` | none | `"highlights"`. Required. |
+| `query` | `string` | none | What you are looking for, such as `refund policy`. Required, 1 to 10,000 characters. |
+| `count` | `number` | `5` | How many passages to return, best match first. From 1 to 20. |
+
+The top-level `query` field of the request is a different option. It shortens the Markdown of a long page. See [Content filtering](/scrape/content-filtering).
+
+## Limits and errors
+
+- A page with no matching text returns an empty string, `""`, and costs only the page.
+- Highlights are chosen from the page's Markdown after content filtering. With `redactPII`, they come from the redacted text.
+- A call without `query` returns `400 invalidRequest`.
+
+## Price
+
+$4 per 1,000 pages: $1 for the page and $3 for highlights. When nothing matches, the $3 is not charged.
+
+## Related
+
+- [Question](/scrape/question) answers one question in a sentence.
+- [Summary](/scrape/summary) summarizes the whole page.
+- [Markdown](/scrape/markdown) returns the full text.
+- [Content filtering](/scrape/content-filtering) shortens a long page with the top-level `query`.

@@ -10,6 +10,12 @@ openapi: 'api-reference/openapi.json GET /v1/parsers'
 
 <Note>Needs no API key.</Note>
 
+## Price
+
+Free.
+
+See [Pricing](/account/pricing).
+
 <RequestExample>
 ```bash cURL
 curl https://api.stophy.dev/v1/parsers
@@ -82,7 +88,25 @@ print(response.json())
                 "Wheelchair accessible entrance",
                 "Wheelchair accessible parking lot",
                 "Wheelchair accessible restroom"
-              ]
+              ],
+              "emails": [
+                "name@example.com"
+              ],
+              "socials": [
+                "https://www.facebook.com/1504012583193091"
+              ],
+              "brand": null,
+              "filledFrom": {
+                "overtureId": "d8e5202d-d84a-42fc-bed5-786cbdc35f81",
+                "fields": [
+                  "emails",
+                  "socials"
+                ],
+                "datasets": [
+                  "Overture",
+                  "meta"
+                ]
+              }
             }
           ],
           "cursor": null,
@@ -100,8 +124,9 @@ print(response.json())
           "cursor",
           "page"
         ],
-        "price": "1 credit per call",
+        "price": "$1 per 1,000 calls",
         "credits": 1,
+        "costUsd": 0.001,
         "keyless": true
       }
     ],
@@ -218,24 +243,40 @@ print(response.json())
             ]
           },
           "likes": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "comments": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "shares": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "views": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "media": {
             "type": "array",
@@ -332,19 +373,31 @@ print(response.json())
             ]
           },
           "followers": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "following": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "posts": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "website": {
             "anyOf": [
@@ -462,9 +515,13 @@ print(response.json())
             ]
           },
           "reviewCount": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "availability": {
             "anyOf": [
@@ -629,9 +686,13 @@ print(response.json())
             ]
           },
           "reviewCount": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "priceLevel": {
             "anyOf": [
@@ -777,9 +838,13 @@ print(response.json())
             ]
           },
           "likes": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "response": {
             "anyOf": [
@@ -1146,9 +1211,13 @@ print(response.json())
             ]
           },
           "reviewCount": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "images": {
             "type": "array",
@@ -1312,19 +1381,31 @@ print(response.json())
             ]
           },
           "views": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "likes": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "comments": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "thumbnailUrl": {
             "anyOf": [
@@ -1432,14 +1513,22 @@ print(response.json())
             ]
           },
           "likes": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "replies": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
           },
           "parentId": {
             "anyOf": [

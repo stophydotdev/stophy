@@ -1,0 +1,196 @@
+---
+title: "Extensions"
+description: "Upload a Chrome extension as a zip, load it into browser sessions, and list, read or delete it. Manifest V3 only, up to 50 MiB, 3 per session. Free."
+og:title: "Extensions | Stophy"
+og:description: "Upload a Chrome extension as a zip, load it into browser sessions, and list, read or delete it. Manifest V3 only, up to 50 MiB, 3 per session. Free."
+---
+
+Upload a Chrome extension once, then load it into any browser session you open. Uploads, lists, reads and deletes are free. The extension runs in the session, so you pay only for the session.
+
+## Upload an extension
+
+Get an API key in the [Quickstart](/quickstart). Send the extension as a zip with `manifest.json` at its root, in a multipart form field named `file`. It must be Manifest V3. This small extension marks `example.com` pages.
+
+```json
+{
+  "manifest_version": 3,
+  "name": "Mark page",
+  "version": "1.0.0",
+  "content_scripts": [
+    { "matches": ["https://example.com/*"], "js": ["content.js"] }
+  ]
+}
+```
+
+`content.js` holds one line, `document.documentElement.dataset.markedBy = "mark-page";`. Zip the two files, then upload them.
+
+<CodeGroup>
+```bash cURL
+zip mark-page.zip manifest.json content.js
+
+curl -X POST https://api.stophy.dev/v1/browser/extensions \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -F "file=@mark-page.zip;type=application/zip"
+```
+```typescript TypeScript
+import { readFile } from "node:fs/promises";
+
+const form = new FormData();
+form.append(
+  "file",
+  new Blob([await readFile("mark-page.zip")], { type: "application/zip" }),
+  "mark-page.zip",
+);
+const response = await fetch("https://api.stophy.dev/v1/browser/extensions", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
+  body: form,
+});
+const extension = await response.json();
+console.log(extension.id);
+```
+```python Python
+import os
+
+import requests
+
+with open("mark-page.zip", "rb") as zipped:
+    response = requests.post(
+        "https://api.stophy.dev/v1/browser/extensions",
+        headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+        files={"file": ("mark-page.zip", zipped, "application/zip")},
+    )
+extension = response.json()
+print(extension["id"])
+```
+</CodeGroup>
+
+The answer has status `201`.
+
+```json
+{
+  "success": true,
+  "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
+  "name": "Mark page",
+  "version": "1.0.0",
+  "createdAt": "2026-11-17T18:18:06.606Z",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "c46820aa-00ae-4f36-8149-6a0aa4dcb7d0"
+}
+```
+
+`name` and `version` come from `manifest.json`. Keep `id`. There is no update: upload again for a new `id`.
+
+## Load it into a session
+
+Send the ids in `extensionIds` when you open a session, up to 3. They load before the first page opens and cannot change while the session runs.
+
+```json
+{
+  "ttl": 300,
+  "activityTtl": 60,
+  "extensionIds": ["f508b4d7-c3f8-43e7-91b4-000d69a53ef9"]
+}
+```
+
+The session answer lists them in `extensions`, in the order you sent, with the id Chrome gave each one. Use `runtimeId` in `chrome-extension://{runtimeId}/` addresses.
+
+```json
+"extensions": [
+  {
+    "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
+    "runtimeId": "aoiflbanehlhbhadedjnlhobiemjeegc",
+    "version": "1.0.0"
+  }
+]
+```
+
+To check that it ran, [execute](/browser/execute) code that reads the mark.
+
+```json
+{
+  "code": "await page.goto('https://example.com');\nreturn await page.evaluate(() => document.documentElement.dataset.markedBy);"
+}
+```
+
+The real `result` was `mark-page`. Leave `extensionIds` out for a plain browser: an extension changes what sites can see, so only sessions opened with one have it.
+
+## List, read and delete
+
+| Action | Call | Notes |
+| - | - | - |
+| List | `GET /v1/browser/extensions` | Newest first. `pageSize` 1 to 100, default 10. `pageNumber` from 1. |
+| Read | `GET /v1/browser/extensions/{extension_id}` | One extension. |
+| Delete | `DELETE /v1/browser/extensions/{extension_id}` | Sessions already open keep it until they close. New sessions cannot use the id. |
+
+<CodeGroup>
+```bash cURL
+curl "https://api.stophy.dev/v1/browser/extensions?pageSize=10" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const response = await fetch(
+  "https://api.stophy.dev/v1/browser/extensions?pageSize=10",
+  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
+);
+const { items, totalItems } = await response.json();
+console.log(totalItems, items);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.get(
+    "https://api.stophy.dev/v1/browser/extensions",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    params={"pageSize": 10},
+)
+body = response.json()
+print(body["totalItems"], body["items"])
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "items": [
+    {
+      "id": "f508b4d7-c3f8-43e7-91b4-000d69a53ef9",
+      "name": "Mark page",
+      "version": "1.0.0",
+      "createdAt": "2026-11-17T18:18:06.606Z"
+    }
+  ],
+  "totalItems": 1,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "abd0161d-5e2b-4c8b-baee-82ee24e76e33"
+}
+```
+
+A delete answers `{ "success": true }`. After it, reading the id returns `404 notFound` with `No extension with that id.`
+
+## Options
+
+| Field | Where | Type | Effect |
+| - | - | - | - |
+| `file` | upload form | zip file | The extension, up to 50 MiB, with `manifest.json` at the root. |
+| `extensionIds` | `POST /v1/browser` | `array of string` | Up to 3, each once. |
+| `pageSize`, `pageNumber` | list query | `number` | Which page of the list. |
+
+## Limits and errors
+
+- Manifest V3 only. You can keep 100 extensions.
+- A `manifest.json` with a `key` field, or with the `debugger`, `proxy`, `processes`, `dns`, `experimental` or `enterprise.*` permission, returns `400 prohibitedPermission`. A real answer for `debugger`: `The debugger permission is not allowed.`
+- An id that does not exist, or was deleted, returns `404 notFound`.
+- More than 3 ids, or the same id twice, in `extensionIds` returns `400 invalidRequest`.
+
+## Related
+
+- [Browser sessions](/browser/overview) opens the session that loads the extension.
+- [Profiles](/browser/profiles) keep logins between sessions.
+- [Upload reference](/api-reference/endpoint/browser-extension-upload) lists every field.

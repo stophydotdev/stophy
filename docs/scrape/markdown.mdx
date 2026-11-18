@@ -1,0 +1,108 @@
+---
+title: "Markdown"
+description: "Read a page as clean Markdown with headings, lists, tables and code kept. It is the default Scrape format and costs $1 per 1,000 pages."
+og:title: "Markdown | Stophy"
+og:description: "Read a page as clean Markdown with headings, lists, tables and code kept. It is the default Scrape format and costs $1 per 1,000 pages."
+---
+
+`markdown` returns the text of a page as Markdown. Headings, lists, tables, links and code blocks keep their shape, so you can pass the result to a model or a search index as it is. It is the default format: a request without `formats` returns `markdown`.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request reads a page as Markdown.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["markdown"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: ["markdown"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.markdown);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": ["markdown"],
+    },
+)
+data = response.json()["data"]
+print(data["markdown"])
+```
+</CodeGroup>
+
+## Read the response
+
+The Markdown is in `data.markdown`. This real response is cut after the first paragraph. `metadata` describes the page. See [Page metadata](/scrape/page-metadata).
+
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
+    "metadata": {
+      "title": "Example Domain",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "aef6127a-cd90-44da-a5f2-9b78754dd4e3",
+      "costUsd": 0.001
+    }
+  },
+  "id": "aef6127a-cd90-44da-a5f2-9b78754dd4e3",
+  "costUsd": 0.001,
+  "requestId": "aef6127a-cd90-44da-a5f2-9b78754dd4e3"
+}
+```
+
+By default you get the main content of the page, without menus, headers and footers. See [Content filtering](/scrape/content-filtering) to change that, to choose how links are written (`linkStyle`), and to cut a long page or read it part by part (`maxChars` and `offset`).
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"markdown"` or `{ "type": "markdown" }` to return the page as Markdown. |
+
+Every other field that shapes the Markdown is a top-level field of the request and is described in [Content filtering](/scrape/content-filtering), [Waiting and rendering](/scrape/waiting-and-rendering) and [Location and headers](/scrape/location-and-headers).
+
+## Limits and errors
+
+- A PDF always comes back as Markdown. See [PDFs and documents](/scrape/pdfs-and-documents). A CSV or an Excel `.xlsx` file comes back as Markdown tables.
+- A YouTube link returns the video's title, channel, date, length, views, likes and description. See [YouTube](/scrape/youtube).
+- A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Price
+
+$1 per 1,000 pages. `markdown` adds nothing to the price of the page.
+
+## Related
+
+- [HTML](/scrape/html) returns the page as HTML instead.
+- [Highlights](/scrape/highlights) returns only the passages that match a query.
+- [Content filtering](/scrape/content-filtering) keeps or removes parts of the page.
+- [Scrape overview](/scrape/overview) lists every format.

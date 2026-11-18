@@ -1,0 +1,33 @@
+---
+title: "Browser sign-in"
+description: "Connect Stophy to Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claude or Grok by signing in with your browser. No API key to copy."
+og:title: "Browser sign-in | Stophy"
+og:description: "Connect Stophy to Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claude or Grok by signing in with your browser. No API key to copy."
+---
+
+Add `https://mcp.stophy.dev/mcp` to your client with the commands on [Install MCP](/install-mcp). It is a server URL for your client, not a page to open. Your client starts the sign-in. Clients that support MCP OAuth find it on their own, because the server answers an unsigned call with a `401` that points to its sign-in.
+
+## What happens
+
+1. Your client opens stophy.dev in your browser.
+2. You sign in or sign up.
+3. Stophy shows which app is asking. Approve it only if you started the connection.
+4. Your client connects. Calls come out of your balance.
+
+Signing out of stophy.dev disconnects the app. Your client asks you to sign in again next time.
+
+## Check it
+
+Ask your agent this.
+
+```text
+Find coffee shops in Austin with a rating above 4.5 and list their websites.
+```
+
+To use an API key instead, see [Add an API key](/mcp/keyless#add-an-api-key).
+
+## Related
+
+* [Install MCP](/install-mcp)
+* [MCP with or without an API key](/mcp/keyless)
+* [Pricing](/account/pricing)

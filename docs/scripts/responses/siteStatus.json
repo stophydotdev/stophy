@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/status"
+  },
+  "status": 200,
+  "response": {
+    "sources": [
+      {
+        "failing": [
+          "airbnb.listing"
+        ],
+        "id": "airbnb",
+        "lastCheckAt": "2026-11-17T13:34:38.677Z",
+        "medianMs": 693,
+        "name": "airbnb",
+        "passed": 2,
+        "state": "partial",
+        "total": 3
+      }
+    ],
+    "updatedAt": "2026-11-17T13:35:51.437Z"
+  }
+}

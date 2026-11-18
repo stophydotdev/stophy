@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/parse/formats"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "formats": [
+        {
+          "format": "pdf",
+          "kind": "document",
+          "extensions": [
+            ".pdf"
+          ],
+          "mimeTypes": [
+            "application/pdf"
+          ],
+          "available": true,
+          "name": "pdf",
+          "types": [
+            ".pdf",
+            "application/pdf"
+          ],
+          "options": [
+            "formats",
+            "zeroDataRetention",
+            "parsers"
+          ],
+          "note": "Up to 100 pages; pages with no text layer are read from their picture, up to 20."
+        }
+      ]
+    }
+  }
+}

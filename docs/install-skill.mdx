@@ -1,0 +1,115 @@
+---
+title: "Install skills"
+description: "Install the Stophy agent skills so your coding agent picks the right command for the task. One command for any agent, plus Claude Code, Cursor and Gemini."
+og:title: "Install skills | Stophy"
+og:description: "Install the Stophy agent skills so your coding agent picks the right command for the task. One command for any agent, plus Claude Code, Cursor and Gemini."
+---
+
+The Stophy skills teach a coding agent which Stophy command fits a task, how to run it and how to read the result. Each skill is a `SKILL.md` file in the `skills` folder of the [stophydotdev/stophy](https://github.com/stophydotdev/stophy) repository. A skill is instructions only. It allows the agent to run `stophy ...` and `npx @stophy/cli ...` shell commands.
+
+The skills run on the [Stophy CLI](/install-cli). If `stophy` is missing or too old, they fall back to `npx @stophy/cli@latest`.
+
+## Install
+
+For any agent that supports the Agent Skills format, install every skill.
+
+```bash
+npx skills add stophydotdev/stophy
+```
+
+To install only the skills you need, name them.
+
+```bash
+npx skills add stophydotdev/stophy --skill stophy-web --skill stophy-video
+```
+
+`stophy init` runs this command for you, and also logs you in and adds the MCP server. See [Install the CLI](/install-cli).
+
+## Install as a plugin
+
+The repository is also a plugin for three coding agents. Each manifest sits at the repository root and names the hosted [MCP server](/install-mcp).
+
+| Agent | Manifest | Install |
+| - | - | - |
+| Claude Code | `.claude-plugin/plugin.json` and `marketplace.json` | `/plugin marketplace add stophydotdev/stophy`, then `/plugin install stophy@stophy` |
+| Cursor | `.cursor-plugin/plugin.json` | Add the server to `~/.cursor/mcp.json`. See [Cursor](/integrations/cursor) |
+| Gemini CLI | `gemini-extension.json` | `gemini extensions install https://github.com/stophydotdev/stophy` |
+
+For Claude Code, the marketplace entry points at the repository root (`source: ./`), so the plugin brings the skills in `skills/` and the MCP server named in `.mcp.json`, `https://mcp.stophy.dev/mcp`. You sign in with your browser the first time. See [Browser sign-in](/mcp/oauth).
+
+`skills.sh.json` groups the skills for [skills.sh](https://skills.sh/stophydotdev/stophy).
+
+## Sign in
+
+The skills call the CLI, which needs a login for everything except search, scrape, map, parse and the parsers that need no API key. Those work up to 10 calls a minute and 50 calls a day per IP address. Log in with your browser, or set `STOPHY_API_KEY`.
+
+```bash
+stophy login --browser
+```
+
+## What each skill is for
+
+Start with `stophy`. It names the skill and the command for your task. The others cover one kind of task or one kind of site.
+
+### Start here and tasks
+
+| Skill | What it does |
+| - | - |
+| `stophy` | Picks the skill and command for the task, and covers setup, login, prices and errors |
+| `stophy-scrape` | Reads one page you have a URL for as Markdown, named fields, a screenshot, or a site's data through a parser |
+| `stophy-search` | Searches the web, news and images when you have no URL, with each top result's page text if you ask |
+| `stophy-crawl` | Lists a site's pages, reads many pages of a site, or scrapes a list of URLs in one job |
+| `stophy-extract` | Pulls the fields you name from up to 10 pages as JSON, from a prompt or a schema |
+| `stophy-parse` | Turns a PDF, Word, Excel, PowerPoint or HTML file you hold into Markdown |
+| `stophy-monitor` | Checks whether a page changed since you last read it, and shows the lines that changed |
+| `stophy-download` | Saves a website or one section of it as Markdown files, one per page |
+| `stophy-docs` | Answers a developer question from a library's own current docs |
+| `stophy-browser` | Has a real browser click through a public site's search box or form and return what it found |
+
+### Build with Stophy
+
+| Skill | What it does |
+| - | - |
+| `stophy-build` | Adds Stophy to an app or script with the TypeScript or Python SDK or the REST API, including the API key, errors and paging |
+| `stophy-build-scrape` | Writes code that reads pages and site data, with paging and crawls |
+| `stophy-build-search` | Writes code that searches the web, news and images, with each result's page text if you ask |
+
+### Workflows
+
+| Skill | What it does |
+| - | - |
+| `stophy-lead-gen` | Builds a list of local businesses or companies with phone, website, public contact emails and LinkedIn details |
+| `stophy-job-postings` | Finds open roles across LinkedIn, Indeed, Upwork and company job boards, reads the full postings and adds what the company pays |
+| `stophy-shop` | Compares prices across Amazon, eBay and local listings and checks what buyers say |
+| `stophy-competitive-intel` | Sizes up a competitor: its ads, pricing, app reviews, posts and changes |
+| `stophy-deep-research` | Answers a hard question from many sources, reads the best in full and cites each claim |
+
+### Site data
+
+| Skill | What it does |
+| - | - |
+| `stophy-video` | Gets YouTube, TikTok and Instagram videos, transcripts, comments, channels and playlists |
+| `stophy-social` | Gets posts, profiles and threads from Reddit, Instagram, LinkedIn, Pinterest, Facebook, X and Threads |
+| `stophy-places` | Gets places, hotels, flights and events from Google Maps, Tripadvisor, Yelp, Google Hotels, Airbnb, Booking.com, Expedia, Google Flights and Luma |
+| `stophy-jobs` | Gets job posts from LinkedIn, Indeed, Upwork and careers pages, and Glassdoor reviews and salaries |
+| `stophy-shopping` | Gets Amazon, TikTok Shop, eBay, Facebook Marketplace and Craigslist products and prices, and Trustpilot reviews |
+| `stophy-apps` | Gets App Store and Google Play apps, reviews and the App Store top charts |
+| `stophy-real-estate` | Gets homes for sale, for rent or sold from Zillow and Realtor.com |
+| `stophy-ads` | Searches the Meta, Google, TikTok and LinkedIn ad libraries |
+| `stophy-web` | Reads Google Patents and Google Trends |
+
+## Check that it loaded
+
+Start a new agent session and ask this.
+
+```text
+Using the Stophy skills, which command reads https://bun.com/docs? Don't run it.
+```
+
+A loaded skill answers with `stophy scrape "https://bun.com/docs"`. If the agent answers with a plain HTTP fetch instead, check that each skill sits in a folder your agent reads, as `<name>/SKILL.md`, and restart the agent session.
+
+## Related
+
+* [Install MCP](/install-mcp)
+* [Install the CLI](/install-cli)
+* [Agent quickstart](/agent-quickstart)

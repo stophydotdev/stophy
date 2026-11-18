@@ -12,9 +12,9 @@ Best for a few facts from one page, like a price, a date or a list of names. Eve
 
 ## Price
 
-5 credits for most pages: the page's own price plus 4 credits. A call that finds none of the fields is free.
+$5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free.
 
-See [Pricing](/billing) for what credits cost.
+See [Pricing](/account/pricing).
 
 <RequestExample>
 ```bash cURL
@@ -63,8 +63,11 @@ print(response.json())
 ```json 200
 {
   "success": true,
-  "id": "860b5104-c8fc-4a85-aff9-f826b15c5770",
-  "invalidURLs": []
+  "id": "d3aa5deb-d81b-4b37-8e4a-4eb06b74cab9",
+  "invalidURLs": [],
+  "costUsd": 0.005,
+  "creditsUsed": 3,
+  "requestId": "318bf8fe-1ad6-4d29-922e-6fc7561de3ef"
 }
 ```
 </ResponseExample>

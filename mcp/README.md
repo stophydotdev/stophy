@@ -8,11 +8,11 @@ Give your agents the live web over MCP. Your agent can search, scrape, map, craw
 
 Most apps connect to the hosted server directly, with nothing to install.
 
-| URL                          | How you connect                      | What your agent can use                                                                                                   |
-| ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `https://api.stophy.dev/mcp` | No key                               | The endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), within a free allowance |
-| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every endpoint                                                                                                            |
-| `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every endpoint                                                                                                            |
+| URL                          | How you connect                      | What your agent can use                                |
+| ---------------------------- | ------------------------------------ | ------------------------------------------------------ |
+| `https://api.stophy.dev/mcp` | No key                               | Search, scrape, map and parse, within a free allowance |
+| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every tool                                             |
+| `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every tool                                             |
 
 Get an API key at [stophy.dev/signup](https://stophy.dev/signup).
 
@@ -80,7 +80,7 @@ Some apps can only start a local MCP server. For those, use this package. It run
 npx -y @stophy/mcp
 ```
 
-With `STOPHY_API_KEY` set, your agent can use every endpoint. Without it, your agent can use the endpoints that need no key, within a free allowance.
+With `STOPHY_API_KEY` set, your agent can use every tool. Without it, your agent can use the tools that need no key, within a free allowance.
 
 ### Claude Desktop
 
@@ -109,17 +109,27 @@ The package needs Node.js 18 or later.
 
 ## Tools
 
-| Tool                       | What it does                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `stophy_search`            | Searches the web, news and images                                                                             |
-| `stophy_scrape`            | Reads a page as markdown, HTML, links, a screenshot or JSON                                                   |
-| `stophy_map`               | Lists the pages on a site                                                                                     |
-| `stophy_crawl`             | Starts a crawl of a site in the background and returns its `id`                                               |
-| `stophy_extract`           | Pulls the fields you name from pages as JSON                                                                  |
-| `stophy_search_endpoints`  | Finds the endpoint for a task, with its cost. Free                                                            |
-| `stophy_describe_endpoint` | Shows an endpoint's inputs, an example and what it returns. Free                                              |
-| `stophy_call`              | Runs any endpoint by `id` with `input`, and optional `fields` and `maxTextLength`                             |
-| `stophy_signup`            | Gets your agent an API key: it returns a link for you to approve, then the key once you call it with the code |
+Without a key, the server lists these tools:
+
+| Tool            | What it does                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| `stophy_search` | Searches the web, news, images, research papers and YouTube videos                                            |
+| `stophy_scrape` | Reads a page as markdown, HTML, links, a screenshot or JSON                                                   |
+| `stophy_map`    | Lists the pages on a site                                                                                     |
+| `stophy_parse`  | Turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into markdown                        |
+| `stophy_signup` | Gets your agent an API key: it returns a link for you to approve, then the key once you call it with the code |
+
+With a key, it also lists a tool for each product:
+
+| Tools                                                                                                                                                                                         | What they do                                                                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel`                                                                                                                                  | Start a crawl of a site in the background, read its pages, or stop it                      |
+| `stophy_extract`                                                                                                                                                                              | Pulls the fields you name from pages as JSON, each checked against the page                |
+| `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel`                                                                                                                                  | Start a task that searches, reads pages and fills your fields, read its answer, or stop it |
+| `stophy_developer_search`                                                                                                                                                                     | Searches code docs, READMEs, issues, pull requests and releases                            |
+| `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar`                                                                                                                            | Search research papers, read one, or find papers like it                                   |
+| `stophy_monitor_create`, `stophy_monitor_list`, `stophy_monitor_get`, `stophy_monitor_update`, `stophy_monitor_delete`, `stophy_monitor_run`, `stophy_monitor_checks`, `stophy_monitor_check` | Watch pages on a schedule and read what changed                                            |
+| `browserOpen`, `browserRun`, `browserClose` and six more                                                                                                                                      | Drive a cloud browser                                                                      |
 
 To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser:
 
@@ -132,9 +142,9 @@ To get a site's own data as JSON, such as a Reddit search, a YouTube transcript 
 
 The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
 
-Endpoint ids are camelCase, such as `crawlStatus` or `batchScrape`. A crawl runs in the background: call `crawlStatus` through `stophy_call` with the crawl's `id`. While the crawl runs, the result has a `next` link: send the `cursor` value from that link as `cursor` to get the pages finished since. `fields` keeps only the keys you name on each row. Most calls cost 1 credit. Search costs 2 credits per 10 results, a crawl 1 credit a page, and extract 5 credits for most pages. Each result shows its cost in `creditsUsed`. See [pricing](https://docs.stophy.dev/billing).
+A crawl runs in the background: read it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [pricing](https://docs.stophy.dev/account/pricing).
 
-To give each endpoint its own tool, add `toolsets` to the URL with a source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets `scrape`, `crawlStatus`, `batchScrape` and every other web endpoint as tools.
+For more endpoints of a source, add `toolsets` to the URL with the source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`.
 
 ## Network and credentials
 

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/browser/profiles",
+    "body": {
+      "name": "docs-example"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "name": "docs-example",
+    "cookies": 0,
+    "origins": 0,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "23b006b1-4033-4544-82d4-3e8ee64b38ba"
+  }
+}

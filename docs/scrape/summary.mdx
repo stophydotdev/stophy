@@ -1,0 +1,105 @@
+---
+title: "Summary"
+description: "Get a short summary of any page in one request. It reads the first 50,000 characters and adds $3 per 1,000 pages to the $1 page price."
+og:title: "Summary | Stophy"
+og:description: "Get a short summary of any page in one request. It reads the first 50,000 characters and adds $3 per 1,000 pages to the $1 page price."
+---
+
+`summary` returns a short summary of the page, written from its text.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request summarizes a documentation page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime/bunfig",
+    "formats": ["summary"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime/bunfig",
+    formats: ["summary"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.summary);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "formats": ["summary"],
+    },
+)
+data = response.json()["data"]
+print(data["summary"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.summary` is a string. `costUsd` is the price of the page and the summary together.
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": "bunfig.toml is Bun's optional configuration file for Bun-specific settings, placed in the project root, with a global version also readable by package manager commands. It configures runtime behavior (preload, jsx, smol, logLevel, define, loader, telemetry, env, console), serve port, test runner options, lint rules, formatter options, and install settings. Local keys override global ones, and CLI flags override bunfig settings where applicable.",
+    "metadata": {
+      "title": "bunfig.toml",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/markdown",
+      "cacheState": "hit",
+      "scrapeId": "62b4a105-e59a-4ce5-a010-02c2e79aef4e",
+      "costUsd": 0.004
+    }
+  },
+  "id": "62b4a105-e59a-4ce5-a010-02c2e79aef4e",
+  "costUsd": 0.004,
+  "requestId": "62b4a105-e59a-4ce5-a010-02c2e79aef4e"
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"summary"` to return a short summary of the page. |
+
+`onlyMainContent`, `onlyCleanContent`, `includeTags` and `excludeTags` decide which text is summarized. See [Content filtering](/scrape/content-filtering). With `redactPII`, the summary is made from the redacted text. See [Safety](/scrape/safety).
+
+## Limits and errors
+
+- The summary is made from the first 50,000 characters of the page's Markdown. A longer page is summarized from its start.
+- When no summary can be made, the call returns `503 sourceUnavailable` and costs nothing. Try again after a few seconds.
+- A PDF can be summarized.
+
+## Price
+
+$4 per 1,000 pages: $1 for the page and $3 for the summary. If you ask for `markdown` too, it adds nothing.
+
+## Related
+
+- [Highlights](/scrape/highlights) returns the passages that match a query instead of a summary.
+- [Question](/scrape/question) answers one question about the page.
+- [JSON](/scrape/json) fills the fields you describe.
+- [Markdown](/scrape/markdown) returns the full text.

@@ -1,0 +1,241 @@
+---
+title: "Targets"
+description: "Choose what a monitor watches: a list of pages, a section of a site found again on each check, or a search. Add a goal and change targets safely."
+og:title: "Targets | Stophy"
+og:description: "Choose what a monitor watches: a list of pages, a section of a site found again on each check, or a search. Add a goal and change targets safely."
+---
+
+`targets` says what a monitor watches. It holds 1 to 50 targets, and each has a `type` of `scrape`, `crawl` or `search`. One monitor can mix types, and every check reads every target.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request watches one page and judges each change against a goal. The page returns a new identifier on every read, so a check always finds a change.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/monitor \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Page that changes",
+    "targets": [{ "type": "scrape", "urls": ["https://httpbin.org/uuid"] }],
+    "schedule": { "cron": "0 0 1 * *" },
+    "goal": "Tell me whenever the uuid changes.",
+    "webhook": {
+      "url": "https://example.com/stophy-hook",
+      "events": ["monitor.page", "monitor.check.completed"]
+    }
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/monitor", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "Page that changes",
+    targets: [{ type: "scrape", urls: ["https://httpbin.org/uuid"] }],
+    schedule: { cron: "0 0 1 * *" },
+    goal: "Tell me whenever the uuid changes.",
+    webhook: {
+      url: "https://example.com/stophy-hook",
+      events: ["monitor.page", "monitor.check.completed"],
+    },
+  }),
+});
+const { data } = await response.json();
+console.log(data.id, data.judgeEnabled);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/monitor",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "name": "Page that changes",
+        "targets": [{"type": "scrape", "urls": ["https://httpbin.org/uuid"]}],
+        "schedule": {"cron": "0 0 1 * *"},
+        "goal": "Tell me whenever the uuid changes.",
+        "webhook": {
+            "url": "https://example.com/stophy-hook",
+            "events": ["monitor.page", "monitor.check.completed"],
+        },
+    },
+)
+data = response.json()["data"]
+print(data["id"], data["judgeEnabled"])
+```
+</CodeGroup>
+
+## Read the response
+
+This real response is cut to the fields this page is about. Stophy added an `id` to the target and turned the judge on because you sent a goal.
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "mon_2f3L73izJTdaA1AQ",
+    "name": "Page that changes",
+    "status": "active",
+    "schedule": { "cron": "0 0 1 * *", "timezone": "UTC", "everySeconds": null },
+    "targets": [
+      {
+        "type": "scrape",
+        "urls": ["https://httpbin.org/uuid"],
+        "id": "6948afed-e9eb-43be-8f2c-67ad4c3370c5"
+      }
+    ],
+    "goal": "Tell me whenever the uuid changes.",
+    "judgeEnabled": true,
+    "retentionDays": 30
+  },
+  "id": "mon_2f3L73izJTdaA1AQ",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "17d65b7a-a444-4308-bdd0-e8065621db17"
+}
+```
+
+## Scrape targets
+
+A scrape target lists the pages to read on every check. An address sent twice is read once.
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `type` | `string` | none | `"scrape"`. Required. |
+| `urls` | `array of string` | none | 1 to 100 public page addresses. Required. |
+| `id` | `string` | made for you | A stable name for this target, 1 to 64 characters. Pages in a check say which target they came from. |
+| `scrapeOptions` | `object` | `{}` | How each page is read. See below. |
+
+### Scrape options
+
+`scrapeOptions` takes the same fields as [Scrape](/scrape/overview), except `url`. A monitor always reads the page live, so it ignores `maxAge` and `minAge`. `zeroDataRetention` is refused, because a monitor keeps a snapshot of each page to compare with the next.
+
+`formats` says what to compare. The first of `markdown`, `html`, `rawHtml` and `links` is compared, and `markdown` is the default. A page counts as changed when that text differs from the last read.
+
+To compare fields instead of text, add a `changeTracking` format or a `json` format with a `schema` or a `prompt`, as in [Change tracking](/scrape/change-tracking) and [JSON](/scrape/json). The `modes` of `changeTracking` are `git-diff`, which returns the text diff, and `json`, which returns each field before and after. With only `json`, a page whose text changed but whose fields did not is `same`. `json` adds $3 per 1,000 pages when it returns fields.
+
+## Crawl targets
+
+A crawl target starts from one page. Every check finds the pages under it again and reads each one, so a page that appears later shows up as a `new` change.
+
+```json
+{
+  "type": "crawl",
+  "url": "https://example.com",
+  "crawlOptions": { "limit": 2, "maxDepth": 1 }
+}
+```
+
+This real target, set on a monitor with `PATCH /v1/monitor/{id}`, was stored with every default filled in:
+
+```json
+{
+  "type": "crawl",
+  "url": "https://example.com/",
+  "crawlOptions": {
+    "limit": 2,
+    "includePaths": [],
+    "excludePaths": [],
+    "regexOnFullURL": false,
+    "crawlEntireDomain": false,
+    "allowSubdomains": false,
+    "ignoreQueryParameters": true,
+    "sitemap": "include",
+    "maxDepth": 1
+  },
+  "id": "6945752e-d61d-4b10-95ca-d74d4d842763"
+}
+```
+
+The check that ran afterwards read one page, because the site has no other page under that address, and cost $0.001.
+
+| `crawlOptions` field | Type | Default | Effect |
+| - | - | - | - |
+| `limit` | `number` | 100 | The most pages to read on each check, 1 to 500. The monitor is billed for the pages it finds, up to this number. |
+| `maxDepth` | `number` | 3 | How many path levels below the start page to go, 0 to 10. `maxDiscoveryDepth` is the same field. |
+| `includePaths`, `excludePaths` | `array of string` | `[]` | Up to 100 regular expressions each. A page is kept when its path matches an include pattern, or when there are none, and no exclude pattern. |
+| `regexOnFullURL` | `boolean` | `false` | Match the patterns against the whole address instead of the path. |
+| `crawlEntireDomain` | `boolean` | `false` | Also follow pages that are not under the start page's path. |
+| `allowSubdomains` | `boolean` | `false` | Include pages on subdomains. |
+| `ignoreQueryParameters` | `boolean` | `true` | Treat addresses that differ only by query string as one page. |
+| `sitemap` | `string` | `include` | `skip` ignores the sitemap, `include` uses it with the links, `only` uses only the sitemap. |
+
+A crawl target takes `scrapeOptions` too. If a check finds no pages, it fails and says so in `error`.
+
+## Search targets
+
+A search target runs your queries on every check and reports results it has not seen before. It reads no page, so it has no baseline: a meaningful result is reported the first time it is found.
+
+```json
+{
+  "type": "search",
+  "queries": ["bun release notes"],
+  "searchWindow": "7d",
+  "maxResults": 3,
+  "includeDomains": ["bun.com", "github.com"]
+}
+```
+
+This real target was stored with `excludeDomains` set to `[]` and an `id`. A check with it returned three results and cost $0.004: $0.001 for the search and $0.001 for each result the judge read.
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `queries` | `array of string` | none | 1 to 12 search queries of up to 256 characters. Required. |
+| `searchWindow` | `string` | `24h` | Only results published within `5m`, `15m`, `1h`, `6h`, `24h` or `7d`. A window shorter than `24h` returns the results of the past day. |
+| `maxResults` | `number` | 10 | How many results to look at on each check, 1 to 50, merged and deduplicated across the queries. |
+| `includeDomains`, `excludeDomains` | `array of string` | `[]` | Up to 50 domains each, such as `example.com`. A domain includes its subdomains. |
+
+A search target needs a `goal`, or `judgeEnabled: false`. Without either, the call returns `400 invalidRequest` with `goal: a search target needs a goal to judge results against, or judgeEnabled set to false`. A result the judge finds meaningful is reported as `new`. A result it finds not meaningful is marked `ignored` and is not looked at again. A result you have already been told about is `already_seen`. See [Checks and changes](/monitors/checks-and-changes#search-results).
+
+## Goal and judge
+
+`goal` is what matters to you, in plain words, up to 2,000 characters. With a goal, a model judges every changed page against it. `judgeEnabled: false` turns the judge off while keeping the goal.
+
+The judgment is on the page of the check and in the webhook payload.
+
+```json
+{
+  "meaningful": true,
+  "confidence": "high",
+  "reason": "The uuid value changed, which is exactly what the goal tracks.",
+  "meaningfulChanges": [
+    {
+      "type": "changed",
+      "before": "0714c38d-30cf-4c11-9c7a-801260afcaba",
+      "after": "ec011f90-1296-47af-8911-bad9f9aa5314",
+      "reason": "The uuid field now has a different value."
+    }
+  ]
+}
+```
+
+`confidence` is `high`, `medium` or `low`. A change the judge calls not meaningful is still recorded and still sent, with `meaningful: false`, so you decide what to do with it. If the judge cannot decide, `judgment` is `null` and the page is not charged for it. Judging adds $1 per 1,000 pages for each changed page it reads.
+
+## Update targets
+
+`PATCH /v1/monitor/{id}` replaces `targets` as a whole, so send every target you want to keep. You can also change `goal` and `judgeEnabled` in the same call.
+
+- A page you keep stays compared with its last snapshot.
+- A page you add to a scrape target is read for the first time on the next check, which only records it as `new` and sends no event.
+- A page you remove is no longer read or billed.
+
+## Limits and errors
+
+- A monitor takes at most 50 targets and 100 pages in one scrape target. Your account takes 25 monitors and 1,000 pages in all. See [Limits and errors](/monitors/limits-and-errors).
+- An address that is not a public website returns `400 invalidRequest` with `targets.0.urls.0: Expected a public website URL`.
+- `zeroDataRetention` inside `scrapeOptions` returns `400 invalidRequest` with `zeroDataRetention is not available for monitors, which keep a snapshot to compare`.
+- Send `targets` and `schedule` together. The older fields `url`, `urls`, `interval`, `formats` and `changeTracking` still work on their own: `url` or `urls` for the pages, `interval` for seconds or text such as `30m`, `6h` or `1d`, and `changeTracking` for the compare modes. Sending them together with `targets` or `schedule` returns `400 invalidRequest`.
+
+## Related
+
+- [Schedules](/monitors/schedules) sets how often a monitor checks.
+- [Checks and changes](/monitors/checks-and-changes) reads what a check found.
+- [Webhooks](/monitors/webhooks) tells you when a page changes.
+- [Change tracking](/scrape/change-tracking) compares one page with your last read, without a monitor.

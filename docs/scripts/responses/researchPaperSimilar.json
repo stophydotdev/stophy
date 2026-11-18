@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/search/research/papers/W4411630045/similar?intent=evaluating+retrieval+augmented+generation&k=5"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "results": [
+      {
+        "paperId": "W4389519118",
+        "primaryId": "doi:10.18653/v1/2023.emnlp-main.495",
+        "ids": {
+          "openalex": [
+            "W4389519118"
+          ],
+          "doi": [
+            "10.18653/v1/2023.emnlp-main.495"
+          ]
+        },
+        "title": "Active Retrieval Augmented Generation",
+        "abstract": "Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, Graham Neubig.…",
+        "authors": [
+          "Zhengbao Jiang",
+          "Frank F. Xu",
+          "Luyu Gao"
+        ],
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+        "citedByCount": 462,
+        "openAccessUrl": "https://aclanthology.org/2023.emnlp-main.495.pdf",
+        "score": 101772.93
+      }
+    ],
+    "poolSize": 5,
+    "truncated": false,
+    "note": "Ranked by words in the intent and the seed titles; no citation signals.",
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "f28c8056-3ae1-4f30-8e78-11b4e4ca90eb"
+  }
+}

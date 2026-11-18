@@ -1,0 +1,111 @@
+---
+title: "Images"
+description: "Get the URL of every image on a page as an absolute URL. Use it to download or inspect the pictures a page shows. $1 per 1,000 pages."
+og:title: "Images | Stophy"
+og:description: "Get the URL of every image on a page as an absolute URL. Use it to download or inspect the pictures a page shows. $1 per 1,000 pages."
+---
+
+`images` returns the URL of every image on the page, as an absolute URL.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request lists the images of a home page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com",
+    "formats": ["images"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com",
+    formats: ["images"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.images);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com",
+        "formats": ["images"],
+    },
+)
+data = response.json()["data"]
+print(data["images"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.images` is an array of strings. This is the real response for that page.
+
+```json
+{
+  "success": true,
+  "data": {
+    "images": [
+      "https://bun.com/logo.svg",
+      "https://bun.com/bun-homepage-cc-boris-poster.webp",
+      "https://bun.com/bun-homepage-midjourney-cheng-poster.webp",
+      "https://bun.com/bun-homepage-railway-jake-poster.webp",
+      "https://bun.com/bun-homepage-cursor-leerob-1-poster.webp"
+    ],
+    "metadata": {
+      "title": "Bun — A fast all-in-one JavaScript runtime",
+      "sourceURL": "https://bun.com/",
+      "url": "https://bun.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "6f5f8ef3-3a3e-4499-a179-3a64cf5ae5a7",
+      "costUsd": 0.001
+    }
+  },
+  "id": "6f5f8ef3-3a3e-4499-a179-3a64cf5ae5a7",
+  "costUsd": 0.001,
+  "requestId": "6f5f8ef3-3a3e-4499-a179-3a64cf5ae5a7"
+}
+```
+
+Each URL comes from the `src` of an `img` tag on the whole page. Relative URLs are made absolute, each URL appears once, and only `http` and `https` URLs are kept. The list leaves out images set in CSS and images that carry their data in the URL (`data:image`). A page with no images returns an empty array.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `formats` | `array` | `["markdown"]` | Add `"images"` to return every image URL on the page. |
+
+## Limits and errors
+
+- A PDF comes back as Markdown only. Asking for `images` on a PDF returns `400 invalidRequest`.
+- A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
+
+## Price
+
+$1 per 1,000 pages. `images` adds nothing to the price of the page.
+
+## Related
+
+- [Screenshot](/scrape/screenshot) captures how the page looks.
+- [Branding](/scrape/branding) reads the logo, colors and fonts.
+- [Links](/scrape/links) lists the links on a page.
+- [Content filtering](/scrape/content-filtering) controls which parts of the page are read.

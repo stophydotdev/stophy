@@ -1,0 +1,345 @@
+---
+title: "JSON"
+description: "Fill an object from a page with a JSON Schema or a plain prompt. Each field is checked against the page. $3 per 1,000 pages on top of the $1 page price."
+og:title: "JSON | Stophy"
+og:description: "Fill an object from a page with a JSON Schema or a plain prompt. Each field is checked against the page. $3 per 1,000 pages on top of the $1 page price."
+---
+
+`json` returns an object in the shape you describe, filled from the text of the page. Describe it with a JSON Schema, or with a prompt in plain words.
+
+## Fill a schema
+
+Get an API key in the [Quickstart](/quickstart). Send `json` as an object with a `schema`. This request reads three facts from a documentation page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime/bunfig",
+    "formats": [
+      {
+        "type": "json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "configFile": { "type": "string" },
+            "globalPaths": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "hasTelemetryOption": { "type": "boolean" }
+          }
+        }
+      }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime/bunfig",
+    formats: [
+      {
+        type: "json",
+        schema: {
+          type: "object",
+          properties: {
+            configFile: { type: "string" },
+            globalPaths: {
+              type: "array",
+              items: { type: "string" },
+            },
+            hasTelemetryOption: { type: "boolean" },
+          },
+        },
+      },
+    ],
+  }),
+});
+const { data } = await response.json();
+console.log(data.json);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "formats": [
+            {
+                "type": "json",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "configFile": {"type": "string"},
+                        "globalPaths": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "hasTelemetryOption": {"type": "boolean"},
+                    },
+                },
+            },
+        ],
+    },
+)
+data = response.json()["data"]
+print(data["json"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.json` holds the fields of your schema.
+
+```json
+{
+  "success": true,
+  "data": {
+    "json": {
+      "configFile": "bunfig.toml",
+      "globalPaths": [
+        "$HOME/.bunfig.toml",
+        "$XDG_CONFIG_HOME/.bunfig.toml"
+      ],
+      "hasTelemetryOption": true
+    },
+    "metadata": {
+      "title": "bunfig.toml",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/markdown",
+      "cacheState": "hit",
+      "scrapeId": "29911e6f-d14d-4fe1-a355-caf317d4a4e2",
+      "costUsd": 0.004
+    }
+  },
+  "id": "29911e6f-d14d-4fe1-a355-caf317d4a4e2",
+  "costUsd": 0.004,
+  "requestId": "29911e6f-d14d-4fe1-a355-caf317d4a4e2"
+}
+```
+
+A field the page does not state comes back as `null`. Each value is checked against the page text before it is returned.
+
+## Fill a prompt
+
+When you do not want to write a schema, send a `prompt`. The model picks the field names and returns up to 20 fields.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime/bunfig",
+    "formats": [
+      { "type": "json", "prompt": "the name of the config file and where a global one goes" }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime/bunfig",
+    formats: [
+      { type: "json", prompt: "the name of the config file and where a global one goes" },
+    ],
+  }),
+});
+const { data } = await response.json();
+console.log(data.json);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "formats": [
+            {"type": "json", "prompt": "the name of the config file and where a global one goes"},
+        ],
+    },
+)
+data = response.json()["data"]
+print(data["json"])
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "data": {
+    "json": {
+      "configFileName": "bunfig.toml",
+      "localConfigLocation": "project root, alongside package.json",
+      "globalConfigPaths": [
+        "$HOME/.bunfig.toml",
+        "$XDG_CONFIG_HOME/.bunfig.toml"
+      ],
+      "fileIsOptional": true,
+      "globalFileReadByCommands": "package manager commands (bun install, bun add, bun remove, bun update, bun pm, bunx, and so on)",
+      "xdgConfigHomeOverridesHome": true,
+      "localOverridesGlobal": true,
+      "cliFlagsOverrideBunfig": true,
+      "unreadableFilesSkipped": true
+    },
+    "metadata": {
+      "title": "bunfig.toml",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/markdown",
+      "cacheState": "hit",
+      "scrapeId": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170",
+      "costUsd": 0.004
+    }
+  },
+  "id": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170",
+  "costUsd": 0.004,
+  "requestId": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170"
+}
+```
+
+Use a `schema` when your code reads the fields by name, because a prompt can name fields differently from one call to the next.
+
+## Read attributes
+
+To read attribute values such as link URLs, send the `attributes` format. It uses no model and adds no charge. Each entry in `selectors` names the elements to match with a CSS `selector` and the `attribute` to read. Send 1 to 50 entries. This request reads the URL of every link on a page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": [
+      {
+        "type": "attributes",
+        "selectors": [{ "selector": "a", "attribute": "href" }]
+      }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: [
+      {
+        type: "attributes",
+        selectors: [{ selector: "a", attribute: "href" }],
+      },
+    ],
+  }),
+});
+const { data } = await response.json();
+console.log(data.attributes);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": [
+            {
+                "type": "attributes",
+                "selectors": [{"selector": "a", "attribute": "href"}],
+            },
+        ],
+    },
+)
+data = response.json()["data"]
+print(data["attributes"])
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "data": {
+    "attributes": [
+      {
+        "selector": "a",
+        "attribute": "href",
+        "values": ["https://iana.org/help/example-domains"]
+      }
+    ],
+    "metadata": {
+      "title": "Example Domain",
+      "sourceURL": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "scrapeId": "589ef6d6-c921-4245-85c8-287d4cd5ba1e",
+      "costUsd": 0.001
+    }
+  },
+  "id": "589ef6d6-c921-4245-85c8-287d4cd5ba1e",
+  "costUsd": 0.001,
+  "requestId": "589ef6d6-c921-4245-85c8-287d4cd5ba1e"
+}
+```
+
+`data.attributes` has one entry for each selector you sent, with its `selector`, its `attribute` and the `values` it found. The read costs $1 per 1,000 pages. `attributes` adds nothing.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `type` | `string` | none | `"json"`. Required. |
+| `schema` | `object` | none | The fields to fill, as a JSON Schema (draft-07 or 2020-12) with `properties`. Up to 100 top-level fields and 32 KB. |
+| `prompt` | `string` | none | What to pull from the page, in plain words. 1 to 10,000 characters. |
+| `rules` | `object` | none | Read the page with CSS rules and no model, for no extra charge. Each field is a selector such as `"h1"` or `"a@href"`. Up to 100 fields, 5 levels deep. Not with `schema`, `prompt` or `parser`. |
+| `parser` | `string` | none | Read a site with its own parser. See [Pre-built parsers](/scrape/prebuilt-parsers). |
+| `options` | `object` | none | Extra inputs for a `parser`, such as `{ "page": 2 }`. |
+
+Pydantic's `model_json_schema()` and zod's `toJSONSchema()` output work as they are. `enum`, `const`, `anyOf`, `oneOf`, nullable types, `$ref` with `$defs`, `required` and `description` are all read.
+
+## Limits and errors
+
+- The model reads the first 50,000 characters of the page's Markdown.
+- A `json` format with no `schema`, `prompt`, `rules` or `parser` returns `400 invalidRequest` with the message `formats: json needs a schema or a prompt for this page.`
+- `rules` together with `schema`, `prompt` or `parser` returns `400 invalidRequest` with the message `rules cannot be combined with schema, prompt or parser`.
+- If the page states none of your fields, the model fee is not charged.
+
+## Price
+
+$4 per 1,000 pages: $1 for the page and $3 for `json` with a `schema` or a `prompt`. `rules`, `parser` and `attributes` add nothing.
+
+## Related
+
+- [Pre-built parsers](/scrape/prebuilt-parsers) return a site's own data as JSON.
+- [Product](/scrape/product) returns a product page in a fixed shape.
+- [Extract](/extract/overview) pulls fields from one or more pages and checks each against the page.
+- [Question](/scrape/question) answers one question in a sentence.

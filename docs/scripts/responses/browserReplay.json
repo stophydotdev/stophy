@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/6bd8981c-f2a8-403c-b188-352828c08bc2/replay"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "6bd8981c-f2a8-403c-b188-352828c08bc2",
+    "pages": [
+      {
+        "pageId": "d6ca3614-019d-4073-8ebc-10bb1e664642",
+        "url": "https://example.com/",
+        "title": "Example Domain",
+        "at": 1794937861718,
+        "steps": [
+          "goto(\"https://example.com\")",
+          "title()"
+        ]
+      }
+    ],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "2a513df0-d572-427e-af24-6e45c3fb26dc"
+  }
+}

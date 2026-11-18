@@ -1,0 +1,123 @@
+---
+title: "API keys"
+description: "Create an API key, let an agent sign up for one, check when a key expires, revoke it, and see which calls work without an API key."
+og:title: "API keys | Stophy"
+og:description: "Create an API key, let an agent sign up for one, check when a key expires, revoke it, and see which calls work without an API key."
+---
+
+An API key identifies your account on every call. Send it as a bearer token. Your account holds one balance, and every key on it spends from that balance.
+
+```bash
+curl https://api.stophy.dev/v1/limits -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+## Create a key
+
+Sign up at [stophy.dev/signup](https://stophy.dev/signup) with GitHub or Google, then create an API key. Save it as `STOPHY_API_KEY` in your server's secret store. Keep it out of code you commit and out of browser code. A new account starts with $2. See [Pricing](/account/pricing).
+
+The [CLI](/install-cli) makes its own key when you run `stophy login`. Each computer gets its own key, and logging in again replaces it. [Browser sign-in](/mcp/oauth) over MCP needs no API key.
+
+## Sign up from an agent
+
+An agent can request an API key for you. You only approve it.
+
+1. The agent calls `POST /v1/signup`. The call needs no API key and is free. The answer holds a `claimUrl` and a secret `code`.
+2. You open `claimUrl`, sign in with GitHub or Google and approve.
+3. The agent calls `POST /v1/signup/poll` with the `code` every few seconds. It gets `202` with `status: "waiting"` until you approve, then `200` with the `apiKey`, once.
+
+```bash
+curl -X POST https://api.stophy.dev/v1/signup -H "Content-Type: application/json" -d '{}'
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "claimUrl": "https://stophy.dev/claim/<id>",
+    "code": "<secret code>",
+    "expiresAt": "<24 hours from now>"
+  },
+  "costUsd": 0,
+  "requestId": "<request id>"
+}
+```
+
+This is the response shape from the [API reference](/api-reference/endpoint/sign-up), with placeholders for the values. The link and the code work for 24 hours. A code that is unknown, expired or already collected answers `404` with code `notFound`. Sign up again. Each IP address can start 5 signups a day, then the answer is `429` with code `rateLimited`. The full steps are in the [Agent quickstart](/agent-quickstart). Over MCP, the `stophy_signup` tool does the same.
+
+## Check a key and its expiry
+
+`GET /v1/limits` shows a key's rate limit and when it stops working. This real response is cut to those fields.
+
+```json
+{
+  "success": true,
+  "data": {
+    "tier": "paid",
+    "rateLimit": { "limitPerMinute": 600, "remaining": 597, "resetsAt": "2026-11-17T17:44:00.000Z" },
+    "keyExpiresAt": null,
+    "billingUrl": "https://stophy.dev/billing"
+  },
+  "costUsd": 0
+}
+```
+
+`keyExpiresAt` is `null` when the key does not expire, as for a key an agent collected. When a key has an expiry, `keyExpiresAt` is that time, and after it the key answers `401` with code `unauthorized`. A key that is wrong, revoked or expired gets the same answer.
+
+```json
+{
+  "success": false,
+  "error": "This API key is not valid or has expired. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
+  "code": "unauthorized",
+  "retryable": false,
+  "signupUrl": "https://stophy.dev/signup",
+  "signup": "POST https://api.stophy.dev/v1/signup"
+}
+```
+
+## Revoke a key
+
+`DELETE /v1/key` revokes the key you call it with. It is free, and the key stops working at once. It needs an API key, not a signed-in session.
+
+```bash
+curl -X DELETE https://api.stophy.dev/v1/key -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+The answer is `{ "success": true }`. `stophy logout` revokes the CLI's key the same way. To replace a key, create the new one, update your app, then revoke the old one. Every call counts against the key that made it. Filter [`GET /v1/logs`](/production/usage-and-logs) and [`GET /v1/usage/history`](/account/usage) by `apiKeyId` to see one key's calls.
+
+## Calls without an API key
+
+Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address, with no paging. Scrape with a parser works when the parser is marked `keyless: true` in the [parser list](https://api.stophy.dev/v1/parsers). Everything else answers `401` with code `apiKeyRequired`, and so does a keyless call that uses a field below. The answer carries a `signupUrl` for a person and a `signup` call for an agent.
+
+| Needs an API key | On |
+| - | - |
+| `page` other than 1, or `cursor` | Every endpoint that pages |
+| `actions`, `profile`, `waitFor` | Scrape |
+| `checkPromptInjection`, `onlyCleanContent`, `redactPII` | Scrape |
+| The `json` format with a `schema` or a `prompt`, and the `audio` and `video` formats | Scrape |
+| A parser that is not marked `keyless: true`, and any parser option such as `cursor` | Scrape |
+| Sending `includeSubdomains` as `true` | Map |
+| A file over 2 MB. With an API key, a file can be up to 36 MB. | Parse |
+| Crawl, batches, extract, agent, browsers, monitors and webhooks | Every call |
+
+On search, `scrapeOptions` also needs an API key. Without one, that call answers `400` with code `invalidRequest`.
+
+`GET /v1/keyless/eligibility` needs no API key. It tells you whether your IP address can still make calls without an API key.
+
+```json
+{
+  "success": true,
+  "eligible": true,
+  "remainingToday": 50,
+  "remainingThisMinute": 10,
+  "costUsd": 0
+}
+```
+
+Over the limit, a keyless call answers `429` with code `freeLimit`, a `signupUrl` and `retryAfterSeconds`. See [Rate limits](/production/rate-limits).
+
+## Related
+
+* [Agent quickstart](/agent-quickstart)
+* [Pricing](/account/pricing)
+* [Usage](/account/usage)
+* [Troubleshooting](/production/troubleshooting)

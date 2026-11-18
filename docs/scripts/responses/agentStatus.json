@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/agent/job_4kxytfWzbr774qn3-Ju4Qw"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "file": "bunfig.toml"
+    },
+    "status": "completed",
+    "confidence": {
+      "file": 0.8074
+    },
+    "sources": {
+      "file": {
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "quote": "›Core Runtime Copy page bunfig.toml Configure Bun's behavior using its configuration file bunfig.toml bunfig.toml is…"
+      }
+    },
+    "stoppedBy": "done",
+    "model": "spark-2",
+    "mode": "extract",
+    "effort": "high",
+    "threadId": "job_4kxytfWzbr774qn3-Ju4Qw",
+    "threadTurn": 1,
+    "steps": [
+      {
+        "n": 1,
+        "action": "open",
+        "detail": "read the page",
+        "credits": 1,
+        "costUsd": 0.001
+      }
+    ],
+    "skipped": [],
+    "creditsUsed": 2,
+    "costUsd": 0.004,
+    "createdAt": "2026-11-17T17:50:23.347Z",
+    "completedAt": "2026-11-17T17:50:28.183Z",
+    "expiresAt": "2026-11-18T17:50:23.347Z",
+    "requestId": "d1ed3e19-8008-45ab-80d8-48fbbb409fcd"
+  }
+}

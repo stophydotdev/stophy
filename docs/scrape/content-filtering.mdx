@@ -1,0 +1,132 @@
+---
+title: "Content filtering"
+description: "Keep the main content, pick parts of a page by CSS selector, clean what is left, choose how links look, and cut a long page into parts you read one by one."
+og:title: "Content filtering | Stophy"
+og:description: "Keep the main content, pick parts of a page by CSS selector, clean what is left, choose how links look, and cut a long page into parts you read one by one."
+---
+
+These fields decide which parts of a page end up in the Markdown and HTML: the main content, the parts you select, or only the passages that match a query. They also decide how links are written and how much text comes back in one call.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request keeps the `main` element of a docs page, drops its code blocks, writes links as numbered references, and returns the first 600 characters.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+    "includeTags": ["main"],
+    "excludeTags": ["pre"],
+    "linkStyle": "numbered",
+    "maxChars": 600
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+    includeTags: ["main"],
+    excludeTags: ["pre"],
+    linkStyle: "numbered",
+    maxChars: 600,
+  }),
+});
+const { data } = await response.json();
+console.log(data.markdown);
+console.log(data.nextOffset);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+        "includeTags": ["main"],
+        "excludeTags": ["pre"],
+        "linkStyle": "numbered",
+        "maxChars": 600,
+    },
+)
+data = response.json()["data"]
+print(data["markdown"])
+print(data.get("nextOffset"))
+```
+</CodeGroup>
+
+## Read the response
+
+The Markdown holds the selected part only. Links are written as `⟨1⟩` and listed once at the end. The text was cut at 600 characters, so `nextOffset` says where the next part starts, and `warning` says the text was cut. This real response is cut to the fields that matter.
+
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "# 404 Not Found\n\nThe HTTP **`404 Not Found`** client error response⟨1⟩ status code indicates that the server cannot find the requested resource.\nLinks that lead to a 404 page are often called broken or dead links and can be subject to link rot⟨2⟩.\n\nA 404 status code only indicates that the resource is missing without indicating if this is temporary or permanent.\n\n\n## References\n\n⟨1⟩ https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status#client_error_responses\n⟨2⟩ https://en.wikipedia.org/wiki/Link_rot\n",
+    "nextOffset": 529,
+    "warning": "The page text was cut short. Send offset 529 to read on.",
+    "metadata": {
+      "title": "404 Not Found - HTTP | MDN",
+      "sourceURL": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "hit",
+      "costUsd": 0.001
+    }
+  },
+  "id": "f494daae-4d53-45c0-a3f6-6b7cc2806726",
+  "costUsd": 0.001,
+  "requestId": "f494daae-4d53-45c0-a3f6-6b7cc2806726"
+}
+```
+
+To read on, send the same request with `"offset": 529` and the same `maxChars`. Repeat until the answer has no `nextOffset`.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `onlyMainContent` | `boolean` | `true` | Keep the page's main content, without menus, headers, footers and ads. Send `false` for the whole page. |
+| `onlyCleanContent` | `boolean` | `false` | A model removes what `onlyMainContent` leaves behind in the Markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It removes whole paragraphs and lists only, never rewrites or adds text, and always keeps code blocks. Needs an API key. Not with `zeroDataRetention`. |
+| `includeTags` | `array of string` | none | Keep only the parts that match these CSS selectors, such as `article` or `.price`. When set, `onlyMainContent` is not applied. |
+| `excludeTags` | `array of string` | none | Remove the parts that match these CSS selectors, such as `.comments`. |
+| `removeBase64Images` | `boolean` | `true` | Drops images that carry their data in the URL (`data:image`). Send `false` to keep them in the Markdown and HTML. |
+| `linkStyle` | `string` | `"inline"` | `inline` keeps `[text](url)`. `numbered` writes `Pricing⟨3⟩` and lists each URL once at the end. `none` keeps only the link text, which makes link-heavy pages 10 to 70% shorter. Ask for [`links`](/scrape/links) to get the URLs. |
+| `maxChars` | `number` | none | Cut the Markdown at this many characters, 500 to 1,000,000. `nextOffset` says where to read on. |
+| `offset` | `number` | `0` | Start the Markdown this many characters into the page, PDF or file. Send the last answer's `nextOffset` with the same `maxChars`. Not with `query`. |
+| `query` | `string` | none | What you are looking for, such as `refund window`. A page longer than `maxChars` (8,000 by default) comes back as the passages that match, in page order, each with the text around it and its table header. A shorter page comes back whole. Not with `offset`. |
+
+All selector lists need at least one selector. A selector is plain CSS.
+
+## Which outputs change
+
+The filters shape the page text that `markdown` and `html` are made from, and everything built from the Markdown: `summary`, `highlights`, `question` and `json`. `rawHtml` is the page as sent.
+
+## Limits and errors
+
+- If `includeTags` matches nothing on the page, the call fails with `503 sourceUnavailable` and the message `The page did not finish loading. Try again shortly.` Nothing is charged. Check the selector against the page's HTML before you retry.
+- `maxChars` below 500 returns `400 invalidRequest`.
+- Send `query` or `offset`, not both.
+- `onlyCleanContent` is skipped with a `warning` when the page is too long to clean or the model does not answer.
+
+## Price
+
+$1 per 1,000 pages. Every field on this page adds nothing, and `query` adds nothing either. A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that comes back. See [PDFs and documents](/scrape/pdfs-and-documents).
+
+## Related
+
+- [Markdown](/scrape/markdown) is the format these fields shape.
+- [Highlights](/scrape/highlights) returns the passages that match a query as a format of its own.
+- [Links](/scrape/links) lists the URLs `linkStyle` hides.
+- [Scrape overview](/scrape/overview) lists every format and option.

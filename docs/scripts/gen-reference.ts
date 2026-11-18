@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { type CatalogEndpoint, type JsonObject, fetchCatalog, isObject, isString, jsonObject } from "./catalog";
-import { mdxSafe, recorded, referenceConfig } from "./reference";
+import { mdxSafe, money, recorded, referenceConfig } from "./reference";
 import { curlSnippet, pythonSnippet, tsSnippet } from "./snippets";
 
 interface Operation {
@@ -10,6 +10,7 @@ interface Operation {
   summary: string;
   description: string;
   keyless: boolean;
+  isUpload: boolean;
   catalog: CatalogEndpoint | undefined;
 }
 
@@ -43,6 +44,7 @@ function operations(): Operation[] {
         summary: isString(op.summary) ? op.summary : op.operationId,
         description: isString(op.description) ? op.description : "",
         keyless: entry?.keyless ?? security?.length === 0,
+        isUpload: isObject(op.requestBody) && isObject(op.requestBody.content) && op.requestBody.content["application/json"] === undefined,
         catalog: entry,
       });
     }
@@ -57,6 +59,8 @@ function titleOf(op: Operation): string {
 }
 
 function seoDescription(op: Operation): string {
+  const override = config.descriptions[op.id];
+  if (override !== undefined) return override;
   const lead = sentence(op.summary);
   const tail = [" Send one request and get JSON back.", " Examples in cURL, TypeScript and Python.", " A failed call costs nothing."];
   let text = lead;
@@ -67,28 +71,41 @@ function seoDescription(op: Operation): string {
 
 const PAGES_NOTE = " Pages with cursor.";
 
+const CREDIT_WORD = /\bcredits?\b/i;
 
-const DOLLARS = /\$\d/;
-
-function aboutSection(op: Operation): string[] {
-  const credits = op.catalog?.credits ?? 0;
-  const pricing = op.catalog?.pricing || (credits > 0 ? `${credits} credit${credits === 1 ? "" : "s"} per call` : "");
-  const stated = pricing !== "" ? pricing : op.description.replace(PAGES_NOTE, "").replace(/^Costs 0 credits per call\./, "Free.").trim();
-  const text = config.inCredits[op.id] ?? stated;
-  if (DOLLARS.test(text)) throw new Error(`${op.id} states a price in dollars. Add its credit wording to inCredits in scripts/reference.config.json.`);
-  if (pricing !== "") return ["## Price", "", sentence(text), "", "See [Pricing](/billing) for what credits cost.", ""];
-  return text === "" ? [] : [mdxSafe(text), ""];
+function priceOf(op: Operation): string {
+  const [first = ""] = op.description.replace(PAGES_NOTE, "").split(/(?<=\.) /);
+  const text = config.prices[op.id] ?? (op.catalog?.pricing || (/^Costs \$0 per 1,000 calls\.$/.test(first) ? "Free." : first));
+  if (!/^Free|\$/.test(text)) throw new Error(`${op.id} has no price in dollars. Add it to prices in scripts/reference.config.json.`);
+  if (CREDIT_WORD.test(text)) throw new Error(`${op.id} states a price in credits: ${text}`);
+  const plain = sentence(money(text).replace(/^Costs /, ""));
+  return mdxSafe(`${plain.charAt(0).toUpperCase()}${plain.slice(1)}`);
 }
+
+const priceSection = (op: Operation) => ["## Price", "", priceOf(op), "", "See [Pricing](/account/pricing).", ""];
+
+const JOB_PAGES = new Map([
+  ["crawlStatus", { errors: "[Crawl errors](/api-reference/endpoint/crawl-errors)", where: "/crawl/async" }],
+  ["batchScrapeStatus", { errors: "[Batch scrape errors](/api-reference/endpoint/batch-scrape-errors)", where: "/batches/results" }],
+]);
 
 function pagesSection(op: Operation): string[] {
   if (!op.description.includes(PAGES_NOTE)) return [];
-  const errors = op.id === "crawlStatus" ? { title: "Crawl errors", page: "crawl-errors" } : { title: "Batch scrape errors", page: "batch-scrape-errors" };
+  const job = JOB_PAGES.get(op.id);
+  if (job === undefined) {
+    return [
+      "## Pages",
+      "",
+      "A full answer holds a `cursor`. Send it back as the `cursor` parameter, with the same filters, to read the next page. When the answer has no `cursor`, you have read everything.",
+      "",
+    ];
+  }
   return [
     "## Pages",
     "",
-    "Poll until `status` is `completed`, then call `next` until it is gone. Each answer holds up to 100 finished pages. A page's address is in `metadata.url`. See [Page through results](/guides/paging).",
+    `Poll until \`status\` is \`completed\`, \`failed\` or \`cancelled\`, then call \`next\` until it is gone. Each answer holds up to 100 finished pages or 2 MB. A page's URL is in \`metadata.url\`. See [Read the results](${job.where}).`,
     "",
-    `\`failed\` counts the pages that could not be read. \`errors\` lists the failed pages in this answer with \`url\`, \`code\`, \`message\`, \`retryable\` and \`at\`, and \`error\` is set only when the whole job failed. For every failed page, call [${errors.title}](/api-reference/endpoint/${errors.page}).`,
+    `\`failed\` counts the pages that could not be read. \`errors\` lists the failed pages in this answer with \`url\`, \`code\`, \`message\`, \`retryable\` and \`at\`, and \`error\` is set only when the whole job failed. For every failed page, call ${job.errors}.`,
     "",
   ];
 }
@@ -103,26 +120,18 @@ function errorsSection(op: Operation): string[] {
   ];
 }
 
-function jobsSection(op: Operation): string[] {
-  if (op.id !== "crawl" && op.id !== "batchScrape") return [];
-  return [
-    "## Limits",
-    "",
-    "An account runs up to 5 crawls and batch scrapes at once. A sixth start answers 400 `invalidRequest`: `jobs: you already have 5 jobs running. Wait for one of them to finish, then try again.` Wait until one is `completed`, then start it again.",
-    "",
-  ];
-}
-
 const KEYLESS_NOTE =
-  "<Note>Works without an API key, up to 10 calls a minute and 50 a day per IP. See [Rate limits](/rate-limits).</Note>";
+  "<Note>Works without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).</Note>";
 const NO_KEY_NOTE = "<Note>Needs no API key.</Note>";
 
 function examples(op: Operation): string[] {
   const saved = () => JSON.parse(readFileSync(file(`scripts/responses/${op.id}.json`), "utf8"));
   const call = config.notCalled[op.id] === undefined ? recorded.parse(saved()) : undefined;
-  const request = call?.request ?? { method: op.method, path: op.path };
+  const query = new URLSearchParams(config.calls[op.id]?.query);
+  const request = call?.request ?? { method: op.method, path: `${op.path}${query.size === 0 ? "" : `?${query}`}` };
   const keyed = !(op.keyless && op.catalog === undefined);
-  const snippets = [curlSnippet(request, keyed), tsSnippet(request, keyed), pythonSnippet(request, keyed)];
+  const snippets = op.isUpload ? [] : [curlSnippet(request, keyed), tsSnippet(request, keyed), pythonSnippet(request, keyed)];
+  if (snippets.length === 0) return [];
   return [
     "<RequestExample>",
     ...snippets,
@@ -131,6 +140,11 @@ function examples(op: Operation): string[] {
       ? []
       : ["", "<ResponseExample>", `\`\`\`json ${call.status}`, JSON.stringify(call.response, null, 2), "```", "</ResponseExample>"]),
   ];
+}
+
+function getTwinLine(op: Operation): string[] {
+  const twin = byId.get(config.alsoGet[op.id] ?? "");
+  return twin === undefined ? [] : [`This also answers \`GET ${twin.path}\`, with the same fields as query parameters.`, ""];
 }
 
 function page(op: Operation): string {
@@ -150,10 +164,10 @@ function page(op: Operation): string {
     GENERATED,
     "",
     ...(intro === "" ? [] : [intro, ""]),
+    ...getTwinLine(op),
     ...(op.keyless ? [op.catalog === undefined ? NO_KEY_NOTE : KEYLESS_NOTE, ""] : []),
-    ...aboutSection(op),
+    ...priceSection(op),
     ...pagesSection(op),
-    ...jobsSection(op),
     ...errorsSection(op),
     ...(notCalled === undefined ? [] : [`<Warning>${notCalled}</Warning>`, ""]),
     ...examples(op),
@@ -166,13 +180,14 @@ const byId = new Map(ops.map((op) => [op.id, op]));
 const grouped = config.groups.flatMap((group) => group.operations);
 const unknown = grouped.filter((id) => !byId.has(id));
 if (unknown.length > 0) throw new Error(`Not in ${SPEC_PATH}: ${unknown.join(", ")}`);
-const ungrouped = ops.filter((op) => !grouped.includes(op.id)).map((op) => op.id);
+const twins = new Set(Object.values(config.alsoGet));
+const ungrouped = ops.filter((op) => !grouped.includes(op.id) && !twins.has(op.id)).map((op) => op.id);
 if (ungrouped.length > 0) throw new Error(`Not in any group in scripts/reference.config.json: ${ungrouped.join(", ")}`);
 
 for (const existing of new Bun.Glob("*.mdx").scanSync(file(`${ENDPOINT_DIR}/`).pathname)) {
   await Bun.file(file(`${ENDPOINT_DIR}/${existing}`)).delete();
 }
-for (const op of ops) await Bun.write(file(`${ENDPOINT_DIR}/${slugOf(op.id)}.mdx`), page(op));
+for (const op of ops.filter((op) => !twins.has(op.id))) await Bun.write(file(`${ENDPOINT_DIR}/${slugOf(op.id)}.mdx`), page(op));
 
 const docs = jsonObject.parse(await Bun.file(file("docs.json")).json());
 const tabs = isObject(docs.navigation) && Array.isArray(docs.navigation.tabs) ? docs.navigation.tabs.filter(isObject) : [];
@@ -186,4 +201,4 @@ const groups: JsonObject[] = config.groups.map((group) => ({
 reference.groups = [...fixed, ...groups];
 await Bun.write(file("docs.json"), `${JSON.stringify(docs, null, 2)}\n`);
 
-console.log(`Wrote ${ops.length} endpoint pages in ${groups.length} groups.`);
+console.log(`Wrote ${ops.length - twins.size} endpoint pages in ${groups.length} groups.`);

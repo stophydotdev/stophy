@@ -1,0 +1,115 @@
+---
+title: "Filter and search"
+description: "Narrow a Map result by topic with search, choose whether sitemaps are used, include subdomains, and keep or drop query strings."
+og:title: "Filter and search | Stophy"
+og:description: "Narrow a Map result by topic with search, choose whether sitemaps are used, include subdomains, and keep or drop query strings."
+---
+
+Send these fields to `POST /v1/map` along with `url`. Start with the site, then add only the filters you need.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request lists the pages of one site that mention `sqlite`, best matches first.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/map \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com",
+    "search": "sqlite",
+    "includeSubdomains": false,
+    "sitemap": "include",
+    "limit": 5
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/map", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com",
+    search: "sqlite",
+    includeSubdomains: false,
+    sitemap: "include",
+    limit: 5,
+  }),
+});
+const { links } = await response.json();
+console.log(links.map((link: { url: string }) => link.url));
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/map",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com",
+        "search": "sqlite",
+        "includeSubdomains": False,
+        "sitemap": "include",
+        "limit": 5,
+    },
+)
+print([link["url"] for link in response.json()["links"]])
+```
+</CodeGroup>
+
+## Read the response
+
+The list holds only URLs that mention `sqlite`.
+
+```json
+{
+  "success": true,
+  "links": [
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE" },
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ATTACH" },
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_COPY" },
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_DELETE" },
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_DENY" }
+  ],
+  "costUsd": 0.0005,
+  "creditsUsed": 1,
+  "requestId": "b9ee351a-3f85-47da-bd08-3d92bfe39065"
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `search` | `string` | none | Keep only URLs that mention these words, best matches first, such as `pricing`. |
+| `sitemap` | `string` | `"include"` | `include` uses the site's sitemaps and its pages. `only` lists what the sitemaps name. `skip` ignores the sitemaps. |
+| `includeSubdomains` | `boolean` | `true` | Also list pages on subdomains, such as `docs.bun.com` for `bun.com`. Sending `true` needs an API key. |
+| `ignoreQueryParameters` | `boolean` | `true` | List each page once, without its `?query` part. Send `false` to keep the `?query` part. |
+| `limit` | `number` | `5000` | The most URLs to return, 1 to 100,000. Combine it with `search` to keep a short list. |
+
+## Choose pages by topic
+
+`search` ranks the list, so `limit: 20` returns the 20 URLs that match best. For a repeatable dataset, save the list before you send it to a [batch](/batches/overview). Use [Scrape](/scrape/overview) for the pages themselves.
+
+## Limits and errors
+
+- `search` can be a word or several words. Matches that include only some of them rank lower.
+- `sitemap: "only"` on a site with no sitemap returns `404 notFound`.
+- `includeSubdomains: true` without an API key returns `401 apiKeyRequired`.
+- `limit` above 100,000 returns `400 invalidRequest`.
+
+## Price
+
+$0.50 per 1,000 calls. Filters add nothing.
+
+## Related
+
+- [Map](/map/overview) covers the request and the response.
+- [Scrape](/scrape/overview) reads the pages you choose.
+- [Crawl scope](/crawl/scope) limits a crawl by path and depth.
+- [Batches](/batches/overview) read a list of URLs in the background.

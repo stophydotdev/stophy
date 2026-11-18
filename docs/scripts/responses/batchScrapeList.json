@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/batch/scrape"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "batches": [
+        {
+          "id": "job__SDlT-N1YqzQRoYCvKUTAg",
+          "status": "scraping",
+          "total": 2,
+          "completed": 0,
+          "failed": 0,
+          "creditsUsed": 0,
+          "costUsd": 0,
+          "createdAt": "2026-11-17T17:50:03.100Z",
+          "expiresAt": "2026-11-18T17:50:03.100Z"
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "9433c589-f2a4-4165-bcc4-a603f938f060"
+  }
+}

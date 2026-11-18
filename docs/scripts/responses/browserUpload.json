@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/browser/6bd8981c-f2a8-403c-b188-352828c08bc2/uploads",
+    "body": {
+      "name": "notes.txt",
+      "base64": "SGVsbG8gZnJvbSB0aGUgZG9jcw=="
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "name": "notes.txt",
+    "size": 19,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "1240e905-69fe-4516-b74d-decb739e35b3"
+  }
+}

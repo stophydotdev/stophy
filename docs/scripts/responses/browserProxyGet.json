@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/6bd8981c-f2a8-403c-b188-352828c08bc2/proxy"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "mode": "managed",
+    "country": "us",
+    "exitIp": "203.0.113.7",
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "68bdc8e8-79b5-4502-a38a-0552b84817f0"
+  }
+}

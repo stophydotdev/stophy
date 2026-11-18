@@ -1,0 +1,38 @@
+---
+title: "Claude Code"
+description: "Add Stophy to Claude Code with one command. Start without an API key, then sign in with your browser or add an API key to use every tool."
+og:title: "Claude Code | Stophy"
+og:description: "Add Stophy to Claude Code with one command. Start without an API key, then sign in with your browser or add an API key to use every tool."
+---
+
+Run this in your terminal. It adds Stophy to [Claude Code](https://code.claude.com) with the free endpoints.
+
+```bash
+claude mcp add --transport http stophy https://api.stophy.dev/mcp
+```
+
+Run `claude mcp get stophy` to check it.
+
+## Sign in with your browser
+
+```bash
+claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
+```
+
+Type `/mcp` in Claude Code, choose `stophy`, and pick **Authenticate**. After you sign in, every tool works.
+
+## Use an API key
+
+```bash
+claude mcp add --transport http stophy https://api.stophy.dev/mcp --header "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+Set `STOPHY_API_KEY` first. [Get an API key](https://stophy.dev/signup). Your shell fills it in, and Claude Code saves it on your machine. Add `--scope user` to use Stophy in every project.
+
+## Try it
+
+```text
+Use Stophy to find the top Reddit posts about Bun this week and summarize them.
+```
+
+If you see two `stophy` servers, run `claude mcp remove stophy` and add the one you want.

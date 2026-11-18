@@ -1,0 +1,185 @@
+---
+title: "Install MCP"
+description: "Connect Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claude or Grok to the Stophy MCP server with one command or one URL and sign in with your browser."
+og:title: "Install MCP | Stophy"
+og:description: "Connect Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claude or Grok to the Stophy MCP server with one command or one URL and sign in with your browser."
+---
+
+The hosted MCP server gives a compatible agent live Stophy tools for search, scrape, map, parse, crawl, extract, agent, browsers and monitors. Clients sign in with your browser, so there is no API key to copy.
+
+<Note>
+**Server URL:** `https://mcp.stophy.dev/mcp`
+
+Use the exact URL, including `/mcp`. It is a server URL for your client, not a page to open in a browser.
+</Note>
+
+## Let your agent connect it
+
+Paste this into the coding agent you want to connect.
+
+```text
+Use curl to read https://docs.stophy.dev/agent-quickstart.md and connect the Stophy MCP server to this agent.
+```
+
+The agent adds the server to its own client and asks you to finish sign-in in your browser. See the [Agent quickstart](/agent-quickstart).
+
+## Connect your client
+
+Each of these connects to `https://mcp.stophy.dev/mcp` and opens your browser to sign in, so your agent can use every tool.
+
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
+# then run /mcp in Claude Code, choose stophy and pick Authenticate
+```
+
+```bash Codex
+codex mcp add stophy --url https://mcp.stophy.dev/mcp
+codex mcp login stophy
+```
+
+```bash Gemini CLI
+gemini extensions install https://github.com/stophydotdev/stophy
+# then run /mcp auth stophy in Gemini CLI
+```
+
+```json Cursor (~/.cursor/mcp.json)
+{
+  "mcpServers": {
+    "stophy": { "url": "https://mcp.stophy.dev/mcp" }
+  }
+}
+```
+
+```json Windsurf (mcp_config.json)
+{
+  "mcpServers": {
+    "stophy": { "serverUrl": "https://mcp.stophy.dev/mcp" }
+  }
+}
+```
+
+```bash OpenCode
+opencode mcp add stophy --url https://mcp.stophy.dev/mcp
+# then run /mcps in OpenCode, choose stophy and sign in
+```
+
+</CodeGroup>
+
+In Windsurf, open `mcp_config.json` with **Open MCP config file** in the Cascade MCP menu. VS Code connects without an API key or with one. See [MCP with or without an API key](/mcp/keyless). Steps for each client are also in [Claude Code](/integrations/claude-code), [Cursor](/integrations/cursor), [Codex](/integrations/codex) and [Claude Desktop](/integrations/claude-desktop).
+
+## Add Stophy to a chat app
+
+* **Claude** on the web, desktop or mobile: open **Customize > Connectors**, click **+ Add**, then **Add custom connector**, and paste `https://mcp.stophy.dev/mcp`. See [Claude Desktop](/integrations/claude-desktop).
+* **Grok** on grok.com: open [grok.com/connectors](https://grok.com/connectors), click **New Connector**, then **Custom**, paste `https://mcp.stophy.dev/mcp` and sign in.
+
+## Choose how to connect
+
+| | URL | Tools |
+| - | - | - |
+| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every tool |
+| API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every tool |
+| No API key | `https://api.stophy.dev/mcp` | Search, scrape, map and parse, within the [free limits](/production/rate-limits) |
+
+[Browser sign-in](/mcp/oauth) explains what happens when you approve the app. [MCP with or without an API key](/mcp/keyless) shows the other two.
+
+## What your agent sees
+
+Without an API key, `https://api.stophy.dev/mcp` lists these five tools.
+
+| Tool | What it does |
+| - | - |
+| `stophy_search` | Searches the web, news, images, research papers and YouTube videos |
+| `stophy_scrape` | Reads a page as Markdown, HTML, links, a screenshot or JSON |
+| `stophy_map` | Lists the pages on a site |
+| `stophy_parse` | Turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown |
+| `stophy_signup` | Gets your agent an API key. It returns a link for you to approve and a code, then the key when called again with the code |
+
+With browser sign-in or an API key, it also lists a tool for each product.
+
+| Tools | What they do |
+| - | - |
+| `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel` | Start a crawl of a site in the background, read its pages, or stop it |
+| `stophy_extract` | Pulls the fields you name from pages as JSON, each checked against the page |
+| `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel` | Start a task that searches, reads pages and fills your fields, read its answer, or stop it |
+| `stophy_developer_search` | Searches code docs, READMEs, issues, pull requests and releases |
+| `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, or find papers like it |
+| `stophy_monitor_create`, `stophy_monitor_list`, `stophy_monitor_get`, `stophy_monitor_update`, `stophy_monitor_delete`, `stophy_monitor_run`, `stophy_monitor_checks`, `stophy_monitor_check` | Watch pages on a schedule and read what changed |
+| `browserOpen`, `browserRun`, `browserClose` and six more | Drive a cloud browser. See [Drive a browser](#drive-a-browser) |
+
+Ask *"What are people saying about Bun on Reddit?"* and your agent calls `stophy_scrape` with a Reddit search page and the `reddit-search` [parser](/scrape/prebuilt-parsers).
+
+```json
+{
+  "url": "https://www.reddit.com/search/?q=bun+runtime",
+  "formats": [{ "type": "json", "parser": "reddit-search" }]
+}
+```
+
+A crawl runs in the background. Your agent reads it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
+
+## Drive a browser
+
+With browser sign-in or an API key, your agent also gets tools that drive a cloud browser. The server does not list them without an API key. These three do the work.
+
+| Tool | What it does |
+| - | - |
+| `browserOpen` | Opens a cloud browser and returns its `id`, a live view link you can watch or take over, and the page's elements, each with a ref such as `e12`. Send `url` to open a first page, and the session options of [Browser sessions](/browser/overview), such as `profile`, `proxy`, `location`, `ttl`, `solveCaptchas` and `captureConsole`. |
+| `browserRun` | Does one thing in an open browser. Send the `id` and exactly one of `steps`, `code` or `prompt`. Returns the page's elements and its open tabs. |
+| `browserClose` | Closes the browser, saves its profile if you opened one, and bills the session. Returns how long it ran, the traffic it used and what it cost. |
+
+Six more tools work on an open browser: `browserUpload` puts a file into it, `browserDownloads` lists the files it downloaded, `browserRecording` returns its video, `browserProxy` shows or changes its country, `browserExtensions` manages the extensions you can load into it, and `browserNetworkPolicy` sets which domains it may reach.
+
+`steps` is a list of up to 50 actions that run in order and stop at the first one that fails, with the reason. The actions are `open`, `back`, `reload`, `click`, `dblclick`, `hover`, `check`, `uncheck`, `fill`, `type`, `press`, `select`, `scroll`, `drag`, `find`, `wait`, `get`, `is`, `read`, `screenshot`, `pdf`, `tab`, `dialog`, `upload`, `network` and `console`. A step names an element by its ref from the latest answer, and `find` picks one by role and name. `read` returns the page as Markdown, `network` lists the requests the pages made since the session opened, and `console` lists console messages and page errors when the session was opened with `captureConsole`. `code` is a script that drives the page, and `prompt` says what to do in plain words. Steps and code may take 30 seconds a call by default, and `timeout` raises that to 300 seconds.
+
+A session is billed from `browserOpen` until `browserClose`, at the prices on [Browser sessions](/browser/overview#price), so ask your agent to close every browser it opens.
+
+## Add tools for more endpoints
+
+Add `toolsets` to the URL with a source name.
+
+```text
+https://api.stophy.dev/mcp?toolsets=web
+```
+
+Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
+
+## Run it as a local server
+
+Some apps can only start a local MCP server. The `@stophy/mcp` package runs on your computer and passes every request to the hosted server, so it has the same tools. It needs Node.js 18 or later.
+
+```bash
+npx -y @stophy/mcp
+```
+
+With `STOPHY_API_KEY` set, your agent can use every tool. Without it, your agent can use the tools that need no API key. `STOPHY_MCP_URL` sets the server to connect to, `https://api.stophy.dev/mcp` by default. For Claude Desktop, add this to `claude_desktop_config.json` and restart it.
+
+```json
+{
+  "mcpServers": {
+    "stophy": {
+      "command": "npx",
+      "args": ["-y", "@stophy/mcp"],
+      "env": { "STOPHY_API_KEY": "<key>" }
+    }
+  }
+}
+```
+
+## Check it
+
+Ask your agent this.
+
+```text
+Search YouTube for "rust tutorial" and summarize the top three videos.
+```
+
+If `stophy` shows no tools, restart your client.
+
+## Related
+
+* [MCP with or without an API key](/mcp/keyless)
+* [Browser sign-in](/mcp/oauth)
+* [Install skills](/install-skill)
+* [Install the CLI](/install-cli)

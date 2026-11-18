@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/crawl/active"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "crawls": [
+      {
+        "id": "job_qqmWroHTkWk61kDjA32Q3g",
+        "teamId": "srPnyjCOyDwVVdi6wudlxDmh5MuO39CA",
+        "url": "https://bun.com/docs",
+        "status": "scraping",
+        "createdAt": "2026-11-17T17:49:57.354Z",
+        "options": {
+          "includePaths": [],
+          "excludePaths": [],
+          "sitemap": "include",
+          "ignoreQueryParameters": false,
+          "regexOnFullURL": false,
+          "limit": 2,
+          "crawlEntireDomain": false,
+          "deduplicateSimilarURLs": true,
+          "allowExternalLinks": false,
+          "allowSubdomains": false,
+          "zeroDataRetention": false
+        }
+      }
+    ],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "dbd35fc7-79b6-427d-abc5-78685ded2426"
+  }
+}
