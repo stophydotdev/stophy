@@ -7,11 +7,12 @@ og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, newes
 
 Each entry covers one week and is named for the Monday it starts. The linked pages describe current behavior. Endpoint names from before November 5, 2026, such as `google.search`, belong to the per-site API that API v1 replaced.
 
-<Update label="Week of November 16, 2026" description="Lower prices, costUsd on webhooks, a tool for each product on MCP, and GitHub search and Google Scholar removed">
+<Update label="Week of November 16, 2026" description="Lower prices, eight new parsers, costUsd on webhooks, a tool for each product on MCP, and GitHub search and Google Scholar removed">
 
 **New**
 
 - Job webhooks (crawl, batch, agent and extract) and `monitor.check.completed` now carry `costUsd`, the exact dollars charged. `creditsUsed` and `actualCredits` stay as older fields, rounded up to whole $0.002 steps. See [Webhooks](/webhooks) and [Monitor webhooks](/monitors/webhooks).
+- Eight new parsers: [`bsky-profile`](/scrape/prebuilt-parsers/social/bsky-profile) and [`bsky-post`](/scrape/prebuilt-parsers/social/bsky-post) for Bluesky, [`link-in-bio`](/scrape/prebuilt-parsers/social/link-in-bio) for Linktree, Komi, Linkbio and Linkme pages, [`x-community`](/scrape/prebuilt-parsers/social/x-community) for X communities and their posts, [`tiktok-trending`](/scrape/prebuilt-parsers/video/tiktok-trending) and [`tiktok-live`](/scrape/prebuilt-parsers/video/tiktok-live), and [`twitch-profile`](/scrape/prebuilt-parsers/video/twitch-profile) and [`twitch-clips`](/scrape/prebuilt-parsers/video/twitch-clips) for Twitch channels and clips.
 
 **Changed**
 
@@ -39,6 +40,7 @@ Each entry covers one week and is named for the Monday it starts. The linked pag
 
 **Improved**
 
+- News and image search combine results from two sources, so they keep answering when one is busy, and more news results carry an exact publish time. A `tbs` time window and the image size filter apply to every result. See [Search](/search/overview).
 - A scrape with `maxAge` whose page has no stored copy reads the page at once. Before, it waited several seconds first. A `minAge` call with no stored copy answers `notFound` at once. See [Freshness and caching](/scrape/freshness-and-caching).
 
 **Fixed**

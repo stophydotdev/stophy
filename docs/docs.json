@@ -137,6 +137,8 @@
                               "scrape/prebuilt-parsers/video/tiktok-following",
                               "scrape/prebuilt-parsers/video/tiktok-trending",
                               "scrape/prebuilt-parsers/video/tiktok-live",
+                              "scrape/prebuilt-parsers/video/twitch-profile",
+                              "scrape/prebuilt-parsers/video/twitch-clips",
                               "scrape/prebuilt-parsers/video/instagram-transcript"
                             ]
                           },
@@ -154,6 +156,7 @@
                               "scrape/prebuilt-parsers/social/instagram-feed",
                               "scrape/prebuilt-parsers/social/x-profile",
                               "scrape/prebuilt-parsers/social/x-post",
+                              "scrape/prebuilt-parsers/social/x-community",
                               "scrape/prebuilt-parsers/social/threads-profile",
                               "scrape/prebuilt-parsers/social/threads-post",
                               "scrape/prebuilt-parsers/social/pinterest-search",
