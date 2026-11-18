@@ -113,18 +113,18 @@ try {
 }
 ```
 
-`StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, and `requestId`. The message says what went wrong and what to do next.
+`StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, `requestId`, and `details`. The message says what went wrong and what to do next.
 
-The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
+The SDK retries network errors, timeouts, and every error the API marks `retryable`, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
 
 ## Options
 
-| Option       | Default                              | What it does                                                     |
-| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
-| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                     |
-| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                               |
-| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                      |
-| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is not retried. |
+| Option       | Default                              | What it does                                                 |
+| ------------ | ------------------------------------ | ------------------------------------------------------------ |
+| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                 |
+| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                           |
+| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                  |
+| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is retried. |
 
 Each method also takes `signal` to cancel the request.
 

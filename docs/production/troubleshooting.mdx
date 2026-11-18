@@ -198,7 +198,7 @@ page = call("/v1/scrape", {"url": "https://bun.com/docs/runtime/bunfig"})
 
 </CodeGroup>
 
-The [SDKs](/sdks) do this for you. They retry network errors and the statuses 429, 500, 502, 503 and 504, and throw a `StophyError` with the same fields.
+The [SDKs](/sdks) do this for you. They retry network errors, timeouts and every error marked `retryable`, and throw a `StophyError` with the same fields and `details` for the rest of the error.
 
 ## Report a problem
 

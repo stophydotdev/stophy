@@ -17,7 +17,7 @@ from .errors import StophyError
 DEFAULT_BASE_URL = "https://api.stophy.dev"
 MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-KEYED_WRITES = {"/v1/batch/scrape", "/v1/crawl", "/v1/browser/task"}
+JOB_STARTS = {"/v1/batch/scrape", "/v1/crawl"}
 ENVELOPE_FIELDS = {
     "success",
     "error",
@@ -124,24 +124,73 @@ class _RetryConfig:
         window = self.retry_initial_delay * (2**attempt)
         return window / 2 + random.random() * (window / 2)
 
-    def retry_after(self, response: httpx.Response, attempt: int, max_retries: int) -> float | None:
+    def retry_after(
+        self, response: httpx.Response, attempt: int, max_retries: int, call: _Call
+    ) -> float | None:
         if response.status_code < 400 or attempt >= max_retries:
             return None
         error = _error_from(response, _payload(response))
         if not error.retryable:
             return None
         seconds = error.retry_after_seconds
-        if seconds is None:
-            return self.backoff(attempt)
-        if seconds > MAX_RETRY_WAIT_SECONDS:
+        if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
             return None
-        return float(seconds)
+        call.sent_before = call.sent_before or _may_have_run(error)
+        return self.backoff(attempt) if seconds is None else float(seconds)
 
 
-def _keyed(client: httpx.Client | httpx.AsyncClient, method: str, path: str) -> dict[str, Any]:
-    if method == "POST" and path in KEYED_WRITES and "idempotency-key" not in client.headers:
-        return {"headers": {"Idempotency-Key": str(uuid.uuid4())}}
-    return {}
+def _may_have_run(error: StophyError) -> bool:
+    return error.status >= 500 and error.code != "busy"
+
+
+def _answer_is_kept(path: str, body: Any) -> bool:
+    if path in JOB_STARTS:
+        return True
+    body = body if isinstance(body, dict) else {}
+    parts = [body, body.get("scrapeOptions"), body.get("options")]
+    return not any(
+        isinstance(part, dict) and part.get("zeroDataRetention") is True for part in parts
+    )
+
+
+class _Call:
+    def __init__(self, method: str, path: str, kwargs: dict[str, Any]) -> None:
+        self.key = str(uuid.uuid4()) if method == "POST" else None
+        self.replayable = self.key is None or _answer_is_kept(path, kwargs.get("json"))
+        self.sent_before = False
+        self.kwargs = (
+            kwargs if self.key is None else {**kwargs, "headers": {"Idempotency-Key": self.key}}
+        )
+
+    def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
+        if not self.replayable:
+            raise StophyError(
+                f"Stophy did not answer ({error}), and the call may have run. It keeps no copy of "
+                "its answer, so sending it again could run and charge it twice. Check your usage "
+                "before you send it again.",
+                status=0,
+                code="outcomeUnknown",
+            ) from error
+        if attempt >= max_retries:
+            raise error
+        self.sent_before = True
+
+    def finish(self, response: httpx.Response) -> Any:
+        try:
+            return handle_response(response)
+        except StophyError as error:
+            if self.key is None or not self.sent_before or not _may_have_run(error):
+                raise
+            raise StophyError(
+                f"{error} The request may still complete. Check before you send it again as a "
+                "new call, or repeat it over HTTP with the Idempotency-Key in "
+                "details['idempotencyKey'].",
+                status=error.status,
+                code=error.code,
+                retry_after_seconds=error.retry_after_seconds,
+                request_id=error.request_id,
+                details={**error.details, "idempotencyKey": self.key},
+            ) from None
 
 
 class SyncTransport(_RetryConfig):
@@ -158,19 +207,18 @@ class SyncTransport(_RetryConfig):
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
-        kwargs = {**kwargs, **_keyed(self.client, method, path)}
+        call = _Call(method, path, kwargs)
         while True:
             try:
-                response = self.client.request(method, path, **kwargs)
-            except httpx.TransportError:
-                if attempt >= max_retries:
-                    raise
+                response = self.client.request(method, path, **call.kwargs)
+            except httpx.TransportError as error:
+                call.lost(error, attempt, max_retries)
                 time.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt, max_retries)
+            wait = self.retry_after(response, attempt, max_retries, call)
             if wait is None:
-                return handle_response(response)
+                return call.finish(response)
             time.sleep(wait)
             attempt += 1
 
@@ -189,18 +237,17 @@ class AsyncTransport(_RetryConfig):
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
-        kwargs = {**kwargs, **_keyed(self.client, method, path)}
+        call = _Call(method, path, kwargs)
         while True:
             try:
-                response = await self.client.request(method, path, **kwargs)
-            except httpx.TransportError:
-                if attempt >= max_retries:
-                    raise
+                response = await self.client.request(method, path, **call.kwargs)
+            except httpx.TransportError as error:
+                call.lost(error, attempt, max_retries)
                 await asyncio.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt, max_retries)
+            wait = self.retry_after(response, attempt, max_retries, call)
             if wait is None:
-                return handle_response(response)
+                return call.finish(response)
             await asyncio.sleep(wait)
             attempt += 1

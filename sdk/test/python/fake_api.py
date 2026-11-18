@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -19,6 +20,10 @@ class FakeApi:
                 key = self.headers.get("idempotency-key")
                 outer.keys.append(key)
                 reply = answer(key, len(outer.keys))
+                if reply == "hang":
+                    time.sleep(1)
+                    self.connection.close()
+                    return
                 if reply == "drop":
                     self.connection.close()
                     return
@@ -30,6 +35,8 @@ class FakeApi:
                 self.end_headers()
                 self.wfile.write(data)
 
+            do_GET = do_POST
+
             def log_message(self, *args: Any) -> None:
                 pass
 
@@ -40,3 +47,19 @@ class FakeApi:
     def close(self) -> None:
         self.server.shutdown()
         self.server.server_close()
+
+
+def accept_jobs(lost: List[Answer] = ["drop"]):
+    known: dict = {}
+    charges: List[str] = []
+
+    def answer(key: Optional[str], count: int) -> Answer:
+        earlier = known.get(key) if key is not None else None
+        job = earlier or {"success": True, "id": f"job_{len(charges) + 1}"}
+        if earlier is None:
+            charges.append(job["id"])
+            if key is not None:
+                known[key] = job
+        return lost[count - 1] if count <= len(lost) else (200, job)
+
+    return answer, charges

@@ -1,60 +1,127 @@
-import pytest
 import asyncio
 
-from stophy import AsyncStophy, Stophy
+import pytest
 
-ACCEPTED = {
-    "success": True,
-    "id": "job_1",
-    "url": "https://api.stophy.dev/v1/batch/scrape/job_1",
-}
+from fake_api import accept_jobs
+from stophy import AsyncStophy, Stophy, StophyError
 
 
-def lost_first_answer(jobs):
-    def answer(key, count):
-        job = jobs.setdefault(key, ACCEPTED)
-        return "drop" if count == 1 else (200, job)
+def flat(code, retryable, **extra):
+    return {
+        "success": False,
+        "error": f"{code} message",
+        "code": code,
+        "retryable": retryable,
+        "requestId": "body-request-id",
+        **extra,
+    }
 
-    return answer
+
+def sync_client(api, **options):
+    return Stophy(
+        "k", base_url=api.base_url, max_retries=2, retry_initial_delay=0, **options
+    )
 
 
-def test_a_batch_whose_answer_was_lost_is_accepted_once_with_the_same_key(serve):
-    jobs = {}
-    api = serve(lost_first_answer(jobs))
-    with Stophy(
-        "k", base_url=api.base_url, max_retries=2, retry_initial_delay=0
-    ) as client:
-        client.batch.scrape(urls=["https://a.test"])
+def test_a_crawl_whose_answer_was_lost_runs_and_is_charged_once_with_the_same_key(
+    serve,
+):
+    answer, charges = accept_jobs()
+    api = serve(answer)
+    with sync_client(api) as client:
+        assert client.crawl(url="https://a.test")["id"] == "job_1"
     assert len(api.keys) == 2
     assert api.keys[0] and api.keys[1] == api.keys[0]
-    assert len(jobs) == 1
+    assert len(charges) == 1
 
 
-def test_the_async_client_sends_the_lost_batch_once_with_the_same_key(serve):
-    jobs = {}
-    api = serve(lost_first_answer(jobs))
+def test_the_async_client_runs_a_lost_batch_once_even_when_it_keeps_no_data(serve):
+    answer, charges = accept_jobs()
+    api = serve(answer)
 
     async def run():
         async with AsyncStophy(
             "k", base_url=api.base_url, max_retries=2, retry_initial_delay=0
         ) as client:
-            await client.batch.scrape(urls=["https://a.test"])
+            await client.batch.scrape(urls=["https://a.test"], zero_data_retention=True)
 
     asyncio.run(run())
     assert len(api.keys) == 2
     assert api.keys[0] and api.keys[1] == api.keys[0]
-    assert len(jobs) == 1
+    assert len(charges) == 1
 
 
-def test_two_submits_get_two_keys_and_a_key_the_caller_sets_is_kept(serve):
-    api = serve(lambda key, count: (200, ACCEPTED))
-    with Stophy("k", base_url=api.base_url) as client:
+def test_every_post_carries_a_fresh_key_and_the_same_key_on_each_retry(serve):
+    answer, _ = accept_jobs(["drop"])
+    api = serve(answer)
+    with sync_client(api) as client:
+        client.scrape(url="https://a.test")
+        client.extract(urls=["https://a.test"], prompt="price")
+    first, retry, second = api.keys
+    assert first and retry == first and second != first
+
+
+def test_a_key_set_in_the_client_headers_never_joins_two_calls(serve):
+    answer, _ = accept_jobs([])
+    api = serve(answer)
+    with sync_client(api, headers={"Idempotency-Key": "mine"}) as client:
+        first = client.crawl(url="https://a.test")
+        second = client.crawl(url="https://a.test")
+    assert [first["id"], second["id"]] == ["job_1", "job_2"]
+    assert "mine" not in api.keys
+
+
+def test_a_charged_call_that_keeps_no_data_is_not_sent_again_after_a_lost_answer(serve):
+    answer, _ = accept_jobs()
+    api = serve(answer)
+    with sync_client(api) as client:
+        with pytest.raises(StophyError) as info:
+            client.scrape(url="https://a.test", zero_data_retention=True)
+    assert info.value.code == "outcomeUnknown"
+    assert len(api.keys) == 1
+
+
+def test_a_crawl_that_times_out_is_sent_again_with_the_same_key_and_runs_once(serve):
+    answer, charges = accept_jobs(["hang"])
+    api = serve(answer)
+    with sync_client(api, timeout=0.1) as client:
         client.crawl(url="https://a.test")
-        client.crawl(url="https://a.test")
-    assert api.keys[0] != api.keys[1]
-    with Stophy("k", base_url=api.base_url, headers={"Idempotency-Key": "mine"}) as own:
-        own.crawl(url="https://a.test")
-    assert api.keys[2] == "mine"
+    assert len(api.keys) == 2 and api.keys[1] == api.keys[0]
+    assert len(charges) == 1
+
+
+def test_a_call_still_running_on_the_server_ends_with_an_error_that_carries_its_key(
+    serve,
+):
+    api = serve(
+        lambda key, count: (
+            "drop"
+            if count == 1
+            else (503, flat("internalError", True, retryAfterSeconds=0))
+        )
+    )
+    with sync_client(api) as client:
+        with pytest.raises(StophyError) as info:
+            client.crawl(url="https://a.test")
+    assert (info.value.status, info.value.code) == (503, "internalError")
+    assert "may still complete" in str(info.value)
+    assert info.value.details["idempotencyKey"] == api.keys[0]
+    assert len(api.keys) == 3
+
+
+def test_a_first_503_internal_error_or_a_busy_503_is_not_marked_as_possibly_running(
+    serve,
+):
+    first = serve(lambda key, count: (503, flat("internalError", True)))
+    with Stophy("k", base_url=first.base_url, max_retries=0) as client:
+        with pytest.raises(StophyError) as info:
+            client.crawl(url="https://a.test")
+    assert info.value.details == {}
+    busy = serve(lambda key, count: (503, flat("busy", True, retryAfterSeconds=0)))
+    with sync_client(busy) as client:
+        with pytest.raises(StophyError) as info:
+            client.crawl(url="https://a.test")
+    assert info.value.details == {} and info.value.retryable
 
 
 def test_reads_carry_no_key_and_are_retried_after_a_lost_answer(serve):
@@ -63,25 +130,14 @@ def test_reads_carry_no_key_and_are_retried_after_a_lost_answer(serve):
             "drop" if count == 1 else (200, {"success": True, "data": {}})
         )
     )
-    with Stophy(
-        "k", base_url=api.base_url, max_retries=2, retry_initial_delay=0
-    ) as client:
-        client.search(query="x")
+    with sync_client(api) as client:
+        client.crawl.status(id="job_1")
     assert api.keys == [None, None]
 
 
 def test_cancelling_the_async_client_during_the_wait_stops_at_once(serve):
     api = serve(
-        lambda key, count: (
-            429,
-            {
-                "success": False,
-                "error": "slow",
-                "code": "rateLimited",
-                "retryable": True,
-                "retryAfterSeconds": 30,
-            },
-        )
+        lambda key, count: (429, flat("rateLimited", True, retryAfterSeconds=30))
     )
 
     async def run():

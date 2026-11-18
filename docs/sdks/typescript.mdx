@@ -137,7 +137,7 @@ The SDK retries network errors and every error the API marks `retryable`, and it
 | `baseUrl` | `STOPHY_BASE_URL`, or the Stophy API | The server to call |
 | `maxRetries` | `2` | Retries per request. `0` turns retries off. |
 | `retryInitialDelayMs` | `500` | The first retry wait. It doubles each time. |
-| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
+| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is retried. |
 | `headers` | none | Extra headers to send with every call |
 | `fetch` | the global `fetch` | A `fetch` function to use instead |
 

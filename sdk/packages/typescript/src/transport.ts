@@ -6,7 +6,7 @@ const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
 const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
-const KEYED_WRITES = new Set(["/v1/batch/scrape", "/v1/crawl", "/v1/browser/task"]);
+const JOB_STARTS = new Set(["/v1/batch/scrape", "/v1/crawl"]);
 const USER_AGENT = `stophy-typescript/${version}`;
 
 export interface CallOptions {
@@ -58,9 +58,8 @@ export function createCaller(options: TransportOptions): Caller {
     }
     headers.set("accept", "application/json");
     if (spec.body !== undefined) headers.set("content-type", "application/json");
-    if (spec.method === "POST" && KEYED_WRITES.has(spec.path) && !headers.has("idempotency-key")) {
-      headers.set("idempotency-key", crypto.randomUUID());
-    }
+    const key = spec.method === "POST" ? crypto.randomUUID() : undefined;
+    if (key !== undefined) headers.set("idempotency-key", key);
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
     return send<Result>(
@@ -74,6 +73,12 @@ export function createCaller(options: TransportOptions): Caller {
       }),
       spec.options?.signal,
       spec.method === "DELETE" ? { ...retry, maxRetries: 0 } : retry,
+      {
+        key,
+        replayable:
+          key === undefined ||
+          answerIsKept(spec.path, parseJson(JSON.stringify(spec.body ?? null))),
+      },
     );
   };
 }
@@ -84,30 +89,74 @@ interface RetryPolicy {
   timeoutMs: number;
 }
 
+interface CallPlan {
+  key: string | undefined;
+  replayable: boolean;
+}
+
+function answerIsKept(path: string, body: JsonValue): boolean {
+  if (JOB_STARTS.has(path) || !isRecord(body)) return true;
+  return ![body, body.scrapeOptions, body.options].some(
+    (part) => isRecord(part) && part.zeroDataRetention === true,
+  );
+}
+
+function outcomeUnknown(reason: Error): StophyError {
+  return new StophyError(
+    `Stophy did not answer (${reason.message}), and the call may have run. It keeps no copy of its answer, so sending it again could run and charge it twice. Check your usage before you send it again.`,
+    { status: 0, code: "outcomeUnknown", retryable: false },
+  );
+}
+
+function mayStillComplete(error: StophyError, key: string): StophyError {
+  return new StophyError(
+    `${error.message} The request may still complete. Check before you send it again as a new call, or repeat it over HTTP with the Idempotency-Key in details.idempotencyKey.`,
+    {
+      status: error.status,
+      code: error.code,
+      retryable: false,
+      retryAfterSeconds: error.retryAfterSeconds,
+      requestId: error.requestId,
+      details: { ...error.details, idempotencyKey: key },
+    },
+  );
+}
+
 async function send<Result>(
   baseFetch: FetchLike,
   url: string,
   init: (signal: AbortSignal) => RequestInit,
   signal: AbortSignal | undefined,
   retry: RetryPolicy,
+  plan: CallPlan,
 ): Promise<Result> {
+  let sentBefore = false;
+  const mayHaveRun = (error: StophyError) => error.status >= 500 && error.code !== "busy";
+  const failWith = (error: StophyError) =>
+    plan.key !== undefined && sentBefore && mayHaveRun(error)
+      ? mayStillComplete(error, plan.key)
+      : error;
   for (let n = 0; ; n += 1) {
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
       const response = await baseFetch(url, init(deadline.signal)).catch((error) => {
-        if (deadline.signal.aborted || n >= retry.maxRetries) throw error;
+        if (signal?.aborted) throw error;
+        if (!plan.replayable) throw outcomeUnknown(error);
+        if (n >= retry.maxRetries) throw error;
         return undefined;
       });
       if (response === undefined) {
+        sentBefore = true;
         waitMs = backoffMs(n, retry.initialDelayMs);
       } else if (response.ok) {
         return await readBody<Result>(response);
       } else {
         const error = await errorFrom(response);
         const seconds = error.retryAfterSeconds;
-        if (!error.retryable || n >= retry.maxRetries) throw error;
-        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw error;
+        if (!error.retryable || n >= retry.maxRetries) throw failWith(error);
+        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw failWith(error);
+        sentBefore ||= mayHaveRun(error);
         waitMs = seconds === undefined ? backoffMs(n, retry.initialDelayMs) : seconds * 1000;
       }
     } finally {
