@@ -5,7 +5,7 @@ og:title: "Pricing | Stophy"
 og:description: "You pay for Stophy in prepaid dollars. A scrape costs $1 per 1,000 pages and a search $1 per 1,000. New accounts get $2, and a failed call is free."
 ---
 
-Your account holds a balance in dollars. Each call takes its price out of the balance when it finishes, at a list price per 1,000 calls or per hour. The price is the same whatever you spend. `costUsd` in each response is what the call cost.
+Your account holds a balance in dollars. Each call takes its price out of the balance when it finishes, at a list price per 1,000 calls or per hour. The price is the same whatever you spend. The `x-cost-usd` header of each response is what the call cost.
 
 ## Your balance
 
@@ -81,7 +81,7 @@ You can check a job or look up what it cost without spending from your balance.
 
 ## Read what you were charged
 
-Read `x-cost-usd` to see what a call actually cost. A scrape has its cost in `data.metadata.costUsd`. The other endpoints keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
+Read `x-cost-usd` to see what a call actually cost. A scrape or parse also has its cost in `data.metadata.costUsd`. Job status calls and the account, browser and monitor calls keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
 
 On the other endpoints, `creditsUsed` and `x-credits-used` are older fields that count the same cost in steps of $0.002. Use `costUsd`.
 

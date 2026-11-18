@@ -74,12 +74,11 @@ Look in `data` for one list per source. Read `position` for the rank within that
         "category": "github"
       }
     ]
-  },
-  "costUsd": 0.002
+  }
 }
 ```
 
-A web row has a `url`, a `title` and a `description`. `date` appears when the date of the page is known, and `category` is `github`, `research` or `pdf` when the page is one of those. A news row has a `snippet` instead of a `description`. `costUsd` is what the call cost.
+A web row has a `url`, a `title` and a `description`. `date` appears when the date of the page is known, and `category` is `github`, `research` or `pdf` when the page is one of those. A news row has a `snippet` instead of a `description`. The `x-cost-usd` header is what the call cost.
 
 If a source answers with fewer results than you asked for, or fails while the others work, the call still succeeds and `warning` says which. If every source fails, the call fails and costs nothing.
 

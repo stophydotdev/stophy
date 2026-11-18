@@ -11,9 +11,6 @@
   "response": {
     "success": true,
     "id": "job_qqmWroHTkWk61kDjA32Q3g",
-    "url": "https://api.stophy.dev/v1/crawl/job_qqmWroHTkWk61kDjA32Q3g",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "36803e79-5195-413c-8d2b-6c873aac8990"
+    "url": "https://api.stophy.dev/v1/crawl/job_qqmWroHTkWk61kDjA32Q3g"
   }
 }

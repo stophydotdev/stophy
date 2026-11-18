@@ -21,9 +21,6 @@
   "response": {
     "success": true,
     "id": "d3aa5deb-d81b-4b37-8e4a-4eb06b74cab9",
-    "invalidURLs": [],
-    "costUsd": 0.005,
-    "creditsUsed": 3,
-    "requestId": "318bf8fe-1ad6-4d29-922e-6fc7561de3ef"
+    "invalidURLs": []
   }
 }

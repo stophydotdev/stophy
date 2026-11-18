@@ -56,7 +56,7 @@ print([link["url"] for link in result["links"]])
 
 ## Read the response
 
-Read `links` for the matching URLs, best matches first. `costUsd` is the price of the Map call, not the price to read those pages.
+Read `links` for the matching URLs, best matches first. The `x-cost-usd` header is the price of the Map call, not the price to read those pages.
 
 ```json
 {
@@ -67,9 +67,7 @@ Read `links` for the matching URLs, best matches first. `costUsd` is the price o
     { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_COPY" },
     { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_DELETE" },
     { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_DENY" }
-  ],
-  "costUsd": 0.0005,
-  "requestId": "b9ee351a-3f85-47da-bd08-3d92bfe39065"
+  ]
 }
 ```
 

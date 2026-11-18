@@ -68,7 +68,7 @@ Only calls that were billed are logged. A free call, an error and an empty resul
 
 ## Read one call
 
-Use `GET /v1/logs/{id}` to check the charge for a single request. It takes the `requestId` of any answer. It looks back `days` days, 7 by default and up to 90.
+Use `GET /v1/logs/{id}` to check the charge for a single request. It takes the `X-Request-ID` of any answer. It looks back `days` days, 7 by default and up to 90.
 
 Read `data.costUsd` for the billed amount. The row also gives the request ID, endpoint, creation time and API key ID and name. `charges` is how many times the call was charged. A crawl or a batch is charged once for each page, so one request id can have many charges. A request id that was not billed in that time answers `404` with code `notFound`.
 
@@ -96,7 +96,7 @@ Read `tokensUsed` for the total, `byEndpoint` for the split, and `usedSince` for
 
 ## Match a request to its log
 
-Save the `requestId` of every call you care about. It is in the `X-Request-ID` header of every answer and in the body of most, and it is the id `GET /v1/logs/{id}` and [feedback](/production/agent-feedback) take. See [Troubleshooting](/production/troubleshooting).
+Save the `X-Request-ID` header of every call you care about. It is on every answer and in the body of an error, and it is the id `GET /v1/logs/{id}` and [feedback](/production/agent-feedback) take. See [Troubleshooting](/production/troubleshooting).
 
 ## Related
 

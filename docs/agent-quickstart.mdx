@@ -131,7 +131,7 @@ Your agent can also sign itself up from MCP. Without an API key, the `stophy_sig
 
 ## Step 5: Make a first request
 
-Test the setup with one small request. Send `POST /v1/scrape` with the same bearer header, `"url": "https://example.com"` and `"formats": ["markdown"]`. Look for `success: true` and `costUsd`. Tell your person what ran, what it cost and the balance from `GET /v1/limits`.
+Test the setup with one small request. Send `POST /v1/scrape` with the same bearer header, `"url": "https://example.com"` and `"formats": ["markdown"]`. Look for `success: true` and `data.metadata.costUsd`. Tell your person what ran, what it cost and the balance from `GET /v1/limits`.
 
 ## Resources for agents
 

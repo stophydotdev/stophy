@@ -124,14 +124,13 @@ Check each response before sending the next call. The first gives you `uploadUrl
       { "pageNumber": 1, "markdown": "Revenue grew in every region." },
       { "pageNumber": 2, "markdown": "Outlook: stable." }
     ]
-  },
-  "costUsd": 0.001
+  }
 }
 ```
 
 The file is deleted when the parse ends, so each `uploadId` parses once. Parsing the same `uploadId` again returns `404 notFound`.
 
-Copy the text before you discard the response. `data.metadata` identifies the file type and page count, and `costUsd` is the parse charge.
+Copy the text before you discard the response. `data.metadata` identifies the file type and page count, and `data.metadata.costUsd` is the parse charge.
 
 ## Options
 

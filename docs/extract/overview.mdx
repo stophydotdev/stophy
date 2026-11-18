@@ -98,7 +98,7 @@ print(result["data"])
 
 The call that starts the extract answers with the `id` of the result. `invalidURLs` lists addresses it skipped because they are not public pages.
 
-Save the `id` to read the fields. The start response includes `costUsd`. If no addresses were skipped, `invalidURLs` is empty.
+Save the `id` to read the fields. The `x-cost-usd` header of the start response has the cost. If no addresses were skipped, `invalidURLs` is empty.
 
 Call `GET /v1/extract/{id}` and read the fields in `data`.
 

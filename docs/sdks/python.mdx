@@ -42,7 +42,7 @@ To try a search, pass `query="bun runtime"`, `sources=["web"]` and `limit=3` to 
 Get an API key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in.
  You can also pass it as the `api_key` keyword when you create `Stophy`.
 
-Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as a dict. `scrape` returns `success` and `data`, `search` returns `success` and `data` with a list for each source, and `map` returns `success` and `links`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. `search` and `map` also have `costUsd`, what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as a dict. `scrape` returns `success` and `data`, `search` returns `success` and `data` with a list for each source, and `map` returns `success` and `links`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. The body of `search` and `map` has no cost. The `x-cost-usd` header has what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
 
 Arguments are keyword-only and snake_case.
 

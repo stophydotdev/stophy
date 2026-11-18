@@ -9,11 +9,11 @@ Rate a Stophy result when it helped, missed something or was wrong. The feedback
 
 ## When to report
 
-Report an answer that is wrong or incomplete, or a search that missed what you needed. Send one rating for each call, with the call's `requestId` as `jobId`. Do not report errors you can fix by changing the request.
+Report an answer that is wrong or incomplete, or a search that missed what you needed. Send one rating for each call, with the call's `X-Request-ID` header as `jobId`. Do not report errors you can fix by changing the request.
 
 ## Make a request
 
-Use the general feedback call to rate a result by its request ID. This example rates a search as good. `jobId` is the `requestId` from the search answer.
+Use the general feedback call to rate a result by its request ID. This example rates a search as good. `jobId` is the `X-Request-ID` header of the search answer.
 
 <CodeGroup>
 ```bash cURL
@@ -89,7 +89,7 @@ Rating the same `jobId` again returns the first `feedbackId` with `alreadySubmit
 
 ## Rate a search
 
-Use `POST /v1/search/{jobId}/feedback` when you want to rate specific search results. Put the search's `requestId` in the path. For example, set `"rating": "partial"` and add `{"source": "web", "position": 2}` to `valuableResults` to mark the second web result as useful. Use `missingContent` to name a topic the search missed, or `querySuggestions` to suggest a better query. The response has the same fields as the general feedback call.
+Use `POST /v1/search/{jobId}/feedback` when you want to rate specific search results. Put the search's `X-Request-ID` in the path. For example, set `"rating": "partial"` and add `{"source": "web", "position": 2}` to `valuableResults` to mark the second web result as useful. Use `missingContent` to name a topic the search missed, or `querySuggestions` to suggest a better query. The response has the same fields as the general feedback call.
 
 ## Options
 
@@ -109,7 +109,7 @@ Use the same rating and result fields on either call. `rating` is required.
 
 | Field | Type | What it does |
 | - | - | - |
-| `jobId` | `string` | The `requestId` of the call you rate. Required. |
+| `jobId` | `string` | The `X-Request-ID` header of the call you rate. Required. |
 | `endpoint` | `string` | Which endpoint made the call: `search`, `scrape`, `parse` or `map` |
 | `issues` | `array of string` | Up to 20 things that went wrong, each a short lowercase label such as `missing_content` |
 | `tags` | `array of string` | Up to 20 labels of your own, in the same form as `issues` |
@@ -137,7 +137,7 @@ Check the request ID before reporting a result.
 
 Add a line like this to your agent's instructions file, such as `AGENTS.md` or `CLAUDE.md`.
 
-> If a Stophy answer is wrong or differs from the docs, rate it once with POST https://api.stophy.dev/v1/feedback. Send the requestId as jobId, and never include secrets.
+> If a Stophy answer is wrong or differs from the docs, rate it once with POST https://api.stophy.dev/v1/feedback. Send the X-Request-ID header as jobId, and never include secrets.
 
 ## Related
 

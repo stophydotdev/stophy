@@ -15,7 +15,7 @@ Keep the key out of your client so a user cannot read it from the app. Store it 
 
 Check `success` before reading `data`. Handle both missing optional fields and empty lists. Keep any `warning` with the result, and do not store partial data as complete.
 
-Log `costUsd` with the `requestId` so you can trace a request and its charge. If `isTruncated` is `true`, use `nextOffset` where available to read on. See [Content filtering](/scrape/content-filtering).
+Log the `x-cost-usd` and `X-Request-ID` headers so you can trace a request and its charge. If `isTruncated` is `true`, use `nextOffset` where available to read on. See [Content filtering](/scrape/content-filtering).
 
 ## Set freshness
 
@@ -61,7 +61,7 @@ Call `GET /v1/status` to tell a Stophy-side problem from one with your request. 
 
 ## Report problems
 
-Save the `requestId` of every call you care about. If an answer is wrong, send [feedback](/production/agent-feedback). To reach support, email support@stophy.dev with the `requestId`.
+Save the `X-Request-ID` header of every call you care about. If an answer is wrong, send [feedback](/production/agent-feedback). To reach support, email support@stophy.dev with the `X-Request-ID`.
 
 ## Related
 

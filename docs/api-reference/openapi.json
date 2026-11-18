@@ -1506,11 +1506,6 @@
                             "scrapeId": {
                               "type": "string"
                             },
-                            "creditsUsed": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
                             "costUsd": {
                               "type": "number"
                             }
@@ -1524,24 +1519,11 @@
                         "isTruncated",
                         "metadata"
                       ]
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "data",
-                    "creditsUsed",
-                    "costUsd"
+                    "data"
                   ]
                 }
               }
@@ -11452,7 +11434,7 @@
                               "description": "ISO 3166-1 alpha-2 country code, e.g. us. Any case is accepted."
                             },
                             "lang": {
-                              "description": "Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.",
+                              "description": "Two-letter language for web results, like de. A web source that does not support this language for the selected country can return results in another language with a warning.",
                               "type": "string",
                               "pattern": "^[A-Za-z]{2}$"
                             }
@@ -11548,7 +11530,7 @@
                     "pattern": "^[A-Za-z]{2}$"
                   },
                   "lang": {
-                    "description": "Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.",
+                    "description": "Two-letter language preference, like de. Applies to web results when web is selected, otherwise to news where supported. Results from a source that cannot honor it may be in another language and come with a warning.",
                     "type": "string",
                     "pattern": "^[A-Za-z]{2}$"
                   },
@@ -12453,7 +12435,7 @@
                       },
                       "zeroDataRetention": {
                         "default": false,
-                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.",
+                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                         "type": "boolean"
                       }
                     },
@@ -14046,23 +14028,10 @@
                     },
                     "warning": {
                       "type": "string"
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -14081,7 +14050,7 @@
       "post": {
         "operationId": "scrape",
         "summary": "Scrape any public web page as markdown, HTML, links, a screenshot or JSON",
-        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. creditsUsed shows what the call cost.",
+        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. metadata.costUsd shows what the call cost in dollars.",
         "security": [
           {
             "apiKey": []
@@ -14973,7 +14942,7 @@
                   },
                   "zeroDataRetention": {
                     "default": false,
-                    "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.",
+                    "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                     "type": "boolean"
                   },
                   "linkStyle": {
@@ -15270,11 +15239,6 @@
                             "scrapeId": {
                               "type": "string"
                             },
-                            "creditsUsed": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
                             "costUsd": {
                               "type": "number"
                             }
@@ -15288,24 +15252,11 @@
                         "isTruncated",
                         "metadata"
                       ]
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "data",
-                    "creditsUsed",
-                    "costUsd"
+                    "data"
                   ]
                 }
               }
@@ -16035,7 +15986,7 @@
                       },
                       "zeroDataRetention": {
                         "default": false,
-                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.",
+                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                         "type": "boolean"
                       }
                     },
@@ -16121,24 +16072,11 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "invalidURLs",
-                    "creditsUsed",
-                    "costUsd"
+                    "invalidURLs"
                   ]
                 }
               }
@@ -16503,7 +16441,7 @@
       "post": {
         "operationId": "parse",
         "summary": "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into markdown",
-        "description": "Costs $0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. costUsd shows what the call cost.",
+        "description": "Costs $0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. metadata.costUsd shows what the call cost in dollars.",
         "security": [
           {
             "apiKey": []
@@ -17063,29 +17001,24 @@
                               "type": "integer",
                               "minimum": -9007199254740991,
                               "maximum": 9007199254740991
+                            },
+                            "costUsd": {
+                              "type": "number"
                             }
                           },
-                          "required": []
+                          "required": [
+                            "costUsd"
+                          ]
                         }
                       },
-                      "required": []
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
+                      "required": [
+                        "metadata"
+                      ]
                     }
                   },
                   "required": [
                     "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "data"
                   ]
                 }
               }
@@ -17268,24 +17201,11 @@
                         },
                         "required": []
                       }
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "links",
-                    "creditsUsed",
-                    "costUsd"
+                    "links"
                   ]
                 }
               }
@@ -18287,7 +18207,7 @@
                       },
                       "zeroDataRetention": {
                         "default": false,
-                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.",
+                        "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                         "type": "boolean"
                       }
                     }
@@ -18421,23 +18341,10 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -19032,9 +18939,6 @@
                           "metadata"
                         ]
                       }
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -19121,24 +19025,11 @@
                     "success": {
                       "type": "boolean",
                       "const": true
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "status",
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -19273,17 +19164,6 @@
                     },
                     "isTruncated": {
                       "type": "boolean"
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -19291,9 +19171,7 @@
                     "status",
                     "failed",
                     "errors",
-                    "robotsBlocked",
-                    "creditsUsed",
-                    "costUsd"
+                    "robotsBlocked"
                   ]
                 }
               }
@@ -20440,7 +20318,7 @@
                   },
                   "zeroDataRetention": {
                     "default": false,
-                    "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.",
+                    "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                     "type": "boolean"
                   },
                   "linkStyle": {
@@ -20542,24 +20420,11 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "invalidURLs",
-                    "creditsUsed",
-                    "costUsd"
+                    "invalidURLs"
                   ]
                 }
               }
@@ -21154,9 +21019,6 @@
                           "metadata"
                         ]
                       }
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -21243,24 +21105,11 @@
                     "success": {
                       "type": "boolean",
                       "const": true
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "status",
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -21395,17 +21244,6 @@
                     },
                     "isTruncated": {
                       "type": "boolean"
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -21413,9 +21251,7 @@
                     "status",
                     "failed",
                     "errors",
-                    "robotsBlocked",
-                    "creditsUsed",
-                    "costUsd"
+                    "robotsBlocked"
                   ]
                 }
               }
@@ -21704,24 +21540,11 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "threadTurn",
-                    "creditsUsed",
-                    "costUsd"
+                    "threadTurn"
                   ]
                 }
               }
@@ -21827,24 +21650,11 @@
                     },
                     "next": {
                       "type": "string"
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "success",
-                    "agents",
-                    "creditsUsed",
-                    "costUsd"
+                    "agents"
                   ]
                 }
               }
@@ -22046,9 +21856,6 @@
                     },
                     "costUsd": {
                       "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -22135,24 +21942,11 @@
                     "success": {
                       "type": "boolean",
                       "const": true
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "status",
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -22259,9 +22053,6 @@
                     },
                     "costUsd": {
                       "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
@@ -22365,23 +22156,10 @@
                         "type": "string"
                       },
                       "additionalProperties": {}
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }
@@ -22474,23 +22252,10 @@
                         "type": "string"
                       },
                       "additionalProperties": {}
-                    },
-                    "creditsUsed": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "costUsd": {
-                      "type": "number"
-                    },
-                    "requestId": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "success",
-                    "creditsUsed",
-                    "costUsd"
+                    "success"
                   ]
                 }
               }

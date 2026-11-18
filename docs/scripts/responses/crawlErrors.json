@@ -9,9 +9,6 @@
     "status": "completed",
     "failed": 0,
     "errors": [],
-    "robotsBlocked": [],
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "53b3302e-9132-41c3-9f7c-278ef2c60eaf"
+    "robotsBlocked": []
   }
 }

@@ -66,7 +66,7 @@ print([result["url"] for result in body["data"]["web"]])
 
 ## 4. Check the result
 
-Read `data.web` for the ranked results. Each result has a URL, title, description and position when those fields are available. `costUsd` is what the call cost in dollars. Empty fields are left out.
+Read `data.web` for the ranked results. Each result has a URL, title, description and position when those fields are available. The `x-cost-usd` header is what the call cost in dollars. Empty fields are left out.
 
 ```json
 {
@@ -79,10 +79,7 @@ Read `data.web` for the ranked results. Each result has a URL, title, descriptio
         "position": 1
       }
     ]
-  },
-  "id": "31fb1c5e-c206-443e-9274-c8d0bf75002c",
-  "costUsd": 0.001,
-  "requestId": "31fb1c5e-c206-443e-9274-c8d0bf75002c"
+  }
 }
 ```
 

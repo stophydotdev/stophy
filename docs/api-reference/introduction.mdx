@@ -49,7 +49,7 @@ Without an API key, an operation that needs one returns `401` with code `apiKeyR
 
 ## Responses
 
-Check `success` before you read the result. Almost every answer includes it. Most also carry `costUsd`, `creditsUsed` and `requestId`. This real [Map](/api-reference/endpoint/map) answer is cut to one link.
+Check `success` before you read the result. Almost every answer includes it. The answer of a scrape, search, map, crawl, batch, extract, parse or agent call holds the result and nothing else: no `costUsd`, `creditsUsed` or `requestId`. Account, browser and monitor calls still carry them. This real [Map](/api-reference/endpoint/map) answer is cut to one link.
 
 ```json
 {
@@ -58,14 +58,11 @@ Check `success` before you read the result. Almost every answer includes it. Mos
     {
       "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE"
     }
-  ],
-  "costUsd": 0.001,
-  "creditsUsed": 1,
-  "requestId": "9d2b3b18-77cf-481b-9f95-9852459caf48"
+  ]
 }
 ```
 
-`costUsd` is what the call cost, in dollars. `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. Scrape does not return `costUsd`, `creditsUsed`, `id` or `requestId` at the top level. Read the scrape cost and ID in `data.metadata` and the request ID in the `X-Request-ID` header. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
+The `x-cost-usd` header is what the call cost, in dollars, and the `X-Request-ID` header names the request. Scrape and parse also have the cost in `data.metadata.costUsd`, and scrape has its ID in `data.metadata.scrapeId`. Where a body does carry `costUsd`, `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
 
 Each answer has headers too: `X-Request-ID`, `x-cost-usd`, `x-credits-used` (the older one), `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. Some operations add `x-cache` and `x-cache-age`, which say whether the result came from a stored copy. Quote the request id when you contact support.
 

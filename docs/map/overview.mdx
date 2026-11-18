@@ -45,7 +45,7 @@ for link in result["links"]:
 
 ## Read the response
 
-Read `links` for the URLs we found. Each entry has a `url`, with `title` and `description` when we know them. Use `costUsd` to check the price of the call.
+Read `links` for the URLs we found. Each entry has a `url`, with `title` and `description` when we know them. Read the `x-cost-usd` header to check the price of the call.
 
 ```json
 {
@@ -56,9 +56,7 @@ Read `links` for the URLs we found. Each entry has a `url`, with `title` and `de
     },
     { "url": "https://bun.com/404" },
     { "url": "https://bun.com/blog" }
-  ],
-  "costUsd": 0.0005,
-  "requestId": "7513a729-b559-4752-8605-cba5f521d6ca"
+  ]
 }
 ```
 
