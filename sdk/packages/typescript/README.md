@@ -42,7 +42,7 @@ That call needs no key. Every method and result is typed, and each method sends 
 
 ## Run a job in the background
 
-`crawl`, `batch.scrape`, `extract` and `browser.task` answer at once with an `id`. Read the result with `crawl.status({ id })`, `batch.scrape.status({ id })`, `extract.result({ id })` or `browser.task.status({ id })`. `crawl` and `batch.scrape` also have `cancel({ id })`, which stops the job and keeps the pages already read.
+`crawl`, `batch.scrape`, `extract` and `browser.task` answer at once with an `id`, which `browser.task` returns as `data.id` and the others return at the top level. Read the result with `crawl.status({ id })`, `batch.scrape.status({ id })`, `extract.result({ id })` or `browser.task.status({ id })`. `crawl` and `batch.scrape` also have `cancel({ id })`, which stops the job and keeps the pages already read.
 
 A crawl `status` is `scraping` until it is `completed`. While pages are left to read, the answer has `next`, a link with a `cursor`. Send that cursor with the same id to get only the pages finished since. `extract.result` throws a `StophyError` with the code `notFound` until the result is ready. A job and its result are kept for 24 hours.
 
@@ -67,7 +67,7 @@ The client retries network errors, timeouts and every error the API marks `retry
 
 ## Docs
 
-- [TypeScript guide](https://docs.stophy.dev/sdks/typescript) covers every method with examples.
+- [TypeScript guide](https://docs.stophy.dev/sdks/typescript) covers the main methods with examples.
 - [Quickstart](https://docs.stophy.dev/quickstart) makes a first request and reads the result.
 - [Choose an API](https://docs.stophy.dev/introduction#choose-an-api) maps what you have to the call you need.
 - [API reference](https://docs.stophy.dev/api-reference/introduction) lists every option of every call.

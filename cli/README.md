@@ -22,7 +22,7 @@ stophy search "bun runtime" --limit 5
 
 `search`, `scrape`, `map`, `crawl`, `extract` and `batch scrape` are the main commands. Pick `scrape` to read a page you have a URL for, `map` to list the pages on a site, and `search` when you don't have a URL yet. `stophy <command> --help` lists every option, and `stophy describe <id>` shows one command's options, price and an example.
 
-`crawl`, `batch scrape` and `extract` start a background job and answer with an id. Read the result with `status <id>`, such as `stophy crawl status <id>`, and stop a running job with `cancel <id>`. When a status answer has a `next` link, run it again with `--cursor` and the cursor from that link.
+`crawl`, `batch scrape` and `extract` start a background job and answer with an id. Read the result with `status <id>`, such as `stophy crawl status <id>`, and stop a running `crawl` or `batch scrape` job with `cancel <id>`. `extract` has no `cancel`. When a status answer has a `next` link, run it again with `--cursor` and the cursor from that link.
 
 Some rules hold for every command:
 

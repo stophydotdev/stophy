@@ -1,6 +1,6 @@
 {
   "name": "stophy",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Search, read, and act on the web. Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents.",
   "author": {
     "name": "Stophy"

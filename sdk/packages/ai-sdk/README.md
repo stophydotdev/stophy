@@ -50,11 +50,11 @@ The tools call the [`stophy`](https://www.npmjs.com/package/stophy) client, so a
 
 ## Every other source
 
-Stophy has parsers for more than 100 kinds of pages, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client, with the transport `{ type: "http", url: "https://api.stophy.dev/mcp" }`, or call `parsed` in the `stophy` client from your own tool.
+Stophy has parsers for more than 100 kinds of pages, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client, with the transport `{ type: "http", url: "https://api.stophy.dev/mcp" }`, or call `parsed` in the `stophy` client from your own tool. `createMCPClient` from `@ai-sdk/mcp` connects to that URL, and the `tools()` method of the client it returns gives you the tools to pass to `generateText`.
 
 ## Docs
 
-- [Vercel AI SDK guide](https://docs.stophy.dev/integrations/vercel-ai-sdk) covers the tools and the MCP client.
+- [Vercel AI SDK guide](https://docs.stophy.dev/integrations/vercel-ai-sdk) shows how to write your own search tool with `tool()` and zod and call it in `generateText`.
 - [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
 
 ## License
