@@ -142,6 +142,19 @@ test.each([
   expect(JSON.parse(out)).toEqual(answer);
 });
 
+test.each(
+  [
+    ["--", "list", "--limit", "1", "--json"],
+    ["--", "list", "--before", "1767398400000", "--json"],
+    ["--", "list", "--output", "agent", "list", "--limit", "1", "--json"],
+  ].map((args) => ({ args })),
+)("agent $args rejects a misplaced separator without contacting the API", async ({ args }) => {
+  const { exit, out, calls } = await runAgent(args);
+  expect(calls).toEqual([]);
+  expect(exit).toBe(1);
+  expect(out).toContain("Use `stophy agent list` without a separator before the subcommand.");
+});
+
 test.each(["status", "cancel"])(
   "agent %s without an ID fails before signup or a run",
   async (verb) => {

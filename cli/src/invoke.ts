@@ -5,7 +5,7 @@ import type { CatalogEndpoint } from "./catalog.js";
 import { request } from "./client.js";
 import { CliError } from "./errors.js";
 import { type ParsedCall, parseCall } from "./flags.js";
-import { requestFor, reserveAgentPrompt } from "./jobs.js";
+import { isAgentCommand, requestFor, reserveAgentPrompt } from "./jobs.js";
 import { type JsonRecord, type JsonValue, isJsonRecord, jsonRecord } from "./json.js";
 import { handleOutput, writeOutput } from "./output.js";
 import { renderData } from "./render.js";
@@ -13,7 +13,15 @@ import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
 export function parseEndpointCall(endpoint: CatalogEndpoint): ParsedCall {
-  const tokens = flagTokens(currentArgs(), endpoint.id.split("."));
+  const args = currentArgs();
+  const words = endpoint.id.split(".");
+  const agentControl = endpoint.id !== "agent" && isAgentCommand(endpoint.id);
+  if (agentControl && !words.every((word, index) => args[index] === word)) {
+    throw new CliError(
+      `Use \`stophy ${words.join(" ")}\` without a separator before the subcommand.`,
+    );
+  }
+  const tokens = agentControl ? args.slice(words.length) : flagTokens(args, words);
   const parsed = parseCall(tokens, endpoint.input);
   if (!parsed.ok) throw new CliError(parsed.message);
   reserveAgentPrompt(endpoint, tokens, parsed.call.body);
