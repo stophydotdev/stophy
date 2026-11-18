@@ -4,6 +4,7 @@ import asyncio
 import random
 import re
 import time
+import uuid
 from email.utils import parsedate_to_datetime
 from importlib.metadata import version
 from typing import Any, Mapping
@@ -16,6 +17,16 @@ from .errors import StophyError
 DEFAULT_BASE_URL = "https://api.stophy.dev"
 MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+JOB_STARTS = {"/v1/batch/scrape", "/v1/crawl"}
+ENVELOPE_FIELDS = {
+    "success",
+    "error",
+    "message",
+    "code",
+    "retryable",
+    "retryAfterSeconds",
+    "requestId",
+}
 USER_AGENT = f"stophy-python/{version('stophy')}"
 
 
@@ -41,7 +52,10 @@ def _upper(match: re.Match[str]) -> str:
 
 
 def _error_object(payload: Any) -> dict[str, Any]:
-    return payload if isinstance(payload, dict) else {}
+    if not isinstance(payload, dict):
+        return {}
+    nested = payload.get("error")
+    return nested if isinstance(nested, dict) else payload
 
 
 def _header_retry_after(response: httpx.Response) -> int | None:
@@ -75,19 +89,29 @@ def handle_response(response: httpx.Response) -> Any:
     payload = _payload(response)
     if response.is_success and isinstance(payload, dict):
         return payload
+    raise _error_from(response, payload)
 
+
+def _error_from(response: httpx.Response, payload: Any) -> StophyError:
     error = _error_object(payload)
     message = error.get("error")
     if not isinstance(message, str) or not message:
+        message = error.get("message")
+    if not isinstance(message, str) or not message:
         message = f"Stophy request failed with status {response.status_code}"
     code = error.get("code")
-    raise StophyError(
+    retryable = error.get("retryable")
+    request_id = response.headers.get("x-request-id") or error.get("requestId")
+    return StophyError(
         message,
         status=response.status_code,
         code=code if isinstance(code, str) else None,
-        retryable=response.status_code in RETRYABLE_STATUS,
+        retryable=retryable
+        if isinstance(retryable, bool)
+        else response.status_code in RETRYABLE_STATUS,
         retry_after_seconds=_retry_after(response, error),
-        request_id=response.headers.get("x-request-id"),
+        request_id=request_id if isinstance(request_id, str) else None,
+        details={key: value for key, value in error.items() if key not in ENVELOPE_FIELDS},
     )
 
 
@@ -100,15 +124,88 @@ class _RetryConfig:
         window = self.retry_initial_delay * (2**attempt)
         return window / 2 + random.random() * (window / 2)
 
-    def retry_after(self, response: httpx.Response, attempt: int, max_retries: int) -> float | None:
-        if attempt >= max_retries or response.status_code not in RETRYABLE_STATUS:
+    def retry_after(
+        self, response: httpx.Response, attempt: int, max_retries: int, call: _Call
+    ) -> float | None:
+        if response.status_code < 400 or attempt >= max_retries:
             return None
-        seconds = _retry_after(response, _error_object(_payload(response)))
-        if seconds is None:
-            return self.backoff(attempt)
-        if seconds > MAX_RETRY_WAIT_SECONDS:
+        error = _error_from(response, _payload(response))
+        if not error.retryable:
             return None
-        return float(seconds)
+        seconds = error.retry_after_seconds
+        if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
+            return None
+        return self.backoff(attempt) if seconds is None else float(seconds)
+
+
+def _may_have_run(error: StophyError) -> bool:
+    return error.status >= 500 and error.code != "busy"
+
+
+def _answer_is_kept(path: str, body: Any) -> bool:
+    if path in JOB_STARTS:
+        return True
+    body = body if isinstance(body, dict) else {}
+    parts = [body, body.get("scrapeOptions"), body.get("options")]
+    return not any(
+        isinstance(part, dict) and part.get("zeroDataRetention") is True for part in parts
+    )
+
+
+SEND_AGAIN = (
+    "Check before you send it again as a new call, or send it again with the same "
+    "Idempotency-Key in details['idempotencyKey']."
+)
+NEVER_SENT = (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
+
+
+class _Call:
+    def __init__(
+        self,
+        client: httpx.Client | httpx.AsyncClient,
+        method: str,
+        path: str,
+        kwargs: dict[str, Any],
+    ) -> None:
+        sent_key = (
+            client.headers.get("idempotency-key") or str(uuid.uuid4()) if method == "POST" else None
+        )
+        has_api_key = "authorization" in client.headers
+        self.key = sent_key if has_api_key else None
+        self.replayable = (
+            sent_key is None or not has_api_key or _answer_is_kept(path, kwargs.get("json"))
+        )
+        self.earlier_send_lost = False
+        self.kwargs = (
+            kwargs if sent_key is None else {**kwargs, "headers": {"Idempotency-Key": sent_key}}
+        )
+
+    def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
+        may_have_left = not isinstance(error, NEVER_SENT)
+        if may_have_left and not self.replayable:
+            vars(error).update(outcome_unknown=True)
+            raise error
+        if attempt >= max_retries:
+            if (may_have_left or self.earlier_send_lost) and self.key is not None:
+                vars(error).update(idempotency_key=self.key)
+            raise error
+        self.earlier_send_lost = self.earlier_send_lost or may_have_left
+
+    def finish(self, response: httpx.Response) -> Any:
+        try:
+            return handle_response(response)
+        except StophyError as error:
+            if self.key is None or not self.earlier_send_lost or not _may_have_run(error):
+                raise
+            raise StophyError(
+                f"{error} An earlier send may still complete. {SEND_AGAIN}",
+                status=error.status,
+                code=error.code,
+                retryable=error.retryable,
+                retry_after_seconds=error.retry_after_seconds,
+                request_id=error.request_id,
+                details={**error.details, "idempotencyKey": self.key},
+            ) from None
 
 
 class SyncTransport(_RetryConfig):
@@ -125,18 +222,18 @@ class SyncTransport(_RetryConfig):
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
+        call = _Call(self.client, method, path, kwargs)
         while True:
             try:
-                response = self.client.request(method, path, **kwargs)
-            except httpx.TransportError:
-                if attempt >= max_retries:
-                    raise
+                response = self.client.request(method, path, **call.kwargs)
+            except httpx.TransportError as error:
+                call.lost(error, attempt, max_retries)
                 time.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt, max_retries)
+            wait = self.retry_after(response, attempt, max_retries, call)
             if wait is None:
-                return handle_response(response)
+                return call.finish(response)
             time.sleep(wait)
             attempt += 1
 
@@ -155,17 +252,17 @@ class AsyncTransport(_RetryConfig):
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
+        call = _Call(self.client, method, path, kwargs)
         while True:
             try:
-                response = await self.client.request(method, path, **kwargs)
-            except httpx.TransportError:
-                if attempt >= max_retries:
-                    raise
+                response = await self.client.request(method, path, **call.kwargs)
+            except httpx.TransportError as error:
+                call.lost(error, attempt, max_retries)
                 await asyncio.sleep(self.backoff(attempt))
                 attempt += 1
                 continue
-            wait = self.retry_after(response, attempt, max_retries)
+            wait = self.retry_after(response, attempt, max_retries, call)
             if wait is None:
-                return handle_response(response)
+                return call.finish(response)
             await asyncio.sleep(wait)
             attempt += 1

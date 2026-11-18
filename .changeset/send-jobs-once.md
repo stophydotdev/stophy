@@ -1,0 +1,5 @@
+---
+"stophy": patch
+---
+
+Every `POST` made with an API key carries an `Idempotency-Key`, the same on every retry, so a retry after a lost answer or a timeout cannot run a call twice. Pass `{ idempotencyKey }` as the second argument to choose it, or set `Idempotency-Key` in `headers`. A call with `zeroDataRetention` that is not a crawl or a batch scrape is not sent again after a lost answer: it throws the lost attempt's error with `outcomeUnknown` set. A `POST` that ends with no answer throws the same error as before, with the key on it as `idempotencyKey`. The TypeScript SDK retries a timed-out attempt when the call carries an API key. Aborting a call stops the wait between retries.

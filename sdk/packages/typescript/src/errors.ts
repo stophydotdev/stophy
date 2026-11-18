@@ -1,4 +1,5 @@
 import type { _Error } from "./generated/types.gen";
+import type { JsonValue } from "./json";
 
 export type StophyErrorCode = _Error["code"];
 
@@ -8,6 +9,7 @@ export class StophyError extends Error {
   readonly retryAfterSeconds?: number;
   readonly status: number;
   readonly requestId?: string;
+  readonly details: Record<string, JsonValue>;
 
   constructor(
     message: string,
@@ -17,6 +19,7 @@ export class StophyError extends Error {
       retryable: boolean;
       retryAfterSeconds?: number;
       requestId?: string;
+      details?: Record<string, JsonValue>;
     },
   ) {
     super(message);
@@ -26,5 +29,6 @@ export class StophyError extends Error {
     this.retryable = options.retryable;
     this.retryAfterSeconds = options.retryAfterSeconds;
     this.requestId = options.requestId;
+    this.details = options.details ?? {};
   }
 }

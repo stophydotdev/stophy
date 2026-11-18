@@ -15,13 +15,26 @@ const errorObject = z.looseObject({
 
 export type Failure = z.infer<typeof errorObject>;
 
+const flatErrorObject = z.looseObject({
+  success: z.literal(false).optional(),
+  error: z.string(),
+  code: z.string(),
+  retryable: z.boolean().default(false),
+  retryAfterSeconds: z.number().int().nonnegative().optional(),
+  requestId: z.string().optional(),
+});
+
 const failureSchema = z.union([
+  flatErrorObject.transform(({ error, ...rest }): Failure => {
+    delete rest.success;
+    return { ...rest, message: error };
+  }),
+  z.object({ error: errorObject }).transform(({ error }): Failure => error),
   z.object({ error: z.string() }).transform(({ error }): Failure => ({
     code: "requestFailed",
     message: error,
     retryable: false,
   })),
-  z.object({ error: errorObject }).transform(({ error }): Failure => error),
 ]);
 
 export class RequestError extends CliError {

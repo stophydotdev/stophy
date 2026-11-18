@@ -1,15 +1,17 @@
 import { version } from "../package.json";
 import { StophyError } from "./errors";
-import { isNumber, isRecord, isString, type JsonValue } from "./json";
+import { isBoolean, isNumber, isRecord, isString, type JsonValue } from "./json";
 
 const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
 const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const JOB_STARTS = new Set(["/v1/batch/scrape", "/v1/crawl"]);
 const USER_AGENT = `stophy-typescript/${version}`;
 
 export interface CallOptions {
   signal?: AbortSignal;
+  idempotencyKey?: string;
 }
 
 export type Method = "GET" | "POST" | "DELETE";
@@ -57,6 +59,13 @@ export function createCaller(options: TransportOptions): Caller {
     }
     headers.set("accept", "application/json");
     if (spec.body !== undefined) headers.set("content-type", "application/json");
+    const key =
+      spec.method === "POST"
+        ? (spec.options?.idempotencyKey ?? headers.get("idempotency-key") ?? crypto.randomUUID())
+        : undefined;
+    if (key !== undefined) headers.set("idempotency-key", key);
+
+    const hasApiKey = headers.has("authorization");
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
     return send<Result>(
@@ -70,6 +79,14 @@ export function createCaller(options: TransportOptions): Caller {
       }),
       spec.options?.signal,
       spec.method === "DELETE" ? { ...retry, maxRetries: 0 } : retry,
+      {
+        key: hasApiKey ? key : undefined,
+        hasApiKey,
+        replayable:
+          key === undefined ||
+          !hasApiKey ||
+          answerIsKept(spec.path, parseJson(JSON.stringify(spec.body ?? null))),
+      },
     );
   };
 }
@@ -80,37 +97,96 @@ interface RetryPolicy {
   timeoutMs: number;
 }
 
+interface CallPlan {
+  key: string | undefined;
+  hasApiKey: boolean;
+  replayable: boolean;
+}
+
+function answerIsKept(path: string, body: JsonValue): boolean {
+  if (JOB_STARTS.has(path) || !isRecord(body)) return true;
+  return ![body, body.scrapeOptions, body.options].some(
+    (part) => isRecord(part) && part.zeroDataRetention === true,
+  );
+}
+
+interface NetworkError extends Error {
+  code?: string;
+  cause?: { code?: string };
+}
+
+const NEVER_SENT = new Set([
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "UND_ERR_CONNECT_TIMEOUT",
+]);
+
+const requestMayHaveLeft = (error: NetworkError) =>
+  !NEVER_SENT.has(error.code ?? error.cause?.code ?? "");
+
+const SEND_AGAIN =
+  "Check before you send it again as a new call, or send it again with the same Idempotency-Key in details.idempotencyKey.";
+
+function mayStillComplete(error: StophyError, key: string): StophyError {
+  return new StophyError(`${error.message} An earlier send may still complete. ${SEND_AGAIN}`, {
+    status: error.status,
+    code: error.code,
+    retryable: error.retryable,
+    retryAfterSeconds: error.retryAfterSeconds,
+    requestId: error.requestId,
+    details: { ...error.details, idempotencyKey: key },
+  });
+}
+
 async function send<Result>(
   baseFetch: FetchLike,
   url: string,
   init: (signal: AbortSignal) => RequestInit,
   signal: AbortSignal | undefined,
   retry: RetryPolicy,
+  plan: CallPlan,
 ): Promise<Result> {
+  let earlierSendLost = false;
+  const mayHaveRun = (error: StophyError) => error.status >= 500 && error.code !== "busy";
+  const failWith = (error: StophyError) =>
+    plan.key !== undefined && earlierSendLost && mayHaveRun(error)
+      ? mayStillComplete(error, plan.key)
+      : error;
   for (let n = 0; ; n += 1) {
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
-      const response = await baseFetch(url, init(deadline.signal)).catch((error) => {
-        if (deadline.signal.aborted || n >= retry.maxRetries) throw error;
+      const response = await baseFetch(url, init(deadline.signal)).catch((error: NetworkError) => {
+        if (signal?.aborted) throw error;
+        const mayHaveLeft = requestMayHaveLeft(error);
+        if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
+        if (error.name === "TimeoutError" && !plan.hasApiKey) throw error;
+        if (n >= retry.maxRetries) {
+          throw (mayHaveLeft || earlierSendLost) && plan.key !== undefined
+            ? Object.assign(error, { idempotencyKey: plan.key })
+            : error;
+        }
+        earlierSendLost ||= mayHaveLeft;
         return undefined;
       });
       if (response === undefined) {
         waitMs = backoffMs(n, retry.initialDelayMs);
-      } else if (n < retry.maxRetries && RETRYABLE_STATUS.has(response.status)) {
+      } else if (response.ok) {
+        return await readBody<Result>(response);
+      } else {
         const error = await errorFrom(response);
         const seconds = error.retryAfterSeconds;
-        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) {
-          throw error;
-        }
+        if (!error.retryable || n >= retry.maxRetries) throw failWith(error);
+        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw failWith(error);
         waitMs = seconds === undefined ? backoffMs(n, retry.initialDelayMs) : seconds * 1000;
-      } else {
-        return await readBody<Result>(response);
       }
     } finally {
       deadline.clear();
     }
-    await sleep(waitMs);
+    await sleep(waitMs, signal);
   }
 }
 
@@ -136,7 +212,6 @@ function withDeadline(signal: AbortSignal | undefined, timeoutMs: number) {
 }
 
 async function readBody<Result>(response: Response): Promise<Result> {
-  if (!response.ok) throw await errorFrom(response);
   const text = await response.text();
   if (!text) {
     throw failed(response, "Stophy returned an empty response", {});
@@ -151,11 +226,12 @@ async function readBody<Result>(response: Response): Promise<Result> {
 async function errorFrom(response: Response): Promise<StophyError> {
   const text = await response.text();
   const error = readError(text ? parseJson(text) : null);
-  const retryAfterSeconds = error.retryAfterSeconds ?? headerRetryAfter(response);
   return failed(response, error.message ?? `Stophy request failed with status ${response.status}`, {
     code: error.code,
-    retryable: RETRYABLE_STATUS.has(response.status),
-    retryAfterSeconds,
+    retryable: error.retryable ?? RETRYABLE_STATUS.has(response.status),
+    retryAfterSeconds: error.retryAfterSeconds ?? headerRetryAfter(response),
+    requestId: headerRequestId(response) ?? error.requestId,
+    details: error.details,
   });
 }
 
@@ -167,6 +243,7 @@ function failed(
     retryable?: boolean;
     retryAfterSeconds?: number;
     requestId?: string;
+    details?: Record<string, JsonValue>;
   },
 ): StophyError {
   return new StophyError(message, {
@@ -175,13 +252,17 @@ function failed(
     retryable: options.retryable ?? false,
     retryAfterSeconds: options.retryAfterSeconds,
     requestId: options.requestId ?? headerRequestId(response),
+    details: options.details,
   });
 }
 
 interface ErrorFields {
   code?: string;
   message?: string;
+  retryable?: boolean;
   retryAfterSeconds?: number;
+  requestId?: string;
+  details?: Record<string, JsonValue>;
 }
 
 function parseJson(text: string): JsonValue {
@@ -192,12 +273,32 @@ function parseJson(text: string): JsonValue {
   }
 }
 
+const ENVELOPE_FIELDS = new Set([
+  "success",
+  "error",
+  "message",
+  "code",
+  "retryable",
+  "retryAfterSeconds",
+  "requestId",
+]);
+
 function readError(body: JsonValue): ErrorFields {
   if (!isRecord(body)) return {};
+  const fields = isRecord(body.error) ? body.error : body;
   return {
-    code: isString(body.code) ? body.code : undefined,
-    message: isString(body.error) ? body.error : undefined,
-    retryAfterSeconds: isNumber(body.retryAfterSeconds) ? body.retryAfterSeconds : undefined,
+    code: isString(fields.code) ? fields.code : undefined,
+    message: isString(fields.error)
+      ? fields.error
+      : isString(fields.message)
+        ? fields.message
+        : undefined,
+    retryable: isBoolean(fields.retryable) ? fields.retryable : undefined,
+    retryAfterSeconds: isNumber(fields.retryAfterSeconds) ? fields.retryAfterSeconds : undefined,
+    requestId: isString(fields.requestId) ? fields.requestId : undefined,
+    details: Object.fromEntries(
+      Object.entries(fields).filter(([key]) => !ENVELOPE_FIELDS.has(key)),
+    ),
   };
 }
 
@@ -230,6 +331,17 @@ function backoffMs(attempt: number, base: number): number {
   return window / 2 + Math.random() * (window / 2);
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }

@@ -3,7 +3,7 @@
 Give your agents the live web. Try it with no key:
 
 ```bash
-npx -y @stophy/cli web search "bun runtime" --limit 2
+npx -y @stophy/cli search "bun runtime" --limit 2
 ```
 
 Everything you install to use Stophy lives in this repo.

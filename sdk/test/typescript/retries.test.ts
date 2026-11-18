@@ -152,7 +152,7 @@ describe("retries", () => {
     expect(fromBody.calls.length).toBe(1);
   });
 
-  test("times out after timeoutMs and does not retry", async () => {
+  test("retries a timed-out attempt, then throws a TimeoutError", async () => {
     let n = 0;
     const client = new Stophy({
       apiKey: "st_test",
@@ -166,8 +166,8 @@ describe("retries", () => {
       retryInitialDelayMs: 0,
       timeoutMs: 20,
     });
-    const err = await client.search({ query: "x" }).catch((error) => error);
+    const err = await client.crawl.status({ id: "job_1" }).catch((error) => error);
     expect(err.name).toBe("TimeoutError");
-    expect(n).toBe(1);
+    expect(n).toBe(3);
   });
 });
