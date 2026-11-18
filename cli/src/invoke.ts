@@ -46,7 +46,14 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
     process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
   }
   if (format === "text") {
-    writeOutput(renderData(shownOf(payloadOf(body.data))), call.outputFile);
+    const shown = shownOf(payloadOf(body.data));
+    const text = renderData(shown);
+    const emptyAgentList =
+      endpoint.id === "agent.list" &&
+      isJsonRecord(shown) &&
+      Array.isArray(shown.agents) &&
+      shown.agents.length === 0;
+    writeOutput(text || (emptyAgentList ? "No agent runs found." : ""), call.outputFile);
     return;
   }
   handleOutput(format === "raw" ? body.data : payloadOf(body.data), {
