@@ -170,3 +170,4 @@ jobs:
         working-directory: .
       - run: bun run check-types
       - run: bun run build
+      - run: bun test test
