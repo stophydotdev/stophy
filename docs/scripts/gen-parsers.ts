@@ -22,7 +22,16 @@ const parser = z.object({
   price: z.string(),
   keyless: z.boolean(),
   response: json,
-  views: z.array(z.object({ view: z.string().nullable() })).optional(),
+  views: z
+    .array(
+      z.object({
+        view: z.string().nullable(),
+        price: z.string().optional(),
+        keyless: z.boolean().optional(),
+        options: z.array(option).optional(),
+      }),
+    )
+    .optional(),
 });
 type Parser = z.infer<typeof parser>;
 
@@ -32,7 +41,11 @@ if (!response.ok) throw new Error(`GET ${PARSERS_URL} returned ${response.status
 const parsers = z
   .object({ data: z.object({ parsers: z.array(parser) }) })
   .parse(await response.json())
-  .data.parsers.map((entry) => ({ ...entry, price: money(entry.price) }));
+  .data.parsers.map((entry) => ({
+    ...entry,
+    price: money(entry.price),
+    views: entry.views?.map((view) => ({ ...view, price: view.price === undefined ? undefined : money(view.price) })),
+  }));
 const byName = new Map(parsers.map((entry) => [entry.name, entry]));
 
 const listed = config.parserCategories.flatMap((category) => category.parsers);
@@ -44,7 +57,7 @@ if (unlisted.length > 0) throw new Error(`Not in any category in scripts/referen
 const sentence = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);
 const quote = (text: string) => `'${text.replaceAll("'", "''")}'`;
 const lowerFirst = (text: string) => `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
-const firstSentence = (text: string) => (text.split(/(?<=\w\.) /)[0] ?? text).replace(/\.$/, "");
+const firstSentence = (text: string) => (text.split(/(?<=\.) (?=[A-Z])/)[0] ?? text).replace(/\.$/, "");
 const list = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`);
 const mostCommon = (items: string[]) => {
   const counts = new Map<string, number>();
@@ -142,13 +155,30 @@ function keyNote(entry: Parser): string {
     : "Get an API key in the [Quickstart](/quickstart).";
 }
 
+const namedViews = (entry: Parser) => (entry.views ?? []).flatMap((view) => (view.view === null ? [] : [{ ...view, view: view.view }]));
+
+const viewPrices = (entry: Parser) =>
+  namedViews(entry).flatMap((view) => {
+    const price = view.price !== undefined && view.price !== entry.price ? ` costs ${lowerFirst(view.price)}` : "";
+    const key = view.keyless === false && entry.keyless ? " needs an API key" : "";
+    if (price === "" && key === "") return [];
+    return [` The \`${view.view}\` view${price}${price !== "" && key !== "" ? " and" : ""}${key}.`];
+  });
+
 function optionsSection(entry: Parser): string[] {
   const described = entry.options.filter((item) => item.description !== undefined);
   const bare = entry.options.filter((item) => item.description === undefined).map((item) => item.name);
   const viewNames = [...new Set((entry.views ?? []).flatMap((view) => (view.view === null ? [] : [view.view])))];
+  const topNames = new Set(entry.options.map((item) => item.name));
+  const viewOptions = namedViews(entry).flatMap((view) =>
+    (view.options ?? [])
+      .filter((item) => !topNames.has(item.name) && item.description !== undefined)
+      .map((item) => `| \`${item.name}\` | With \`view\` \`${view.view}\`: ${mdxSafe(lowerFirst(sentence(item.description ?? "")))} |`),
+  );
   const table = [
     ...(viewNames.length === 0 ? [] : [`| \`view\` | Picks one of the answers this parser can give: ${code(viewNames)}. |`]),
     ...described.map((item) => `| \`${item.name}\` | ${mdxSafe(sentence(item.description ?? ""))} |`),
+    ...viewOptions,
   ];
   const lines = ["## Options", "", `Send options in the \`options\` object of the \`json\` format.`, ""];
   if (table.length > 0) lines.push("| Option | What it does |", "| --- | --- |", ...table, "");
@@ -203,7 +233,7 @@ async function parserPage(entry: Parser): Promise<string> {
     ...optionsSection(entry),
     "## Price",
     "",
-    `${sentence(entry.price)}${entry.keyless ? " Works without an API key, within the free limits." : ""} See [Pricing](/account/pricing).`,
+    `${sentence(entry.price)}${entry.keyless ? " Works without an API key, within the free limits." : ""}${viewPrices(entry).join("")} See [Pricing](/account/pricing).`,
     "",
     ...limitsSection(entry),
     "## Related",

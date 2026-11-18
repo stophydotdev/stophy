@@ -96,12 +96,13 @@ Send options in the `options` object of the `json` format.
 | `shownFrom` | Google's own Date range: ads shown on or after this day. |
 | `shownTo` | Google's own Date range: ads shown on or before this day. |
 | `cursor` | The cursor from the previous response. Send it as is. |
+| `limit` | With `view` `advertisers`: how many advertisers to ask Google for, 1 to 100. Google ranks the list for the count you ask, so a larger limit is not the same list with more rows added, and there are no further pages. Fewer come back when Google has fewer matches. |
 
 It also takes `advertiser` and `mediaType`.
 
 ## Price
 
-$1 per 1,000 calls. Works without an API key, within the free limits. See [Pricing](/account/pricing).
+$1 per 1,000 calls. Works without an API key, within the free limits. The `advertisers` view needs an API key. See [Pricing](/account/pricing).
 
 ## Limits and errors
 
