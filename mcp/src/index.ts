@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -6,10 +7,53 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ToolListChangedNotificationSchema,
+  type CallToolRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import packageJson from "../package.json" with { type: "json" };
 
 const DEFAULT_URL = "https://api.stophy.dev/mcp";
+const RESPONSE_GRACE_MS = 5_000;
+const DEFAULT_BUDGET_MS = 60_000;
+const MAX_TIMER_MS = 2_147_483_647;
+
+const toolTimeout = ({ name, arguments: args }: CallToolRequest["params"]): number => {
+  const value = args?.["timeout"];
+  const requested = Number.isSafeInteger(value) && Number(value) > 0 ? Number(value) : undefined;
+  let budget: number;
+  switch (name) {
+    case "stophy_scrape":
+      budget = Math.min(requested ?? DEFAULT_BUDGET_MS, 300_000);
+      break;
+    case "stophy_search":
+      budget = Math.min(requested ?? DEFAULT_BUDGET_MS, 120_000);
+      break;
+    case "stophy_extract":
+      budget = Math.min(requested ?? 30_000, 300_000) + 45_000;
+      break;
+    case "stophy_map":
+      budget = requested ?? DEFAULT_BUDGET_MS;
+      break;
+    case "browserRun":
+    case "browserExecute":
+    case "scrapeInteract":
+      budget = Math.min(requested ?? (args?.["prompt"] === undefined ? 30 : 120), 300) * 1_000;
+      break;
+    default:
+      budget = DEFAULT_BUDGET_MS;
+  }
+  return Math.min(MAX_TIMER_MS, Math.max(DEFAULT_BUDGET_MS, budget) + RESPONSE_GRACE_MS);
+};
+
+const toolHttpSignal = new AsyncLocalStorage<AbortSignal>();
+
+class HostedTransport extends StreamableHTTPClientTransport {
+  override send(...[message, options]: Parameters<StreamableHTTPClientTransport["send"]>) {
+    if ("method" in message && "id" in message && message.method === "tools/call") {
+      return super.send(message, options);
+    }
+    return toolHttpSignal.exit(() => super.send(message, options));
+  }
+}
 
 const hostedUrl = (): URL => {
   const value = process.env["STOPHY_MCP_URL"] ?? DEFAULT_URL;
@@ -28,8 +72,17 @@ const headers = (): Record<string, string> => {
 
 const connectHosted = async (url: URL): Promise<Client> => {
   const client = new Client({ name: "stophy-mcp", version: packageJson.version });
-  const transport = new StreamableHTTPClientTransport(url, {
+  const transport = new HostedTransport(url, {
     requestInit: { headers: headers() },
+    fetch: (input, init) => {
+      const signal = toolHttpSignal.getStore();
+      if (!signal) return fetch(input, init);
+      const session = init?.signal;
+      return fetch(input, {
+        ...init,
+        signal: session ? (AbortSignal.any?.([signal, session]) ?? signal) : signal,
+      });
+    },
   });
   await client.connect(transport);
   return client;
@@ -59,7 +112,17 @@ const main = async (): Promise<void> => {
   );
 
   local.setRequestHandler(ListToolsRequestSchema, (request) => hosted.listTools(request.params));
-  local.setRequestHandler(CallToolRequestSchema, (request) => hosted.callTool(request.params));
+  local.setRequestHandler(CallToolRequestSchema, async ({ params }, { signal }) => {
+    const http = new AbortController();
+    try {
+      return await toolHttpSignal.run(http.signal, () =>
+        hosted.callTool(params, undefined, { signal, timeout: toolTimeout(params) }),
+      );
+    } catch (error) {
+      http.abort();
+      throw error;
+    }
+  });
   hosted.setNotificationHandler(ToolListChangedNotificationSchema, () =>
     local.sendToolListChanged(),
   );
