@@ -17,7 +17,7 @@ import { registerUsageCommand } from "./commands/usage.js";
 import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
-import { withJobEndpoints } from "./jobs.js";
+import { isAgentControl, withJobEndpoints } from "./jobs.js";
 import { writeFailure } from "./output.js";
 import { withParserFlags } from "./parsers.js";
 import { ensureKey } from "./signup.js";
@@ -89,7 +89,7 @@ Examples:
     const id = commandPath(actionCommand);
     setCommand(id ?? actionCommand.name());
     const endpoint = id === undefined ? undefined : byId.get(id);
-    if (endpoint?.keyless) return;
+    if (endpoint?.keyless || (id !== undefined && isAgentControl(id))) return;
     if (!endpoint && actionCommand.commands.length > 0) return;
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();

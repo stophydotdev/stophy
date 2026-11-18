@@ -5,16 +5,29 @@ import type { CatalogEndpoint } from "./catalog.js";
 import { request } from "./client.js";
 import { CliError } from "./errors.js";
 import { parseCall } from "./flags.js";
-import { requestFor } from "./jobs.js";
-import { type JsonRecord, type JsonValue, isJsonRecord, jsonRecord } from "./json.js";
+import { isAgentControl, requestFor } from "./jobs.js";
+import { type JsonRecord, type JsonValue, isJsonRecord, jsonRecord, readString } from "./json.js";
 import { handleOutput, writeOutput } from "./output.js";
 import { renderData } from "./render.js";
 import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
 export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
-  const parsed = parseCall(flagTokens(currentArgs(), endpoint.id.split(".")), endpoint.input);
+  const tokens = flagTokens(currentArgs(), endpoint.id.split("."));
+  const parsed = parseCall(tokens, endpoint.input);
   if (!parsed.ok) throw new CliError(parsed.message);
+  if (endpoint.id === "agent") {
+    const prompt = readString(parsed.call.body.prompt);
+    if (
+      prompt !== undefined &&
+      isAgentControl(`agent.${prompt.trim()}`) &&
+      !tokens.some((token) => token === "--prompt" || token.startsWith("--prompt="))
+    ) {
+      throw new CliError(
+        `Put \`${prompt.trim()}\` right after \`stophy agent\`, or use --prompt to start a run.`,
+      );
+    }
+  }
 
   const send = () =>
     request({ ...requestFor(endpoint, parsed.call.body), accept: "application/json" });

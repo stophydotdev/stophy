@@ -1,4 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, test } from "bun:test";
 import type { CatalogEndpoint } from "../src/catalog.ts";
 import { payloadOf } from "../src/invoke.ts";
@@ -70,6 +72,98 @@ test("a site command from before v1 points to search and parsers", async () => {
   expect(await run.exited).toBe(1);
   expect(error).toContain("stophy parsers google");
   expect(error).not.toContain("too many arguments");
+});
+
+test("Agent controls use their own routes and never start a paid run", async () => {
+  const home = mkdtempSync(join(tmpdir(), "stophy-cli-agent-"));
+  mkdirSync(join(home, "stophy"));
+  const agent = {
+    ...endpoint("agent"),
+    keyless: false,
+    input: {
+      type: "object",
+      properties: { prompt: { type: "string" } },
+      required: ["prompt"],
+    },
+  };
+  writeFileSync(
+    join(home, "stophy", "catalog.json"),
+    JSON.stringify({
+      fetchedAt: new Date().toISOString(),
+      endpoints: [agent],
+    }),
+  );
+  const seen: string[] = [];
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(request) {
+      const { pathname, search } = new URL(request.url);
+      const body = request.method === "POST" ? ` ${await request.text()}` : "";
+      seen.push(`${request.method} ${pathname}${search}${body}`);
+      return Response.json({ success: true });
+    },
+  });
+  const invoke = async (args: readonly string[], apiKey = `st_${"a".repeat(40)}`) => {
+    const run = Bun.spawn([process.execPath, "src/index.ts", "agent", ...args], {
+      env: {
+        ...process.env,
+        XDG_CONFIG_HOME: home,
+        STOPHY_API_KEY: apiKey,
+        STOPHY_BASE_URL: server.url.origin,
+        STOPHY_NO_UPDATE_CHECK: "1",
+      },
+      stderr: "pipe",
+      stdout: "pipe",
+    });
+    const [exit, stdout, stderr] = await Promise.all([
+      run.exited,
+      new Response(run.stdout).text(),
+      new Response(run.stderr).text(),
+    ]);
+    return { exit, stdout, stderr, requests: seen.splice(0) };
+  };
+  try {
+    const list = await invoke(["list"]);
+    const page = await invoke(["list", "--before", "123", "--limit", "2"]);
+    const status = await invoke(["status", "run/1"]);
+    const cancel = await invoke(["cancel", "--id", "run/1"]);
+    const start = await invoke(["--prompt", "list"]);
+    const misplaced = await invoke(["--json", "list"]);
+    const missingStatus = await invoke(["status"], "");
+    const missingCancel = await invoke(["cancel"], "");
+    const help = await invoke(["--help"]);
+    expect(
+      [list, page, status, cancel, start, misplaced, missingStatus, missingCancel, help].map(
+        ({ exit, requests }) => [exit, requests],
+      ),
+    ).toEqual([
+      [0, ["GET /v1/agent"]],
+      [0, ["GET /v1/agent?before=123&limit=2"]],
+      [0, ["GET /v1/agent/run%2F1"]],
+      [0, ["DELETE /v1/agent/run%2F1"]],
+      [0, ['POST /v1/agent {"prompt":"list"}']],
+      [1, []],
+      [1, []],
+      [1, []],
+      [0, []],
+    ]);
+    expect(`${misplaced.stdout}${misplaced.stderr}`).toContain(
+      "Put `list` right after `stophy agent`",
+    );
+    expect(`${missingStatus.stdout}${missingStatus.stderr}`).toContain(
+      "Missing required flag --id.",
+    );
+    expect(`${missingCancel.stdout}${missingCancel.stderr}`).toContain(
+      "Missing required flag --id.",
+    );
+    expect(help.stdout).toContain("List your Agent runs");
+    expect(help.stdout).toContain("Check an Agent run");
+    expect(help.stdout).toContain("Stop an Agent run");
+  } finally {
+    await server.stop(true);
+    rmSync(home, { recursive: true });
+  }
 });
 
 const firstCommand = () => {

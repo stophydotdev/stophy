@@ -94,6 +94,12 @@ function registerNode(
       });
     command.helpInformation = () =>
       [formatEndpointHelp(endpoint), ...childLines(node, label)].join("\n");
+    if (endpoint.id === "agent") {
+      command.addHelpText(
+        "after",
+        "Use --prompt to start a run with list, status, or cancel as the prompt.",
+      );
+    }
   } else {
     command.description(label).action(() => {
       command.outputHelp();
