@@ -11,6 +11,13 @@ type Expect<T extends true> = T;
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 type _ScrapeBody = Expect<Same<ScrapeData["body"], Parameters<Stophy["scrape"]>[0]>>;
 type _ScrapeResponse = Expect<Same<ScrapeResponse, Awaited<ReturnType<Stophy["scrape"]>>>>;
+type _ScrapeWithoutTopLevelCost = Expect<Same<Extract<keyof ScrapeResponse, "costUsd">, never>>;
+type _ScrapeProxyValues = Expect<
+  Same<
+    NonNullable<Parameters<Stophy["scrape"]>[0]["proxy"]>,
+    "auto" | "basic" | "enhanced" | "stealth"
+  >
+>;
 type _FlatErrorCode = Expect<"apiKeyRequired" extends StophyErrorCode ? true : false>;
 
 export async function typedCalls(): Promise<void> {
@@ -28,6 +35,10 @@ export async function typedCalls(): Promise<void> {
   await client.extract.result({ id: "ext_1" });
   await client.logs({ days: 7 });
   await client.usage();
+  await client.batch.scrape({ urls: ["https://example.com"], appendToId: "job_1" });
+  await client.parse({ uploadRef: "upload_1" });
+  await client.search({ query: "Bäckerei", lang: "de" });
+  await client.scrape({ url: "https://example.com", fastMode: true, proxy: "enhanced" });
 
   // @ts-expect-error url is required
   await client.scrape({});

@@ -324,7 +324,7 @@ ParserName = Literal[
 
 
 class ExtractResultResponse(TypedDict):
-    success: Literal[True]
+    success: bool
     status: ExtractResultResponseStatus
     data: dict[str, str | float | bool | None | list[Any] | dict[str, Any]]
     confidence: dict[str, float]
@@ -1019,9 +1019,6 @@ class SearchResponse(TypedDict):
     success: Literal[True]
     data: NotRequired[SearchResponseData]
     warning: NotRequired[str]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class ScrapeFormatsItemOption2(TypedDict):
@@ -1075,7 +1072,6 @@ class ScrapeResponseDataMetadata(TypedDict):
     cacheState: NotRequired[ScrapeResponseDataMetadataCacheState]
     cachedAt: NotRequired[str]
     scrapeId: NotRequired[str]
-    creditsUsed: NotRequired[int]
     costUsd: NotRequired[float]
 
 
@@ -1102,9 +1098,6 @@ class ScrapeResponseData(TypedDict):
 class ScrapeResponse(TypedDict):
     success: Literal[True]
     data: ScrapeResponseData
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class ExtractAgent(TypedDict):
@@ -1163,9 +1156,6 @@ class ExtractResponse(TypedDict):
     success: Literal[True]
     id: NotRequired[str]
     invalidURLs: list[str]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class BrowserTaskResponseData(TypedDict):
@@ -1259,6 +1249,7 @@ class ParseResponseDataMetadata(TypedDict):
     contentType: NotRequired[str]
     numPages: NotRequired[int]
     ocrPages: NotRequired[int]
+    costUsd: float
 
 
 class ParseResponseData(TypedDict):
@@ -1272,15 +1263,12 @@ class ParseResponseData(TypedDict):
     pages: NotRequired[list[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]]
     blocks: NotRequired[list[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]]
     warning: NotRequired[str]
-    metadata: NotRequired[ParseResponseDataMetadata]
+    metadata: ParseResponseDataMetadata
 
 
 class ParseResponse(TypedDict):
     success: Literal[True]
-    data: NotRequired[ParseResponseData]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
+    data: ParseResponseData
 
 
 class MapResponseLinksItem(TypedDict):
@@ -1292,9 +1280,6 @@ class MapResponseLinksItem(TypedDict):
 class MapResponse(TypedDict):
     success: Literal[True]
     links: list[MapResponseLinksItem]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class CrawlScrapeOptionsFormatsItemOption2(TypedDict):
@@ -1383,9 +1368,6 @@ class CrawlResponse(TypedDict):
     url: NotRequired[str]
     status: NotRequired[Literal["scraping"]]
     queuePosition: NotRequired[int]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class CrawlStatusResponseErrorsItem(TypedDict):
@@ -1411,6 +1393,24 @@ class CrawlStatusResponseDataItemActions(TypedDict):
     pdfs: NotRequired[list[str]]
 
 
+class CrawlStatusResponseDataItemMetadata(TypedDict):
+    title: NotRequired[str]
+    description: NotRequired[str]
+    language: NotRequired[str]
+    ogImage: NotRequired[str]
+    sourceURL: NotRequired[str]
+    url: NotRequired[str]
+    statusCode: int
+    contentType: NotRequired[str]
+    numPages: NotRequired[int]
+    totalPages: NotRequired[int]
+    cacheState: NotRequired[ScrapeResponseDataMetadataCacheState]
+    cachedAt: NotRequired[str]
+    scrapeId: NotRequired[str]
+    creditsUsed: NotRequired[int]
+    costUsd: NotRequired[float]
+
+
 class CrawlStatusResponseDataItem(TypedDict):
     markdown: NotRequired[str]
     summary: NotRequired[str]
@@ -1428,7 +1428,7 @@ class CrawlStatusResponseDataItem(TypedDict):
     branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     actions: NotRequired[CrawlStatusResponseDataItemActions]
     warning: NotRequired[str]
-    metadata: ScrapeResponseDataMetadata
+    metadata: CrawlStatusResponseDataItemMetadata
 
 
 class CrawlStatusResponse(TypedDict):
@@ -1448,15 +1448,11 @@ class CrawlStatusResponse(TypedDict):
     expiresAt: NotRequired[str]
     next: NotRequired[str]
     data: list[CrawlStatusResponseDataItem]
-    requestId: NotRequired[str]
 
 
 class CrawlCancelResponse(TypedDict):
     status: Literal["cancelled"]
     success: Literal[True]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class BatchScrapeWebhookOption1(TypedDict):
@@ -1491,9 +1487,6 @@ class BatchScrapeResponse(TypedDict):
     status: NotRequired[Literal["scraping"]]
     queuePosition: NotRequired[int]
     invalidURLs: list[str]
-    creditsUsed: int
-    costUsd: float
-    requestId: NotRequired[str]
 
 
 class BatchScrapeStatusResponseDataItemActionsJavascriptReturnsItem(TypedDict):
@@ -1527,7 +1520,7 @@ class BatchScrapeStatusResponseDataItem(TypedDict):
     branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     actions: NotRequired[BatchScrapeStatusResponseDataItemActions]
     warning: NotRequired[str]
-    metadata: ScrapeResponseDataMetadata
+    metadata: CrawlStatusResponseDataItemMetadata
 
 
 class BatchScrapeStatusResponse(TypedDict):
@@ -1547,4 +1540,3 @@ class BatchScrapeStatusResponse(TypedDict):
     expiresAt: NotRequired[str]
     next: NotRequired[str]
     data: list[BatchScrapeStatusResponseDataItem]
-    requestId: NotRequired[str]

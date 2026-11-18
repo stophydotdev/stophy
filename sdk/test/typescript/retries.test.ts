@@ -1,15 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { Stophy, StophyError } from "../../packages/typescript/src/index";
+import { type SearchResponse, Stophy, StophyError } from "../../packages/typescript/src/index";
 import { makeClient } from "./helpers";
 
-const ok = {
-  json: {
-    success: true,
-    data: { results: [] },
-    costUsd: 0.001,
-    requestId: "req_1",
-  },
-};
+const ok = { json: { success: true, data: { web: [] } } } satisfies { json: SearchResponse };
 
 describe("retries", () => {
   test("retries a 429 then succeeds", async () => {
@@ -18,7 +11,7 @@ describe("retries", () => {
       { maxRetries: 2, retryInitialDelayMs: 0 },
     );
     const res = await client.search({ query: "x" });
-    expect(res.costUsd).toBe(0.001);
+    expect(res).toEqual(ok.json);
     expect(calls.length).toBe(2);
   });
 

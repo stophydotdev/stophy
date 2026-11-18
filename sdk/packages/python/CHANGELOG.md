@@ -1,5 +1,9 @@
 # stophy
 
+## Unreleased
+
+- The response models now match the API. Scrape and parse report the cost in `data.metadata.costUsd`, not at the top level. Extract results can report `success: false` when the job fails.
+
 ## 1.4.0
 
 - Every POST sends an `Idempotency-Key`, the same on each retry of that call. Pass your own with `idempotency_key=` on `scrape`, `search`, `map`, `parse`, `extract`, `crawl`, `batch.scrape`, `browser.task` and `browser.task.status`.

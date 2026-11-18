@@ -31,32 +31,31 @@ const sdkOperations = new Set([
   "batchScrapeCancel",
 ]);
 
-const url = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
-const target = new URL("../openapi.json", import.meta.url);
+if (import.meta.main) {
+  const url = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
+  const target = new URL("../openapi.json", import.meta.url);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download OpenAPI spec from ${url}: ${response.status}`);
+  }
 
-const response = await fetch(url);
-if (!response.ok) {
-  throw new Error(`Failed to download OpenAPI spec from ${url}: ${response.status}`);
+  const document = sdkDocument(await response.json());
+  const parsers = await parserNames(new URL("/v1/parsers", url));
+  const text = `${JSON.stringify(document, null, 2)}\n`;
+  await Bun.write(target, text);
+  console.log(`Wrote ${target.pathname} from ${url} (${text.length} bytes).`);
+
+  const parsersTarget = new URL("../parsers.json", import.meta.url);
+  await Bun.write(parsersTarget, `${JSON.stringify(parsers, null, 2)}\n`);
+  console.log(`Wrote ${parsers.length} parser names to ${parsersTarget.pathname}.`);
 }
 
-const document: JsonValue = await response.json();
-if (
-  !isRecord(document) ||
-  !Object.hasOwn(document, "openapi") ||
-  !Object.hasOwn(document, "paths")
-) {
-  throw new Error(`Response from ${url} is not an OpenAPI document.`);
+export function sdkDocument(document: JsonValue): JsonValue {
+  if (!isRecord(document) || !isString(document.openapi) || !isRecord(document.paths)) {
+    throw new Error("Not an OpenAPI document.");
+  }
+  return withoutUnsendableFields(onlySdkOperations(document));
 }
-
-const text = `${JSON.stringify(withoutUnsendableFields(onlySdkOperations(document)), null, 2)}\n`;
-await Bun.write(target, text);
-console.log(`Wrote ${target.pathname} from ${url} (${text.length} bytes).`);
-
-const parsersUrl = new URL("/v1/parsers", url);
-const parsersTarget = new URL("../parsers.json", import.meta.url);
-const parsers = await parserNames(parsersUrl);
-await Bun.write(parsersTarget, `${JSON.stringify(parsers, null, 2)}\n`);
-console.log(`Wrote ${parsers.length} parser names to ${parsersTarget.pathname}.`);
 
 async function parserNames(from: URL): Promise<string[]> {
   const reply = await fetch(from);
@@ -66,12 +65,12 @@ async function parserNames(from: URL): Promise<string[]> {
   if (!Array.isArray(list)) throw new Error(`Response from ${from} has no parsers.`);
   return list
     .flatMap((parser) => (isRecord(parser) && isString(parser.name) ? [parser.name] : []))
-    .toSorted();
+    .sort();
 }
 
 function onlySdkOperations(document: JsonObject): JsonObject {
   const paths = isRecord(document.paths) ? Object.entries(document.paths) : [];
-  const kept = paths.flatMap(([path, item]) => {
+  const kept = paths.flatMap<[string, JsonObject]>(([path, item]) => {
     const operations = Object.entries(isRecord(item) ? item : {}).filter(
       ([, operation]) =>
         isRecord(operation) &&
@@ -95,7 +94,7 @@ function operationIdOf(operation: JsonValue): string | undefined {
 function onlyUsedComponents(document: JsonObject): JsonObject {
   const components = isRecord(document.components) ? document.components : {};
   const used = new Set<string>();
-  const visit = (value: JsonValue): void => {
+  const visit = (value: JsonValue | undefined): void => {
     if (Array.isArray(value)) return value.forEach(visit);
     if (!isRecord(value)) return;
     for (const [key, child] of Object.entries(value)) {
