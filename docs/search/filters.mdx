@@ -200,7 +200,7 @@ A filter sent at the top level applies to every source it fits. To give web resu
 | - | - |
 | `qdr:d`, `qdr:w`, `qdr:m`, `qdr:y` | The past day, week, month or year. |
 | `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY` | A date range. Send `cd_min`, `cd_max` or both. Web only. |
-| `sbd:1` | Newest first. Results without a date come last, and a `warning` says how many. |
+| `sbd:1` | Newest first. Results without a date come last, and a `warning` says how many. Every result found is sorted before `limit` applies, so `limit: 1` returns the newest one. |
 
 Join values with a comma, such as `sbd:1,qdr:w` for the past week, newest first.
 

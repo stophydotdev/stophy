@@ -122,6 +122,7 @@ These fields belong to this page.
 | - | - | - | - |
 | `query` | `string` | none | What to search for, 1 to 500 characters. Required. Web results take the operators `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Image results take `imagesize:WIDTHxHEIGHT` for that size and larger, and `larger:WIDTHxHEIGHT` for at least that size. |
 | `limit` | `number` | 10, or 5 with `scrapeOptions.formats` | The most results from each source, 1 to 100. News returns at most 50. |
+| `scrapeLimit` | `number` | `limit` | With `scrapeOptions.formats`, read only the top this many web results and the top this many news results. The rest come back without page text. Not more than `limit`. See [Page content](/search/page-content). |
 | `maxAge` | `number` | 1 hour, or 15 minutes with `news` | Accept a stored answer up to this many milliseconds old, at most 30 days. `0` always searches live. An answer that was stored has `cachedAt`. |
 | `timeout` | `number` | 3,000 ms, or 60,000 ms with `scrapeOptions.formats` | Milliseconds to wait for the sources, from 1,000 to 120,000. A source that has not answered is left out with a warning. |
 | `ignoreInvalidURLs` | `boolean` | `false` | Leave out results whose address cannot be read as a page. |

@@ -230,7 +230,8 @@ These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scra
 | `scrapeOptions.timeout` | `number` | 30,000 ms | The most milliseconds one page may take, from 1,000 to 300,000. A page never gets more than what is left of the search `timeout`. Pages that run out of time get an error row. |
 | `scrapeOptions.zeroDataRetention` | `boolean` | `false` | Keep nothing from the call. Adds $2 per 1,000 pages. See [Zero data retention](/production/zero-data-retention). |
 | `highlights` | `boolean` | `false` | Fill each web `description` with the passages that best match `query`. |
-| `limit` | `number` | 5 | With `scrapeOptions.formats`, how many results are read. Every web and news result returned is read. |
+| `limit` | `number` | 5 | With `scrapeOptions.formats`, how many results come back. Without `scrapeLimit`, every web and news result returned is read. |
+| `scrapeLimit` | `number` | `limit` | With `scrapeOptions.formats`, how many web results and how many news results are read, from the top, 1 to 100. The other results come back without page text. It cannot be more than `limit`, and sending it without `scrapeOptions.formats` returns `400 invalidRequest`. |
 | `maxTextLength` | `number` | none | A query parameter. Cuts every text value in the response to this many characters. A cut value ends with `…`. |
 
 ## Limits and errors
@@ -241,7 +242,7 @@ These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scra
 
 ## Price
 
-$1 per 1,000 results whose page is read, on top of the search price. `summary` and `json` with a schema or a prompt add $3 per 1,000 more each when they return something. A result with a `metadata.error` is not charged for its page. See [Pricing](/account/pricing).
+$1 per 1,000 results whose page is read, on top of the search price. `summary` and `json` with a schema or a prompt add $3 per 1,000 more each when they return something. A result with a `metadata.error` is not charged for its page. A result that is not read because of `scrapeLimit` is not charged for a page. A search with `limit: 20` and `scrapeLimit: 3` costs $0.002 for the 20 results plus $0.001 for each of the 3 pages that are read. See [Pricing](/account/pricing).
 
 ## Related
 
