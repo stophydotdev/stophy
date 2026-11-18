@@ -1,11 +1,11 @@
 ---
 title: "Introduction"
-description: "Stophy is one API for the live web. Scrape pages, map and crawl sites, search, extract fields, parse files, run browsers and watch pages for changes."
+description: "Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents. Start here to pick the right call."
 og:title: "Introduction | Stophy"
-og:description: "Stophy is one API for the live web. Scrape pages, map and crawl sites, search, extract fields, parse files, run browsers and watch pages for changes."
+og:description: "Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents. Start here to pick the right call."
 ---
 
-Stophy gives your agents and apps the live web through one API. Send a URL or a question and get Markdown, links, a screenshot or JSON in the shape you ask for. Every price is in dollars, and you pay for what you use.
+Search, read, and act on the web. Stophy is one API that lets your agent search the web, read any page as Markdown or JSON, crawl a whole site, fill fields from pages, and drive a cloud browser when a page needs clicks. You pay in dollars for what you use, and a failed call is free.
 
 <CardGroup cols={3}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
@@ -21,7 +21,7 @@ Stophy gives your agents and apps the live web through one API. Send a URL or a 
 
 ## Make a request
 
-This request reads `example.com` and returns its main content as Markdown. Search, scrape, map and parse also work without an API key, within [free limits](/production/rate-limits). Get an API key in the [Quickstart](/quickstart). The TypeScript and Python tabs use the [SDK](/sdks): install it with `npm install stophy` or `pip install stophy`.
+Scrape is where most agents start. You send a URL and get the page back in the formats you list. This request returns the main content of `example.com` as Markdown. You can run it without an API key, up to 10 calls a minute and 50 a day, and the [Quickstart](/quickstart) gets you a key for more. The TypeScript and Python tabs use the [SDK](/sdks), from `npm install stophy` or `pip install stophy`.
 
 <CodeGroup>
 ```bash cURL
@@ -60,29 +60,21 @@ print(result["data"]["markdown"])
 ```
 </CodeGroup>
 
-<Accordion title="Response">
-This real response is cut to a few lines. The page text is in `data.markdown`, and `data.metadata.costUsd` is what the call cost in dollars.
+The page text is in `data.markdown`. `data.metadata` holds the page title, the status code the site answered with, and `costUsd`, what the call cost in dollars. With a key, this one costs $0.001.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
+    "markdown": "This domain is for use in documentation examples without needing permission. …",
     "metadata": {
       "title": "Example Domain",
-      "language": "en",
-      "sourceURL": "https://example.com/",
-      "url": "https://example.com/",
       "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "5ab0dd3c-e4e8-4402-b88e-5d477628b0b6",
       "costUsd": 0.001
     }
   }
 }
 ```
-</Accordion>
 
 ## What you can do
 
@@ -96,6 +88,8 @@ This real response is cut to a few lines. The page text is in `data.markdown`, a
 * **Watch for changes.** [Monitors](/monitors/overview) check pages on a schedule and tell you what changed. They can send each change to a [webhook](/webhooks).
 
 ## Choose an API
+
+Start from what you have. Two pairs get mixed up most. Crawl finds pages for you by following links from one URL, while a batch reads a list of URLs you already have. Extract reads the pages you name, while Agent searches for the pages on its own.
 
 | You have | You want | Use |
 | - | - | - |

@@ -10,9 +10,9 @@ Five tabs, in `docs.json`:
 - API Reference: `api-reference/{introduction,errors}` (hand-written) and `api-reference/endpoint/*` (generated), one page per operation in the live OpenAPI document, in the groups `scripts/reference.config.json` names.
 - Recipes: `recipes/*`, one goal per page, numbered steps with code.
 - Integrations: `integrations/*`, coding agents and LLM SDKs.
-- Changelog: `changelog`, one `<Update>` per week, newest first.
+- Changelog: `changelog`, one `<Update>` per week, newest first. Up to six bullets a week, one or two sentences each: a change the reader would notice or must act on, and the page that describes it now. Breaking changes always get a line, first. Field-level detail belongs on the linked page.
 
-Page shape: a product overview opens with one or two sentences, then Make a request, Read the response, a table of formats or options linking to their pages, Price, and Choose another API. A feature page opens with one sentence, then the request, the response, an options table, limits and errors, and related links.
+Page shape: a product overview opens with what it is for and when to pick it over another API, then one request, the fields of the response you read first, a table of formats or options linking to their pages, Price, and Choose another API. A feature page opens with one sentence on what it does for the reader, then one request, then prose: when to use it, what each option changes, the limits, the price, the errors, and what an empty result looks like.
 
 ## Generated files
 
@@ -27,6 +27,9 @@ A removed page gets a redirect in `docs.json`, so no old link 404s.
 ## Writing
 
 - Plain words, short sentences, second person. Say what the reader gets.
+- Explain more, show less code. A page has one request (one `<CodeGroup>` with the cURL, TypeScript and Python tabs) and at most one response, cut to the fields the text talks about. A recipe may show one request per step. Show any other option as an inline fragment in a sentence, such as `"onlyMainContent": true`, not as another full request.
+- Every section opens with what it is for and when to use it. Say the trade-off and the trap: what goes wrong, what it costs, and what to do instead.
+- Explanations state only what the live API or the server code does. If you cannot confirm a sentence, leave it out.
 - Prices in dollars, as the catalog states them. The word credits appears only in field names such as `creditsUsed`.
 - Every fact must match the live API (`/v1/endpoints`, `/openapi.json`) or the server code. Every example request must be a real call; free endpoints are free to call.
 - Don't describe how Stophy gets its data or what runs it.

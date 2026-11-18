@@ -1,233 +1,46 @@
 ---
 title: "Changelog"
-description: "What changed in the Stophy API, SDKs, CLI and MCP server, newest first: new endpoints and parsers, option changes, prices, limits and removals."
+description: "What changed in the Stophy API, SDKs, CLI and MCP server, one week per entry and newest first. Each line links the page that says how it works now."
 og:title: "Changelog | Stophy"
-og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, newest first: new endpoints and parsers, option changes, prices, limits and removals."
+og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, one week per entry and newest first. Each line links the page that says how it works now."
 ---
 
-Each entry covers one week and is named for the Monday it starts. The linked pages describe current behavior. Endpoint names from before November 5, 2026, such as `google.search`, belong to the per-site API that API v1 replaced.
+Each entry covers one week and is named for its Monday. We list the changes you would notice or need to act on, and each one links the page that describes how it works today.
 
-<Update label="Week of November 16, 2026" description="Lower prices, nine new parsers, costUsd and eventId on webhooks, clearer errors, a tool for each product on MCP, and GitHub search and Google Scholar removed">
+<Update label="Week of November 16, 2026" description="Smaller answers, lower prices and new parsers">
 
-**New**
-
-- Job webhooks (crawl, batch, agent and extract) and `monitor.check.completed` now carry `costUsd`, the exact dollars charged. `creditsUsed` and `actualCredits` stay as older fields, rounded up to whole $0.002 steps. See [Webhooks](/webhooks) and [Monitor webhooks](/monitors/webhooks).
-- Job and monitor webhooks carry an `eventId` that stays the same when a call is sent again, so you can skip one you already handled. See [Webhooks](/webhooks) and [Monitor webhooks](/monitors/webhooks#read-an-event).
-- Eight new parsers: [`bsky-profile`](/scrape/prebuilt-parsers/social/bsky-profile) and [`bsky-post`](/scrape/prebuilt-parsers/social/bsky-post) for Bluesky, [`link-in-bio`](/scrape/prebuilt-parsers/social/link-in-bio) for Linktree, Komi, Linkbio and Linkme pages, [`x-community`](/scrape/prebuilt-parsers/social/x-community) for X communities and their posts, [`tiktok-trending`](/scrape/prebuilt-parsers/video/tiktok-trending) and [`tiktok-live`](/scrape/prebuilt-parsers/video/tiktok-live), and [`twitch-profile`](/scrape/prebuilt-parsers/video/twitch-profile) and [`twitch-clips`](/scrape/prebuilt-parsers/video/twitch-clips) for Twitch channels and clips.
-- [`facebook-group`](/scrape/prebuilt-parsers/social/facebook-group) reads a public Facebook group.
-
-**Changed**
-
-- **Lower prices, from November 18.** The list prices dropped. Per 1,000 unless noted, before and after:
-  - A page read in scrape, crawl, batch scrape, search page text and monitor checks, and most parser calls: $2 to $1.
-  - Map: $2 to $0.50.
-  - Search, for each 10 results from each source: $0.004 to $0.001.
-  - `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu`, `changeTracking` in `json` mode and each agent step: $8 to $3 more.
-  - Crawl preview: $8 to $3.
-  - `checkPromptInjection`: $8 to $2.50 more.
-  - Extract: $10 to $5 for most pages, so one page costs $0.005 instead of $0.01.
-  - Parse and PDF text from a text layer: $2 to $0.50. Text read from a picture: $2 to $2.50.
-  - Parsers that charge for each 10 results (reviews, apps, listings, videos): $0.002 to $0.001. Reddit comments, for each 200: $0.002 to $0.001.
-  - Monitors: `json` comparison $8 to $3 more, a judged change $2 to $1 more.
-  - These did not change: browser sessions and tasks, session traffic at $5 per GB, Instagram and TikTok audio transcripts, `zeroDataRetention`, and `zillow-search`.
-
-  See [Pricing](/account/pricing).
-- The MCP server lists a tool for each product. Without an API key it lists `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. With one it adds tools for crawl, extract, agent, browsers, developer and paper search, and monitors, such as `stophy_crawl_status` and `stophy_monitor_create`. `?toolsets=` adds tools for more endpoints of a source. See [Install MCP](/install-mcp#what-your-agent-sees).
-
-- A scrape that runs out of time answers `504 sourceTimeout` with `Retry-After: 5`, not `503 sourceUnavailable`. An `includeTags` that matches nothing answers `400 invalidRequest`. See [Timeouts and errors](/scrape/timeouts-and-errors).
-- Search with `scrapeOptions` and no API key answers `401 apiKeyRequired`, not `400 invalidRequest`. See [Search page content](/search/page-content).
-- Crawl, batch and search pages no longer carry `metadata.scrapeId`. A single scrape keeps it. A scrape answer is `{ success, data }`, with its id and cost in `data.metadata`, and no top-level `id`, `costUsd`, `creditsUsed` or `requestId`. The request id is in the `X-Request-ID` header. See [Scrape](/scrape/overview).
-- The published maximum cost of one call, `maxCostUsd` on `GET /v1/endpoints`, now includes the most a PDF can charge: $0.1165 for a scrape or a batch page, $17.52 for a search and $1,165 for a crawl. No price changed. See [Pricing](/account/pricing).
-- The [`x-community`](/scrape/prebuilt-parsers/social/x-community) parser returns one community, with `name`, `description`, `topic` and `memberCount`, not a profile.
-
-**Removed**
-
-- The MCP tools `stophy_search_endpoints`, `stophy_describe_endpoint` and `stophy_call` are gone. Use the tool for the product, or `stophy_scrape` with a parser in `formats` for a site's data.
-- GitHub search is gone. `GET` and `POST /v1/search/research/github` answer `410`. Search READMEs, issues, pull requests and releases with [developer search](/search/developer).
-- The `google-scholar` parser is gone. Read papers with `categories: ["research"]` on [search](/search/papers), or `POST /v1/search/research/papers`.
-
-**Improved**
-
-- Without `safe`, news and image search find more results and fail less often, and more news results carry an exact publish time. A `tbs` time window and the image size filter apply to every result. See [Search](/search/overview).
-- A scrape with `maxAge` whose page has no stored copy reads the page at once. Before, it waited several seconds first. A `minAge` call with no stored copy answers `notFound` at once. See [Freshness and caching](/scrape/freshness-and-caching).
-
-**Fixed**
-
-- With an API key, pages on some government, bank and payment sites that failed with `sourceUnavailable` now read.
-- Run now on a paused monitor answers `409` and queues nothing, and a text schedule with a gap over 30 days is refused. See [Schedules](/monitors/schedules#run-a-check-now).
-- Paper search refuses a field it does not take, names every such field and says to send `k` for the number of papers. See [Papers](/search/papers).
-- A failed extract says `success: false` in `GET /v1/extract/{id}` and in its webhook. The HTTP status stays `200`. See [Extract results](/extract/results).
-- A crawl's `robotsBlocked` lists the links a robots.txt that the crawl read did not allow. It was always empty before. A batch never applies robots.txt. See [Crawl results](/crawl/async#read-the-errors).
+- **Breaking: an answer is the result.** Scrape, search, map, crawl, batch, extract, parse and agent answers no longer repeat `id`, `costUsd`, `creditsUsed` or `requestId` at the top. The cost is the `x-cost-usd` header, scrape and parse also keep it in `data.metadata.costUsd`, and the request id is the `X-Request-ID` header. See [Errors](/api-reference/errors) and [Scrape](/scrape/overview).
+- **Lower prices from November 18.** A page read is $1 per 1,000, down from $2. Map is $0.50 per 1,000, extract $5 per 1,000 pages, and search $0.001 for each 10 results. See [Pricing](/account/pricing).
+- **Nine new parsers** for Bluesky, link-in-bio pages, X communities, TikTok trending and live, Twitch channels and clips, and Facebook groups. See [Pre-built parsers](/scrape/prebuilt-parsers).
+- **Webhooks carry `costUsd` and `eventId`**, so you know what each job cost and can skip an event you already handled. See [Webhooks](/webhooks).
+- **The MCP server has a tool for each product**, such as `stophy_crawl_status`. The generic `stophy_call` tools are gone. See [Install MCP](/install-mcp#what-your-agent-sees).
+- **Removed:** GitHub search, now [developer search](/search/developer), and the `google-scholar` parser, now [papers search](/search/papers).
 
 </Update>
 
 <Update label="Week of November 9, 2026" description="Dollar billing, browser sessions and new limits">
 
-**New**
-
-- **Billing is in dollars.** On November 15, balances, usage, history and logs switched to dollars. Every response carries `costUsd` and an `x-cost-usd` header, `GET /v1/usage` returns `balanceUsd`, and a top-up adds exactly the dollars paid. Prices did not change. `creditsUsed` stays and counts the same cost in steps of $0.002. See [Pricing](/account/pricing).
-- Save allow and block rules by domain with `POST /v1/browser/network-policies`, then open a session with `networkPolicyId`. A change to the policy reaches running sessions within seconds. See [Network policies](/browser/network-policies).
-- Upload a Chrome extension with `POST /v1/browser/extensions` and load up to 3 in a session with `extensionIds`. See [Extensions](/browser/extensions).
-- Send `recording: true` to record a session as an MP4, then read it with `GET /v1/browser/{session_id}/recording`. Videos are kept 7 days. See [Recordings and replay](/browser/recordings-and-replay).
-- Change how an open session reaches the web, with its tabs and logins kept, using `PATCH /v1/browser/{session_id}/proxy`. Traffic costs $5 per GB by default and $0.20 per GB with `proxy: "direct"`. See [Network location](/browser/network-location).
-- Put a file in a session with `POST /v1/browser/{session_id}/uploads`, and list what a session downloaded with `GET /v1/browser/{session_id}/downloads`. See [Files](/browser/files).
-- Sessions take `screen`, `metadata`, `location`, `captureConsole` and `solveCaptchas`, and `ttl` goes up to 6 hours. Free accounts keep 3 sessions open, paid accounts 10. See [Browser sessions](/browser/overview).
-- The MCP server opens, drives and closes a browser session with `browserOpen`, `browserRun` and `browserClose`. See [Install MCP](/install-mcp).
-- Scrape takes `query` to return the passages of a long page that match it, and `offset` with `nextOffset` to read on past `maxChars`. See [Content filtering](/scrape/content-filtering).
-- Search takes `sbd:1` in `tbs` to sort newest first, and `imagesize:WIDTHxHEIGHT` in `query` to keep images of one size. See [Search filters](/search/filters).
-- Free calls list your crawls and batches, page their results, delete a finished batch's results, and read webhook deliveries with their attempts and a retry. See [Webhooks](/webhooks).
-
-**Changed**
-
-- New accounts start with $2, down from $10. Sign-in is with Google or GitHub only. Existing balances stay.
-- Each endpoint has its own limit: 100 calls a minute until your first top-up, then 600. Job starts, calls at once, waiting jobs and open sessions have limits by tier too, and `GET /v1/limits` shows yours. See [Rate limits](/production/rate-limits).
-- An answer from a stored copy costs the same as a live read, and a stored copy older than `maxAge` is never returned, even when the site fails. See [Freshness and caching](/scrape/freshness-and-caching).
-- A scrape keeps trying for 60 seconds by default, and `timeout` takes 1 second to 5 minutes. See [Timeouts](/production/timeouts).
-- A web result's `description` is the result's search snippet. Send `highlights: true` to get the passages that best match your query instead. See [Search page content](/search/page-content).
-
-**Fixed**
-
-- A call whose caller hangs up before the answer is refunded.
-- A browser task runs only the whole minutes its `maxCost` buys.
-- A crawl keeps reading until it reaches its `limit`. A large crawl could end early and report `completed`.
-- A refused browser session sends `Retry-After`.
-- A URL with a username or password is refused with `invalidRequest`.
-
-**Removed**
-
-- The `qdr:h` past-hour value in `tbs` is refused. The smallest window is `qdr:d`.
-- The `companies` and `people` search categories, `/v1/search/companies`, `/v1/search/people` and the `company` parser are gone.
-- `/v1/search/gov` is gone.
+- **Billing is in dollars.** Costs are shown in dollars, and a top-up adds exactly what you paid. See [Pricing](/account/pricing).
+- **Browser sessions** take network policies, Chrome extensions, MP4 recordings, file uploads and downloads, and run up to 6 hours. See [Browser sessions](/browser/overview).
+- **Rate limits per endpoint.** Each one allows 100 calls a minute before your first top-up and 600 after. `GET /v1/limits` shows yours. See [Rate limits](/production/rate-limits).
+- **A stored copy costs the same as a live read**, and one older than `maxAge` is never returned. See [Freshness and caching](/scrape/freshness-and-caching).
+- **New accounts start with $2**, and you sign in with Google or GitHub.
+- **Removed:** company, people and government search, and the `qdr:h` time window.
 
 </Update>
 
 <Update label="Week of November 2, 2026" description="API v1">
 
-**New**
-
-- **API v1.** On November 5, Stophy became `scrape`, `search`, `map`, `crawl`, `batch/scrape`, `extract` and `parse`, with `agent`, `monitor` and `browser` beside them. Every answer is `{ success, data }` with a `requestId`, and every error is flat. See the [Introduction](/introduction).
-- **Parsers.** Each site is a parser. Send its page address to scrape with `{ "type": "json", "parser": "reddit-search" }`, and `GET /v1/parsers` lists about 100 with their input and an example answer. See [Pre-built parsers](/scrape/prebuilt-parsers).
-- Scrape formats: `summary`, `question`, `product`, `menu`, `branding`, `rawBase64`, `audio` and `video` for YouTube links, `json` with a `schema`, a `prompt` or CSS `rules`, and `attributes`. See [Scrape](/scrape/overview).
-- Scrape options: `actions` up to 50 steps, `profile`, `lockdown`, `checkPromptInjection`, `redactPII`, `onlyCleanContent` and `zeroDataRetention`. `GET /v1/scrape/{id}` reads a scrape again for 24 hours, and `POST /v1/scrape/{id}/interact` keeps working on the page. See [Browser actions](/scrape/browser-actions) and [Interact](/scrape/interact).
-- `POST /v1/crawl` and `POST /v1/batch/scrape` return any scrape format, report failed pages at `/errors`, and take a `webhook`. A batch takes `appendToId` to add pages while it runs, and `GET /v1/crawl/active` lists running crawls. A job over your running limit waits in line. See [Crawl](/crawl/overview) and [Batches](/batches/overview).
-- `POST /v1/extract` fills the fields you name from up to 25 pages, each checked against the page, for $10 per 1,000 pages. A call that finds none of them is free. `POST /v1/agent` searches, reads pages and fills your fields with a source for each. See [Extract](/extract/overview) and [Agent](/agent/overview).
-- `POST /v1/monitor` watches pages on a schedule and reports what changed. Webhooks are signed with `Stophy-Signature`, and `POST /v1/webhook/secret` reads or replaces the secret. See [Monitors](/monitors/overview).
-- `POST /v1/parse` turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Scanned PDF pages are read, `POST /v1/parse/upload-url` takes large files, and `GET /v1/parse/formats` lists the types. See [Parse documents](/parse/overview).
-- Search takes `categories` of `research`, `pdf` and `videos`, and has `POST /v1/search/research/papers` and `POST /v1/search/developer`. It also had company, people and government search, which were removed on November 14. See [Search](/search/overview).
-- Browser sessions: `POST /v1/browser` opens one for $0.06 per hour, `POST /v1/browser/{session_id}/execute` runs code or a prompt in it, and profiles keep logins. `POST /v1/browser/task` clicks through a public site toward a goal. See [Browser sessions](/browser/overview) and [Browser tasks](/browser/tasks).
-- An agent signs up with `POST /v1/signup`, a person approves, and `POST /v1/signup/poll` returns the key once. See [API keys](/account/api-keys).
-- `GET /v1/limits` shows your tier, balance, rate limit and key expiry. `GET /v1/status` shows which sources passed their last checks. `POST /v1/feedback` rates a call, and a bad rating refunds what it cost, up to a daily cap.
-- A repeated `POST` with the same `Idempotency-Key` returns the first answer for 24 hours.
-- Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).
-
-**Changed**
-
-- On November 5, new accounts start with $10 of free credit, up from $5.
-
-**Improved**
-
-- Every error says what to do next. Errors carry `error`, `code`, `retryable` and `requestId`. A wrong method is `405 methodNotAllowed`, and a key that does not work is `401 unauthorized`. See [Errors](/api-reference/errors).
-
-**Removed**
-
-- The per-site endpoints, such as `/v1/google/search` and `/v1/youtube/transcript`, are replaced by parsers, and the old paths answer `404`. The AI search, keyword suggestion and AI answer endpoints are removed.
-- Scrape takes one `url`. A call with `urls`, added on October 27, is refused and names `POST /v1/batch/scrape`.
-
-**SDKs, CLI, MCP and skills**
-
-- The TypeScript and Python SDKs, both `stophy` 1.3.0, call API v1. The site methods are gone. Read a site with `parsed(parser, url, options)`. See [SDKs](/sdks).
-- The CLI, `@stophy/cli` 1.3.0 and 1.4.0, works with API v1. In an agent or a pipe it prints one line of JSON, and without an API key it starts a signup for a person to approve. See [Install the CLI](/install-cli).
-- The hosted MCP server, `@stophy/mcp` 1.3.1, has `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_crawl`, `stophy_extract` and `stophy_signup`. A site's data comes from `stophy_scrape` with a parser in `formats`.
-- The agent skills call API v1, one skill per task. See [Install skills](/install-skill).
+- **API v1.** On November 5, Stophy became scrape, search, map, crawl, batch and extract, with parse, agent, monitors and browsers beside them. See the [Introduction](/introduction).
+- **Parsers replace the per-site endpoints.** Paths such as `/v1/google/search` answer `404`. Send the page address to scrape with a parser instead. See [Pre-built parsers](/scrape/prebuilt-parsers).
+- **No key needed to try it.** Search, scrape, map and parse work without one, up to 10 calls a minute and 50 a day. See [Rate limits](/production/rate-limits).
+- **An agent can sign itself up.** It gets a link for you to approve, then its key. See [API keys](/account/api-keys).
+- **The SDKs, CLI, MCP server and skills** all call API v1. See [SDKs](/sdks).
 
 </Update>
 
-<Update label="Week of October 26, 2026" description="More sites, multi-page scrape and search filters">
+<Update label="October 2026" description="Launch">
 
-**New**
-
-- Craigslist search and listings, Luma events, Realtor.com search and properties, and Expedia hotels. Today they are the `craigslist-search`, `craigslist-listing`, `luma-events`, `luma-event`, `realtor-search`, `realtor-property` and `expedia-hotels` [parsers](/scrape/prebuilt-parsers).
-- `web.scrape` takes `urls`, 2 to 10 pages in one call, and returns `results` in the order you sent. API v1 replaced this with `POST /v1/batch/scrape`.
-- `web.search` ranks fresher, cleaner results first and filters by language and date. Today those are `lang` and `tbs` on [search](/search/filters).
-- Google Flights takes a currency and returns the link to its search page. See the [`google-flights` parser](/scrape/prebuilt-parsers/places-and-travel/google-flights).
-- A scrape says when it left out network calls or cropped a screenshot, in `networkDropped` and `screenshotCropped`. See [Network](/scrape/network).
-
-**Improved**
-
-- Search with `includeDomains` returns the on-site results, also with `safe`.
-
-**Fixed**
-
-- Reddit search, posts and user pages read again after a change on the site.
-- A page that never finishes loading, or that is only a loading notice, costs nothing.
-
-</Update>
-
-<Update label="Week of October 19, 2026" description="Scrape formats and cleaner content">
-
-**New**
-
-- The `highlights` format returns the passages of a page that best match a `query`, each with its section heading. See [Highlights](/scrape/highlights).
-- The `changeTracking` format says what changed since your key last read a page. See [Change tracking](/scrape/change-tracking).
-- The `network` format returns the JSON a page loaded while it rendered. See [Network](/scrape/network).
-- `linkStyle` writes links `inline`, `numbered` or `none`. See [Content filtering](/scrape/content-filtering).
-- A `screenshot` comes back as a link instead of image data. See [Screenshot](/scrape/screenshot).
-- A crawl with a `prompt` follows link text, not only addresses. See [Crawl scope](/crawl/scope).
-
-**Improved**
-
-- Main content leaves out blocks that are mostly links and blocks a site repeats on every page.
-- A page that only says it needs JavaScript now comes back with its content.
-- `web.map` returns its pages in the same order on every call.
-
-**Fixed**
-
-- A call that fails halfway gives its charge back, and a refunded or disputed top-up takes its balance back.
-- A field of the wrong type fails the call with `invalidRequest` instead of going `null`.
-
-</Update>
-
-<Update label="Week of October 12, 2026" description="Scrape, map, crawl and batch go live">
-
-**New**
-
-- Scrape, map, parse, crawl and batch are live. Today they are [`POST /v1/scrape`](/scrape/overview), `/v1/map`, `/v1/parse`, `/v1/crawl` and `/v1/batch/scrape`.
-- Web, news and image search work without an API key, within the free limit. See [Rate limits](/production/rate-limits).
-- X profile posts, newest first or X's popular set. Today that is the `x-profile` parser.
-- Amazon reviews, newest first, by star rating and verified purchases only. Today that is the `amazon-reviews` parser.
-- `web.contacts` reads a site's emails, phone numbers and social links. Today the `emails` and `phone-numbers` parsers read emails and phone numbers.
-
-**Changed**
-
-- Pinterest pins no longer carry counts that Pinterest stopped sending.
-
-**Removed**
-
-- `google.jobs` and `google.aiMode` on October 13, and `google.shopping` on October 16.
-
-</Update>
-
-<Update label="Week of October 5, 2026" description="Public launch">
-
-**New**
-
-- Airbnb, Booking.com, company career pages, Threads, Trustpilot and eBay. Today they are [parsers](/scrape/prebuilt-parsers), such as `airbnb-search`, `booking-search`, `careers-jobs`, `threads-post`, `trustpilot-company` and `ebay-search`.
-- Facebook pages, posts, comments and Marketplace, Yelp search, businesses and reviews, and Glassdoor company reviews and salaries. Today they are parsers such as `facebook-page`, `yelp-search` and `glassdoor-reviews`.
-- Nine more endpoints work without an API key, within the free limit.
-
-**Improved**
-
-- Request fields use the same names as the fields in the response, each endpoint takes the filters its site has, and one rule sets the price of every call.
-- Long text comes back whole. Add `?maxTextLength=<characters>` to the URL to cut it.
-
-**Fixed**
-
-- Pages of results stop repeating rows, and a cursor Stophy did not issue is refused before any call.
-- A search with nothing relevant answers "no results" at once.
-- Amazon best sellers fill all 50 ranks.
-
-**Removed**
-
-- 11 rarely used endpoints: YouTube charts, related videos, hashtags and channel search, Google videos, Reddit domain, Microsoft ads search, ad and advertisers, and Pinterest ads search and ad.
+Stophy launched on October 5, 2026, with one endpoint per site, such as `google.search` and `youtube.transcript`. Through October we added sites, scrape formats such as `highlights`, `changeTracking` and `network`, and crawl and batch. API v1 replaced that API on November 5, and each site lives on as a [parser](/scrape/prebuilt-parsers).
 
 </Update>
