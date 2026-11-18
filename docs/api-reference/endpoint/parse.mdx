@@ -14,7 +14,7 @@ Best for a file you already hold. To read a page or a PDF by its address, use sc
 
 ## Price
 
-$0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. costUsd shows what the call cost.
+$0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. metadata.costUsd shows what the call cost in dollars.
 
 See [Pricing](/account/pricing).
 
@@ -26,33 +26,26 @@ curl -X POST https://api.stophy.dev/v1/parse \
   -d '{"file":"PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=","filename":"tides.html"}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/parse", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    file: "PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=",
-    filename: "tides.html",
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parse({
+  file: "PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=",
+  filename: "tides.html",
 });
-console.log(await response.json());
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/parse",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "file": "PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=",
-        "filename": "tides.html",
-    },
+result = stophy.parse(
+    file="PGgxPkhvdyB0aWRlcyB3b3JrPC9oMT4=",
+    filename="tides.html",
 )
-print(response.json())
+print(result)
 ```
 </RequestExample>
 
@@ -64,13 +57,9 @@ print(response.json())
     "markdown": "# How tides work",
     "metadata": {
       "contentType": "text/html",
-      "creditsUsed": 1,
       "costUsd": 0.0005
     }
-  },
-  "costUsd": 0.0005,
-  "creditsUsed": 1,
-  "requestId": "c8fb568b-22fb-4532-a7e7-165e22523c28"
+  }
 }
 ```
 </ResponseExample>

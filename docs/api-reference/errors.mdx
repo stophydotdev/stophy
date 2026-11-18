@@ -5,17 +5,7 @@ og:title: "Errors | Stophy"
 og:description: "Every Stophy error has success false, a message and a stable code. See each code, its HTTP status and whether to retry. A failed call costs nothing."
 ---
 
-Every Stophy error has the same flat shape and a stable `code`, and a failed call costs nothing. This request sends a field that scrape does not take.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com","colour":"red"}'
-```
-
-<Accordion title="Response">
-The status is `400`. The list of fields is cut.
+Read `code` to decide whether to change your request or retry it. A failed call costs nothing. For example, sending `"colour": "red"` to scrape returns `400` because scrape does not take that field.
 
 ```json
 {
@@ -26,9 +16,7 @@ The status is `400`. The list of fields is cut.
   "requestId": "4897a792-9571-47d6-bfd4-5a3db0a7c022"
 }
 ```
-</Accordion>
-
-Every error has this flat shape, on every operation.
+The same flat shape applies to every operation. Check the fields below before you handle an error.
 
 | Field | What it is |
 | --- | --- |
@@ -44,9 +32,11 @@ Every error has this flat shape, on every operation.
 
 ## Error codes
 
+Use `code` to tell errors apart when they share an HTTP status.
+
 | Code | Status | Retry | What it means |
 | --- | --- | --- | --- |
-| `invalidRequest` | 400, 409 | No | The input is not valid. The error names the field. A 409 means the name is already taken, or the thing is not ready for the change. |
+| `invalidRequest` | 400, 409 | No | The input is not valid. The error names the field, such as an `includeTags` that matches nothing on the page. A 409 means the name is already taken, or the thing is not ready for the change. |
 | `prohibitedPermission` | 400 | No | The extension's `manifest.json` has a `key` field or asks for a permission that is not allowed. |
 | `apiKeyRequired` | 401 | No | This call needs an API key: the operation, paging or a field you sent. |
 | `unauthorized` | 401 | No | The API key is not valid or has expired. |
@@ -69,75 +59,17 @@ Every error has this flat shape, on every operation.
 | `busy` | 503, 409 | Yes | Stophy, or every browser, is busy. A 409 means a network policy or a proxy change on a session is still being applied. Wait `retryAfterSeconds`. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering right now. Wait `retryAfterSeconds`. |
 | `sourceRefused` | 503 | Yes | The site is refusing requests right now. Wait `retryAfterSeconds`. |
-| `sourceTimeout` | 504 | Yes | The site took too long to answer. Try again. |
+| `sourceTimeout` | 504 | Yes | The site took too long to answer. Wait `retryAfterSeconds`, which is 5, then try again. |
 
 The code `insufficientCredits` keeps its name, and its message and fields are in dollars.
 
 ## Real errors
 
-**No API key on an operation that needs one.** `401 apiKeyRequired`, from crawl.
+Use the message to fix errors that share a code. If scrape returns `404 notFound` for a domain with no website, check the spelling. If the API path does not exist, check `https://api.stophy.dev/openapi.json` for the current path.
 
-```json
-{
-  "success": false,
-  "error": "This needs an API key. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
-  "code": "apiKeyRequired",
-  "retryable": false,
-  "requestId": "fb8eba5b-0aa8-4d66-ac0c-64b49eef7512",
-  "signupUrl": "https://stophy.dev/signup",
-  "signup": "POST https://api.stophy.dev/v1/signup"
-}
-```
+Crawl without a key returns `401 apiKeyRequired`. An invalid or expired key returns `401 unauthorized` instead. Both include `signupUrl` for a person and the `signup` call for an agent.
 
-**A key that is not valid.** `401 unauthorized`.
-
-```json
-{
-  "success": false,
-  "error": "This API key is not valid or has expired. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
-  "code": "unauthorized",
-  "retryable": false,
-  "signupUrl": "https://stophy.dev/signup",
-  "signup": "POST https://api.stophy.dev/v1/signup",
-  "requestId": "003839dc-8633-4e0b-8518-220919a28bec"
-}
-```
-
-**A path that is not an operation.** `404 notFound`, from a removed path like `/v1/google/search`.
-
-```json
-{
-  "success": false,
-  "error": "No endpoint at this path. See every endpoint at https://api.stophy.dev/openapi.json",
-  "code": "notFound",
-  "retryable": false,
-  "requestId": "45c02f70-4561-430f-b8a3-0cc1457046c0"
-}
-```
-
-**A domain with no website.** `404 notFound`, from scrape.
-
-```json
-{
-  "success": false,
-  "error": "That address has no website behind it. Check the spelling of the domain, then try again.",
-  "code": "notFound",
-  "retryable": false,
-  "requestId": "7b741bd3-9d8f-4e3e-9a97-3a0f2471a6c3"
-}
-```
-
-**A recording that is not ready.** `409 invalidRequest`, from [Delete a recording](/api-reference/endpoint/browser-recording-delete).
-
-```json
-{
-  "success": false,
-  "error": "The video is not ready yet. Delete it when recordingStatus is ready or failed.",
-  "code": "invalidRequest",
-  "retryable": false,
-  "requestId": "d70fe307-5f88-4d3a-8b6e-5387ed3c2a86"
-}
-```
+[Delete a recording](/api-reference/endpoint/browser-recording-delete) returns `409 invalidRequest` if the video is still processing. Wait until `recordingStatus` is `ready` or `failed` before you delete it.
 
 ## Account codes
 
@@ -157,4 +89,4 @@ These come from signing in to the CLI and from invites, not from a data operatio
 
 ## Retrying
 
-Retry only the codes marked Yes, or any error with `retryable: true`. [Troubleshooting](/production/troubleshooting) has the wait and the most tries for each code, and a retry loop for TypeScript and Python.
+Retry only the codes marked Yes, or any error with `retryable: true`. [Troubleshooting](/production/troubleshooting) shows how long to wait and when to stop retrying.

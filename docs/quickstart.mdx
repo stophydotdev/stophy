@@ -9,38 +9,7 @@ Make your first Stophy request and read the result. To have a coding agent do th
 
 ## Try it without an API key
 
-Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address. This request needs only cURL.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","formats":["markdown"],"onlyMainContent":true}'
-```
-
-<Accordion title="Response">
-This real response is cut to a few fields. A call without an API key costs nothing.
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
-    "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com/",
-      "url": "https://example.com/",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "scrapeId": "6b6900c6-061a-4547-8732-c6004baaea86",
-      "costUsd": 0
-    }
-  },
-  "id": "6b6900c6-061a-4547-8732-c6004baaea86",
-  "costUsd": 0,
-  "requestId": "6b6900c6-061a-4547-8732-c6004baaea86"
-}
-```
-</Accordion>
+Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address. To try a page from cURL, send `POST /v1/scrape` with `"url": "https://example.com"`, `"formats": ["markdown"]` and `"onlyMainContent": true`. Leave out the `Authorization` header. The page text comes back in `data.markdown`, and `data.metadata.costUsd` is `0`.
 
 Paging, crawl, batches, extract, agent, browsers and monitors need an API key. See [Rate limits](/production/rate-limits) for the free limits.
 
@@ -52,16 +21,7 @@ Keep the key on your server. Never commit it or put it in browser code. [API key
 
 ## 2. Choose a client
 
-cURL needs no install. For TypeScript and Python the examples below use `fetch` and `requests`. The [SDKs](/sdks) wrap the same calls with types and retries.
-
-<CodeGroup>
-```bash TypeScript
-npm install stophy
-```
-```bash Python
-pip install stophy
-```
-</CodeGroup>
+If you use cURL, you can go straight to the request. For TypeScript, run `npm install stophy`. For Python, run `pip install stophy`. Both [SDKs](/sdks) add types and retries and read `STOPHY_API_KEY` from your environment.
 
 ## 3. Make a request
 
@@ -79,43 +39,34 @@ curl -X POST https://api.stophy.dev/v1/search \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/search", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    query: "bun runtime",
-    sources: ["web"],
-    limit: 3,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.search({
+  query: "bun runtime",
+  sources: ["web"],
+  limit: 3,
 });
-const { data, costUsd } = await response.json();
-console.log(data.web.map((result: { url: string }) => result.url), costUsd);
+console.log(data?.web?.map((result) => result.url));
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/search",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "query": "bun runtime",
-        "sources": ["web"],
-        "limit": 3,
-    },
+body = stophy.search(
+    query="bun runtime",
+    sources=["web"],
+    limit=3,
 )
-body = response.json()
-print([result["url"] for result in body["data"]["web"]], body["costUsd"])
+print([result["url"] for result in body["data"]["web"]])
 ```
 </CodeGroup>
 
 ## 4. Check the result
 
-This real response is cut to the fields you read first.
+Read `data.web` for the ranked results. Each result has a URL, title, description and position when those fields are available. The `x-cost-usd` header is what the call cost in dollars. Empty fields are left out.
 
 ```json
 {
@@ -124,106 +75,29 @@ This real response is cut to the fields you read first.
     "web": [
       {
         "url": "https://github.com/oven-sh/bun",
-        "title": "GitHub - oven-sh/bun: Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one · GitHub",
         "description": "At its core is the Bun runtime, a fast JavaScript runtime designed as a drop-in replacement for Node.js.",
         "position": 1
-      },
-      {
-        "url": "https://bun.com/docs/runtime",
-        "title": "Bun Runtime | Bun Docs",
-        "description": "Execute JavaScript/TypeScript files, package.json scripts, and executable packages with Bun's fast runtime.",
-        "position": 2
       }
     ]
-  },
-  "id": "31fb1c5e-c206-443e-9274-c8d0bf75002c",
-  "costUsd": 0.001,
-  "requestId": "31fb1c5e-c206-443e-9274-c8d0bf75002c"
+  }
 }
 ```
 
-`success` is `true` and the results are in `data`. `costUsd` is what the call cost in dollars. Empty fields are left out, so a field you do not see was empty. A failed call has `success: false`, an `error` that says what to do and a `code`. A failed call costs nothing. See [Troubleshooting](/production/troubleshooting).
+A failed call has `success: false`, an `error` that says what to do and a `code`. It costs nothing. See [Troubleshooting](/production/troubleshooting).
 
 ## Read a site as JSON
 
-To get a site's own data, send its page to scrape with a [parser](/scrape/prebuilt-parsers). This call reads a Reddit search.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
-    "formats": [{ "type": "json", "parser": "reddit-search" }]
-  }'
-```
-
-The posts come back in `data.json.results`, with a `cursor` for the next page. This real response is cut to one post.
-
-```json
-{
-  "success": true,
-  "data": {
-    "json": {
-      "results": [
-        {
-          "id": "1rxxkol",
-          "title": "What's else in this list?",
-          "community": { "name": "PythonLearning", "url": "https://www.reddit.com/r/PythonLearning/" },
-          "publishedAt": "2026-03-19T11:13:15.803Z",
-          "likes": 1230,
-          "comments": 43
-        }
-      ],
-      "cursor": "MjQ="
-    }
-  },
-  "costUsd": 0.001
-}
-```
+Use a [parser](/scrape/prebuilt-parsers) when you want a site's own fields instead of page text. For a Reddit search URL, send `"formats": [{ "type": "json", "parser": "reddit-search" }]` to scrape. The posts come back in `data.json.results` with a `cursor` for the next page.
 
 ## Crawl a site
 
-Crawl reads many pages in the background. Starting is free, and each page costs $1 per 1,000. A page that comes back with a 404 or 410 status costs nothing. Start it, poll about every 2 seconds until `status` is no longer `scraping`, then read the pages.
+Use [Crawl](/crawl/overview) when you want us to find and read pages starting from one URL. Starting a crawl is free. Reading pages costs $1 per 1,000. A page that returns a 404 or 410 costs nothing.
 
-```bash
-ID=$(curl -s -X POST https://api.stophy.dev/v1/crawl \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com/docs","limit":3}' | jq -r .id)
-
-until [ "$(curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq -r .status)" != scraping ]; do sleep 2; done
-
-curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq '{status, completed, pages: [.data[].metadata.url], next}'
-```
-
-```json
-{
-  "status": "completed",
-  "completed": 3,
-  "pages": [
-    "https://bun.com/docs",
-    "https://bun.com/docs/bundler",
-    "https://bun.com/docs/bundler/bytecode"
-  ],
-  "next": null
-}
-```
-
-Send `scrapeOptions.formats` to get more than `markdown`, for example `["markdown","links"]`. A status answer holds up to 100 finished pages or 2 MB. If it has `next`, call that URL for the rest. See [Crawl](/crawl/overview) and [Read a crawl](/crawl/async).
+Start the job with `POST /v1/crawl` and a URL. Save the returned `id` and poll `GET /v1/crawl/{id}` about every 2 seconds until `status` is no longer `scraping`. Send `"formats": ["markdown", "links"]` in `scrapeOptions` if you want links as well as the default Markdown. A status response holds up to 100 finished pages or 2 MB. If it has `next`, call that URL for the rest. See [Read a crawl](/crawl/async).
 
 ## Scrape many pages
 
-A batch takes a list of URLs and works the same way. Poll `https://api.stophy.dev/v1/batch/scrape/<id>` about every 2 seconds until `status` is `completed`. Each page in `data` has the same shape as a scrape.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/batch/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"urls":["https://bun.com/docs/runtime/bunfig","https://bun.com/docs/runtime/env"]}'
-```
-
-The answer holds the job `id` and its `url`. See [Batches](/batches/overview).
+Use a [batch](/batches/overview) when you already have the URLs. Send them as `urls` to `POST /v1/batch/scrape`. Save the returned job `id` and `url`. Poll `GET /v1/batch/scrape/{id}` about every 2 seconds until `status` is `completed`. Each page in `data` has the same shape as a scrape response.
 
 ## Try another API
 
@@ -243,7 +117,9 @@ Every endpoint uses the same API key and the same `Authorization` header. Send o
 | Browser tasks | `POST /v1/browser/task` with `url` and `goal` | [Browser tasks](/browser/tasks) |
 | Monitors | `POST /v1/monitor` with `targets` and a `schedule` | [Monitors](/monitors/overview) |
 
-## Next
+## Before you ship
+
+Check prices and plan for failures before you put these calls in production.
 
 <CardGroup cols={2}>
   <Card title="Pricing" icon="coins" href="/account/pricing">

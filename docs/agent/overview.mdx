@@ -5,7 +5,7 @@ og:title: "Agent | Stophy"
 og:description: "Give a task in plain words and the agent searches, reads pages and fills your fields, with the quote behind each value. You set the most a run may spend."
 ---
 
-Agent takes a task, searches and reads pages, and fills your fields. The call answers at once with an `id`, and you read the answer from `GET /v1/agent/{id}`.
+Use Agent when you know what to find but want us to find the pages for you. If you already know which pages to read, use [Extract](/extract/overview). The call answers at once with an `id`, and you read the answer from `GET /v1/agent/{id}`.
 
 ## Make a request
 
@@ -108,17 +108,7 @@ print(run["status"], run["data"])
 
 The call that starts the run answers at once. `threadId` names the thread of the run, and `threadTurn` is 1 for a first question. Starting a run costs nothing.
 
-```json
-{
-  "success": true,
-  "id": "job_1U1n0vXaDokDUHZFMGj1rA",
-  "url": "https://api.stophy.dev/v1/agent/job_1U1n0vXaDokDUHZFMGj1rA",
-  "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
-  "threadTurn": 1,
-  "costUsd": 0,
-  "requestId": "a0008ff9-3d36-4c2e-84f2-8b5ce7da989c"
-}
-```
+Save `id` to check the run, or use the returned `url`. Keep `threadId` if you plan to ask a follow-up.
 
 `GET /v1/agent/{id}` answers with `status` of `processing`, `completed` or `failed`. While it is `processing`, wait a few seconds and ask again. This is the real answer of the run above, a few seconds later.
 
@@ -129,71 +119,27 @@ The call that starts the run answers at once. `threadId` names the thread of the
   "data": {
     "module": "bun:sqlite"
   },
-  "confidence": {
-    "module": 0.9388
-  },
   "sources": {
     "module": {
       "url": "https://bun.com/docs/runtime/sqlite",
       "quote": "To use it, import from the built-in bun:sqlite module."
     }
   },
-  "stoppedBy": "rounds",
-  "model": "spark-2",
-  "mode": "extract",
-  "effort": "low",
-  "threadId": "job_1U1n0vXaDokDUHZFMGj1rA",
-  "threadTurn": 1,
-  "steps": [
-    { "n": 1, "action": "open", "detail": "read the page", "costUsd": 0.001 },
-    { "n": 2, "action": "extract", "detail": "fill the fields from 1 pages", "costUsd": 0.003 }
-  ],
-  "skipped": [],
-  "costUsd": 0.004,
-  "createdAt": "2026-11-17T18:10:05.379Z",
-  "completedAt": "2026-11-17T18:10:09.969Z",
   "expiresAt": "2026-11-18T18:10:05.379Z"
 }
 ```
 
-`data` holds the fields the agent found, and `confidence` says how sure it is of each. `sources` gives the page and the exact words each value came from. `transactionModes` is not in `data`: the agent did not find it on the page in one round, so the field is left out. `steps` lists what the run did and what each step cost. `stoppedBy` says why it ended: `done`, `rounds` or `maxCredits`. See [Runs](/agent/runs) for the rest.
+`data` holds the fields the agent found, and `confidence` says how sure it is of each. `sources` gives the page and the exact words each value came from. `transactionModes` is not in `data`: the agent did not find it on the page in one round, so the field is left out. `steps` lists each action and its cost, with a total of $0.004 in this run. `skipped` lists pages the agent skipped. Read `createdAt`, `completedAt` and `expiresAt` for the run times. A completed run with no fields and no chat reply has an empty `data` object. `stoppedBy` says why it ended: `done`, `rounds` or `maxCredits`. See [Runs](/agent/runs) for the rest.
 
 ## Cap what a run spends
 
 `maxCredits` is the most a run may spend. It counts in steps of $0.002, so `500` is $1 and the default of `2500` is $5. Every step is checked against what is left before it runs, so a run never goes over. What it spent before it stopped is charged.
 
-A run that cannot answer inside the cap ends with `status` of `failed` and `stopReason` of `credit_limit_reached`. What it found is in `partial`, and `partialSchemaValid` says whether `partial` fills your schema. This real run was sent `maxCredits` of `1`, which is $0.002, so it could not pay for a page and an answer. The answer is cut to the fields that matter.
-
-```json
-{
-  "prompt": "Which module do I import to use SQLite in Bun?",
-  "urls": ["https://bun.com/docs/runtime/sqlite"],
-  "schema": {
-    "type": "object",
-    "properties": { "module": { "type": "string" } }
-  },
-  "maxCredits": 1
-}
-```
-
-```json
-{
-  "success": true,
-  "status": "failed",
-  "error": "Agent reached its spending limit",
-  "stopReason": "credit_limit_reached",
-  "message": "Spending limit reached; this result is incomplete.",
-  "stoppedBy": "maxCredits",
-  "model": "spark-2",
-  "mode": "extract",
-  "effort": "high",
-  "steps": [],
-  "skipped": [],
-  "costUsd": 0
-}
-```
+A run that cannot answer inside the cap ends with `status` of `failed` and `stopReason` of `credit_limit_reached`. What it found is in `partial`, and `partialSchemaValid` says whether `partial` fills your schema. For example, `"maxCredits": 1` caps the run at $0.002. If that cannot cover the first step, `steps` is empty and the run costs $0.
 
 ## Options
+
+Choose what the agent can read and how long it can look. Set `"strictConstrainToURLs": true` to stop it from searching beyond your starting pages. Raise `effort` when a question needs more rounds, and use `maxCredits` to keep the dollar cap the same.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -202,7 +148,7 @@ A run that cannot answer inside the cap ends with `status` of `failed` and `stop
 | `urls` | `array of string` | none | Pages to start from, up to 20. An address with `*`, such as `https://qdrant.tech/blog/*`, is expanded from the site's own page list, up to 10 pages. With no `urls` the agent searches the web. |
 | `effort` | `string` | `high` | How many search-and-read rounds the agent may take: `low` is 1, `medium` is 2 and `high` is 3. |
 | `mode` | `string` | `extract` | `extract` fills your fields on every turn. `chat` lets a follow-up that asks for no new data get a short reply in `message`, for $3 per 1,000 pages. It needs `threadId`. |
-| `model` | `string` | `spark-2` | Any name up to 100 characters is accepted. Every name runs the same agent, and the name you send comes back. |
+| `model` | `string` | `stophy` | Any name up to 100 characters is accepted. Every name runs the same agent, and the name you send comes back. |
 | `maxCredits` | `number` | `2500` | The most the run may spend, in steps of $0.002. `2500` is $5. |
 | `includeSources` | `boolean` | `true` | Send `false` to leave `sources` out. They cost nothing. |
 | `location` | `object` | none | `{ "country": "DE" }` searches and reads pages as from that country, and localizes results. |
@@ -215,9 +161,11 @@ A run that cannot answer inside the cap ends with `status` of `failed` and `stop
 
 ## Price
 
-Each search and page costs its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, up to your cap, which is $5 when you leave `maxCredits` out. Starting the run is free, and each step is charged when it finishes. A run that finds nothing within the cap still pays for the steps it took. See [Pricing](/account/pricing).
+Use the cap to budget for a run. Each search and page costs its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, up to your cap, which is $5 when you leave `maxCredits` out. Starting the run is free, and each step is charged when it finishes. A run that finds nothing within the cap still pays for the steps it took. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Use a direct call when you want to choose the pages or the browser steps yourself.
 
 - [Extract](/extract/overview) fills your fields from pages you name, in one call.
 - [Search](/search/overview) finds pages from a query, and you read them yourself.

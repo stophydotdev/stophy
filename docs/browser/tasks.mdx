@@ -5,11 +5,11 @@ og:title: "Tasks | Stophy"
 og:description: "Give a public website and a goal in plain words, and a browser clicks through it and returns an answer. $0.84 per hour of browser time, capped by maxCost."
 ---
 
-A browser task does a few steps a person would click through on a public site, such as a search with filters or a form to fill, and returns what it found. You send a start page and a goal. You do not open or close a session.
+Use a browser task when a public site needs clicks and you know the goal, not the steps. Send a start page and a goal, such as using search filters to find a result. We open and close the browser for you.
 
 ## Start a task
 
-Get an API key in the [Quickstart](/quickstart). Send `url`, `goal` and, if you want fields back, a `schema`. `POST /v1/browser/task` answers at once with an `id`, and the task runs in the background.
+Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. Send `url`, `goal` and, if you want fields back, a `schema`. `POST /v1/browser/task` answers at once with an `id`, and the task runs in the background.
 
 <CodeGroup>
 ```bash cURL
@@ -31,72 +31,52 @@ curl -X POST https://api.stophy.dev/v1/browser/task \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/browser/task", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.python.org",
-    goal: "Open the Downloads page and find the latest Python release number and its release date.",
-    schema: {
-      type: "object",
-      properties: {
-        version: { type: "string" },
-        releaseDate: { type: "string" },
-      },
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.browser.task({
+  url: "https://www.python.org",
+  goal: "Open the Downloads page and find the latest Python release number and its release date.",
+  schema: {
+    type: "object",
+    properties: {
+      version: { type: "string" },
+      releaseDate: { type: "string" },
     },
-    maxSteps: 10,
-    maxCost: 0.05,
-  }),
+  },
+  maxSteps: 10,
+  maxCost: 0.05,
 });
-const { data } = await response.json();
 console.log(data.id, data.status);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/browser/task",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.python.org",
-        "goal": "Open the Downloads page and find the latest Python release number and its release date.",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "version": {"type": "string"},
-                "releaseDate": {"type": "string"},
-            },
+data = stophy.browser.task(
+    url="https://www.python.org",
+    goal="Open the Downloads page and find the latest Python release number and its release date.",
+    schema={
+        "type": "object",
+        "properties": {
+            "version": {"type": "string"},
+            "releaseDate": {"type": "string"},
         },
-        "maxSteps": 10,
-        "maxCost": 0.05,
     },
-)
-data = response.json()["data"]
+    max_steps=10,
+    max_cost=0.05,
+)["data"]
 print(data["id"], data["status"])
 ```
 </CodeGroup>
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "aadd0435-20b6-45a1-b24d-1e4e6305affc",
-    "status": "running"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "ab69f06f-e9e8-464c-90e3-263cd2335064"
-}
-```
+Save `data.id` to read the result. The start call returns `data.status` as `running` and costs $0 by itself.
 
 ## Read the result
 
-Send the `id` to `POST /v1/browser/task/status` until `status` is `done`. The call is free. While the task runs, `result` is `null`.
+Poll the status call to see whether the task reached its goal. Send the `id` to `POST /v1/browser/task/status` until `status` is `done`. The call is free. While the task runs, `result` is `null`.
 
 <CodeGroup>
 ```bash cURL
@@ -106,31 +86,20 @@ curl -X POST https://api.stophy.dev/v1/browser/task/status \
   -d '{ "id": "<the id your task returned>" }'
 ```
 ```typescript TypeScript
-const taskId = "<the id your task returned>";
-const status = await fetch("https://api.stophy.dev/v1/browser/task/status", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ id: taskId }),
-});
-const { data: task } = await status.json();
-console.log(task.status, task.result?.fields, task.costUsd);
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data: task } = await stophy.browser.task.status({ id: "<the id your task returned>" });
+console.log(task.status, task.result?.fields);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-task_id = "<the id your task returned>"
-status = requests.post(
-    "https://api.stophy.dev/v1/browser/task/status",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={"id": task_id},
-)
-task = status.json()["data"]
-print(task["status"], task["result"]["fields"], task["costUsd"])
+task = stophy.browser.task.status(id="<the id your task returned>")["data"]
+print(task["status"], task["result"]["fields"])
 ```
 </CodeGroup>
 
@@ -143,34 +112,23 @@ This real task finished in 9 seconds.
     "status": "done",
     "result": {
       "done": true,
-      "answer": "The latest Python release is 3.15.2, released Oct. 25, 2026.",
-      "steps": ["click link \"Downloads\""],
-      "url": "https://www.python.org/downloads/",
-      "title": "Download Python | Python.org",
-      "seconds": 9.2,
       "fields": {
         "version": "3.15.2",
         "releaseDate": "Oct. 25, 2026"
-      },
-      "confidence": {
-        "version": 0.9695,
-        "releaseDate": 0.7751
       }
     },
-    "creditsUsed": 7,
     "costUsd": 0.014
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "30037a3f-86b8-4cc0-b020-b533b4d7f51a"
+  }
 }
 ```
 
-`result.done` says whether the goal was met. `answer` is the result in words, and `steps` lists what the task clicked. `url` and `title` are the page it ended on. With a `schema`, `fields` holds one value per property, and `confidence` says how sure the task is of each, from 0 to 1. A field that no page stated comes back `null`. When the goal was not met, `done` is `false` and `reason` says why. `costUsd` on `data` is what the task cost. `creditsUsed` is the older field for the same amount, in steps of $0.002.
+`result.done` says whether the goal was met. `answer` is the result in words, and `steps` lists what the task clicked. `url` and `title` are the page it ended on. `seconds` is how long the task ran. With a `schema`, `fields` holds one value per property, and `confidence` says how sure the task is of each, from 0 to 1. A field that no page stated comes back `null`. When the goal was not met, `done` is `false` and `reason` says why. `costUsd` on `data` is what the task cost. `creditsUsed` is the older field for the same amount, in steps of $0.002.
 
 A task is kept for 24 hours after it starts.
 
 ## Options
+
+Describe the goal and cap how long the browser can work. Add a schema when your app needs named values rather than a text answer.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -187,11 +145,15 @@ A task stops before anything that pays, books, sends, submits or deletes. It nev
 
 ## Price
 
+Use `maxCost` to control what a task can spend.
+
 $0.84 per hour of browser time the task runs, billed by the minute, one minute at least, up to `maxCost`. Each minute is $0.014. The task above ran 9 seconds and cost $0.014, one minute. A task that ends before its first step costs nothing.
 
 Starting a task sets aside the most it can cost, and what it does not use comes back when it ends. Send `maxCost` to set that amount: `0.05` allows 3 minutes. Without it, the task may spend up to 10 minutes, $0.14. See [Pricing](/account/pricing).
 
 ## Limits and errors
+
+Check the task limit and your balance before you start another task.
 
 - You can have 2 tasks open at once. A third returns `429 rateLimited`: `You have 2 browser tasks open, the most at once. Start another when one ends, which is within 15 minutes.`
 - A `maxCost` below one minute returns `400 invalidRequest`: `maxCost must cover at least one browser minute, which is $0.014 ($0.84 per hour).`
@@ -200,6 +162,8 @@ Starting a task sets aside the most it can cost, and what it does not use comes 
 - A balance too low to cover `maxCost` returns `402 insufficientCredits` and the task does not start.
 
 ## Related
+
+Open a browser session if you need a login or want to choose each step yourself.
 
 - [Browser sessions](/browser/overview) give you a browser to drive yourself.
 - [Execute](/browser/execute) runs a prompt in a session you control.

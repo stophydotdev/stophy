@@ -5,11 +5,11 @@ og:title: "Batches | Stophy"
 og:description: "Read a list of URLs in the background with the same options as scrape. Submit once, get an id, then read the pages when they finish. $1 per 1,000 pages."
 ---
 
-A batch reads a list of URLs in the background. You send the list once, get an `id` at once, and read the pages when they finish.
+Use a batch when you already have several URLs to read. Use [Crawl](/crawl/overview) if you want us to find the URLs for you. You send the list once, get an `id` at once, and read the pages when they finish.
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). Batches need an API key. This request reads four addresses as `markdown`. One is a page that does not exist, and one is not a website address.
+Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. Batches need an API key. This request reads four addresses as `markdown`. One is a page that does not exist, and one is not a website address.
 
 <CodeGroup>
 ```bash cURL
@@ -28,46 +28,37 @@ curl -X POST https://api.stophy.dev/v1/batch/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/batch/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    urls: [
-      "https://example.com",
-      "https://bun.com/docs/runtime/env",
-      "https://bun.com/docs/this-page-does-not-exist",
-      "ftp://example.com/file.txt",
-    ],
-    formats: ["markdown"],
-    maxAge: 0,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const batch = await stophy.batch.scrape({
+  urls: [
+    "https://example.com",
+    "https://bun.com/docs/runtime/env",
+    "https://bun.com/docs/this-page-does-not-exist",
+    "ftp://example.com/file.txt",
+  ],
+  formats: ["markdown"],
+  maxAge: 0,
 });
-const batch = await response.json();
 console.log(batch.id, batch.invalidURLs);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/batch/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "urls": [
-            "https://example.com",
-            "https://bun.com/docs/runtime/env",
-            "https://bun.com/docs/this-page-does-not-exist",
-            "ftp://example.com/file.txt",
-        ],
-        "formats": ["markdown"],
-        "maxAge": 0,
-    },
+batch = stophy.batch.scrape(
+    urls=[
+        "https://example.com",
+        "https://bun.com/docs/runtime/env",
+        "https://bun.com/docs/this-page-does-not-exist",
+        "ftp://example.com/file.txt",
+    ],
+    formats=["markdown"],
+    max_age=0,
 )
-batch = response.json()
 print(batch["id"], batch["invalidURLs"])
 ```
 </CodeGroup>
@@ -78,81 +69,33 @@ print(batch["id"], batch["invalidURLs"])
 
 The call answers at once, before any page is read. Starting a batch costs nothing.
 
-```json
-{
-  "success": true,
-  "id": "job_WFIhxsA_0rgzF5l4imub_A",
-  "url": "https://api.stophy.dev/v1/batch/scrape/job_WFIhxsA_0rgzF5l4imub_A",
-  "invalidURLs": [
-    "ftp://example.com/file.txt"
-  ],
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "ce61987c-8879-4a47-b03f-f187567c166f"
-}
-```
+Keep `id` or the returned `url` to read the batch. `invalidURLs` lists the addresses that are not public website URLs. They are skipped, and the rest of the batch runs. An address sent twice is read once.
 
-Keep `id`. `url` is where to read the batch. `invalidURLs` lists the addresses that are not public website URLs. They are skipped, and the rest of the batch runs. An address sent twice is read once.
-
-A few seconds later, `GET /v1/batch/scrape/{id}` returns the batch. This real answer is cut to a few lines of each page.
+Call `GET /v1/batch/scrape/{id}` to read the pages that have finished. This response shows only the 404 page from the batch.
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "markdown": "This domain is for use in documentation examples without needing permi…",
       "metadata": {
-        "title": "Example Domain",
-        "sourceURL": "https://example.com/",
-        "statusCode": 200,
-        "contentType": "text/html",
-        "cacheState": "miss",
-        "scrapeId": "job_WFIhxsA_0rgzF5l4imub_A",
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      }
-    },
-    {
-      "markdown": "# Environment Variables\n\n> Read and configure environment variables in…",
-      "metadata": {
-        "title": "Environment Variables",
-        "sourceURL": "https://bun.com/docs/runtime/env",
-        "statusCode": 200,
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      }
-    },
-    {
-      "markdown": "[![](https://bun.com/logo.svg)Bun — home](https://bun.com/) …",
-      "metadata": {
-        "title": "Page not found — Bun",
         "sourceURL": "https://bun.com/docs/this-page-does-not-exist",
         "statusCode": 404,
-        "creditsUsed": 0,
         "costUsd": 0,
         "error": "The page answered with status 404."
       }
     }
   ],
   "status": "completed",
-  "total": 3,
-  "completed": 3,
-  "failed": 0,
-  "creditsUsed": 1,
-  "costUsd": 0.002,
-  "createdAt": "2026-11-17T18:12:52.872Z",
-  "completedAt": "2026-11-17T18:12:56.792Z",
-  "duration": 3.92,
-  "expiresAt": "2026-11-18T18:12:52.872Z",
-  "errors": [],
-  "requestId": "e832167b-5898-48ff-a1ff-aad0de856090"
+  "costUsd": 0.002
 }
 ```
 
-Each page in `data` has the fields of a [scrape](/scrape/overview) with `scrapeId` set to the batch id. `total` is the pages in the batch, `completed` the pages that came back, and `failed` the pages that could not be read, which are listed in `errors`. The 404 page came back, so it counts as `completed`, with its `error` in `metadata`, and it cost nothing. `costUsd` is what the batch has cost so far. `expiresAt` is when the batch and its pages are deleted. See [Results](/batches/results).
+Each page in `data` has the fields of a [scrape](/scrape/overview), except `scrapeId`. `total` is the pages in the batch, `completed` the pages that came back, and `failed` the pages that could not be read, which are listed in `errors`. The 404 page came back, so it counts as `completed`, with its `error` in `metadata`, and it cost nothing. `costUsd` is what the batch has cost so far. Before any page finishes, `data` is empty. `createdAt`, `completedAt` and `duration` tell you when it ran and how long it took. `expiresAt` is when the batch and its pages are deleted. See [Results](/batches/results).
 
 ## Status
+
+Check `status` to decide when to stop polling.
 
 | `status` | Meaning |
 | - | - |
@@ -178,9 +121,11 @@ You send the list and the options once, and every page is read the way [Scrape](
 
 ## Price
 
-A page costs what a scrape costs: $1 per 1,000 pages. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu` and `changeTracking` in `json` mode add $3 per 1,000 pages each when they return something. Each page is charged when it finishes, and starting the batch is free. A batch that reads 10,000 pages costs $10. See [Pricing](/account/pricing).
+Budget for each page you expect to read. A page costs what a scrape costs: $1 per 1,000 pages. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu` and `changeTracking` in `json` mode add $3 per 1,000 pages each when they return something. Each page is charged when it finishes, and starting the batch is free. A batch that reads 10,000 pages costs $10. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Pick an API based on whether you have one URL, a list, or just a site.
 
 - [Scrape](/scrape/overview) reads one page and answers in the same call.
 - [Crawl](/crawl/overview) finds the pages of a site for you and reads them in the background.

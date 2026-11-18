@@ -5,7 +5,7 @@ og:title: "Highlights | Stophy"
 og:description: "Get the passages of a page that best match a query, ready to drop into a prompt. Costs $3 per 1,000 pages on top of the $1 page price."
 ---
 
-`highlights` returns the passages of a page that best match a query. Use it to give a model only the part of a long page that matters.
+Use `highlights` to quote passages that match a query without returning the whole page. If you need an answer rather than passages, use [Question](/scrape/question).
 
 ## Make a request
 
@@ -28,53 +28,44 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime/bunfig",
-    formats: [
-      {
-        type: "highlights",
-        query: "global config file location",
-        count: 3,
-      },
-    ],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://bun.com/docs/runtime/bunfig",
+  formats: [
+    {
+      type: "highlights",
+      query: "global config file location",
+      count: 3,
+    },
+  ],
 });
-const { data } = await response.json();
 console.log(data.highlights);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime/bunfig",
-        "formats": [
-            {
-                "type": "highlights",
-                "query": "global config file location",
-                "count": 3,
-            },
-        ],
-    },
-)
-data = response.json()["data"]
+data = stophy.scrape(
+    url="https://bun.com/docs/runtime/bunfig",
+    formats=[
+        {
+            "type": "highlights",
+            "query": "global config file location",
+            "count": 3,
+        },
+    ],
+)["data"]
 print(data["highlights"])
 ```
 </CodeGroup>
 
 ## Read the response
 
-`data.highlights` is one string. The passages are separated by a blank line, and a table row keeps its header.
+Read `data.highlights` as one Markdown string, not an array. The passages are separated by a blank line, and a table row keeps its header.
 
 ```json
 {
@@ -82,22 +73,15 @@ print(data["highlights"])
   "data": {
     "highlights": "Set it in the global `.bunfig.toml` (see Global vs. local) or in a file passed with `--config`. Bun ignores it in a project's `bunfig.toml`.\n\nWhen `XDG_CONFIG_HOME` is set to an absolute path, Bun reads the file there and not the one in `$HOME`.\n\n| Key | Value | Flag |\n| --- | --- | --- |\n| `suppressionsLocation` | path | `--suppressions-location` |",
     "metadata": {
-      "title": "bunfig.toml | Bun Docs",
-      "sourceURL": "https://bun.com/docs/runtime/bunfig",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "227220e1-49fb-4763-9f4d-2e39d9b4249d",
       "costUsd": 0.004
     }
-  },
-  "id": "227220e1-49fb-4763-9f4d-2e39d9b4249d",
-  "costUsd": 0.004,
-  "requestId": "227220e1-49fb-4763-9f4d-2e39d9b4249d"
+  }
 }
 ```
 
 ## Options
+
+Set `query` to the text you want the passages to match. Use `count` to limit how much you get back.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -109,6 +93,8 @@ The top-level `query` field of the request is a different option. It shortens th
 
 ## Limits and errors
 
+If the result is empty, check the query and which text your filters kept.
+
 - A page with no matching text returns an empty string, `""`, and costs only the page.
 - Highlights are chosen from the page's Markdown after content filtering. With `redactPII`, they come from the redacted text.
 - A call without `query` returns `400 invalidRequest`.
@@ -118,6 +104,8 @@ The top-level `query` field of the request is a different option. It shortens th
 $4 per 1,000 pages: $1 for the page and $3 for highlights. When nothing matches, the $3 is not charged.
 
 ## Related
+
+Use these formats if you need a different amount of context.
 
 - [Question](/scrape/question) answers one question in a sentence.
 - [Summary](/scrape/summary) summarizes the whole page.

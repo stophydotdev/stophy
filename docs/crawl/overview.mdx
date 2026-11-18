@@ -5,11 +5,11 @@ og:title: "Crawl | Stophy"
 og:description: "Read a whole section of a site in the background. Start from one URL, follow its links, and collect each page as Markdown. $1 per 1,000 pages."
 ---
 
-Crawl starts at one page, follows its links, and reads every page it finds. It runs in the background. The call answers at once with an `id`, and you read the pages as they finish.
+Use Crawl to find and read pages across a site from one starting URL. We follow links in the background and return pages as they finish. If you already have the list of URLs, use [Batches](/batches/overview).
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). Crawl needs one. This request crawls a docs section and stops after 3 pages.
+To start with a small crawl, give us the URL of a docs section and set `limit` to `3`. Crawl needs an [API key](/quickstart). For the SDK tabs, run `npm install stophy` or `pip install stophy`.
 
 <CodeGroup>
 ```bash cURL
@@ -22,98 +22,48 @@ curl -X POST https://api.stophy.dev/v1/crawl \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/crawl", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime",
-    limit: 3,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { id } = await stophy.crawl({
+  url: "https://bun.com/docs/runtime",
+  limit: 3,
 });
-const { id } = await response.json();
 console.log(id);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/crawl",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime",
-        "limit": 3,
-    },
+result = stophy.crawl(
+    url="https://bun.com/docs/runtime",
+    limit=3,
 )
-print(response.json()["id"])
+print(result["id"])
 ```
 </CodeGroup>
 
 ## Read the response
 
-The call answers at once with the crawl's `id` and the URL to read it from.
+Save the `id` or `url` from the start response. You use it to read the pages as they finish.
 
 ```json
 {
   "success": true,
   "id": "job_9FAn-0pRXhHk7olrXk0sVg",
-  "url": "https://api.stophy.dev/v1/crawl/job_9FAn-0pRXhHk7olrXk0sVg",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "a02dc5f9-a3b8-4ce5-9368-a155b693f74b"
+  "url": "https://api.stophy.dev/v1/crawl/job_9FAn-0pRXhHk7olrXk0sVg"
 }
 ```
 
-Read the crawl with `GET /v1/crawl/{id}` until `status` is `completed`. This real answer came 3 seconds later. The Markdown of each page is cut.
+Poll `GET /v1/crawl/{id}` while `status` is `scraping`. `total` is how many pages we have found so far, and `data` holds the finished pages. Once `status` is `completed`, read each page's `markdown` and `metadata`. Follow `next` if the response includes it.
 
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "markdown": "# Bun Runtime\n\n> Execute JavaScript/TypeScript files, package.json scripts, and executable packages …",
-      "metadata": {
-        "title": "Bun Runtime",
-        "sourceURL": "https://bun.com/docs/runtime",
-        "url": "https://bun.com/docs/runtime",
-        "statusCode": 200,
-        "contentType": "text/markdown",
-        "cacheState": "miss",
-        "creditsUsed": 1,
-        "costUsd": 0.001
-      }
-    },
-    {
-      "markdown": "# Archive\n\n> Create and extract tar archives with Bun's fast native implementation …",
-      "metadata": { "title": "Archive", "url": "https://bun.com/docs/runtime/archive", "statusCode": 200, "costUsd": 0.001 }
-    },
-    {
-      "markdown": "# Auto-install\n\n> Bun's automatic package installation feature for standalone script execution …",
-      "metadata": { "title": "Auto-install", "url": "https://bun.com/docs/runtime/auto-install", "statusCode": 200, "costUsd": 0.001 }
-    }
-  ],
-  "status": "completed",
-  "total": 3,
-  "completed": 3,
-  "failed": 0,
-  "creditsUsed": 2,
-  "costUsd": 0.003,
-  "createdAt": "2026-11-17T18:03:18.610Z",
-  "completedAt": "2026-11-17T18:03:21.668Z",
-  "duration": 3.058,
-  "expiresAt": "2026-11-18T18:03:18.610Z",
-  "errors": [],
-  "requestId": "8acd8bf5-72b1-4798-99b6-c86690e64fbb"
-}
-```
-
-While the crawl runs, `status` is `scraping`, `total` is the number of pages found so far, and `data` holds the pages that are done. See [Read a crawl](/crawl/async) for polling, paging, cancelling and webhooks.
+See [Read a crawl](/crawl/async) for polling, paging, cancelling and webhooks.
 
 ## Options
+
+Set the scope before you start a crawl. Use `scrapeOptions` to choose what you get back for each page.
 
 | Field | What it does | Guide |
 | - | - | - |
@@ -131,6 +81,8 @@ To turn a plain-language request into these fields, see [Describe a crawl](/craw
 
 ## Limits and errors
 
+Check the job status to tell a queued crawl from a failed start.
+
 - A crawl reads at most 10,000 pages. A crawl and its pages are kept for 24 hours.
 - A start page that cannot be read, or that the site's robots rules do not allow, ends the crawl with `status` `failed` and the reason in `error`. Later pages that those rules disallow are skipped.
 - Crawl needs an API key. Without one, the call returns `401 apiKeyRequired`.
@@ -141,6 +93,8 @@ To turn a plain-language request into these fields, see [Describe a crawl](/craw
 $1 per 1,000 pages. Starting a crawl is free, and each page is charged when it finishes. A page that answers 404 or 410, or cannot be read, costs nothing. The formats and options you send in `scrapeOptions` add what they add in [Scrape](/scrape/overview#price). This crawl read 3 pages and cost $0.003. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Use a different call if you do not need us to follow links and read their content.
 
 - [Map](/map/overview) lists the pages of a site without reading them.
 - [Scrape](/scrape/overview) reads one page.

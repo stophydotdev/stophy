@@ -14,9 +14,6 @@
     "success": true,
     "id": "job__SDlT-N1YqzQRoYCvKUTAg",
     "url": "https://api.stophy.dev/v1/batch/scrape/job__SDlT-N1YqzQRoYCvKUTAg",
-    "invalidURLs": [],
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "f79af55a-55ba-4e60-aa18-d1f9c5545586"
+    "invalidURLs": []
   }
 }

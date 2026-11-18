@@ -5,7 +5,7 @@ og:title: "Sources | Stophy"
 og:description: "Choose what a search returns: web pages, news, images, PDFs, research papers or YouTube videos. Each source and list is priced at $1 per 1,000 searches."
 ---
 
-`sources` picks the kinds of results a [search](/search/overview) returns, and `categories` adds PDFs, papers and videos. Each one comes back in its own list under `data`.
+Pick the kind of result you need before you search. Use `sources` for web, news or images, and `categories` for PDFs, papers or videos. We return the lists under `data`. PDFs are in `data.web`.
 
 ## Search several sources
 
@@ -61,67 +61,31 @@ print(list(response.json()["data"]))
 
 ## Read the response
 
-`data` has a `news`, an `images`, a `research` and a `videos` list. This real response is cut to one row of each, and the snippets are shortened.
+Look under `data` for the lists you requested. Read `url` for the source page or watch link. In `images`, use `imageUrl` for the image itself. The example shows only the image and video lists.
 
 ```json
 {
-  "success": true,
   "data": {
-    "news": [
-      {
-        "title": "macOS 27 Siri Stores Conversations in SQLite Database, Raising Privacy Concerns",
-        "url": "https://gbhackers.com/macos-27-siri-stores-conversations-in-sqlite-database",
-        "snippet": "Apple’s new Siri app in macOS 27 retains conversations in a locally accessible SQLite database, …",
-        "date": "2026-11-16T18:08:16.000Z",
-        "position": 2
-      }
-    ],
     "images": [
       {
-        "title": "Logo SQLite",
         "imageUrl": "https://sql.sh/wp-content/uploads/2014/04/sqlite-sgbd-500px.png",
-        "imageWidth": 500,
-        "imageHeight": 237,
-        "url": "https://sql.sh/sgbd/sqlite",
-        "position": 1
-      }
-    ],
-    "research": [
-      {
-        "title": "SQLite",
-        "url": "https://doi.org/10.14778/3554821.3554842",
-        "doi": "10.14778/3554821.3554842",
-        "snippet": "In the two decades following its initial release, SQLite has become the most widely deployed database engine in existence. …",
-        "authors": ["Kevin P. Gaffney", "Martin Prammer", "Larry Brasfield"],
-        "year": 2022,
-        "venue": "Proceedings of the VLDB Endowment",
-        "type": "article",
-        "citedByCount": 86,
-        "position": 1
+        "url": "https://sql.sh/sgbd/sqlite"
       }
     ],
     "videos": [
       {
-        "url": "https://www.youtube.com/watch?v=PGpL5hYpY1o",
-        "title": "SQLite and its weird new fork “libSQL”",
-        "channel": "Fireship",
-        "channelUrl": "https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA",
-        "publishedAt": "2024-01-01T00:00:00.000Z",
-        "durationSeconds": 270,
-        "views": 562257,
-        "position": 2
+        "url": "https://www.youtube.com/watch?v=PGpL5hYpY1o"
       }
     ]
-  },
-  "id": "e976dc0c-46f8-4878-939e-e2bf44d4d80f",
-  "costUsd": 0.004,
-  "requestId": "e976dc0c-46f8-4878-939e-e2bf44d4d80f"
+  }
 }
 ```
 
-`costUsd` is $0.004: $0.001 for each of the four lists.
+`x-cost-usd` is $0.004: $0.001 for each of the four lists.
 
 ## Sources and categories
+
+Check what each list includes before you pay for sources you do not need.
 
 | Value | Goes in | What you get | Where in `data` | Price |
 | - | - | - | - | - |
@@ -140,42 +104,13 @@ With no `sources` you get web results. With only `research` or `videos` in `cate
 
 `categories: ["pdf"]` searches for PDF files. A web result gets `category: "pdf"` when its address ends in `.pdf` or is an arXiv `/pdf/` link, or when you add [page content](/search/page-content) and the page that was read is a PDF. A result with neither has no `category`.
 
-```bash
-curl -X POST https://api.stophy.dev/v1/search \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "sqlite file format",
-    "categories": ["pdf"],
-    "limit": 2
-  }'
-```
-
-This real response is cut to one of the two rows.
-
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://www.tutorialspoint.com/sqlite/sqlite_tutorial.pdf",
-        "title": "Preview SQLite Tutorial (PDF Version)",
-        "description": "A complete SQLite database is stored in a single cross-platform disk file.",
-        "position": 1,
-        "category": "pdf"
-      }
-    ]
-  },
-  "id": "93541b34-9d2d-44bc-bc90-03e60b1a1e83",
-  "costUsd": 0.001,
-  "requestId": "93541b34-9d2d-44bc-bc90-03e60b1a1e83"
-}
-```
+For example, add `"categories": ["pdf"]` to a search for `sqlite file format`. Read the matches in `data.web`.
 
 To read a PDF you found, add [page content](/search/page-content) or send its address to [Scrape](/scrape/pdfs-and-documents).
 
 ## Limits and errors
+
+Check `warning` for empty or missing lists. Check `code` if the whole request fails.
 
 - A source that fails while others answer is left out, and `warning` names it, such as `news: …`. When every source fails, the call fails and costs nothing.
 - An empty list costs nothing. `warning` says when a list came back empty, for example `research: no papers match these words. Try fewer or more general words.`
@@ -185,6 +120,8 @@ To read a PDF you found, add [page content](/search/page-content) or send its ad
 - An `images` search needs words next to `imagesize:` or `larger:`, or it returns `400 invalidRequest`.
 
 ## Related
+
+Use these guides to narrow a source or read what it found.
 
 - [Filters](/search/filters) narrows each source by site, time, place and language.
 - [Page content](/search/page-content) reads each web and news result.

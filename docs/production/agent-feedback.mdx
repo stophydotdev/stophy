@@ -5,15 +5,15 @@ og:title: "Agent feedback | Stophy"
 og:description: "Rate the answer of an earlier Stophy call with its request id. A bad rating refunds what the call cost, up to $0.10 a day. Free for agents and developers."
 ---
 
-Feedback tells Stophy that an answer was good, partly right or wrong, in one free call. A bad rating also refunds what that call cost, up to $0.10 a day. An agent or a developer can send it. It needs an API key.
+Rate a Stophy result when it helped, missed something or was wrong. The feedback call is free. A bad rating also refunds what that call cost, up to $0.10 a day. An agent or a developer can send it. It needs an API key.
 
 ## When to report
 
-Report an answer that is wrong or incomplete, or a search that missed what you needed. Send one rating for each call, with the call's `requestId` as `jobId`. Do not report errors you can fix by changing the request.
+Report an answer that is wrong or incomplete, or a search that missed what you needed. Send one rating for each call, with the call's `X-Request-ID` header as `jobId`. Do not report errors you can fix by changing the request.
 
 ## Make a request
 
-This request rates a search as good. `jobId` is the `requestId` from the search answer.
+Use the general feedback call to rate a result by its request ID. This example rates a search as good. `jobId` is the `X-Request-ID` header of the search answer.
 
 <CodeGroup>
 ```bash cURL
@@ -67,6 +67,8 @@ print(response.json())
 
 ## Read the response
 
+Check whether we saved a new rating and how much it refunded.
+
 ```json
 {
   "success": true,
@@ -85,40 +87,13 @@ print(response.json())
 
 Rating the same `jobId` again returns the first `feedbackId` with `alreadySubmitted: true` and refunds nothing.
 
-```json
-{
-  "success": true,
-  "feedbackId": "806ff505-bc18-457c-8e25-193e22d0d331",
-  "refundedUsd": 0,
-  "alreadySubmitted": true,
-  "dailyCapReached": false,
-  "dailyRefundCapUsd": 0.1,
-  "costUsd": 0
-}
-```
-
 ## Rate a search
 
-`POST /v1/search/{jobId}/feedback` rates a search and takes the search's `requestId` in the path. Use it to say which results helped and what was missing.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/search/0664204e-ff95-4cc1-92f6-b346f6fbbd30/feedback \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rating": "partial",
-    "valuableResults": [{ "source": "web", "position": 2, "reason": "Official runtime docs." }],
-    "missingContent": [{ "topic": "Bun release notes" }],
-    "querySuggestions": "bun runtime release notes",
-    "origin": "docs-example"
-  }'
-```
-
-The answer has the same fields as above. This call saved with `alreadySubmitted: false`.
+Use `POST /v1/search/{jobId}/feedback` when you want to rate specific search results. Put the search's `X-Request-ID` in the path. For example, set `"rating": "partial"` and add `{"source": "web", "position": 2}` to `valuableResults` to mark the second web result as useful. Use `missingContent` to name a topic the search missed, or `querySuggestions` to suggest a better query. The response has the same fields as the general feedback call.
 
 ## Options
 
-Both calls take these fields. `rating` is required.
+Use the same rating and result fields on either call. `rating` is required.
 
 | Field | Type | What it does |
 | - | - | - |
@@ -134,7 +109,7 @@ Both calls take these fields. `rating` is required.
 
 | Field | Type | What it does |
 | - | - | - |
-| `jobId` | `string` | The `requestId` of the call you rate. Required. |
+| `jobId` | `string` | The `X-Request-ID` header of the call you rate. Required. |
 | `endpoint` | `string` | Which endpoint made the call: `search`, `scrape`, `parse` or `map` |
 | `issues` | `array of string` | Up to 20 things that went wrong, each a short lowercase label such as `missing_content` |
 | `tags` | `array of string` | Up to 20 labels of your own, in the same form as `issues` |
@@ -145,9 +120,11 @@ Both calls take these fields. `rating` is required.
 
 ## Refunds
 
-A `bad` rating refunds what the rated call cost, back into your balance. The refunds add up to at most $0.10 a day. After that the rating is still saved and `dailyCapReached` is `true`. A call that cost nothing, or one that was not billed to your account, has nothing to refund. Each call can be rated once.
+Use `bad` when the result was wrong. A `bad` rating refunds what the rated call cost, back into your balance. The refunds add up to at most $0.10 a day. After that the rating is still saved and `dailyCapReached` is `true`. A call that cost nothing, or one that was not billed to your account, has nothing to refund. Each call can be rated once.
 
 ## Limits and errors
+
+Check the request ID before reporting a result.
 
 | Case | Answer |
 | - | - |
@@ -160,11 +137,11 @@ A `bad` rating refunds what the rated call cost, back into your balance. The ref
 
 Add a line like this to your agent's instructions file, such as `AGENTS.md` or `CLAUDE.md`.
 
-```text
-If a Stophy answer is wrong or differs from the docs, rate it once with POST https://api.stophy.dev/v1/feedback. Send the requestId as jobId, and never include secrets.
-```
+> If a Stophy answer is wrong or differs from the docs, rate it once with POST https://api.stophy.dev/v1/feedback. Send the X-Request-ID header as jobId, and never include secrets.
 
 ## Related
+
+Use the logs to find a request ID or check what a call cost.
 
 * [Troubleshooting](/production/troubleshooting)
 * [Usage and logs](/production/usage-and-logs)

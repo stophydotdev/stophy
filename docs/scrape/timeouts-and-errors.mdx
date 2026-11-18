@@ -5,7 +5,7 @@ og:title: "Timeouts and errors | Stophy"
 og:description: "Set how long a scrape may run with timeout, read the error code Scrape returns, and learn what to do for each. A failed read costs nothing."
 ---
 
-`timeout` sets how long Scrape keeps trying to read a page. When a read fails, you get an error with a stable `code` and nothing is charged. This page lists every code Scrape returns and what to do about it.
+Set `timeout` to limit how long we try to read a page. If the call fails, use its `code` to decide whether to retry or change the request. A failed read costs nothing.
 
 ## Make a request
 
@@ -22,59 +22,56 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
+import { Stophy, StophyError } from "stophy";
+
+const stophy = new Stophy({ maxRetries: 0 });
+
+try {
+  await stophy.scrape({
     url: "https://httpbin.org/delay/10",
     timeout: 3000,
-  }),
-});
-const body = await response.json();
-if (!response.ok) {
-  console.log(body.code, body.retryable, body.retryAfterSeconds);
+  });
+} catch (error) {
+  if (error instanceof StophyError) {
+    console.log(error.code, error.retryable, error.retryAfterSeconds);
+  }
 }
 ```
 ```python Python
-import os
+from stophy import Stophy, StophyError
 
-import requests
+stophy = Stophy(max_retries=0)
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://httpbin.org/delay/10",
-        "timeout": 3000,
-    },
-)
-body = response.json()
-if not response.ok:
-    print(body["code"], body["retryable"], body.get("retryAfterSeconds"))
+try:
+    stophy.scrape(
+        url="https://httpbin.org/delay/10",
+        timeout=3000,
+    )
+except StophyError as error:
+    print(error.code, error.retryable, error.retry_after_seconds)
 ```
 </CodeGroup>
 
 ## Read the response
 
-The read ran out of time, so the call failed with HTTP `503`. Nothing was charged.
+Check the HTTP status and `retryable` before you use the result. Here the read ran out of time, so the call failed with HTTP `504` and a `Retry-After` header of `5`. Nothing was charged. The SDKs retry this error by default. `maxRetries: 0` (`max_retries=0` in Python) shows the first answer.
 
 ```json
 {
   "success": false,
-  "error": "The source is not answering right now. Try again shortly.",
-  "code": "sourceUnavailable",
+  "error": "The source took too long to answer. Try again.",
+  "code": "sourceTimeout",
   "retryable": true,
   "retryAfterSeconds": 5,
-  "requestId": "25f332f5-ed9f-45d7-9441-a02db33651f3"
+  "requestId": "3da42cac-462f-4e32-a8c5-b5a5841d7ddf"
 }
 ```
 
 Every error has this flat shape. `code` is stable, so branch on it. `error` says what went wrong and what to do. `retryable` says whether sending the same call again can help, and `retryAfterSeconds`, with the `Retry-After` header, says how long to wait. Keep `requestId` for support. See [Errors](/api-reference/errors).
 
 ## Options
+
+Raise the timeout for a page that needs longer to load or run actions.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -84,9 +81,11 @@ A page that needs a browser needs at least 5 seconds. A slow page can need 10 to
 
 ## Error codes
 
+Use the error code to pick the next action. Retrying will not fix an invalid request or a missing key.
+
 | `code` | Status | What happened | What to do |
 | - | - | - | - |
-| `invalidRequest` | 400 | A field is wrong, such as `timeout` below 1,000, a file Scrape cannot read, a file larger than 20 MB, or a URL on a private network. The `error` names the field. | Fix the request. Do not retry it as it is. |
+| `invalidRequest` | 400 | A field is wrong, such as `timeout` below 1,000, an `includeTags` that matches nothing on the page, a file Scrape cannot read, a file larger than 20 MB, or a URL on a private network. The `error` names the field. | Fix the request. Do not retry it as it is. |
 | `apiKeyRequired` | 401 | The call needs an API key: an option such as `actions`, `waitFor`, `profile`, `checkPromptInjection`, `redactPII` or `onlyCleanContent`, the formats `audio`, `video` or `json` with a schema or prompt, or a page that only reads with an API key. | Send an API key. See the [Quickstart](/quickstart). |
 | `unauthorized` | 401 | The API key is not valid or has expired. | Use a valid API key. |
 | `insufficientCredits` | 402 | Your balance is lower than the most the call can cost. Nothing was charged. | Add funds, then send it again. |
@@ -98,17 +97,19 @@ A page that needs a browser needs at least 5 seconds. A slow page can need 10 to
 | `internalError` | 500, 503 | A failure on our side. | Retry in a second. |
 | `sourceChanged` | 502 | The answer came back in a shape Stophy could not read. | Retrying will not help yet. Check back later. |
 | `busy` | 503 | Stophy is busy. | Wait `retryAfterSeconds`, 5 to 30 seconds. |
-| `sourceUnavailable` | 503 | The page did not answer in time, did not finish loading, or could not be reached. | Retry after `retryAfterSeconds`. If it keeps failing, raise `timeout`. |
+| `sourceUnavailable` | 503 | The page did not finish loading, or could not be reached. | Retry after `retryAfterSeconds`. If it keeps failing, raise `timeout`. |
 | `sourceRefused` | 503 | The site is refusing the read right now. | Retry after `retryAfterSeconds`, usually minutes. |
-| `sourceTimeout` | 504 | The call took longer than the most Stophy allows. | Retry, or ask for less: fewer formats, fewer actions. |
+| `sourceTimeout` | 504 | The page did not answer within `timeout`. The `Retry-After` header and `retryAfterSeconds` are 5. | Retry after `retryAfterSeconds`. If it keeps failing, raise `timeout`, or ask for less: fewer formats, fewer actions. |
 
-A page that answers 404 or 410 comes back as a page, with that `metadata.statusCode` and `metadata.error` set to `The page answered with status 404.` It costs nothing. The same holds for each page of a [crawl](/crawl/async).
+A page that answers 404 or 410 comes back as a page, with that `metadata.statusCode` and an error such as `The page answered with status 404.` It costs nothing. The same holds for each page of a [crawl](/crawl/async).
 
 ## Retry a failed read
 
 Retry only when `retryable` is `true`. Wait `retryAfterSeconds`, or back off 0.5, 1 and 2 seconds. After three tries, stop and log the `requestId`. A retry costs nothing extra, because a failed read is free. [Production troubleshooting](/production/troubleshooting) has a retry loop.
 
 ## Many pages
+
+Use a batch if you have a list of URLs and need to tell which pages failed.
 
 Scrape reads one URL. A body with `urls` returns `400 invalidRequest` with the message `urls: Send url. To read many pages in one call, use POST /v1/batch/scrape.` To read a list of URLs, send them to a [batch](/batches/overview). Each page of a batch or a [crawl](/crawl/async) succeeds or fails on its own, so one bad page does not fail the rest. The failed pages are listed with their own `code`, `message` and `retryable`.
 
@@ -122,11 +123,15 @@ Some problems do not fail the call. The page still comes back, with a `warning` 
 
 ## Limits and errors
 
+Check the time and size limits before you retry.
+
 - `timeout` outside 1,000 to 300,000 returns `400 invalidRequest`.
 - The most a single call can run is 5 minutes plus a few seconds.
 - A page with more than 8 MB of text, or a file larger than 20 MB, returns `400 invalidRequest`.
 
 ## Related
+
+Use these guides to set a client timeout or troubleshoot a failed batch.
 
 - [Production timeouts](/production/timeouts) shows how to set client timeouts.
 - [Production troubleshooting](/production/troubleshooting) covers retries and support.

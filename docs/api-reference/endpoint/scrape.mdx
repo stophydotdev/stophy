@@ -14,7 +14,7 @@ Best for reading a page as markdown, HTML, links or a screenshot. The page runs 
 
 ## Price
 
-$1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. creditsUsed shows what the call cost.
+$1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. metadata.costUsd shows what the call cost in dollars.
 
 See [Pricing](/account/pricing).
 
@@ -26,27 +26,20 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://bun.com/docs/runtime/bunfig"}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ url: "https://bun.com/docs/runtime/bunfig" }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.scrape({ url: "https://bun.com/docs/runtime/bunfig" });
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={"url": "https://bun.com/docs/runtime/bunfig"},
-)
-print(response.json())
+result = stophy.scrape(url="https://bun.com/docs/runtime/bunfig")
+print(result)
 ```
 </RequestExample>
 
@@ -66,14 +59,9 @@ print(response.json())
       "cacheState": "hit",
       "cachedAt": "2026-11-16T09:58:50.588Z",
       "scrapeId": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb",
-      "creditsUsed": 1,
       "costUsd": 0.001
     }
-  },
-  "id": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb",
-  "costUsd": 0.001,
-  "creditsUsed": 1,
-  "requestId": "ac28ed59-d0d8-4639-92e1-e1b0db5e9abb"
+  }
 }
 ```
 </ResponseExample>

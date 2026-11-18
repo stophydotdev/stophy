@@ -5,11 +5,11 @@ og:title: "Webhooks | Stophy"
 og:description: "Get a signed call when a batch, crawl, agent, extract or monitor reports. Verify the signature, handle retries and read, retry or inspect each delivery."
 ---
 
-A webhook is a JSON `POST` that Stophy sends to your address when a job reports or a monitor finds something. Every call is signed, so verify the signature before you trust it. Any `2xx` answer says you got it.
+Set a webhook to get a JSON `POST` when a job reports or a monitor finds something, instead of polling for updates. Every call is signed, so verify the signature before you trust it. Any `2xx` answer says you got it.
 
 ## Events
 
-One shape covers every source: `id` is the job or monitor, `event` says what happened, and the rest depends on the event. Your `metadata`, if you set it, comes last.
+Use `event` to decide how to handle each call. Every source uses the same top-level fields: `id` is the job or monitor, `event` says what happened, `eventId` names the call, and the rest depends on the event. Your `metadata`, if you set it, comes last.
 
 | Source | Events | Set with |
 | - | - | - |
@@ -19,34 +19,13 @@ One shape covers every source: `id` is the job or monitor, `event` says what hap
 | [Extract](/extract/results) | `completed`, `failed` | `webhook` on `POST /v1/extract` |
 | [Monitor](/monitors/webhooks) | `monitor.page`, `monitor.check.completed`, `monitor.changed`, `monitor.failed` | `webhook` on `POST /v1/monitor` |
 
-A job sends `started` when it begins and `page` for each finished page. An agent also sends `action` for each step it takes. The last event is `completed`, `failed` or `cancelled`. These are real calls from a crawl of one page, with `metadata` of `{ "project": "docs" }`. The `page` call is cut.
-
-```json
-{ "id": "job_q6vkBosI0L0OennuqYa1iw", "event": "started", "total": 1, "metadata": { "project": "docs" } }
-```
-
-```json
-{
-  "id": "job_q6vkBosI0L0OennuqYa1iw",
-  "event": "page",
-  "result": {
-    "markdown": "This domain is for use in documentation examples without needing permission. …",
-    "requestedUrl": "https://example.com/",
-    "title": "Example Domain",
-    "depth": 0,
-    "statusCode": 200,
-    "isTruncated": false,
-    "metadata": { "title": "Example Domain", "statusCode": 200, … },
-    "url": "https://example.com/"
-  },
-  "metadata": { "project": "docs" }
-}
-```
+A job sends `started` when it begins and `page` for each finished page. An agent also sends `action` for each step it takes. The last event is `completed`, `failed` or `cancelled`. For a crawl, `started` gives you `total`. A `page` event gives you the page as it finishes. Use `completed` for the final counts and cost. This example comes from a one-page crawl with custom `metadata`.
 
 ```json
 {
   "id": "job_q6vkBosI0L0OennuqYa1iw",
   "event": "completed",
+  "eventId": "evt_50c7394f-79a4-4863-954d-a9b3e3f8c28c",
   "status": "completed",
   "total": 1,
   "completed": 1,
@@ -57,20 +36,11 @@ A job sends `started` when it begins and `page` for each finished page. An agent
 }
 ```
 
-A `page` call holds `result` for a page that was read and `error` for one that failed. When your address falls far behind, a `page` call holds only the page `url` and `resultOmitted: true`. Read that page with the status call of the job. `failed` and `cancelled` have the same fields as `completed`, and `failed` also has a `message`. `costUsd` is what the job was charged so far, in dollars. `creditsUsed` is an older field that counts the same amount in whole steps of $0.002, rounded up. The fields of a monitor event are on [Monitor webhooks](/monitors/webhooks#read-an-event).
+Every call has an `eventId` that stays the same when the call is sent again, so you can skip one you already handled. A `page` call holds `result` for a page that was read and `error` for one that failed. When your address falls far behind, a `page` call holds only the page `url` and `resultOmitted: true`. Read that page with the status call of the job. `failed` and `cancelled` have the same fields as `completed`, and `failed` also has a `message`. `costUsd` is what the job was charged so far, in dollars. `creditsUsed` is an older field that counts the same amount in whole steps of $0.002, rounded up. The fields of a monitor event are on [Monitor webhooks](/monitors/webhooks#read-an-event).
 
 ## Set a webhook
 
-Send `webhook` as an address, or as an object, when you start the job. This object sets every field.
-
-```json
-{
-  "url": "https://example.com/stophy-hook",
-  "headers": { "X-Project": "docs" },
-  "metadata": { "project": "docs" },
-  "events": ["started", "page", "completed"]
-}
-```
+Send `webhook` as a URL when all you need is an address. Use an object at job creation to set custom headers or metadata, or to pick which events you get. For example, set `"events": ["completed"]` if you only need successful completions.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -118,21 +88,11 @@ secret = response.json()["data"]["secret"]
 ```
 </CodeGroup>
 
-```json
-{
-  "success": true,
-  "data": { "secret": "whsec_…" },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "…"
-}
-```
-
-Keep the whole string, with the `whsec_` prefix, as the key. Send `{ "rotate": true }` to replace it with a new secret. The old secret stops signing at once, so deploy the new one first, or accept both for a while. Reading and rotating cost nothing.
+Read the key from `data.secret`. Keep the whole string, with the `whsec_` prefix, as the key. Send `{ "rotate": true }` to replace it with a new secret. The old secret stops signing at once. Update your receiver with the new secret after you rotate. For a planned rotation, you can accept both for a while to handle calls already signed with the old one. If the old secret was exposed, stop accepting it. Reading and rotating cost nothing.
 
 ## Verify signatures
 
-Every call has these headers.
+Verify calls before you parse or store them. Read the signature from these headers.
 
 | Header | Value |
 | - | - |
@@ -142,70 +102,15 @@ Every call has these headers.
 
 `v1` is the HMAC-SHA256, in hex, of `<t>.<body>`, with your secret as the key. `<body>` is the exact text of the request body, so read it before you parse it. Compare in constant time, and reject a call whose `t` is more than 5 minutes from your clock.
 
-<CodeGroup>
-```typescript TypeScript
-import { createHmac, timingSafeEqual } from "node:crypto";
-
-export function verifySignature(secret: string, body: string, header: string | null): boolean {
-  const timestamp = header?.match(/(?:^|,)t=(\d+)/)?.[1];
-  const signature = header?.match(/(?:^|,)v1=([0-9a-f]+)/)?.[1];
-  if (timestamp === undefined || signature === undefined) return false;
-  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
-  const expected = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest();
-  const received = Buffer.from(signature, "hex");
-  return received.length === expected.length && timingSafeEqual(received, expected);
-}
-```
-```python Python
-import hashlib
-import hmac
-import re
-import time
-
-
-def verify_signature(secret: str, body: bytes, header: str | None) -> bool:
-    match = re.fullmatch(r"t=(\d+),v1=([0-9a-f]+)", header or "")
-    if match is None:
-        return False
-    timestamp, signature = match.groups()
-    if abs(time.time() - int(timestamp)) > 300:
-        return False
-    expected = hmac.new(secret.encode(), timestamp.encode() + b"." + body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
-```
-</CodeGroup>
-
-A receiver verifies the call, stores it, and answers `200` fast. This one imports the function above from `verify.ts` and keeps each body once, so a call Stophy sends again changes nothing. It runs on Bun.
-
-```typescript
-import { Database } from "bun:sqlite";
-import { verifySignature } from "./verify.ts";
-
-const db = new Database("events.sqlite");
-db.run("CREATE TABLE IF NOT EXISTS events (key TEXT PRIMARY KEY, body TEXT NOT NULL)");
-
-const secret = process.env.STOPHY_WEBHOOK_SECRET ?? "";
-
-export async function handle(request: Request): Promise<Response> {
-  const body = await request.text();
-  if (!verifySignature(secret, body, request.headers.get("Stophy-Signature"))) {
-    return new Response("bad signature", { status: 401 });
-  }
-  const key = new Bun.CryptoHasher("sha256").update(body).digest("hex");
-  db.run("INSERT OR IGNORE INTO events (key, body) VALUES (?, ?)", [key, body]);
-  return new Response("ok");
-}
-```
-
-Serve it with `Bun.serve({ port: 3000, fetch: handle })`. Answer before you do slow work: a call that takes more than 5 seconds counts as failed. A retry and a replay send the same bytes, so the hash of the body is the same.
+Reject a missing or malformed signature. Once it passes verification, store the body by `eventId`. If that ID already exists, answer `2xx` without processing it again. Retries and replays send the same body bytes and event ID. Answer before doing slow work.
 
 ## Acknowledge and retry
 
-Your address must answer `2xx` within 5 seconds. Redirects are not followed. A call that fails is tried again after 0.5, 2 and 8 seconds, so 4 attempts in all. The calls of one job or monitor are sent in order, one at a time. After 3 deliveries in a row fail, the ones still waiting are skipped.
+Answer `2xx` within 5 seconds to stop retries. Redirects are not followed. A call that fails is tried again after 0.5, 2 and 8 seconds, so 4 attempts in all. The calls of one job or monitor are sent in order, one at a time. After 3 deliveries in a row fail, the ones still waiting are skipped.
 
 ## Delivery history and retry
 
-Every call is recorded as a delivery for 30 days, and these reads and the retry are free.
+Use delivery history to see what reached your receiver and replay a missed event. We keep delivery records for 30 days. Reading and retrying them is free.
 
 | Call | What it does |
 | - | - |
@@ -216,88 +121,17 @@ Every call is recorded as a delivery for 30 days, and these reads and the retry 
 
 The list answers with `data.deliveries`. Each has its `id` (`whd_` and a uuid), `sourceType`, `sourceId`, `event`, `url`, `status`, how many `attempts` it took, and the time and status code of the last one. [Monitor webhooks](/monitors/webhooks#check-deliveries) shows a real list.
 
-Read one delivery to see exactly what was sent. This real delivery is a monitor's first check, to an address that answered `405`.
+If there are no matching deliveries, `data.deliveries` is empty. Read one delivery for `payload`, the exact JSON text we sent. `payloadKeptUntil` tells you when it expires. We keep it for 7 days, but not for zero data retention jobs or after you delete a batch's results.
 
-```bash
-DELIVERY_ID="<the id of a delivery>"
-curl https://api.stophy.dev/v1/webhook/deliveries/$DELIVERY_ID \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+Read the attempts to see how your address answered. Each attempt has `at`, `ms` for its duration, `status` for the HTTP status, and `error` if it failed. `trigger` is `auto` for automatic attempts and `manual` for a retry you ask for.
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "whd_8966328f-dea7-4e7d-8801-9c3998ef7ffe",
-    "sourceType": "monitor",
-    "sourceId": "mon_hpJ-ZKa4FJLr4h1m",
-    "event": "monitor.check.completed",
-    "url": "https://example.com/stophy-hook",
-    "status": "failed",
-    "attempts": 4,
-    "createdAt": "2026-11-17T18:19:57.061Z",
-    "lastAttemptAt": "2026-11-17T18:20:07.649Z",
-    "lastStatusCode": 405,
-    "payload": "{\"id\":\"mon_hpJ-ZKa4FJLr4h1m\",\"event\":\"monitor.check.completed\", …}",
-    "payloadKeptUntil": "2026-11-24T18:19:57.061Z"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "0dbf2453-ff5b-48ac-b13e-b3ce27b0b1f6"
-}
-```
-
-`payload` is the exact JSON text that was sent. It is kept for 7 days, and not at all for a zero data retention job or after a batch's results are deleted.
-
-The tries of a delivery show how your address answered. This real delivery got `405` four times, at 0, 0.5, 2 and 8 seconds.
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "whd_74bdf4ed-a81e-4b46-a5a3-2fc0844a759f",
-    "attempts": [
-      { "at": "2026-11-17T18:20:56.464Z", "ms": 27, "status": 405, "error": "The address answered 405.", "trigger": "auto" },
-      { "at": "2026-11-17T18:20:56.991Z", "ms": 31, "status": 405, "error": "The address answered 405.", "trigger": "auto" },
-      { "at": "2026-11-17T18:20:59.022Z", "ms": 30, "status": 405, "error": "The address answered 405.", "trigger": "auto" },
-      { "at": "2026-11-17T18:21:07.052Z", "ms": 33, "status": 405, "error": "The address answered 405.", "trigger": "auto" }
-    ]
-  }
-}
-```
-
-`ms` is how long the try took. `status` is the code your address answered with, and `error` says why when it could not be reached. `trigger` is `auto`, or `manual` for a retry.
-
-A retry sends the same payload once, to the current address and headers of the job or monitor, signed with its current secret. It works for 7 days while the payload is kept. A try that fails is not an error. Read `attempt` in the answer.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/webhook/deliveries/$DELIVERY_ID/retry \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "whd_74bdf4ed-a81e-4b46-a5a3-2fc0844a759f",
-    "status": "failed",
-    "attempt": {
-      "at": "2026-11-17T18:21:32.191Z",
-      "ms": 72,
-      "status": 405,
-      "error": "The address answered 405.",
-      "trigger": "manual"
-    }
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "3fec9dea-c6e4-4de1-b5e7-bcb07a3c2754"
-}
-```
+When you retry a delivery, we send the original payload once to the current address and headers, signed with the current secret. You can only do this while we still have the payload. If your receiver rejects it, the retry call itself can still succeed. Read `data.attempt` to see the outcome.
 
 ## Limits and errors
 
-- A delivery id that is not yours, or that is older than 30 days, returns `404 notFound`.
+Check the address and event names before you send a job. Use the error code to see what you can change.
+
+- You get `404 notFound` if the delivery belongs to another account or is more than 30 days old.
 - A retry returns `400 invalidRequest` when the payload was not kept, when the delivery is older than 7 days, when the monitor was deleted, or when the monitor has no webhook now.
 - A `webhook.url` that is not a public website address returns `400 invalidRequest`.
 - `webhook.events` with a name the source does not send returns `400 invalidRequest`. An extract takes only `completed` and `failed`.
@@ -308,6 +142,8 @@ curl -X POST https://api.stophy.dev/v1/webhook/deliveries/$DELIVERY_ID/retry \
 Free. Calls Stophy sends, the secret, the delivery reads and the retry cost nothing. The job or the monitor behind a call is charged as usual.
 
 ## Related
+
+Use the guide for the event source or receiver you are working on.
 
 - [Monitor webhooks](/monitors/webhooks) lists the monitor events.
 - [Read a crawl](/crawl/async) polls a crawl instead of waiting for a call.

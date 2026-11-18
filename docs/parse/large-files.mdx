@@ -5,11 +5,11 @@ og:title: "Large files | Stophy"
 og:description: "Upload a file of up to 36 MB to a one-time address, then parse it with its upload id. Use it when a base64 body is too big. Getting the address is free."
 ---
 
-For a big file, ask for an upload address, send the file's bytes to it, then parse the file with the `uploadId`. The file goes straight to the address as raw bytes, with no base64 and no JSON around it.
+Use an upload address when you do not want to put a large file in the JSON request. Get the address, send the bytes, then pass the returned `uploadId` to Parse. The file goes straight to the address as raw bytes, with no base64 and no JSON around it.
 
 ## Upload and parse a file
 
-Get an API key in the [Quickstart](/quickstart). An upload needs an API key. This flow has three steps: get the address, `PUT` the file to it, and parse. The file is a small two-page PDF named `report.pdf`.
+Use this flow to parse a local PDF and keep its page breaks. Get an API key in the [Quickstart](/quickstart). An upload needs an API key. This flow has three steps: get the address, `PUT` the file to it, and parse. The file is a small two-page PDF named `report.pdf`.
 
 <CodeGroup>
 ```bash cURL
@@ -113,21 +113,7 @@ print(parsed["data"]["pages"])
 
 ## Read the response
 
-The first call answers with the address to send the file to. `uploadUrl` is cut here, because it is a one-time address that you should not share.
-
-```json
-{
-  "success": true,
-  "uploadId": "upl_340717cb7545444b90fff26197316132",
-  "uploadUrl": "<uploadUrl>",
-  "expiresAt": "2026-11-17T18:27:06.002Z",
-  "uploadRef": "upl_340717cb7545444b90fff26197316132",
-  "maxBytes": 37748736,
-  "costUsd": 0
-}
-```
-
-`uploadRef` is the same value as `uploadId`. The `PUT` answers with an empty `200`. The parse call answers like any other parse call. With `pages` set to `true`, it also returns each page.
+Check each response before sending the next call. The first gives you `uploadUrl`, `uploadId`, `expiresAt` and `maxBytes`. It also returns `uploadRef`, which is the same value as `uploadId`. Keep the one-time URL private. The `PUT` returns an empty `200` when it accepts the file. In the parse call, set `"pages": true` in the PDF parser to get each page's Markdown in addition to the whole document.
 
 ```json
 {
@@ -137,33 +123,18 @@ The first call answers with the address to send the file to. `uploadUrl` is cut 
     "pages": [
       { "pageNumber": 1, "markdown": "Revenue grew in every region." },
       { "pageNumber": 2, "markdown": "Outlook: stable." }
-    ],
-    "metadata": {
-      "contentType": "application/pdf",
-      "numPages": 2,
-      "costUsd": 0.001
-    }
-  },
-  "costUsd": 0.001,
-  "requestId": "3d41c4f1-6332-4e71-8fcf-5955d231730d"
+    ]
+  }
 }
 ```
 
 The file is deleted when the parse ends, so each `uploadId` parses once. Parsing the same `uploadId` again returns `404 notFound`.
 
-```json
-{
-  "success": false,
-  "error": "No upload with that id. An upload id works for one hour.",
-  "code": "notFound",
-  "retryable": false,
-  "requestId": "854b55b6-f6e2-451c-9091-a9f4ad7cb93f"
-}
-```
+Copy the text before you discard the response. `data.metadata` identifies the file type and page count, and `data.metadata.costUsd` is the parse charge.
 
 ## Options
 
-`POST /v1/parse/upload-url` takes these fields.
+Send the file details to `POST /v1/parse/upload-url` before you upload.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -175,6 +146,8 @@ The file is deleted when the parse ends, so each `uploadId` parses once. Parsing
 
 ## Limits and errors
 
+Finish the upload before the URL expires, and parse it before the ID expires.
+
 - A file can be up to 36 MB (37,748,736 bytes).
 - Send the file to `uploadUrl` within 15 minutes of the call. After that, the address stops working.
 - Parse the file within 1 hour of getting the address. After that, the id stops working and parse returns `404 notFound` with `No upload with that id. An upload id works for one hour.`
@@ -184,6 +157,8 @@ The file is deleted when the parse ends, so each `uploadId` parses once. Parsing
 - Getting the address is free. The parse costs what any parse costs, and a failed parse costs nothing.
 
 ## Related
+
+Use the parse and formats guides to choose what you want back.
 
 - [Parse documents](/parse/overview) sends a file of up to 36 MB inside the JSON body.
 - [Formats](/parse/formats) lists the file types and the PDF options.

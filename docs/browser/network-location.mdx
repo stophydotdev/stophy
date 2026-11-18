@@ -5,11 +5,11 @@ og:title: "Network location | Stophy"
 og:description: "Choose how a browser session reaches the web: appear in a country, use your own proxy, or use none. Read or change it while the session runs. Traffic is per GB."
 ---
 
-Every browser session reaches the web one of three ways: as a visitor from a country, through a proxy of your own, or with no proxy. You pick it when you open the session, and you can change it while the session runs, with its tabs and logins kept.
+Choose a country if a site should see a local visitor. Use your own proxy if you need to route the session through it, or go direct to use no proxy. You can change the network without losing tabs or logins.
 
 ## Choose a country
 
-Get an API key in the [Quickstart](/quickstart). Send `location.country`, a two-letter code such as `DE` or `JP`. Sites see a visitor from that country. With no choice, the country is the United States.
+Set the country before you open a page that changes by location. Get an API key in the [Quickstart](/quickstart). Send `location.country`, a two-letter code such as `DE` or `JP`. Sites see a visitor from that country. With no choice, the country is the United States.
 
 <CodeGroup>
 ```bash cURL
@@ -57,29 +57,20 @@ A country only works with the default network. A session that sends `location.co
 
 ## Read where a session appears
 
-`GET /v1/browser/{session_id}/proxy` shows how a running session reaches the web. It is free.
-
-```bash
-SESSION_ID="<the id your session returned>"
-curl https://api.stophy.dev/v1/browser/$SESSION_ID/proxy \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+Use `GET /v1/browser/{session_id}/proxy` to check how a running session reaches the web. It is free.
 
 ```json
 {
   "success": true,
   "mode": "managed",
   "country": "de",
-  "exitIp": "203.0.113.37",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "49bcd667-a5ba-4111-a3da-0eefbf258cf2"
+  "exitIp": "203.0.113.37"
 }
 ```
 
 `exitIp` is the address sites see, shown here as an example address. Loading `https://api.country.is` in that session answered with the same address and `"country":"DE"`.
 
-| `mode` | What it means | `string` | `exitIp` |
+| `mode` | What it means | `country` | `exitIp` |
 | - | - | - | - |
 | `managed` | The default: a country you pick, or the United States | The country, lower case | The address sites see |
 | `direct` | No proxy | `null` | The address sites see |
@@ -98,88 +89,19 @@ When the address cannot be read, `exitIp` is `null` and `exitIpError` says so. S
 | `{ "mode": "direct" }` | No proxy |
 | `{ "mode": "custom", "customProxy": { "host": "proxy.example.net", "port": 8080 } }` | Your own proxy |
 
-<CodeGroup>
-```bash cURL
-SESSION_ID="<the id your session returned>"
-curl -X PATCH https://api.stophy.dev/v1/browser/$SESSION_ID/proxy \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{ "mode": "managed", "country": "JP" }'
-```
-```typescript TypeScript
-const sessionId = "<the id your session returned>";
-const response = await fetch(
-  `https://api.stophy.dev/v1/browser/${sessionId}/proxy`,
-  {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ mode: "managed", country: "JP" }),
-  },
-);
-console.log(await response.json());
-```
-```python Python
-import os
-
-import requests
-
-session_id = "<the id your session returned>"
-response = requests.patch(
-    f"https://api.stophy.dev/v1/browser/{session_id}/proxy",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={"mode": "managed", "country": "JP"},
-)
-print(response.json())
-```
-</CodeGroup>
-
-```json
-{
-  "success": true,
-  "mode": "managed",
-  "country": "jp",
-  "exitIp": "203.0.113.218",
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "992f3fc7-4c4e-4313-ae33-b225d1d34acd"
-}
-```
-
-The same page load now answered `"country":"JP"`. Sending `{ "rotate": true }` kept `jp` and returned a different `exitIp`. Sending `{ "mode": "direct" }` returned `"country": null`. A body with nothing to change answers as `GET` does.
+After you change the country, read `country` and `exitIp` to check the new route. Rotating keeps the country and changes the IP. Direct returns `country: null`. A body with nothing to change answers as `GET` does.
 
 ## Use your own proxy
 
 Send your proxy's address as `proxy` when you open the session. It must be an `http`, `https`, `socks5` or `socks5h` URL on a public host.
 
-```json
-{
-  "ttl": 300,
-  "activityTtl": 60,
-  "proxy": "http://user:password@proxy.example.net:8080"
-}
-```
-
-To switch a running session to your proxy, send `mode` `custom` with `customProxy`.
-
-```json
-{
-  "mode": "custom",
-  "customProxy": {
-    "host": "proxy.example.net",
-    "port": 8080,
-    "username": "user",
-    "password": "password",
-    "protocol": "http"
-  }
-}
-```
+To use your proxy in a running session, set `"mode": "custom"` and send `customProxy` with its connection details.
 
 `host` and `port` are required. `protocol` is `http`, `https`, `socks5` or `socks5h`. A host that is not public, such as `localhost`, returns `400 invalidRequest` with `customProxy: host must be a public address.`
 
 ## Options
+
+Set the route when you open the session, or send a change to the running session.
 
 | Field | Where | Type | Default | Effect |
 | - | - | - | - | - |
@@ -194,7 +116,7 @@ A profile keeps the country it first used. See [Profiles](/browser/profiles).
 
 ## Price
 
-Traffic is billed when the session closes, by the choice that carried it.
+Compare traffic rates before you pick a network. We bill traffic when the session closes, using the rate for the network that carried it.
 
 | Network | Traffic |
 | - | - |
@@ -204,23 +126,11 @@ Traffic is billed when the session closes, by the choice that carried it.
 
 Traffic before and after a change is billed at the rate of its own network. The closing answer's `exitBytes` splits the bytes: `managed` for the default network, `direct` and `custom`. This real session spent 38,137 bytes in Japan and 13,328 bytes with no proxy, and its traffic and time cost $0.006 together.
 
-```json
-{
-  "success": true,
-  "recordingStatus": "none",
-  "sessionDurationMs": 28662,
-  "proxyBytes": 51465,
-  "exitBytes": { "managed": 38137, "direct": 13328, "custom": 0 },
-  "creditsBilled": 3,
-  "costUsd": 0.006,
-  "creditsUsed": 3,
-  "requestId": "2adef125-b958-442e-88af-bde8701dde73"
-}
-```
-
-Browser time is $0.06 per hour whatever you choose. See [Browser sessions](/browser/overview#price).
+The network choice does not change the hourly browser price. It is $0.06 without a prompt and $0.84 once you run a prompt. See [Browser sessions](/browser/overview#price).
 
 ## Limits and errors
+
+If a network change fails, check the route, country and whether the session is still running.
 
 - `location.country` with `proxy` of `direct` or your own URL returns `400 invalidRequest`: `location.country picks a residential exit. Leave it out with your own proxy or direct.`
 - A country that is not two letters returns `400 invalidRequest`: `location.country: Expected a two-letter country code such as DE`.
@@ -228,6 +138,8 @@ Browser time is $0.06 per hour whatever you choose. See [Browser sessions](/brow
 - Reading or changing a session that is not running returns `409 invalidRequest` with `This browser session is not running.`
 
 ## Related
+
+Use a network policy if you need to control which domains the browser can reach.
 
 - [Browser sessions](/browser/overview) opens and closes the session.
 - [Network policies](/browser/network-policies) allow or block domains.

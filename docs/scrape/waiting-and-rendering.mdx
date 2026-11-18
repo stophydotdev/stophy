@@ -5,7 +5,7 @@ og:title: "Waiting and rendering | Stophy"
 og:description: "Wait for a page that loads late, read it as a phone would, skip the browser for speed, or load its ads. Four fields shape how Scrape renders a page."
 ---
 
-Four fields shape how a page is rendered before it is read. `waitFor` gives a slow page more time, `mobile` reads the phone version, `fastMode` skips the browser, and `blockAds` controls what loads. The `waitFor` wait runs after the page loads and before any [browser actions](/scrape/browser-actions).
+Use these options when the default read misses content that loads late or shows you the wrong version of a page. The `waitFor` wait runs after the page loads and before any [browser actions](/scrape/browser-actions).
 
 ## Make a request
 
@@ -61,7 +61,7 @@ print(response.json()["data"]["markdown"])
 
 ## Read the response
 
-The quotes are in the Markdown, so the page finished loading before it was read. This real response is cut after the first quote.
+Check `data.markdown` for the content you expected to appear. Here it includes the first quote, which the page adds with JavaScript.
 
 ```json
 {
@@ -69,24 +69,15 @@ The quotes are in the Markdown, so the page finished loading before it was read.
   "data": {
     "markdown": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n[Login](https://quotes.toscrape.com/login)\n\n“The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.”by Albert Einstein\n\n…",
     "metadata": {
-      "title": "Quotes to Scrape",
-      "language": "en",
-      "sourceURL": "https://quotes.toscrape.com/js/",
-      "url": "https://quotes.toscrape.com/js/",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26",
       "costUsd": 0.001
     }
-  },
-  "id": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26",
-  "costUsd": 0.001,
-  "requestId": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26"
+  }
 }
 ```
 
 ## Options
+
+Use a fixed wait if you know how long the page needs. Use a selector if you know what should appear.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -99,11 +90,15 @@ To wait for an element instead of a fixed time, add a [`wait` action](/scrape/br
 
 ## Choose between them
 
-- Use `waitFor` when content appears a moment after the page loads. Start near 2,000 and raise it only if the page still comes back thin.
+Start with the option that addresses what the result is missing.
+
+- Use `waitFor` when content appears a moment after the page loads. Start with `"waitFor": 2000` and raise it only if the page still comes back thin.
 - Use `fastMode` for pages that are plain HTML. A page that needs a browser, or that refuses a plain request, comes back as an error instead of being tried again. `fastMode` is ignored when the call already needs a browser: with `actions`, `screenshot`, `waitFor`, `mobile`, `profile`, `network` or `branding`.
 - Use `blockAds: false` only when you need the ads or trackers to load, for example to read what an ad slot shows.
 
 ## Limits and errors
+
+Allow enough time for the page to load and for any extra wait you set.
 
 - `waitFor` above 60,000 returns `400 invalidRequest`.
 - `waitFor` without an API key returns `401 apiKeyRequired`.
@@ -115,6 +110,8 @@ To wait for an element instead of a fixed time, add a [`wait` action](/scrape/br
 $1 per 1,000 pages. Waiting, `mobile`, `fastMode` and `blockAds` add nothing.
 
 ## Related
+
+Use these guides to wait for a specific element or verify what rendered.
 
 - [Browser actions](/scrape/browser-actions) wait for an element, click and scroll.
 - [Screenshot](/scrape/screenshot) takes a picture of the rendered page.

@@ -5,7 +5,7 @@ og:title: "Extract | Stophy"
 og:description: "Pull the fields you name from one or more pages as JSON. Each value is checked against the page text and left out when it is not there. $5 per 1,000 pages."
 ---
 
-Extract reads pages and fills the fields you name, and leaves out a field the page does not state. The call answers with an `id`, and you read the fields from `GET /v1/extract/{id}`.
+Use Extract when you know which pages to read and need named fields rather than the whole page. We leave out fields the pages do not support. The call answers with an `id`, and you read the fields from `GET /v1/extract/{id}`.
 
 ## Make a request
 
@@ -98,17 +98,9 @@ print(result["data"])
 
 The call that starts the extract answers with the `id` of the result. `invalidURLs` lists addresses it skipped because they are not public pages.
 
-```json
-{
-  "success": true,
-  "id": "8ae7db78-aab6-43c1-872f-bdedfea0afd9",
-  "invalidURLs": [],
-  "costUsd": 0.005,
-  "requestId": "51358460-993d-4ad0-ba69-f6d4697584ef"
-}
-```
+Save the `id` to read the fields. The `x-cost-usd` header of the start response has the cost. If no addresses were skipped, `invalidURLs` is empty.
 
-`GET /v1/extract/{id}` returns the fields.
+Call `GET /v1/extract/{id}` and read the fields in `data`.
 
 ```json
 {
@@ -119,22 +111,17 @@ The call that starts the extract answers with the `id` of the result. `invalidUR
     "queryMethods": ["all", "get", "run", "values", "iterate"],
     "transactionModes": ["deferred", "immediate", "exclusive"]
   },
-  "confidence": {
-    "module": 0.9627,
-    "queryMethods": 0.7573,
-    "transactionModes": 0.9246
-  },
   "urls": ["https://bun.com/docs/runtime/sqlite"],
   "costUsd": 0.005,
   "expiresAt": "2026-11-18T18:09:35.938Z"
 }
 ```
 
-`pricePerMonth` is not in `data`: the page does not state it, so the field is left out. Each value is checked against the page text, and `confidence` says how sure Stophy is that it is there, from 0 to 1. See [Results](/extract/results) for the rest of the fields.
+`pricePerMonth` is not in `data`: the page does not state it, so the field is left out. We check each value against the page text. `confidence` says how sure we are that it is there, from 0 to 1. `urls` lists the pages read, and `expiresAt` tells you when the result expires. See [Results](/extract/results) for the rest of the fields.
 
 ## Request fields
 
-The `schema` is described in [Schema](/extract/schema). `showSources`, `timeout` and `webhook` are described in [Results](/extract/results). These fields belong to this page.
+Choose where to look and what to pull out. For known pages, start with `urls` and a `schema`. The `schema` is described in [Schema](/extract/schema). `showSources`, `timeout` and `webhook` are described in [Results](/extract/results). These fields belong to this page.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -155,9 +142,13 @@ With a `prompt` and no `schema`, the model names up to 20 fields in camelCase.
 
 ## Price
 
+Budget for the pages you read and any extra search or links you enable.
+
 $5 per 1,000 pages for most calls: $1 for the page and $4 for the extraction. Each page after the first adds $1 per 1,000 pages, and a long answer adds $1 per 1,000 pages for every 64 values after the first 64, for each 40,000 characters of page text read. `enableWebSearch` adds $1 per 1,000 searches, and `allowExternalLinks` adds $1 per 1,000 pages read. A call that finds none of the fields is free. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Pick a different call if you need page text or want an agent to choose its own sources.
 
 - [Scrape](/scrape/overview) returns the whole page, and `json` fills a schema from one page.
 - [Agent](/agent/overview) searches and reads several pages, then fills your fields with a quote for each.

@@ -10,39 +10,21 @@ The `stophy` command calls the Stophy API from your terminal. It reads the endpo
 
 ## Install
 
+Install the CLI to get the `stophy` command on your PATH. On macOS or Linux, run:
+
 ```bash
 curl -fsSL https://stophy.dev/install | bash
 ```
 
-The installer puts the binary in `~/.local/bin`. On Windows, use PowerShell.
-
-```powershell
-irm https://stophy.dev/install.ps1 | iex
-```
-
-With Node.js 20 or later, `npm install -g @stophy/cli` works too. Check the install.
-
-```bash
-stophy version
-```
+The installer puts the binary in `~/.local/bin`. On Windows, run `irm https://stophy.dev/install.ps1 | iex` in PowerShell. With Node.js 20 or later, you can use `npm install -g @stophy/cli` instead. Run `stophy version` to check the install.
 
 ## Try it without an API key
 
-Without logging in, you can run the commands that `stophy endpoints` marks `free`, up to 10 calls a minute and 50 calls a day per IP address.
-
-```bash
-stophy search "bun runtime"
-```
-
-Results print as rows, or as JSON with `--json`.
+Run `stophy search "bun runtime"` to try a search before you log in. Results print as rows, or as JSON with `--json`. You can run the commands that `stophy endpoints` marks `free` up to 10 times a minute and 50 times a day per IP address.
 
 ## Set up your agent
 
-```bash
-stophy init --all
-```
-
-`init` logs you in with your browser, installs the Stophy [skills](/install-skill) with `npx -y skills add stophydotdev/stophy`, and adds the [MCP server](/install-mcp). With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the command or snippet to use, and leaves your config files alone.
+Run `stophy init --all` if you want the CLI to set up your agent without prompting at each step. `init` logs you in with your browser, installs the Stophy [skills](/install-skill) with `npx -y skills add stophydotdev/stophy`, and adds the [MCP server](/install-mcp). With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the command or snippet to use, and leaves your config files alone.
 
 | Option | What it does |
 | - | - |
@@ -54,31 +36,15 @@ stophy init --all
 
 ## Log in
 
-```bash
-stophy login --browser
-```
+Run `stophy login --browser` to use endpoints that need a key. The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then click **Approve**. On a server with no browser, open the printed link on another device.
 
-The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then click **Approve**. On a server with no browser, open the printed link on any other device.
+If you have a key from the [dashboard](https://stophy.dev/dashboard), run `stophy login --api-key` and paste it only when prompted. Never pass a key as a command argument. In CI, set `STOPHY_API_KEY` from your secret store.
 
-To use an API key from the [dashboard](https://stophy.dev/dashboard) instead, run this and paste the key when it asks, so it stays out of your shell history. In CI, set `STOPHY_API_KEY` from your secret store.
-
-```bash
-stophy login --api-key
-```
-
-Each computer gets its own key, and logging in again replaces it. `stophy logout` logs out and revokes the key. Never pass a key as a command argument. See [API keys](/account/api-keys).
+Each computer gets its own key, and logging in again replaces it. `stophy logout` logs out and revokes the key. See [API keys](/account/api-keys).
 
 ## Make a request
 
-```bash
-stophy search "bun runtime" --limit 5
-stophy scrape https://bun.com/docs
-stophy map https://bun.com --limit 50
-stophy crawl https://bun.com/docs --limit 20
-stophy crawl status <id>
-stophy extract --urls https://bun.com --prompt "the latest version"
-stophy extract status <id>
-```
+Pick the command based on what you have. Run `stophy search "bun runtime" --limit 5` for five search results. Use `stophy scrape` with a page URL, or `stophy map` with a site URL and `--limit 50` to list up to 50 URLs. Give `stophy crawl` a starting URL and `--limit 20` to read up to 20 pages. For a specific field, pass `--urls` and `--prompt` to `stophy extract`.
 
 Every command takes `--json` for the data as JSON, `--raw` for the full response and `-o <path>` to write the output to a file. With `--json`, the CLI also prints `cost: $<amount>` to stderr.
 
@@ -94,26 +60,19 @@ Every command takes `--json` for the data as JSON, `--raw` for the full response
 
 A parser returns a site's own data as JSON: posts, videos, places, products, jobs, listings and more. `stophy parsers [word]` lists them, with the kind of page each one takes.
 
-```bash
-stophy parsers reddit
-stophy scrape "https://www.reddit.com/r/rust/" --parser reddit-subreddit
-stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
-```
+Run `stophy parsers reddit` to find Reddit parsers. Pass `--parser reddit-subreddit` to `stophy scrape` with a subreddit URL, or pass `--parser youtube-transcript` with a YouTube video URL.
 
 If the output ends with a `cursor`, get the next page with `--parserOptions '{"cursor":"<cursor>"}'`. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
 ## Find a command
 
-```bash
-stophy --help
-stophy scrape --help
-stophy describe scrape
-stophy endpoints
-```
+Run `stophy --help` to see the commands or `stophy scrape --help` to check scrape flags.
 
 `stophy endpoints [word]` lists every command with its price, and `stophy describe <id>` shows one command's options, cost and an example. Besides the data commands above, there are `parse`, `agent`, `browser task`, `batch scrape` and `webhook secret`. The CLI has no command for browser sessions or monitors. Call those over HTTP.
 
 ## Commands
+
+Use these commands to check your account or diagnose a CLI problem.
 
 | Command | What it does |
 | - | - |
@@ -133,6 +92,8 @@ stophy endpoints
 The CLI tells you when a newer version is out. Set `STOPHY_NO_UPDATE_CHECK=1` to turn that off.
 
 ## Related
+
+Use these guides if you are setting up another client or checking what a command costs.
 
 * [Install skills](/install-skill)
 * [Install MCP](/install-mcp)

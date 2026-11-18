@@ -5,7 +5,7 @@ og:title: "Content filtering | Stophy"
 og:description: "Keep the main content, pick parts of a page by CSS selector, clean what is left, choose how links look, and cut a long page into parts you read one by one."
 ---
 
-These fields decide which parts of a page end up in the Markdown and HTML: the main content, the parts you select, or only the passages that match a query. They also decide how links are written and how much text comes back in one call.
+Use content filters to keep the part of a page you need. You can select elements, choose how Markdown links look, or split a long page into smaller responses.
 
 ## Make a request
 
@@ -67,7 +67,7 @@ print(data.get("nextOffset"))
 
 ## Read the response
 
-The Markdown holds the selected part only. Links are written as `⟨1⟩` and listed once at the end. The text was cut at 600 characters, so `nextOffset` says where the next part starts, and `warning` says the text was cut. This real response is cut to the fields that matter.
+Read `markdown` for the selected text, with each link numbered and listed at the end. If the answer includes `nextOffset`, use that value rather than adding `maxChars` yourself. `warning` tells you where to read on.
 
 ```json
 {
@@ -77,23 +77,17 @@ The Markdown holds the selected part only. Links are written as `⟨1⟩` and li
     "nextOffset": 529,
     "warning": "The page text was cut short. Send offset 529 to read on.",
     "metadata": {
-      "title": "404 Not Found - HTTP | MDN",
-      "sourceURL": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "hit",
       "costUsd": 0.001
     }
-  },
-  "id": "f494daae-4d53-45c0-a3f6-6b7cc2806726",
-  "costUsd": 0.001,
-  "requestId": "f494daae-4d53-45c0-a3f6-6b7cc2806726"
+  }
 }
 ```
 
 To read on, send the same request with `"offset": 529` and the same `maxChars`. Repeat until the answer has no `nextOffset`.
 
 ## Options
+
+Use selectors if you know the page structure. Use `query` instead of paging when you only need a few matching passages from a long page.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -115,7 +109,9 @@ The filters shape the page text that `markdown` and `html` are made from, and ev
 
 ## Limits and errors
 
-- If `includeTags` matches nothing on the page, the call fails with `503 sourceUnavailable` and the message `The page did not finish loading. Try again shortly.` Nothing is charged. Check the selector against the page's HTML before you retry.
+Check selectors and paging options if the call fails or the answer has a warning.
+
+- If `includeTags` matches nothing on the page, the call fails with `400 invalidRequest` and the `error` names `includeTags`. Nothing is charged. Check the selectors against the page's HTML, or leave `includeTags` out to read the whole page.
 - `maxChars` below 500 returns `400 invalidRequest`.
 - Send `query` or `offset`, not both.
 - `onlyCleanContent` is skipped with a `warning` when the page is too long to clean or the model does not answer.
@@ -125,6 +121,8 @@ The filters shape the page text that `markdown` and `html` are made from, and ev
 $1 per 1,000 pages. Every field on this page adds nothing, and `query` adds nothing either. A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that comes back. See [PDFs and documents](/scrape/pdfs-and-documents).
 
 ## Related
+
+Choose one of these formats when you need links or passages separately from the text.
 
 - [Markdown](/scrape/markdown) is the format these fields shape.
 - [Highlights](/scrape/highlights) returns the passages that match a query as a format of its own.

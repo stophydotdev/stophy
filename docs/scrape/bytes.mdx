@@ -5,7 +5,7 @@ og:title: "Bytes | Stophy"
 og:description: "Get the exact bytes a site sent as a Base64 string, for files you want to save as they are. Read live on every call. $1 per 1,000 pages."
 ---
 
-`rawBase64` returns the bytes the site sent, Base64 encoded. Use it when you need the file itself, not its text.
+Use `rawBase64` to save the file a site sent without converting it to text. For HTML you want to read as text, use [HTML](/scrape/html) instead.
 
 ## Make a request
 
@@ -59,7 +59,7 @@ print(base64.b64decode(data["rawBase64"]).decode("utf-8"))
 
 ## Read the response
 
-`data.rawBase64` is a Base64 string without a `data:` prefix. `data.metadata.contentType` says what the bytes are. This real response is cut. The full string was 3,164 characters and decodes to the page's HTML, starting with `<!DOCTYPE html>`.
+Decode `data.rawBase64` before you write it to a file. It is a Base64 string without a `data:` prefix. `data.metadata.contentType` says what the bytes are. This real response is cut. The full string was 3,164 characters and decodes to the page's HTML, starting with `<!DOCTYPE html>`.
 
 ```json
 {
@@ -67,29 +67,24 @@ print(base64.b64decode(data["rawBase64"]).decode("utf-8"))
   "data": {
     "rawBase64": "PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij48…",
     "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com/",
-      "url": "https://example.com/",
-      "statusCode": 200,
       "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "d836d60e-5fe4-4982-8328-f1b259c82ac2",
       "costUsd": 0.001
     }
-  },
-  "id": "d836d60e-5fe4-4982-8328-f1b259c82ac2",
-  "costUsd": 0.001,
-  "requestId": "d836d60e-5fe4-4982-8328-f1b259c82ac2"
+  }
 }
 ```
 
 ## Options
+
+Choose this format instead of the default Markdown when you need bytes.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"rawBase64"` to return the bytes the site sent. |
 
 ## Limits and errors
+
+Plan for a live read even if you recently requested the same URL.
 
 - The page is always read live. Stophy never answers `rawBase64` from a stored copy, whatever `maxAge` says.
 - A page that answers with a 404 or 410 status, or cannot be read, costs nothing.
@@ -99,6 +94,8 @@ print(base64.b64decode(data["rawBase64"]).decode("utf-8"))
 $1 per 1,000 pages. `rawBase64` adds nothing to the price of the page.
 
 ## Related
+
+Pick a text format when you need to read the file rather than save the bytes.
 
 - [HTML](/scrape/html) returns the cleaned page or the raw HTML as text.
 - [PDFs and documents](/scrape/pdfs-and-documents) reads PDFs, CSV and Excel files.

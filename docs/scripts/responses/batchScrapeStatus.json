@@ -18,7 +18,6 @@
           "contentType": "text/markdown",
           "cacheState": "hit",
           "cachedAt": "2026-11-16T09:58:50.588Z",
-          "scrapeId": "job__SDlT-N1YqzQRoYCvKUTAg",
           "creditsUsed": 1,
           "costUsd": 0.001
         }
@@ -34,7 +33,6 @@
     "completedAt": "2026-11-17T17:50:06.104Z",
     "duration": 3.004,
     "expiresAt": "2026-11-18T17:50:03.100Z",
-    "errors": [],
-    "requestId": "622782cc-5f5b-4c7b-80ca-a775c6befc68"
+    "errors": []
   }
 }

@@ -6,9 +6,6 @@
   "status": 200,
   "response": {
     "success": true,
-    "status": "cancelled",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "c1d93b38-1657-4226-851f-e1184fdb4be2"
+    "status": "cancelled"
   }
 }

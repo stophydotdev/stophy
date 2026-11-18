@@ -5,18 +5,18 @@ og:title: "Interact | Stophy"
 og:description: "Keep working on a page you already scraped in a live browser session. Run code or plain-words steps on it, then close it. Billed by the hour open."
 ---
 
-Interact opens a browser session on a page you already scraped. Run code or a plain-words step on it, as many times as you need, then close it. Use it when [browser actions](/scrape/browser-actions) are not enough: a form with several steps, a value you only see after clicking through, or a page you want to look at before you decide what to do.
+Use Interact to keep working on a page after you scrape it. Run code or send a plain-words step, look at the result, then decide what to do next. Use it when [browser actions](/scrape/browser-actions) are not enough: a form with several steps, a value you only see after clicking through, or a page you want to look at before you decide what to do.
 
 ## Make a request
 
-You need an API key and the `id` of a scrape from the last 24 hours. Scrape the page first, then send code to `POST /v1/scrape/{id}/interact`.
+You need an API key and the `metadata.scrapeId` of a scrape from the last 24 hours. Scrape the page first, then send code to `POST /v1/scrape/{id}/interact`.
 
 <CodeGroup>
 ```bash cURL
 SCRAPE_ID=$(curl -s -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "url": "https://example.com" }' | jq -r .id)
+  -d '{ "url": "https://example.com" }' | jq -r .data.metadata.scrapeId)
 
 curl -X POST https://api.stophy.dev/v1/scrape/$SCRAPE_ID/interact \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
@@ -34,7 +34,8 @@ const scrape = await fetch("https://api.stophy.dev/v1/scrape", {
   headers,
   body: JSON.stringify({ url: "https://example.com" }),
 });
-const { id } = await scrape.json();
+const { data } = await scrape.json();
+const id = data.metadata.scrapeId;
 
 const response = await fetch(`https://api.stophy.dev/v1/scrape/${id}/interact`, {
   method: "POST",
@@ -56,7 +57,7 @@ scrape = requests.post(
     headers=headers,
     json={"url": "https://example.com"},
 )
-scrape_id = scrape.json()["id"]
+scrape_id = scrape.json()["data"]["metadata"]["scrapeId"]
 
 response = requests.post(
     f"https://api.stophy.dev/v1/scrape/{scrape_id}/interact",
@@ -73,7 +74,7 @@ In your code, `page` is the session's browser page. It has Playwright-style meth
 
 ## Read the response
 
-`result` is the value your code returned, as text. `output` is what it printed. The links let you connect your own tools or watch the session. They are cut here.
+Read `result` for what the code returned and `output` for what it printed. Check `exitCode` and `killed` before you use the result. Use the session links to connect your tools or watch. The links are shortened here.
 
 ```json
 {
@@ -97,53 +98,15 @@ The call itself costs nothing. You pay for the time the session is open, when it
 
 ## Close the session
 
-Send `DELETE` to the same path as soon as you are done. This is when the time is billed.
+Close the session as soon as you are done. We bill the time when it closes.
 
-<CodeGroup>
-```bash cURL
-SCRAPE_ID="<the id your scrape returned>"
-curl -X DELETE https://api.stophy.dev/v1/scrape/$SCRAPE_ID/interact \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const id = "<the id your scrape returned>";
-const response = await fetch(`https://api.stophy.dev/v1/scrape/${id}/interact`, {
-  method: "DELETE",
-  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
-});
-console.log(await response.json());
-```
-```python Python
-import os
+Send `DELETE /v1/scrape/{id}/interact` with the same API key and scrape ID. Read `sessionDurationMs` for the time and `costUsd` for the price. The example session ran for about 9 seconds and cost $0.004.
 
-import requests
-
-scrape_id = "<the id your scrape returned>"
-response = requests.delete(
-    f"https://api.stophy.dev/v1/scrape/{scrape_id}/interact",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-print(response.json())
-```
-</CodeGroup>
-
-This real session was open for about 9 seconds and cost $0.004. The response is cut to the fields that matter.
-
-```json
-{
-  "success": true,
-  "sessionDurationMs": 8965,
-  "costUsd": 0.004,
-  "creditsUsed": 2,
-  "requestId": "4cd26d99-e3ac-4b9b-8797-82e11d5a0cad"
-}
-```
-
-`sessionDurationMs` is how long the session was open. A session also ends by itself after 5 minutes without a call, and after 10 minutes at most. You are billed for the time it was open either way, so close it yourself.
+A session also ends by itself after 5 minutes without a call, and after 10 minutes at most. You are billed for the time it was open either way, so close it yourself.
 
 ## Options
 
-Send `code` or `prompt`. A body with neither returns `400 invalidRequest` with the message `Send code or a prompt.`
+Use `code` when you know the steps, or `prompt` to describe the task in plain words. A body with neither returns `400 invalidRequest` with the message `Send code or a prompt.`
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -170,6 +133,8 @@ $0.06 per hour while the session is open, billed when you close it, one minute a
 
 ## Limits and errors
 
+Check whether the scrape or the session expired before trying another step.
+
 - A scrape id that is more than 24 hours old, or a scrape sent with `zeroDataRetention`, returns `404 notFound`. Scrape the page again.
 - A free account can have 3 sessions open at once, and a paid account 10. Over that, the call returns `429 rateLimited`. Close one and send it again.
 - Once a session has ended, the next call on the same scrape opens a new one, and it is billed on its own.
@@ -178,7 +143,9 @@ $0.06 per hour while the session is open, billed when you close it, one minute a
 
 ## Related
 
+Use these guides to run steps without an ongoing session or to open a browser directly.
+
 - [Browser actions](/scrape/browser-actions) run steps before the read, with no session to close.
 - [Browser overview](/browser/overview) opens a session on any URL, not only a scraped one.
 - [Browser execute](/browser/execute) runs code in a session you opened yourself.
-- [Freshness and caching](/scrape/freshness-and-caching) explains the scrape id and its 24 hours.
+- [Freshness and caching](/scrape/freshness-and-caching) explains the `scrapeId` and its 24 hours.

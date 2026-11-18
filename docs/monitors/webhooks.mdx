@@ -6,11 +6,11 @@ og:description: "Get a signed webhook when a monitor finds a change or finishes 
 sidebarTitle: "Webhooks"
 ---
 
-A monitor with a `webhook` sends a signed JSON `POST` to your address when it finds a change and when a check ends. This page covers what monitors send. [Webhooks](/webhooks) covers signatures, retries and delivery history for every call Stophy makes to you.
+Use a webhook instead of polling when your app needs to act on monitor events. A monitor with a `webhook` sends a signed JSON `POST` to your address when it finds a change and when a check ends. This page covers what monitors send. [Webhooks](/webhooks) covers signatures, retries and delivery history for every call Stophy makes to you.
 
 ## Events
 
-Pick the events in `webhook.events`.
+Pick the events in `webhook.events` based on whether you need changes, a check receipt or failures.
 
 | Event | Sent when | Payload |
 | - | - | - |
@@ -21,19 +21,11 @@ Pick the events in `webhook.events`.
 
 A monitor made with `targets` and `schedule` sends `monitor.page` and `monitor.check.completed` when you pick none. A monitor made with the older `url`, `urls` and `interval` fields sends `monitor.changed` and `monitor.failed`.
 
-The first check of a monitor reads each page for the first time, so it sends no `monitor.page`. It does send `monitor.check.completed`. Subscribe to it to know that checks run, even when nothing changes.
+The first check establishes a baseline for page targets, so it sends no `monitor.page` for those first reads. Search targets can report new results on the first check. It does send `monitor.check.completed`. Subscribe to it to know that checks run, even when nothing changes.
 
 ## Set a webhook
 
-Send `webhook` when you create a monitor, or set it later with `PATCH /v1/monitor/{id}`. This is the object from the request on [Monitors](/monitors/overview#make-a-request).
-
-```json
-{
-  "url": "https://example.com/stophy-hook",
-  "events": ["monitor.page", "monitor.check.completed"],
-  "metadata": { "project": "docs" }
-}
-```
+Give the monitor a public receiver when you create it, or set `webhook` later with `PATCH /v1/monitor/{id}`. For example, set `"events": ["monitor.page", "monitor.check.completed"]` to get both changes and check receipts. See the request on [Monitors](/monitors/overview#make-a-request).
 
 `PATCH` replaces the webhook as a whole, so send every field you want to keep. Send `"webhook": null` to remove it.
 
@@ -46,66 +38,25 @@ Send `webhook` when you create a monitor, or set it later with `PATCH /v1/monito
 
 ## Read an event
 
-Every event is a JSON object. `id` is the id of the monitor, `event` is the event name, and your `metadata` comes last. The call carries `Stophy-Signature` and `User-Agent: Stophy-Webhook/1`.
+Read `event` to choose how to handle the JSON object. `id` is the id of the monitor, `event` is the event name, `eventId` names the call, and your `metadata` comes last. The call carries `Stophy-Signature` and `User-Agent: Stophy-Webhook/1`.
 
-A page changed. This real event came from a monitor with a `goal`.
+`changeStatus` is `changed`, `new` or `removed`. A `removed` page has only `url`, `changeStatus` and `at`. A result of a search target also has its `title`. With `json` comparison the event holds `json`, each field before and after. When you set a `goal`, read `judgment` for `meaningful`, `confidence`, `reason` and the `meaningfulChanges` list. A `judgment` with `meaningful: false` is still sent, so you decide what to do with it.
 
-```json
-{
-  "id": "mon_2f3L73izJTdaA1AQ",
-  "event": "monitor.page",
-  "url": "https://httpbin.org/uuid",
-  "changeStatus": "changed",
-  "at": "2026-11-17T18:20:53.979Z",
-  "diff": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"0714c38d-30cf-4c11-9c7a-801260afcaba\"\n+  \"uuid\": \"ec011f90-1296-47af-8911-bad9f9aa5314\"\n }\n\\ No newline at end of file\n",
-  "judgment": {
-    "meaningful": true,
-    "confidence": "high",
-    "reason": "The uuid value changed, which is exactly what the goal tracks.",
-    "meaningfulChanges": [
-      {
-        "type": "changed",
-        "before": "0714c38d-30cf-4c11-9c7a-801260afcaba",
-        "after": "ec011f90-1296-47af-8911-bad9f9aa5314",
-        "reason": "The uuid field now has a different value."
-      }
-    ]
-  }
-}
-```
-
-`changeStatus` is `changed`, `new` or `removed`. A `removed` page has only `url`, `changeStatus` and `at`. A result of a search target also has its `title`. With `json` comparison the event holds `json`, each field before and after. `judgment` is there when the monitor has a `goal`. A `judgment` with `meaningful: false` is still sent, so you decide what to do with it.
-
-A check ended. This is the real event of a monitor's first check. `costUsd` is what the check was charged, in dollars. `actualCredits` is an older field that counts the same amount in whole steps of $0.002, rounded up, so a check of $0.001 shows 1.
-
-```json
-{
-  "id": "mon_hpJ-ZKa4FJLr4h1m",
-  "event": "monitor.check.completed",
-  "monitorId": "mon_hpJ-ZKa4FJLr4h1m",
-  "checkId": "1aba955f-75b2-40e7-a2a6-afe5dd3b5e1e",
-  "status": "completed",
-  "summary": { "totalPages": 1, "same": 0, "changed": 0, "new": 1, "removed": 0, "error": 0 },
-  "actualCredits": 1,
-  "costUsd": 0.001,
-  "finishedAt": "2026-11-17T18:19:57.058Z",
-  "metadata": { "project": "docs" }
-}
-```
+On `monitor.check.completed`, use `monitorId` and `checkId` to look up the check. `finishedAt` tells you when it ended, and `summary` counts the outcomes. `costUsd` is what the check was charged, in dollars. `actualCredits` is an older field that counts the same amount in whole steps of $0.002, rounded up, so a check of $0.001 shows 1.
 
 `monitor.failed` has `reason` and `at`. When one page keeps failing, it also has the `url` and `failures`, which is 5. When your balance runs out, the `reason` is `Your balance ran out, so this monitor is paused.`
 
-An event has no id of its own. A retry or a replay sends the same body again. To ignore an event you have already handled, keep a hash of the body, or the `checkId` for check events and the `url` with `at` for page events.
+Every event has an `eventId` that stays the same when the call is sent again, by a retry or a replay. To ignore an event you have already handled, keep the `eventId` of each one.
 
 ## Verify the signature
 
-Every call has a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`. `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret, over the exact bytes of the body. Compute it, compare it in constant time, and reject a call whose `t` is more than a few minutes old. [Webhooks](/webhooks#verify-signatures) has the code.
+Verify the signature before you trust or parse the event. Every call has a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`. `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret, over the exact bytes of the body. Compute it, compare it in constant time, and reject a call whose `t` is more than 5 minutes from your clock. See [Webhooks](/webhooks#verify-signatures) for the verification steps.
 
 Until you rotate a monitor's secret, its calls are signed with your account secret from `POST /v1/webhook/secret`. After you rotate it, they are signed with the monitor's own secret.
 
 ## Rotate the signing secret
 
-`POST /v1/monitor/{id}/webhook/rotate-secret` gives one monitor's calls a new secret. The monitor needs a webhook. The samples read the monitor's id from `MONITOR_ID`.
+Rotate the secret if this monitor needs its own key or its key has been exposed. `POST /v1/monitor/{id}/webhook/rotate-secret` gives one monitor's calls a new secret. The monitor needs a webhook. The samples read the monitor's id from `MONITOR_ID`.
 
 <CodeGroup>
 ```bash cURL
@@ -133,30 +84,13 @@ print(response.json()["data"]["id"])
 ```
 </CodeGroup>
 
-The answer holds the new secret. Store it before you do anything else.
-
-```json
-{
-  "success": true,
-  "data": { "id": "mon_2f3L73izJTdaA1AQ", "secret": "whsec_…" },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "…"
-}
-```
-
-The old secret stops signing at once, so deploy the new one first, or accept both for a while. Only this monitor's calls use the new secret. The rest of your jobs keep your account secret. A monitor with no webhook returns `400 invalidRequest`: `This monitor has no webhook, so there is no secret to replace.`
+Store the new key from `data.secret`, including the `whsec_` prefix. The old secret stops signing this monitor's calls at once. Update the receiver after rotation. For a planned rotation, you can accept both secrets for a while to handle calls already signed with the old one. If the old secret was exposed, stop accepting it. Only this monitor's calls use the new secret. The rest of your jobs keep your account secret. A monitor with no webhook returns `400 invalidRequest`: `This monitor has no webhook, so there is no secret to replace.`
 
 ## Check deliveries
 
-Each call is a delivery. Events of one monitor are sent in order, one at a time. Your address must answer `2xx` within 5 seconds. A call that fails is tried again after 0.5, 2 and 8 seconds, so 4 attempts in all. Redirects are not followed.
+Use delivery history when a receiver misses an event. Each call is a delivery. Events of one monitor are sent in order, one at a time. Your address must answer `2xx` within 5 seconds. A call that fails is tried again after 0.5, 2 and 8 seconds, so 4 attempts in all. Redirects are not followed.
 
-List the deliveries of a monitor with `GET /v1/webhook/deliveries`. This real answer lists two calls to an address that answered `405`. The second was also retried by hand once, so it has 5 attempts.
-
-```bash
-curl "https://api.stophy.dev/v1/webhook/deliveries?sourceType=monitor&sourceId=$MONITOR_ID&status=failed&limit=2" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
+List deliveries with `GET /v1/webhook/deliveries` and filter by `sourceType=monitor` and `sourceId`. Add `status=failed` for failures only. This receiver returned `405` for all four automatic attempts. A later manual retry adds another attempt.
 
 ```json
 {
@@ -165,34 +99,14 @@ curl "https://api.stophy.dev/v1/webhook/deliveries?sourceType=monitor&sourceId=$
     "deliveries": [
       {
         "id": "whd_46b6e278-c841-406d-9760-73efa6fc63be",
-        "sourceType": "monitor",
-        "sourceId": "mon_2f3L73izJTdaA1AQ",
         "event": "monitor.check.completed",
-        "url": "https://example.com/stophy-hook",
         "status": "failed",
         "attempts": 4,
-        "createdAt": "2026-11-17T18:21:07.086Z",
-        "lastAttemptAt": "2026-11-17T18:21:17.671Z",
-        "lastStatusCode": 405
-      },
-      {
-        "id": "whd_74bdf4ed-a81e-4b46-a5a3-2fc0844a759f",
-        "sourceType": "monitor",
-        "sourceId": "mon_2f3L73izJTdaA1AQ",
-        "event": "monitor.page",
-        "url": "https://example.com/stophy-hook",
-        "status": "failed",
-        "attempts": 5,
-        "createdAt": "2026-11-17T18:20:56.464Z",
-        "lastAttemptAt": "2026-11-17T18:21:32.191Z",
         "lastStatusCode": 405
       }
     ],
     "cursor": "TG3PCyi01794939656464:whd_74bdf4ed-a81e-4b46-a5a3-2fc0844a759f"
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "e6ffac47-f0e5-439c-bb45-6db2ed02f522"
+  }
 }
 ```
 
@@ -200,15 +114,7 @@ Read one delivery to see the payload that was sent, read its attempts, and send 
 
 ## Get an email instead
 
-A monitor can email you when a check finds a change. Send `notification` when you create or update the monitor.
-
-```json
-{
-  "notification": {
-    "email": { "enabled": true, "recipients": ["you@example.com"], "includeDiffs": true }
-  }
-}
-```
+Use email if you want changes without running a receiver. Set `notification.email.enabled` to `true` when you create or update the monitor. Add `"includeDiffs": true` inside `email` if you want the changed text.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -220,6 +126,8 @@ The monitor shows each recipient's state in `notification.email.recipientStates`
 
 ## Limits and errors
 
+Check the URL and event names when webhook setup fails.
+
 - `webhook.url` must be a public website address. A private or local address returns `400 invalidRequest`.
 - `webhook.events` accepts `monitor.page`, `monitor.check.completed`, `monitor.changed` and `monitor.failed`. Another name returns `400 invalidRequest` with `webhook.events.0: Send one of: monitor.page, monitor.check.completed, monitor.changed, monitor.failed.`
 - After 3 deliveries in a row fail, the events still waiting are skipped and show `skipped`.
@@ -230,6 +138,8 @@ The monitor shows each recipient's state in `notification.email.recipientStates`
 Free. Webhooks, deliveries, retries and secrets cost nothing. A check costs what it costs, whether or not you have a webhook. See [Monitors](/monitors/overview#price).
 
 ## Related
+
+Use the polling guide if you prefer to pull changes on your own schedule.
 
 - [Webhooks](/webhooks) explains signatures, retries and delivery history.
 - [Checks and changes](/monitors/checks-and-changes) reads the same results by polling.

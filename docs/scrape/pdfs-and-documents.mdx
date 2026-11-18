@@ -5,7 +5,7 @@ og:title: "PDFs and documents | Stophy"
 og:description: "Scrape a PDF, Word, PowerPoint, Excel or CSV file from a public URL and get Markdown. Pick the pages, read scanned pages, and keep page markers."
 ---
 
-Send the public URL of a document, and Scrape returns its text as Markdown, the same way it reads a page. To read a file from your own disk, use [Parse documents](/parse/overview).
+Use Scrape to read a document at a public URL as Markdown. To read a file from your own disk, use [Parse documents](/parse/overview).
 
 ## Make a request
 
@@ -60,29 +60,20 @@ print(data["markdown"])
 
 ## Read the response
 
-The text is in `data.markdown`. Page 2 starts after a `---` line and a `<!-- page 2 -->` marker. This real response is cut. Each page's text is shortened.
+Read `data.markdown` for the text. With `pageMarkers`, page 2 starts after a `---` line and a `<!-- page 2 -->` marker.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "## Provided proper attribution is provided, Google hereby grants permission to reproduce the tables and figures in this paper solely for use in journalistic or scholarly works.\n\n# Attention Is All You Need\n\nAshish Vaswani∗\nGoogle Brain\n…\n\n---\n\n<!-- page 2 -->\n\n## 1 Introduction\n\nRecurrent neural networks, long short-term memory [13] and gated recurrent …",
+    "markdown": "…# Attention Is All You Need\n…\n\n---\n\n<!-- page 2 -->\n\n## 1 Introduction\n\nRecurrent neural networks, long short-term memory [13] and gated recurrent …",
     "warning": "The page text was cut short.",
     "metadata": {
-      "sourceURL": "https://arxiv.org/pdf/1706.03762",
-      "url": "https://arxiv.org/pdf/1706.03762",
-      "statusCode": 200,
       "contentType": "application/pdf",
-      "numPages": 15,
       "totalPages": 15,
-      "cacheState": "miss",
-      "scrapeId": "c2dc2abc-e285-4f8a-84b6-717c231eab35",
       "costUsd": 0.002
     }
-  },
-  "id": "c2dc2abc-e285-4f8a-84b6-717c231eab35",
-  "costUsd": 0.002,
-  "requestId": "c2dc2abc-e285-4f8a-84b6-717c231eab35"
+  }
 }
 ```
 
@@ -90,7 +81,7 @@ The text is in `data.markdown`. Page 2 starts after a `---` line and a `<!-- pag
 
 ## Options
 
-Send the PDF options in `parsers`, as `"pdf"` or as an object.
+Use `"pdf"` in `parsers` for the defaults, or send an object to limit pages or return their layout.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -105,33 +96,17 @@ Stophy reads the picture of at most 20 pages per call, in `auto` or `ocr` mode. 
 
 ## Other documents
 
+For a spreadsheet or a slide deck, send the public URL without a PDF parser.
+
 - A CSV file comes back as a Markdown table, and so does each sheet of an Excel `.xlsx` file. The first row becomes the table header.
 - A Word `.docx` or PowerPoint `.pptx` file comes back as Markdown text.
 - The older `.doc`, `.xls` and `.ppt` formats cannot be read.
 
-A NASA temperature CSV at `https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv`, read with `"maxChars": 500`, returned a table. This real response is cut to the fields that matter. The file's first line is a title, so the title is the table header.
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "| Land-Ocean: Global Means |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Year | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec | J-D | D-N | DJF | MAM | JJA | SON |\n| 1880 | -.19 | -.25 | -.10 | -.17 | -.10 | -.21 | -.19 | -.11 | -.15 | -.23 | -.22 | -.18 | -.18 | *** | *** | -.12 | -.17 | -.20 |\n",
-    "nextOffset": 449,
-    "warning": "The page text was cut short. Send offset 449 to read on.",
-    "metadata": {
-      "sourceURL": "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv",
-      "contentType": "text/csv",
-      "statusCode": 200,
-      "costUsd": 0.001
-    }
-  },
-  "id": "c96db640-04a9-4179-8d86-833a4fa07acd",
-  "costUsd": 0.001,
-  "requestId": "c96db640-04a9-4179-8d86-833a4fa07acd"
-}
-```
+For example, the first line of NASA's temperature CSV is a title, so the title becomes the table header. If you set `"maxChars": 500` and get `nextOffset`, send that value as `offset` to keep reading.
 
 ## Limits and errors
+
+Check the file type and size if Scrape cannot open the document.
 
 - A file larger than 20 MB, or one that is too large once unpacked, returns `400 invalidRequest` and says so.
 - A password-protected file, a file that cannot be opened, and a URL that is an image or another download return `400 invalidRequest` and name the problem.
@@ -143,6 +118,8 @@ A NASA temperature CSV at `https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.T
 $1 per 1,000 pages for the read, plus $0.50 per 1,000 pages of PDF text from its text layer and $2.50 per 1,000 pages of text read from its picture, that come back. The example above read 2 pages of a PDF from their text layer and cost $0.002. A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that it returns, at least 1 page. A file that cannot be read costs nothing.
 
 ## Related
+
+Use these guides to upload a file instead or read a long document in parts.
 
 - [Parse documents](/parse/overview) turns a file you upload into Markdown.
 - [Content filtering](/scrape/content-filtering) cuts a long document into parts.

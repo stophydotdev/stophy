@@ -5,11 +5,11 @@ og:title: "Map | Stophy"
 og:description: "List the pages of a website without reading them: URLs with a title and description where known, in one request. $0.50 per 1,000 calls."
 ---
 
-Map returns the URLs on a website so you can choose which pages to read. It returns a list of pages, not their content.
+Use Map to list the URLs on a site before you choose which pages to read. If you need their content and do not want to choose URLs yourself, use [Crawl](/crawl/overview).
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). This request lists the first 5 pages of a site.
+Send a site URL and a small `limit` to try Map. The example asks for up to five URLs. For the SDK tabs, run `npm install stophy` or `pip install stophy`. You can use an [API key](/quickstart) or omit the bearer header to try Map free, up to 10 calls a minute and 50 a day per IP address. See [Rate limits](/production/rate-limits).
 
 <CodeGroup>
 ```bash cURL
@@ -22,65 +22,47 @@ curl -X POST https://api.stophy.dev/v1/map \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/map", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com",
-    limit: 5,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { links } = await stophy.map({
+  url: "https://bun.com",
+  limit: 5,
 });
-const { links } = await response.json();
 for (const link of links) console.log(link.url, link.title);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/map",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com",
-        "limit": 5,
-    },
-)
-for link in response.json()["links"]:
+result = stophy.map(url="https://bun.com", limit=5)
+for link in result["links"]:
     print(link["url"], link.get("title"))
 ```
 </CodeGroup>
 
-You can try Map without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).
-
 ## Read the response
 
-`links` is a list of pages. Each has a `url`, and a `title` and `description` when Stophy knows them. A page with none has only its `url`.
+Read `links` for the URLs we found. Each entry has a `url`, with `title` and `description` when we know them. Read the `x-cost-usd` header to check the price of the call.
 
 ```json
 {
   "success": true,
   "links": [
     {
-      "url": "https://bun.com/",
-      "title": "Bun — A fast all-in-one JavaScript runtime",
-      "description": "Bundle, install, and run JavaScript & TypeScript — all in Bun. Bun is a fast JavaScript runtime & toolkit with a bundler, test runner, and npm-compatible package manager built in."
+      "url": "https://bun.com/"
     },
     { "url": "https://bun.com/404" },
-    { "url": "https://bun.com/blog" },
-    { "url": "https://bun.com/blog/2x-faster-bun-install-windows" },
-    { "url": "https://bun.com/blog/behind-the-scenes-of-bun-install" }
-  ],
-  "costUsd": 0.0005,
-  "creditsUsed": 1,
-  "requestId": "7513a729-b559-4752-8605-cba5f521d6ca"
+    { "url": "https://bun.com/blog" }
+  ]
 }
 ```
 
 ## Options
+
+Set a limit when you only need a sample. Set `ignoreCache` if you need a new list instead of one we made in the last six hours.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -102,6 +84,8 @@ Pick the URLs you need and read them:
 
 ## Limits and errors
 
+Check the error code before you try the same URL again. A short list can still be a successful result.
+
 - A site that cannot be reached returns `503 sourceUnavailable`.
 - `sitemap: "only"` on a site with no sitemap returns `404 notFound`. Send `sitemap: "include"` to list its pages instead.
 - A site Stophy does not read returns `403 siteNotRead`.
@@ -114,6 +98,8 @@ Pick the URLs you need and read them:
 $0.50 per 1,000 calls, whatever the length of the list. A call that fails costs nothing. See [Pricing](/account/pricing).
 
 ## Choose another API
+
+Choose another call if you need page content or have a query instead of a site URL.
 
 - [Scrape](/scrape/overview) reads one page.
 - [Crawl](/crawl/overview) reads every page of a site in the background.

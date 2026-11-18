@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "aspen",
   "name": "Stophy Docs",
-  "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
+  "description": "Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents.",
   "colors": {
     "primary": "#f5d90a",
     "light": "#f5d90a",
@@ -164,6 +164,7 @@
                               "scrape/prebuilt-parsers/social/pinterest-board",
                               "scrape/prebuilt-parsers/social/pinterest-profile",
                               "scrape/prebuilt-parsers/social/facebook-page",
+                              "scrape/prebuilt-parsers/social/facebook-group",
                               "scrape/prebuilt-parsers/social/facebook-post",
                               "scrape/prebuilt-parsers/social/facebook-comments",
                               "scrape/prebuilt-parsers/social/linkedin-company",

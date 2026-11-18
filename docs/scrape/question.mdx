@@ -5,7 +5,7 @@ og:title: "Question | Stophy"
 og:description: "Ask one question about a page and get a short answer from its text, or no answer when the page does not say. $3 per 1,000 pages on top of $1."
 ---
 
-`question` answers one question about the page, using only the text of the page.
+Use `question` when you need a short answer from one page, not the full text. We answer only from that page.
 
 ## Ask a question
 
@@ -62,7 +62,7 @@ print(data.get("answer"))
 
 ## Read the response
 
-`data.answer` is a short answer of one to four plain sentences.
+Read `data.answer` for one to four plain sentences. Check that the field is present before using it.
 
 ```json
 {
@@ -70,18 +70,9 @@ print(data.get("answer"))
   "data": {
     "answer": "Bun's configuration file is named bunfig.toml.",
     "metadata": {
-      "title": "bunfig.toml | Bun Docs",
-      "sourceURL": "https://bun.com/docs/runtime/bunfig",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "72b01ca3-827d-4f0c-a2ca-15fc7b97fbf3",
       "costUsd": 0.004
     }
-  },
-  "id": "72b01ca3-827d-4f0c-a2ca-15fc7b97fbf3",
-  "costUsd": 0.004,
-  "requestId": "72b01ca3-827d-4f0c-a2ca-15fc7b97fbf3"
+  }
 }
 ```
 
@@ -89,12 +80,16 @@ When the page does not state the answer, `answer` is left out of `data`, `data.w
 
 ## Options
 
+Put the question in the format object, not in the top-level `query` field.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `type` | `string` | none | `"question"`. Required. |
 | `question` | `string` | none | The question, such as `What is the refund window?`. Required, 1 to 10,000 characters. |
 
 ## Limits and errors
+
+Keep the request to one question. For multiple answers or names your code can rely on, use JSON.
 
 - Each request answers one question. To ask several, send several requests, or use [JSON](/scrape/json) with one field per question.
 - The answer is made from the first 50,000 characters of the page's Markdown.
@@ -105,6 +100,8 @@ When the page does not state the answer, `answer` is left out of `data`, `data.w
 $4 per 1,000 pages: $1 for the page and $3 for the answer. A page that does not state the answer costs $1 per 1,000 pages.
 
 ## Related
+
+Use these formats to get a quote, more fields or the main points of the page.
 
 - [Highlights](/scrape/highlights) returns the passages themselves, with no model sentence in between.
 - [JSON](/scrape/json) fills several fields at once.

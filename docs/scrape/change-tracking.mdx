@@ -5,11 +5,11 @@ og:title: "Change tracking | Stophy"
 og:description: "Find out what changed on a page since your API key last read it: new, same or changed, with a diff. Kept 30 days. $1 per 1,000 pages."
 ---
 
-`changeTracking` compares a page with the last time your API key read it. It tells you if the page is `new`, `same` or `changed`, and for a change it returns a diff.
+Use `changeTracking` to compare a page with the last time your API key read it. If you want these checks on a schedule, use [Monitors](/monitors/overview).
 
 ## Make a request
 
-Get an API key in the [Quickstart](/quickstart). Change tracking needs one, because Stophy compares the page with what that API key read before. Send `changeTracking` as an object. This request reads a page that changes on every read, to show a change.
+Use the same [API key](/quickstart) for each read so we can compare them. Send `changeTracking` as an object. This request reads a page that changes on every read, to show a change.
 
 <CodeGroup>
 ```bash cURL
@@ -25,41 +25,32 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://httpbin.org/uuid",
-    formats: [
-      "markdown",
-      { type: "changeTracking" },
-    ],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://httpbin.org/uuid",
+  formats: [
+    "markdown",
+    { type: "changeTracking" },
+  ],
 });
-const { data } = await response.json();
-console.log(data.changeTracking.changeStatus);
-console.log(data.changeTracking.diff);
+console.log(data.changeTracking?.changeStatus);
+console.log(data.changeTracking?.diff);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://httpbin.org/uuid",
-        "formats": [
-            "markdown",
-            {"type": "changeTracking"},
-        ],
-    },
-)
-data = response.json()["data"]
+data = stophy.scrape(
+    url="https://httpbin.org/uuid",
+    formats=[
+        "markdown",
+        {"type": "changeTracking"},
+    ],
+)["data"]
 print(data["changeTracking"]["changeStatus"])
 print(data["changeTracking"].get("diff"))
 ```
@@ -69,62 +60,27 @@ print(data["changeTracking"].get("diff"))
 
 The first read of a page has nothing to compare with. It returns `new`, with `previousScrapeAt` set to `null` and no diff.
 
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "{\n  \"uuid\": \"33789d8f-642c-49f9-a333-827012a0146f\"\n}",
-    "changeTracking": {
-      "previousScrapeAt": null,
-      "changeStatus": "new",
-      "visibility": "visible"
-    },
-    "metadata": {
-      "sourceURL": "https://httpbin.org/uuid",
-      "statusCode": 200,
-      "contentType": "application/json",
-      "cacheState": "miss",
-      "scrapeId": "e1b859f9-0c07-4f41-ad30-a1d0d4119b68",
-      "costUsd": 0.001
-    }
-  },
-  "id": "e1b859f9-0c07-4f41-ad30-a1d0d4119b68",
-  "costUsd": 0.001,
-  "requestId": "e1b859f9-0c07-4f41-ad30-a1d0d4119b68"
-}
-```
-
-Send the same request again. The page has changed, so you get `changed`, the time of the previous read, and a unified diff of the Markdown.
+Send the same request again and read `data.changeTracking`. The page has changed, so you get `changed`, the time of the previous read, and a unified diff of the Markdown.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "{\n  \"uuid\": \"86a45d4a-252b-4686-a8a0-3d98b1396796\"\n}",
     "changeTracking": {
       "previousScrapeAt": "2026-11-17T17:45:51.219Z",
       "changeStatus": "changed",
       "visibility": "visible",
       "diff": "@@ -1,3 +1,3 @@\n {\n-  \"uuid\": \"33789d8f-642c-49f9-a333-827012a0146f\"\n+  \"uuid\": \"86a45d4a-252b-4686-a8a0-3d98b1396796\"\n }\n\\ No newline at end of file\n"
-    },
-    "metadata": {
-      "sourceURL": "https://httpbin.org/uuid",
-      "statusCode": 200,
-      "contentType": "application/json",
-      "cacheState": "miss",
-      "scrapeId": "b46817b0-e5a1-4113-a98f-a5aff35f6f6c",
-      "costUsd": 0.001
     }
-  },
-  "id": "b46817b0-e5a1-4113-a98f-a5aff35f6f6c",
-  "costUsd": 0.001,
-  "requestId": "b46817b0-e5a1-4113-a98f-a5aff35f6f6c"
+  }
 }
 ```
 
 When nothing changed, `changeStatus` is `same` and there is no `diff`. Every read replaces the stored one, so the next call compares with this call.
 
 ## Options
+
+Use the default mode for a line-by-line diff. Add `"modes": ["json"]` with a `schema` or `prompt` to compare a few fields instead.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -141,6 +97,8 @@ A read is compared with the last read of the same URL with the same `location.co
 
 ## Limits and errors
 
+Check these limits before comparing a large page or switching keys.
+
 - Without an API key, the call returns `400 invalidRequest` with the message `formats: changes needs an API key, so the page can be compared with what that key read before. Send the call with your API key, or leave changes out.`
 - A diff is cut at 20,000 characters.
 - The page is always read live, never from a stored copy, whatever `maxAge` says.
@@ -150,6 +108,8 @@ A read is compared with the last read of the same URL with the same `location.co
 $1 per 1,000 pages with `git-diff`. With `json` mode, add $3 per 1,000 pages when it returns something.
 
 ## Related
+
+Use these guides to schedule checks or read a specific price field.
 
 - [Monitors](/monitors/overview) run a read on a schedule and call you when a page changes.
 - [Website change digest](/recipes/website-change-digest) builds a daily summary of changes.

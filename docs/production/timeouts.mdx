@@ -5,11 +5,11 @@ og:title: "Timeouts | Stophy"
 og:description: "Set how long each Stophy call may take, know what happens when it runs out, and keep your client timeout longer than the API's so retries do not pile up."
 ---
 
-Most endpoints take a `timeout` that sets how long Stophy may work on your call. Your own client has a timeout too, for how long it waits for the answer. Set both, and keep your client's longer.
+Set an API deadline for the work and a longer client timeout for the response. If your client gives up first, the original call may still be running.
 
 ## Set a deadline
 
-The `timeout` field is in milliseconds on the endpoints below, except where the table says seconds.
+Set `timeout` to bound a slow read or browser step. It is in milliseconds on the endpoints below, except where the table says seconds.
 
 | Endpoint | Field | Default | Range | When it runs out |
 | - | - | - | - | - |
@@ -19,27 +19,20 @@ The `timeout` field is in milliseconds on the endpoints below, except where the 
 | [Extract](/extract/overview) | `timeout` | 30,000 | 1,000 to 300,000 | A page not read is skipped, named in `warning`, and costs nothing |
 | [Map](/map/overview) | `timeout` | None | 1,000 and up | Map stops and returns the pages it found |
 | [Parse](/parse/overview) | `timeout` | None | None | Accepted and not used: a file has no page to wait for |
-| [Browser execute](/browser/execute) and [interact](/scrape/interact) | `timeout`, in seconds | 30 | 1 to 300 | Set it to the longest step you run |
+| [Browser execute](/browser/execute) and [interact](/scrape/interact) | `timeout`, in seconds | 30 for code, 120 for a prompt | 1 to 300 | Set it to the longest step you run |
 
 A page that needs a browser needs at least 5 seconds. Some pages need 10 to 30 seconds the first time. Do not set a scrape `timeout` below 5,000 unless you want it to fail fast.
 
-This real call asked for a fresh read with a 1-second timeout. It could not finish, and it cost nothing.
-
-```bash
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com/docs/runtime/bunfig","maxAge":0,"timeout":1000}'
-```
+A scrape with `"maxAge": 0` and `"timeout": 1000` asks for a live read and allows only a second. When that is not enough, you get `504 sourceTimeout` with `Retry-After: 5`, and the call costs nothing.
 
 ```json
 {
   "success": false,
-  "error": "The source is not answering right now. Try again shortly.",
-  "code": "sourceUnavailable",
+  "error": "The source took too long to answer. Try again.",
+  "code": "sourceTimeout",
   "retryable": true,
   "retryAfterSeconds": 5,
-  "requestId": "51c9165a-a278-4e62-a99f-dac62bd25e99"
+  "requestId": "a63c807e-333a-419f-9fca-b4f7d3f070ef"
 }
 ```
 
@@ -47,7 +40,7 @@ Retry with a longer `timeout`, or wait `retryAfterSeconds`. See [Troubleshooting
 
 ## Calls that answer at once
 
-Crawl, batches and agent answer at once with an `id`. You read the result with their status calls, so your client never waits for the work. A browser task works the same way. Start it, then read it with `POST /v1/browser/task/status`. Browser work has its own bounds.
+Use a background job when you do not want to keep a connection open. Crawl, batches and agent answer at once with an `id`. You read the result with their status calls, so your client never waits for the work. A browser task works the same way. Start it, then read it with `POST /v1/browser/task/status`. Browser work has its own bounds.
 
 | Call | Bound |
 | - | - |
@@ -63,6 +56,8 @@ Keep your client's timeout longer than the API deadline plus a few seconds. Most
 The [SDKs](/sdks) wait 70 seconds for each attempt. The TypeScript SDK does not retry a timed-out attempt, because the first call may still be running. The Python SDK does retry it. Before you retry a call after a client timeout, check the first one in [`GET /v1/logs`](/production/usage-and-logs).
 
 ## Related
+
+Use Troubleshooting to decide when a timeout is worth retrying.
 
 * [Rate limits](/production/rate-limits)
 * [Troubleshooting](/production/troubleshooting)

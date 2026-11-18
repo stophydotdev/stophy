@@ -16,7 +16,7 @@ See [Pricing](/account/pricing).
 
 ## Failed pages
 
-Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`.
+Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`. A batch does not apply robots.txt, so `robotsBlocked` is always empty.
 
 <RequestExample>
 ```bash cURL
@@ -51,10 +51,7 @@ print(response.json())
   "status": "completed",
   "failed": 0,
   "errors": [],
-  "robotsBlocked": [],
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "b8df862e-fbd4-4fd7-97f4-92e999ddb15e"
+  "robotsBlocked": []
 }
 ```
 </ResponseExample>

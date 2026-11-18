@@ -5,7 +5,7 @@ og:title: "Page metadata | Stophy"
 og:description: "Read the title, description, language, social preview tags and status code of a page. Every Scrape response carries them, whatever formats you ask for."
 ---
 
-Every Scrape response has a `data.metadata` object, whatever you list in `formats`. It describes the page itself: its title, description, language, social preview tags, status code, and what the call cost. A field is left out when the page does not have it, so check that a field is there before you use it.
+Use `data.metadata` to check the page status, build a preview or see what a scrape cost. Successful scrapes return this object whatever formats you ask for. A field is left out when the page does not have it, so check that a field is there before you use it.
 
 ## Make a request
 
@@ -22,35 +22,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-    formats: ["markdown"],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+  formats: ["markdown"],
 });
-const { data } = await response.json();
 console.log(data.metadata.title);
 console.log(data.metadata.ogImage);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-        "formats": ["markdown"],
-    },
-)
-metadata = response.json()["data"]["metadata"]
+metadata = stophy.scrape(
+    url="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+    formats=["markdown"],
+)["data"]["metadata"]
 print(metadata["title"])
 print(metadata.get("ogImage"))
 ```
@@ -58,45 +49,29 @@ print(metadata.get("ogImage"))
 
 ## Read the response
 
-This real response is cut. The Markdown is shortened, and a few of the page's meta tags are left out.
+Check `statusCode` before you use the page. For previews, start with `title` and `ogImage`. A page about HTTP 404 can still return HTTP 200, as this one does.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "# 404 Not Found\n\nThe HTTP **`404 Not Found`** [client error response](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status#client_error_responses) status code indicates that…",
     "metadata": {
       "title": "404 Not Found - HTTP | MDN",
-      "description": "The HTTP 404 Not Found client error response status code indicates that the server cannot find the requested resource. Links that lead to a 404 page are often called broken or dead links and can be subject to link rot.",
-      "language": "en-US",
       "ogImage": "https://developer.mozilla.org/mdn-social-image.46ac2375.png",
-      "favicon": "https://developer.mozilla.org/favicon.ico",
       "ogTitle": "404 Not Found - HTTP | MDN",
-      "ogSiteName": "MDN Web Docs",
-      "ogLocale": "en_US",
       "og:title": "404 Not Found - HTTP | MDN",
-      "og:site_name": "MDN Web Docs",
-      "twitter:card": "summary",
-      "sourceURL": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
       "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "8a9177f7-6923-4893-99d4-e357ffb5793f",
-      "creditsUsed": 1,
       "costUsd": 0.001
     }
-  },
-  "id": "8a9177f7-6923-4893-99d4-e357ffb5793f",
-  "costUsd": 0.001,
-  "creditsUsed": 1,
-  "requestId": "8a9177f7-6923-4893-99d4-e357ffb5793f"
+  }
 }
 ```
 
 The same tag can appear twice: once under a plain name such as `ogTitle`, and once under the tag's own name such as `og:title`. Use the plain names when they exist.
 
 ## Fields
+
+Use `sourceURL` to identify the input and `url` to see where we ended up. Use `costUsd` for the price.
 
 | Field | Type | What it holds |
 | - | - | - |
@@ -113,7 +88,7 @@ The same tag can appear twice: once under a plain name such as `ogTitle`, and on
 | `cachedAt` | `string` | When the stored copy was made. Only on `hit` and `stale`. |
 | `scrapeId` | `string` | The id of this read. Use it with `GET /v1/scrape/{id}`. |
 | `costUsd` | `number` | What the call cost, in dollars. |
-| `creditsUsed` | `number` | The same charge as a whole number, one for each $0.002. Read `costUsd` instead. |
+| `creditsUsed` | `number` | On crawl and batch pages only: the same charge as a whole number, one for each $0.002. Read `costUsd` instead. |
 | `numPages`, `totalPages`, `ocrPages` | `number` | For a PDF: the pages read, the pages in the file, and the pages read from their picture. See [PDFs and documents](/scrape/pdfs-and-documents). |
 | `error` | `string` | Set when the page answered with a status of 400 or more, such as `The page answered with status 403.` |
 | `keywords`, `robots`, `publishedTime`, `modifiedTime`, `articleSection`, `articleTag` | `string` or `array of string` | From the page's `keywords`, `robots` and `article:*` tags. |
@@ -124,11 +99,15 @@ Every other meta tag on the page also comes back under its own name, such as `tw
 
 ## Limits and errors
 
+Check for missing tags and page errors before using metadata from a new site.
+
 - `metadata` is always an object. A page with no meta tags still has `sourceURL`, `url`, `statusCode`, `contentType` and `cacheState`.
 - A YouTube link has no meta tags to read. Its `title`, `description` and `ogImage` come from the video. See [YouTube](/scrape/youtube).
 - A page that answers with a 404 or 410 status comes back with that `statusCode` and an `error`, and costs nothing. See [Timeouts and errors](/scrape/timeouts-and-errors).
 
 ## Related
+
+Use these guides to read metadata in a crawl or understand where a response came from.
 
 - [Scrape overview](/scrape/overview) lists every format and option.
 - [Crawl page content](/crawl/page-content) shows the same object on every crawled page.

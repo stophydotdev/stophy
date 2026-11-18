@@ -5,7 +5,7 @@ og:title: "Safety | Stophy"
 og:description: "Refuse pages that try to instruct your AI model, hide personal data in the text you get back, or answer only from pages Stophy already stored."
 ---
 
-Three fields make a scrape safer to feed to a model. `checkPromptInjection` refuses a page that tries to give instructions to an AI. `redactPII` hides personal data in the text. `lockdown` never reads a page live, so it can answer only from pages Stophy already stored. The first two need an API key.
+Use these settings before you pass scraped text to a model. `checkPromptInjection` scans the text for instructions aimed at a model. `redactPII` hides personal data. Both need an API key. Set `lockdown` if the request must never reach the site.
 
 ## Make a request
 
@@ -38,7 +38,7 @@ const response = await fetch("https://api.stophy.dev/v1/scrape", {
   }),
 });
 const body = await response.json();
-console.log(body.costUsd);
+console.log(body.data.metadata.costUsd);
 ```
 ```python Python
 import os
@@ -55,98 +55,48 @@ response = requests.post(
         "maxChars": 900,
     },
 )
-print(response.json()["costUsd"])
+print(response.json()["data"]["metadata"]["costUsd"])
 ```
 </CodeGroup>
 
 ## Read the response
 
-The page had no injected instructions, so it comes back as usual. The scan cost $0.0025 on top of the page, and `redactPII` cost nothing. This real response is cut. The Markdown is shortened.
+Check `data.warning` to see whether the text was cut or the scan was incomplete. This page passed the scan. It cost $0.0025 on top of the page, and redaction cost nothing.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "|  | **Contents** | See also |\n| --- | --- | --- |\n| ![Tim BL](https://www.w3.org/Press/Stock/Berners-Lee/2001-europaeum-eighth.jpg) | [Short biography](https://www.w3.org/People/Berners-Lee/#Bio)<br>…",
     "nextOffset": 900,
     "warning": "The page text was cut short. Send offset 900 to read on.",
     "metadata": {
-      "title": "Tim Berners-Lee",
-      "sourceURL": "https://www.w3.org/People/Berners-Lee/",
-      "url": "https://www.w3.org/People/Berners-Lee/",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
       "costUsd": 0.0035
     }
-  },
-  "id": "0e6ca452-2d91-4ba3-9768-1386b9cf1af1",
-  "costUsd": 0.0035,
-  "requestId": "0e6ca452-2d91-4ba3-9768-1386b9cf1af1"
+  }
 }
 ```
 
 ## Prompt injection
 
-`checkPromptInjection: true` scans the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with `403 promptInjectionDetected`, and the message quotes the text as evidence. Nothing is returned and nothing is charged. Send `checkPromptInjection` as `false` to read that page anyway.
+Set `"checkPromptInjection": true` before passing scraped text to a model. It scans the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with `403 promptInjectionDetected`, and the message quotes the text as evidence. Nothing is returned and nothing is charged. Send `checkPromptInjection` as `false` to read that page anyway.
 
 The scan reads the first 150,000 characters of the page. A longer page, or one the scan cannot finish, comes back with a `warning` that it was not fully checked, and the scan is not charged.
 
 ## Redact personal data
 
-`redactPII` hides personal data in the Markdown and in everything made from it: `summary`, `question`, `highlights` and `json`. Links, `html` and `rawHtml` are not changed. Send `true` for the defaults, or an object. This request body hides names and emails on a plain text page. The real response is cut.
-
-```json
-{
-  "url": "https://www.rfc-editor.org/rfc/rfc2606.txt",
-  "redactPII": { "entities": ["PERSON", "EMAIL"], "replaceStyle": "tag" },
-  "maxChars": 1500
-}
-```
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "Network Working Group                                     <PERSON>\nRequest for Comments: 2606                                  <PERSON>\nBCP: 32                                                     June 1999\nCategory: Best Current Practice\n\n\n                    Reserved Top Level DNS Names\n\n…",
-    "nextOffset": 1495,
-    "warning": "The page text was cut short. Send offset 1495 to read on.",
-    "metadata": {
-      "contentType": "text/plain",
-      "statusCode": 200,
-      "costUsd": 0.001
-    }
-  },
-  "id": "c256a33f-55f8-44c5-befc-48e9902b1876",
-  "costUsd": 0.001,
-  "requestId": "c256a33f-55f8-44c5-befc-48e9902b1876"
-}
-```
+`redactPII` hides personal data in the Markdown and in everything made from it: `summary`, `question`, `highlights` and `json`. Links, `html` and `rawHtml` are not changed. Send `true` for the defaults, or an object. For example, use `"redactPII": { "entities": ["PERSON", "EMAIL"], "replaceStyle": "tag" }` to replace names and email addresses with tags such as `<PERSON>` and `<EMAIL>` in `data.markdown`.
 
 ## Read only what is stored
 
 `lockdown: true` answers only from a stored copy of the page, of any age, and never reads it live. Use it when nothing must reach the site. A page with no stored copy returns `404 notFound`.
 
-```json
-{
-  "url": "https://example.com/never-stored-page-1",
-  "lockdown": true
-}
-```
-
-```json
-{
-  "success": false,
-  "error": "Stophy has no stored copy of that page. Remove minAge or lockdown to read the page live.",
-  "code": "notFound",
-  "retryable": false,
-  "requestId": "d5f47618-b79e-4033-9d0e-895ca91e7c40"
-}
-```
+The error says we have no stored copy and suggests removing `minAge` or `lockdown` to read live. Leave the setting on if the request must not reach the site.
 
 On a page that is stored, the same call returns the page with `cacheState` `hit` and costs $0.001.
 
 ## Options
+
+Choose which checks to run and what to replace in the returned text.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -159,7 +109,9 @@ On a page that is stored, the same call returns the page with `cacheState` `hit`
 
 ## Limits and errors
 
-- A page the model cannot scan is refused, not returned unredacted. This happens for `PERSON` and `LOCATION` on a page longer than 300,000 characters. The call returns `503 sourceUnavailable`, and nothing is charged. Use `mode: "fast"`, or leave those two out of `entities`.
+An incomplete injection scan and a failed redaction have different outcomes. Check the warning or error before using the result.
+
+- A page the model cannot scan is refused, not returned unredacted. This happens for `PERSON` and `LOCATION` on a page longer than 300,000 characters. The call returns `400 invalidRequest`, and nothing is charged. Use `mode: "fast"`, or leave those two out of `entities`.
 - `checkPromptInjection`, `redactPII` and `onlyCleanContent` without an API key return `401 apiKeyRequired`.
 - `lockdown` on a page with no stored copy returns `404 notFound`.
 
@@ -168,6 +120,8 @@ On a page that is stored, the same call returns the page with `cacheState` `hit`
 `checkPromptInjection` adds $2.50 per 1,000 pages when the scan runs. `redactPII` and `lockdown` add nothing. The page itself is $1 per 1,000 pages. A page that is refused as injected, and a page that cannot be read, cost nothing.
 
 ## Related
+
+Use these guides to change what is read or what is kept after the call.
 
 - [Freshness and caching](/scrape/freshness-and-caching) covers `minAge` and stored copies.
 - [Content filtering](/scrape/content-filtering) removes banners and prompts with `onlyCleanContent`.

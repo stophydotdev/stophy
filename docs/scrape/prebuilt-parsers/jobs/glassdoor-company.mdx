@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm","formats":[{"type":"json","parser":"glassdoor-company"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm",
-    formats: [{ type: "json", parser: "glassdoor-company" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "glassdoor-company",
+  "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm",
-        "formats": [{"type": "json", "parser": "glassdoor-company"}],
-    },
+result = stophy.parsed(
+    "glassdoor-company",
+    "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 

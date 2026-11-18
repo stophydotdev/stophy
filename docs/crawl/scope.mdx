@@ -5,7 +5,7 @@ og:title: "Scope and limits | Stophy"
 og:description: "Bound a crawl by page count, path, depth, subdomains and sitemap, and read pages about a topic first. Start from one URL and stay where you mean to."
 ---
 
-A crawl starts at `url` and follows the links that are in scope. These fields decide what is in scope and when the crawl stops. By default a crawl stays on the start page's host and under the start page's path.
+Set a crawl's scope to keep it on the part of a site you need. By default we stay under the path on the host you start from.
 
 ## Make a request
 
@@ -25,46 +25,38 @@ curl -X POST https://api.stophy.dev/v1/crawl \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/crawl", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime",
-    includePaths: ["/docs/runtime/s.*"],
-    excludePaths: ["/docs/runtime/sql"],
-    maxDiscoveryDepth: 1,
-    limit: 3,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { id } = await stophy.crawl({
+  url: "https://bun.com/docs/runtime",
+  includePaths: ["/docs/runtime/s.*"],
+  excludePaths: ["/docs/runtime/sql"],
+  maxDiscoveryDepth: 1,
+  limit: 3,
 });
-const { id } = await response.json();
 console.log(id);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/crawl",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime",
-        "includePaths": ["/docs/runtime/s.*"],
-        "excludePaths": ["/docs/runtime/sql"],
-        "maxDiscoveryDepth": 1,
-        "limit": 3,
-    },
+result = stophy.crawl(
+    url="https://bun.com/docs/runtime",
+    include_paths=["/docs/runtime/s.*"],
+    exclude_paths=["/docs/runtime/sql"],
+    max_discovery_depth=1,
+    limit=3,
 )
-print(response.json()["id"])
+print(result["id"])
 ```
 </CodeGroup>
 
 ## Read the response
 
-The call answers with an `id`. Read it with `GET /v1/crawl/{id}` as [Read a crawl](/crawl/async) shows. When this crawl finished, its pages were these three. The response is cut to the fields that matter.
+Use the returned `id` to check which pages matched. Poll `GET /v1/crawl/{id}` as [Read a crawl](/crawl/async) shows, then read `data[].metadata.url`.
 
 ```json
 {
@@ -85,6 +77,8 @@ The start page, `https://bun.com/docs/runtime`, is not in the list, because it h
 
 ## Options
 
+Start with `limit` to cap the number of pages. Use path patterns when you want one section and a depth limit when you only want pages near the start.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `url` | `string` | none | The page to start from. Required. |
@@ -103,6 +97,8 @@ The start page, `https://bun.com/docs/runtime`, is not in the list, because it h
 
 ## How paths match
 
+Check a pattern against the path you want to keep before you use it in a crawl.
+
 - `includePaths` and `excludePaths` are JavaScript regular expressions, up to 200 characters each. They are not anchored, so `blog` matches `/company/blog/post`. Start with `^` to anchor one.
 - A pattern is tested against the path, such as `/docs/runtime/s3`. With `regexOnFullURL`, it is tested against the whole URL.
 - A path that matches `excludePaths` is skipped even when it also matches `includePaths`.
@@ -111,9 +107,11 @@ The start page, `https://bun.com/docs/runtime`, is not in the list, because it h
 
 ## Limits and errors
 
+Compare the pages returned with your scope. Fewer pages than you asked for does not mean the job failed.
+
 - A crawl reads at most `limit` pages. It can read fewer: a site may expose fewer pages in scope.
 - A crawl and its pages are kept for 24 hours.
-- Pages that the site's robots rules disallow are skipped. They are not counted as failures.
+- Pages that the site's robots rules disallow are skipped. They are not counted as failures. The errors call lists them in `robotsBlocked`. See [Crawl status](/crawl/async#read-the-errors).
 - A pattern that is not a valid regular expression returns `400 invalidRequest` with the message `Expected a regular expression such as blog/.*`.
 - A page after the start page that cannot be read does not stop the crawl. It is listed in [the crawl's errors](/crawl/async#read-the-errors).
 
@@ -122,6 +120,8 @@ The start page, `https://bun.com/docs/runtime`, is not in the list, because it h
 $1 per 1,000 pages read. A page counts toward `limit` when it is read. Scope fields add nothing. See [Pricing](/account/pricing).
 
 ## Related
+
+Use these guides to preview the scope or choose what comes back for each page.
 
 - [Crawl overview](/crawl/overview) shows the request and the answer.
 - [Page content](/crawl/page-content) chooses how each page is read.

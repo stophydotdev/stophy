@@ -5,7 +5,7 @@ og:title: "Product and menu | Stophy"
 og:description: "Read a product page or a restaurant menu into a fixed shape with variants, prices and stock. Each adds $3 per 1,000 pages to the $1 page price."
 ---
 
-`product` reads a product page into one object with its variants, prices and stock. `menu` reads a restaurant menu into sections of items with prices. The shape is fixed, so the same code works on every shop and every menu.
+`product` reads a product page into one object with its variants, prices and stock. `menu` reads a restaurant menu into sections of items with prices. Use these fixed fields when you do not need to define your own [JSON schema](/scrape/json).
 
 ## Read a product
 
@@ -58,7 +58,7 @@ print(data["product"]["variants"][0]["price"])
 
 ## Read the response
 
-`data.product` holds the product. This real response is cut in the description.
+Read `data.product` for the item. Check `variants` for prices and stock, even if the page only sells one version.
 
 ```json
 {
@@ -66,41 +66,19 @@ print(data["product"]["variants"][0]["price"])
   "data": {
     "product": {
       "title": "A Light in the Attic",
-      "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
-      "description": "It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its…",
       "variants": [
         {
-          "sku": "a897fe39b1053632",
           "price": {
             "amount": 51.77,
-            "currency": "GBP",
-            "formatted": "£51.77"
+            "currency": "GBP"
           },
           "availability": {
-            "inStock": true,
-            "text": "In stock (22 available)"
-          },
-          "images": [
-            {
-              "url": "http://books.toscrape.com/media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg"
-            }
-          ]
+            "inStock": true
+          }
         }
       ]
-    },
-    "metadata": {
-      "title": "A Light in the Attic | Books to Scrape - Sandbox",
-      "sourceURL": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "cacheState": "miss",
-      "scrapeId": "9038aecc-72c8-48c7-b426-26d1d13748c2",
-      "costUsd": 0.004
     }
-  },
-  "id": "9038aecc-72c8-48c7-b426-26d1d13748c2",
-  "costUsd": 0.004,
-  "requestId": "9038aecc-72c8-48c7-b426-26d1d13748c2"
+  }
 }
 ```
 
@@ -122,7 +100,7 @@ A field the page does not state is left out.
 
 ## Read a menu
 
-Send `"menu"` the same way. `data.menu` holds:
+Use `"formats": ["menu"]` for a restaurant menu instead of a product page. Read `data.menu.sections` for the groups of items and prices.
 
 | Field | What it holds |
 | - | - |
@@ -135,11 +113,15 @@ Send `"menu"` the same way. `data.menu` holds:
 
 ## Options
 
+Choose the format that matches the kind of page you have.
+
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `formats` | `array` | `["markdown"]` | Add `"product"` for a product page and `"menu"` for a menu. They need no other field. |
 
 ## Limits and errors
+
+Check for the requested field before reading variants or sections.
 
 - When the page is not a product page, `product` is left out of `data` and `data.warning` says why. The same holds for `menu` on a page that is not a menu. The $3 is not charged.
 - The model reads the first 50,000 characters of the page's Markdown.
@@ -149,6 +131,8 @@ Send `"menu"` the same way. `data.menu` holds:
 $4 per 1,000 pages for each of the two: $1 for the page and $3 for `product` or `menu` when it returns something. Asking for both on one page is $7 per 1,000 pages when both return something.
 
 ## Related
+
+Use a site parser for its own data or JSON for fields not in these formats.
 
 - [JSON](/scrape/json) fills any fields you describe.
 - [Pre-built parsers](/scrape/prebuilt-parsers) read the data of shopping sites directly.

@@ -9,7 +9,7 @@ og:description: "Read how many monitors and pages you may watch, what each monit
 
 ## Read your limits
 
-Get an API key in the [Quickstart](/quickstart).
+Check your allowance before you create a monitor or add pages. Get an API key in the [Quickstart](/quickstart).
 
 <CodeGroup>
 ```bash cURL
@@ -50,10 +50,7 @@ This real answer came from an account with two monitors.
     "perMonitor": { "pages": 100, "targets": 50 },
     "intervalSeconds": { "min": 300, "max": 2592000 },
     "estimatedCreditsPerMonth": 2
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "db0d69f0-6a06-4ffe-9508-1fcfe6f17705"
+  }
 }
 ```
 
@@ -69,38 +66,15 @@ Each monitor shows its own estimate as `estimatedCostUsdPerMonth`. See [Monitors
 
 ## Read what monitors cost
 
-`GET /v1/monitor/usage` adds up what your account was charged for checks, per monitor, in dollars. Send `from` and `to` as an ISO date or time, such as `2026-11-01` or `2026-11-01T08:00:00Z`. `to` is not included. With neither, it reads the last 30 days. The window may span 366 days at most.
+Use `GET /v1/monitor/usage` to see which monitors spent the most. It adds up what your account was charged for checks, per monitor, in dollars. Send `from` and `to` as an ISO date or time, such as `2026-11-01` or `2026-11-01T08:00:00Z`. `to` is not included. With neither, it reads the last 30 days. The window may span 366 days at most.
 
-```bash
-curl https://api.stophy.dev/v1/monitor/usage \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-
-This real answer is cut to three of the monitors it listed, and the total is of all of them. The window was the default 30 days.
-
-```json
-{
-  "success": true,
-  "data": {
-    "from": "2026-10-18T18:21:12.966Z",
-    "to": "2026-11-17T18:21:12.966Z",
-    "totalCredits": 25,
-    "totalCostUsd": 0.05,
-    "monitors": [
-      { "id": "mon_0t7c4BOHDH9HfJUK", "credits": 6, "costUsd": 0.012, "charges": 4, "deleted": true },
-      { "id": "mon_2f3L73izJTdaA1AQ", "name": "Page that changes", "credits": 3, "costUsd": 0.006, "charges": 2, "deleted": false },
-      { "id": "mon_hpJ-ZKa4FJLr4h1m", "name": "Example home page", "credits": 1, "costUsd": 0.002, "charges": 1, "deleted": false }
-    ]
-  },
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "43a6d858-0183-4940-b3c2-595f1a947ff1"
-}
-```
+Read `data.from` and `data.to` for the window used. `data.monitors` breaks down `data.totalCostUsd` by monitor `id`. If you have no monitors or charges in the window, that list is empty.
 
 `totalCostUsd` and each `costUsd` are in dollars. `credits` and `totalCredits` hold the same amounts in steps of $0.002. `charges` is how many times the monitor was charged. Every monitor you have is listed, with 0 when it cost nothing in the window. A monitor you deleted is listed with `deleted: true` and no `name`. The list is sorted by cost, highest first.
 
 ## Limits
+
+Check these limits when deciding how many pages to watch and how often.
 
 | Limit | Value |
 | - | - |
@@ -118,7 +92,7 @@ Paused monitors count toward the first two limits. See [Rate limits](/production
 
 ## Errors
 
-Every error has the flat shape on [Errors](/api-reference/errors). A failed call costs nothing.
+Use `code` to see whether to fix the request or wait. Every error has the flat shape on [Errors](/api-reference/errors). A failed call costs nothing.
 
 | Status | Code | When | What to do |
 | - | - | - | - |
@@ -128,6 +102,7 @@ Every error has the flat shape on [Errors](/api-reference/errors). A failed call
 | 401 | `apiKeyRequired` | The call has no API key. Monitors need an API key. | Send your API key. See [API keys](/account/api-keys). |
 | 404 | `notFound` | `There is no monitor with that id on your account.` A check or change id that is not yours or has expired gives the same code. | Check the id. List with `GET /v1/monitor`. |
 | 409 | `checkRunning` | `A check of this monitor is already running. Wait for it to finish, then run it again.` | Wait for the check to end, then run it again. |
+| 409 | `invalidRequest` | `This monitor is paused. Send PATCH with status active to resume it, then run it again.` Nothing is queued. | Send `{ "status": "active" }`, then run the check again. |
 | 429 | `rateLimited` | You went over the limit on monitor calls. | Wait `retryAfterSeconds`. |
 
 These are real `400` messages for a body that is not valid.
@@ -135,6 +110,7 @@ These are real `400` messages for a body that is not valid.
 | Mistake | `error` |
 | - | - |
 | A schedule that runs too often | `schedule: the minimum interval is 5 minutes` |
+| A text schedule with a gap over 30 days | `schedule: the maximum interval is 30 days` |
 | A target address that is not public | `targets.0.urls.0: Expected a public website URL` |
 | A search target with no goal | `goal: a search target needs a goal to judge results against, or judgeEnabled set to false` |
 | An event that does not exist | `webhook.events.0: Send one of: monitor.page, monitor.check.completed, monitor.changed, monitor.failed.` |
@@ -146,6 +122,8 @@ These are real `400` messages for a body that is not valid.
 A monitor that cannot read a page does not fail the call. The check shows the page as `error`, and a monitor whose balance runs out pauses with `pausedReason` `insufficientCredits`. See [Schedules](/monitors/schedules#when-a-monitor-pauses-itself).
 
 ## Related
+
+Use schedules to change check frequency and usage to check your account balance.
 
 - [Monitors](/monitors/overview) creates and manages monitors.
 - [Schedules](/monitors/schedules) runs a check now, pauses and resumes.

@@ -5,7 +5,7 @@ og:title: "Papers | Stophy"
 og:description: "Search research papers by title and abstract, read one paper by id, DOI or arXiv id, and find similar papers. $1 per 1,000 searches of up to 10 papers."
 ---
 
-Paper search finds research papers by their title and abstract. It has three operations: search papers, read one paper by its id, and find papers like it.
+Use Paper search when you need scholarly papers by title or abstract. If you already have an ID, read that paper or use it to find similar papers.
 
 ## Search papers
 
@@ -64,7 +64,7 @@ for paper in response.json()["results"]:
 
 ## Read the response
 
-`results` holds the papers. This real response is cut to the last of the three papers.
+Read `results` for the papers. Save `paperId` to look up a paper again, or use `openAccessUrl` to find a public copy when available.
 
 ```json
 {
@@ -73,27 +73,21 @@ for paper in response.json()["results"]:
     {
       "paperId": "W4411630045",
       "primaryId": "doi:10.18653/v1/2024.eacl-demo.16",
-      "ids": {
-        "openalex": ["W4411630045"],
-        "doi": ["10.18653/v1/2024.eacl-demo.16"]
-      },
       "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
-      "abstract": "Shahul Es, Jithin James, Luis Espinosa Anke, Steven Schockaert. Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations. 2024.",
-      "authors": ["Shahul Es", "Jithin James", "Luis Espinosa-Anke", "Steven Schockaert"],
       "year": 2024,
       "citedByCount": 537,
-      "openAccessUrl": "https://aclanthology.org/2024.eacl-demo.16.pdf",
-      "score": 102194.48
+      "openAccessUrl": "https://aclanthology.org/2024.eacl-demo.16.pdf"
     }
   ],
-  "costUsd": 0.001,
-  "requestId": "f98a62d5-21a9-498e-b109-8bfae1d34db0"
+  "costUsd": 0.001
 }
 ```
 
 `paperId` names the paper. `primaryId` is its best outside id: `arxiv:<id>`, else `doi:<DOI>`, else `openalex:<id>`. `ids` lists every id Stophy knows. `year`, `venue` and `openAccessUrl` appear when known, and `abstract` is an empty string when the index holds none.
 
 ### Search options
+
+Use the author and year filters to narrow the list. The date filters use the year, not the month or day.
 
 | Field | Type | Default | Effect |
 | - | - | - | - |
@@ -108,62 +102,7 @@ for paper in response.json()["results"]:
 
 `GET /v1/search/research/papers/{id}` takes a `paperId`, a DOI as `doi:10.18653/v1/2024.eacl-demo.16`, an arXiv id as `arxiv:<id>`, or an OpenAlex id as `openalex:W4411630045`. Add `query` to get the passage that matches it.
 
-<CodeGroup>
-```bash cURL
-curl "https://api.stophy.dev/v1/search/research/papers/W4411630045?query=how+is+retrieval+evaluated&k=1" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const params = new URLSearchParams({ query: "how is retrieval evaluated", k: "1" });
-const response = await fetch(
-  `https://api.stophy.dev/v1/search/research/papers/W4411630045?${params}`,
-  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
-);
-const { paper, passages } = await response.json();
-console.log(paper.title, passages);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.get(
-    "https://api.stophy.dev/v1/search/research/papers/W4411630045",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    params={"query": "how is retrieval evaluated", "k": 1},
-)
-body = response.json()
-print(body["paper"]["title"], body["passages"])
-```
-</CodeGroup>
-
-This real response is cut: `note` is left out.
-
-```json
-{
-  "success": true,
-  "paper": {
-    "paperId": "W4411630045",
-    "ids": {
-      "openalex": ["W4411630045"],
-      "doi": ["10.18653/v1/2024.eacl-demo.16"]
-    },
-    "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
-    "abstract": "Shahul Es, Jithin James, Luis Espinosa Anke, Steven Schockaert. Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations. 2024.",
-    "authors": "Shahul Es, Jithin James, Luis Espinosa-Anke, Steven Schockaert"
-  },
-  "paperId": "W4411630045",
-  "query": "how is retrieval evaluated",
-  "passages": [
-    {
-      "text": "Shahul Es, Jithin James, Luis Espinosa Anke, Steven Schockaert. Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations. 2024.",
-      "score": 1
-    }
-  ],
-  "costUsd": 0.001,
-  "requestId": "96581319-01d2-4341-ab48-6edd9354fb93"
-}
-```
+For example, add `?query=how+is+retrieval+evaluated&k=1` to ask for one matching passage. The response has the title in `paper` and the passage text and score in `passages`.
 
 The paper index holds titles and abstracts, not full text, so the passage is the abstract, and `note` says so. Here `authors` is one string. `k`, from 1 to 50, is only valid with `query`. Without `query`, the answer holds only `paper`.
 
@@ -171,67 +110,7 @@ The paper index holds titles and abstracts, not full text, so the passage is the
 
 `GET /v1/search/research/papers/{id}/similar` ranks papers by the words of your `intent` and the title of the paper. Add more papers to find ones like all of them: repeat `anchor` once for each.
 
-<CodeGroup>
-```bash cURL
-curl "https://api.stophy.dev/v1/search/research/papers/W4411630045/similar?intent=evaluating+retrieval+augmented+generation&k=5" \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const params = new URLSearchParams({
-  intent: "evaluating retrieval augmented generation",
-  k: "5",
-});
-const response = await fetch(
-  `https://api.stophy.dev/v1/search/research/papers/W4411630045/similar?${params}`,
-  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
-);
-const { results } = await response.json();
-console.log(results.map((paper) => paper.title));
-```
-```python Python
-import os
-
-import requests
-
-response = requests.get(
-    "https://api.stophy.dev/v1/search/research/papers/W4411630045/similar",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    params={"intent": "evaluating retrieval augmented generation", "k": 5},
-)
-print([paper["title"] for paper in response.json()["results"]])
-```
-</CodeGroup>
-
-This real response is cut to the first of the five papers.
-
-```json
-{
-  "success": true,
-  "results": [
-    {
-      "paperId": "W4389519118",
-      "primaryId": "doi:10.18653/v1/2023.emnlp-main.495",
-      "ids": {
-        "openalex": ["W4389519118"],
-        "doi": ["10.18653/v1/2023.emnlp-main.495"]
-      },
-      "title": "Active Retrieval Augmented Generation",
-      "abstract": "Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, Graham Neubig.…",
-      "authors": ["Zhengbao Jiang", "Frank F. Xu", "Luyu Gao"],
-      "year": 2023,
-      "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
-      "citedByCount": 462,
-      "openAccessUrl": "https://aclanthology.org/2023.emnlp-main.495.pdf",
-      "score": 101772.93
-    }
-  ],
-  "poolSize": 5,
-  "truncated": false,
-  "note": "Ranked by words in the intent and the seed titles; no citation signals.",
-  "costUsd": 0.001,
-  "requestId": "f28c8056-3ae1-4f30-8e78-11b4e4ca90eb"
-}
-```
+Set `intent` to the topic you want to find and `k` to the most papers to return. For example, use `?intent=evaluating+retrieval+augmented+generation&k=5` for up to five papers. The ranking does not use citations.
 
 The papers you start from are left out of `results`. `poolSize` is how many papers came back.
 
@@ -244,17 +123,22 @@ The papers you start from are left out of `results`. `poolSize` is how many pape
 
 ## Limits and errors
 
+Check the identifiers and filters when a paper or search fails.
+
 - All three operations need an API key. Without one they return `401 apiKeyRequired`.
 - A paper that is not in the index returns `404 notFound` with `No paper matches <id>.`
 - `from` later than `to` returns `400 invalidRequest` with `from: must not be later than to.` `from` and `to` must be dates as `YYYY-MM-DD`.
 - `categories` on a search returns `400 invalidRequest`, because the paper index holds no categories. `mode` set to `citers` or `references` returns `400 invalidRequest`, because the index holds no citations.
-- A search that returns no papers costs nothing.
+- A field the search does not take returns `400 invalidRequest` and names every such field, as in `Unrecognized key: "limit". Use k for the number of results.` Send `k` for the number of papers.
+- A search with an empty `results` list costs nothing.
 
 ## Price
 
 Searching papers and finding similar papers cost $1 per 1,000 searches of up to 10 papers: $0.001 for each 10. Reading one paper counts as one page: $1 per 1,000 pages. A failed call costs nothing. See [Pricing](/account/pricing).
 
 ## Related
+
+Use these guides to combine papers with web results or look for a different kind of source.
 
 - [Sources](/search/sources) adds a list of papers to a web search with `categories`.
 - [Developer search](/search/developer) searches code and docs.
