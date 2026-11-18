@@ -39,7 +39,7 @@ The SDKs have no methods for [agent](/agent/overview), [browser sessions](/brows
 ## Timeouts and retries
 
 * Each attempt waits up to 70 seconds. The TypeScript SDK does not retry an attempt that timed out. The Python SDK retries it like a network error.
-* Both SDKs retry twice after a network error and after the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
+* Both SDKs retry twice after a network error and after an error whose `retryable` is `true`, such as `rateLimited`, `busy` and `profileBusy`. An error with `retryable: false`, such as `sourceChanged`, is thrown after one attempt. When the error has no `retryable`, the SDK retries the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
 * If the API asks for a wait longer than 60 seconds, the SDK stops and throws with `retryAfterSeconds` set.
 * A `DELETE` call is never retried.
 
@@ -47,7 +47,7 @@ Set `maxRetries` to `0` to turn retries off. For a call that takes longer than 7
 
 ## Handle errors
 
-Both SDKs throw a `StophyError` with `code`, `retryable`, `retryAfterSeconds`, `status` and the `requestId`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
+Both SDKs throw a `StophyError` with `code`, `retryable`, `retryAfterSeconds`, `status`, the `requestId` and `details`, which holds the other fields of the error, such as `billingUrl` or `signupUrl`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
 
 A call your balance cannot cover fails with `insufficientCredits` and status `402`, and charges nothing. The message names your balance and the most the call can cost. Add money at [stophy.dev/billing](https://stophy.dev/billing) and send the call again. See [Pricing](/account/pricing).
 

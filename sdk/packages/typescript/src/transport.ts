@@ -1,6 +1,6 @@
 import { version } from "../package.json";
 import { StophyError } from "./errors";
-import { isNumber, isRecord, isString, type JsonValue } from "./json";
+import { isBoolean, isNumber, isRecord, isString, type JsonValue } from "./json";
 
 const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
@@ -97,15 +97,14 @@ async function send<Result>(
       });
       if (response === undefined) {
         waitMs = backoffMs(n, retry.initialDelayMs);
-      } else if (n < retry.maxRetries && RETRYABLE_STATUS.has(response.status)) {
+      } else if (response.ok) {
+        return await readBody<Result>(response);
+      } else {
         const error = await errorFrom(response);
         const seconds = error.retryAfterSeconds;
-        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) {
-          throw error;
-        }
+        if (!error.retryable || n >= retry.maxRetries) throw error;
+        if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw error;
         waitMs = seconds === undefined ? backoffMs(n, retry.initialDelayMs) : seconds * 1000;
-      } else {
-        return await readBody<Result>(response);
       }
     } finally {
       deadline.clear();
@@ -136,7 +135,6 @@ function withDeadline(signal: AbortSignal | undefined, timeoutMs: number) {
 }
 
 async function readBody<Result>(response: Response): Promise<Result> {
-  if (!response.ok) throw await errorFrom(response);
   const text = await response.text();
   if (!text) {
     throw failed(response, "Stophy returned an empty response", {});
@@ -151,11 +149,12 @@ async function readBody<Result>(response: Response): Promise<Result> {
 async function errorFrom(response: Response): Promise<StophyError> {
   const text = await response.text();
   const error = readError(text ? parseJson(text) : null);
-  const retryAfterSeconds = error.retryAfterSeconds ?? headerRetryAfter(response);
   return failed(response, error.message ?? `Stophy request failed with status ${response.status}`, {
     code: error.code,
-    retryable: RETRYABLE_STATUS.has(response.status),
-    retryAfterSeconds,
+    retryable: error.retryable ?? RETRYABLE_STATUS.has(response.status),
+    retryAfterSeconds: error.retryAfterSeconds ?? headerRetryAfter(response),
+    requestId: headerRequestId(response) ?? error.requestId,
+    details: error.details,
   });
 }
 
@@ -167,6 +166,7 @@ function failed(
     retryable?: boolean;
     retryAfterSeconds?: number;
     requestId?: string;
+    details?: Record<string, JsonValue>;
   },
 ): StophyError {
   return new StophyError(message, {
@@ -175,13 +175,17 @@ function failed(
     retryable: options.retryable ?? false,
     retryAfterSeconds: options.retryAfterSeconds,
     requestId: options.requestId ?? headerRequestId(response),
+    details: options.details,
   });
 }
 
 interface ErrorFields {
   code?: string;
   message?: string;
+  retryable?: boolean;
   retryAfterSeconds?: number;
+  requestId?: string;
+  details?: Record<string, JsonValue>;
 }
 
 function parseJson(text: string): JsonValue {
@@ -192,12 +196,32 @@ function parseJson(text: string): JsonValue {
   }
 }
 
+const ENVELOPE_FIELDS = new Set([
+  "success",
+  "error",
+  "message",
+  "code",
+  "retryable",
+  "retryAfterSeconds",
+  "requestId",
+]);
+
 function readError(body: JsonValue): ErrorFields {
   if (!isRecord(body)) return {};
+  const fields = isRecord(body.error) ? body.error : body;
   return {
-    code: isString(body.code) ? body.code : undefined,
-    message: isString(body.error) ? body.error : undefined,
-    retryAfterSeconds: isNumber(body.retryAfterSeconds) ? body.retryAfterSeconds : undefined,
+    code: isString(fields.code) ? fields.code : undefined,
+    message: isString(fields.error)
+      ? fields.error
+      : isString(fields.message)
+        ? fields.message
+        : undefined,
+    retryable: isBoolean(fields.retryable) ? fields.retryable : undefined,
+    retryAfterSeconds: isNumber(fields.retryAfterSeconds) ? fields.retryAfterSeconds : undefined,
+    requestId: isString(fields.requestId) ? fields.requestId : undefined,
+    details: Object.fromEntries(
+      Object.entries(fields).filter(([key]) => !ENVELOPE_FIELDS.has(key)),
+    ),
   };
 }
 

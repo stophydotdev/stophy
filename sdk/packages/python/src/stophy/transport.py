@@ -16,6 +16,15 @@ from .errors import StophyError
 DEFAULT_BASE_URL = "https://api.stophy.dev"
 MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+ENVELOPE_FIELDS = {
+    "success",
+    "error",
+    "message",
+    "code",
+    "retryable",
+    "retryAfterSeconds",
+    "requestId",
+}
 USER_AGENT = f"stophy-python/{version('stophy')}"
 
 
@@ -41,7 +50,10 @@ def _upper(match: re.Match[str]) -> str:
 
 
 def _error_object(payload: Any) -> dict[str, Any]:
-    return payload if isinstance(payload, dict) else {}
+    if not isinstance(payload, dict):
+        return {}
+    nested = payload.get("error")
+    return nested if isinstance(nested, dict) else payload
 
 
 def _header_retry_after(response: httpx.Response) -> int | None:
@@ -75,19 +87,29 @@ def handle_response(response: httpx.Response) -> Any:
     payload = _payload(response)
     if response.is_success and isinstance(payload, dict):
         return payload
+    raise _error_from(response, payload)
 
+
+def _error_from(response: httpx.Response, payload: Any) -> StophyError:
     error = _error_object(payload)
     message = error.get("error")
     if not isinstance(message, str) or not message:
+        message = error.get("message")
+    if not isinstance(message, str) or not message:
         message = f"Stophy request failed with status {response.status_code}"
     code = error.get("code")
-    raise StophyError(
+    retryable = error.get("retryable")
+    request_id = response.headers.get("x-request-id") or error.get("requestId")
+    return StophyError(
         message,
         status=response.status_code,
         code=code if isinstance(code, str) else None,
-        retryable=response.status_code in RETRYABLE_STATUS,
+        retryable=retryable
+        if isinstance(retryable, bool)
+        else response.status_code in RETRYABLE_STATUS,
         retry_after_seconds=_retry_after(response, error),
-        request_id=response.headers.get("x-request-id"),
+        request_id=request_id if isinstance(request_id, str) else None,
+        details={key: value for key, value in error.items() if key not in ENVELOPE_FIELDS},
     )
 
 
@@ -101,9 +123,12 @@ class _RetryConfig:
         return window / 2 + random.random() * (window / 2)
 
     def retry_after(self, response: httpx.Response, attempt: int, max_retries: int) -> float | None:
-        if attempt >= max_retries or response.status_code not in RETRYABLE_STATUS:
+        if response.status_code < 400 or attempt >= max_retries:
             return None
-        seconds = _retry_after(response, _error_object(_payload(response)))
+        error = _error_from(response, _payload(response))
+        if not error.retryable:
+            return None
+        seconds = error.retry_after_seconds
         if seconds is None:
             return self.backoff(attempt)
         if seconds > MAX_RETRY_WAIT_SECONDS:
