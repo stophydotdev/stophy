@@ -25,10 +25,10 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://bsky.app/profile/bsky.app/post/3n27yge3hys24",
-  formats: [{ type: "json", parser: "bsky-post" }],
-});
+const result = await stophy.parsed(
+  "bsky-post",
+  "https://bsky.app/profile/bsky.app/post/3n27yge3hys24",
+);
 console.log(result);
 ```
 ```python Python
@@ -36,9 +36,9 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://bsky.app/profile/bsky.app/post/3n27yge3hys24",
-    formats=[{"type": "json", "parser": "bsky-post"}],
+result = stophy.parsed(
+    "bsky-post",
+    "https://bsky.app/profile/bsky.app/post/3n27yge3hys24",
 )
 print(result)
 ```

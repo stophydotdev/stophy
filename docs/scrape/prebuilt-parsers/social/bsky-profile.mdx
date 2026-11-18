@@ -25,10 +25,7 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://bsky.app/profile/bsky.app",
-  formats: [{ type: "json", parser: "bsky-profile" }],
-});
+const result = await stophy.parsed("bsky-profile", "https://bsky.app/profile/bsky.app");
 console.log(result);
 ```
 ```python Python
@@ -36,10 +33,7 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://bsky.app/profile/bsky.app",
-    formats=[{"type": "json", "parser": "bsky-profile"}],
-)
+result = stophy.parsed("bsky-profile", "https://bsky.app/profile/bsky.app")
 print(result)
 ```
 </CodeGroup>

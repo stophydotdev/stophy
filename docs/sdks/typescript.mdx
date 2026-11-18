@@ -41,7 +41,7 @@ To try a search, pass `query: "bun runtime"`, `sources: ["web"]` and `limit: 3` 
 
 Get an [API key](https://stophy.dev/signup) to call endpoints that require one. Set `STOPHY_API_KEY`, or pass the key as the `apiKey` option or as the only argument to `new Stophy()`.
 
-Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is. `scrape` returns `{ success, data }`, `search` returns `{ success, data }` with a list for each source, and `map` returns `{ success, links }`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. The body of `search` and `map` has no cost. The `x-cost-usd` header has what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is. `scrape` returns `{ success, data }`, `search` returns `{ success, data }` with a list for each source, and `map` returns `{ success, links }`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. The answers of `search`, `map` and the job starts have no cost or request id, and the SDK returns only the answer body. A scrape or a parse has its cost in `data.metadata.costUsd`, and a scrape has its id in `data.metadata.scrapeId`. `stophy.logs()` calls `GET /v1/logs`, which lists each call with its cost.
 
 ## Read a site with a parser
 

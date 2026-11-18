@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { pythonSnippet, tsSnippet } from "./snippets";
+import { curlSnippet, pythonSnippet, tsSnippet } from "./snippets";
 
 test("a scrape call becomes one SDK call with snake_case arguments in Python", () => {
   const call = { method: "POST", path: "/v1/scrape", body: { url: "https://example.com", onlyMainContent: true } };
@@ -37,7 +37,7 @@ test("a scrape of one parser the SDK lists becomes parsed, and an unlisted parse
   });
   expect(tsSnippet(read("reddit-search"), true)).toContain('stophy.parsed("reddit-search", "https://example.com/page")');
   expect(pythonSnippet(read("reddit-search"), true)).toContain('stophy.parsed("reddit-search", "https://example.com/page")');
-  expect(tsSnippet(read("facebook-group"), true)).toContain("stophy.scrape(");
+  expect(tsSnippet(read("not-a-parser"), true)).toContain("stophy.scrape(");
 });
 
 test("a job id in the path becomes an id argument, and a cursor in the query is kept", () => {
@@ -55,4 +55,11 @@ test("a call the SDK has no method for keeps fetch and requests", () => {
 test("a query the SDK method does not take keeps fetch and requests", () => {
   const call = { method: "GET", path: "/v1/logs?limit=3" };
   expect(tsSnippet(call, true)).toContain("await fetch(");
+});
+
+test("a cURL line whose URL has a query string quotes the URL", () => {
+  const call = { method: "GET", path: "/v1/search/research/papers/W1/similar?intent=rag&k=5" };
+  expect(curlSnippet(call, false)).toBe(
+    ["```bash cURL", 'curl "https://api.stophy.dev/v1/search/research/papers/W1/similar?intent=rag&k=5"', "```"].join("\n"),
+  );
 });

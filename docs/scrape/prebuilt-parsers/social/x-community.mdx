@@ -25,10 +25,10 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://x.com/i/communities/1699807431709041070",
-  formats: [{ type: "json", parser: "x-community" }],
-});
+const result = await stophy.parsed(
+  "x-community",
+  "https://x.com/i/communities/1699807431709041070",
+);
 console.log(result);
 ```
 ```python Python
@@ -36,9 +36,9 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://x.com/i/communities/1699807431709041070",
-    formats=[{"type": "json", "parser": "x-community"}],
+result = stophy.parsed(
+    "x-community",
+    "https://x.com/i/communities/1699807431709041070",
 )
 print(result)
 ```

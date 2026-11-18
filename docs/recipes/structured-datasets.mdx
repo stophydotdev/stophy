@@ -139,7 +139,7 @@ Read `url` while `status` is `scraping`. Stop polling when it reaches a final st
 }
 ```
 
-The page in this example has no `topics`. The field was optional, and the page lists none. Your code has to expect that. `creditsUsed` is the charge in steps of $0.002, so 6 is $0.012.
+The page in this example has no `topics`. The field was optional, and the page lists none. Your code has to expect that.
 
 An answer holds up to 100 pages or 2 MB, so a long batch comes back in parts. Follow `next` until it is missing. `errors` lists the pages that could not be read, and a failed page costs nothing. See [Batch results](/batches/results).
 

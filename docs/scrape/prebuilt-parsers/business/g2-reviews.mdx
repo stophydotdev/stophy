@@ -25,10 +25,7 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://www.g2.com/products/slack/reviews",
-  formats: [{ type: "json", parser: "g2-reviews" }],
-});
+const result = await stophy.parsed("g2-reviews", "https://www.g2.com/products/slack/reviews");
 console.log(result);
 ```
 ```python Python
@@ -36,9 +33,9 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://www.g2.com/products/slack/reviews",
-    formats=[{"type": "json", "parser": "g2-reviews"}],
+result = stophy.parsed(
+    "g2-reviews",
+    "https://www.g2.com/products/slack/reviews",
 )
 print(result)
 ```

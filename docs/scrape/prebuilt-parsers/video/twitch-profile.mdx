@@ -25,10 +25,7 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://www.twitch.tv/twitch",
-  formats: [{ type: "json", parser: "twitch-profile" }],
-});
+const result = await stophy.parsed("twitch-profile", "https://www.twitch.tv/twitch");
 console.log(result);
 ```
 ```python Python
@@ -36,10 +33,7 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://www.twitch.tv/twitch",
-    formats=[{"type": "json", "parser": "twitch-profile"}],
-)
+result = stophy.parsed("twitch-profile", "https://www.twitch.tv/twitch")
 print(result)
 ```
 </CodeGroup>

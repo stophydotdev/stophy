@@ -22,7 +22,8 @@ function literal(value: Json, indent: string, python: boolean): string {
 
 
 export function curlSnippet(call: Recorded["request"], keyed: boolean): string {
-  const lines = [`curl${call.method === "GET" ? "" : ` -X ${call.method}`} ${API}${call.path}`];
+  const url = `${API}${call.path}`;
+  const lines = [`curl${call.method === "GET" ? "" : ` -X ${call.method}`} ${call.path.includes("?") ? `"${url}"` : url}`];
   if (keyed) lines.push('-H "Authorization: Bearer $STOPHY_API_KEY"');
   if (call.body !== undefined) {
     lines.push('-H "Content-Type: application/json"', `-d '${JSON.stringify(call.body).replaceAll("'", "'\\''")}'`);

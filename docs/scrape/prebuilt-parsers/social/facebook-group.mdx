@@ -25,10 +25,10 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://www.facebook.com/groups/NASA.SCIENCE/",
-  formats: [{ type: "json", parser: "facebook-group" }],
-});
+const result = await stophy.parsed(
+  "facebook-group",
+  "https://www.facebook.com/groups/NASA.SCIENCE/",
+);
 console.log(result);
 ```
 ```python Python
@@ -36,9 +36,9 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://www.facebook.com/groups/NASA.SCIENCE/",
-    formats=[{"type": "json", "parser": "facebook-group"}],
+result = stophy.parsed(
+    "facebook-group",
+    "https://www.facebook.com/groups/NASA.SCIENCE/",
 )
 print(result)
 ```

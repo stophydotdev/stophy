@@ -9,7 +9,8 @@ Each entry covers one week and is named for its Monday. We list the changes you 
 
 <Update label="Week of November 16, 2026" description="Smaller answers, lower prices and new parsers">
 
-- **Breaking: an answer is the result.** Scrape, search, map, crawl, batch, extract, parse and agent answers no longer repeat `id`, `costUsd`, `creditsUsed` or `requestId` at the top. The cost is the `x-cost-usd` header, scrape and parse also keep it in `data.metadata.costUsd`, and the request id is the `X-Request-ID` header. See [Errors](/api-reference/errors) and [Scrape](/scrape/overview).
+- **Breaking: smaller answers.** Scrape, search, map and parse answers, and the starts of crawl, batch, extract and agent jobs, no longer carry `costUsd`, `creditsUsed` or `requestId` at the top, and search no longer has an `id`. Job starts still answer with their job `id`, and status pages keep their running totals. The cost is the `x-cost-usd` header, scrape and parse also keep it in `data.metadata.costUsd`, and the request id is the `X-Request-ID` header. See [Errors](/api-reference/errors) and [Scrape](/scrape/overview).
+- **Breaking: results and credit limits.** Crawl, batch and search result `metadata` no longer carries `scrapeId`. An agent run cut short by `maxCredits` now ends `failed` with `credit_limit_reached`, not `completed`. See [Agent runs](/agent/runs).
 - **Lower prices from November 18.** A page read is $1 per 1,000, down from $2. Map is $0.50 per 1,000, extract $5 per 1,000 pages, and search $0.001 for each 10 results. See [Pricing](/account/pricing).
 - **Nine new parsers** for Bluesky, link-in-bio pages, X communities, TikTok trending and live, Twitch channels and clips, and Facebook groups. See [Pre-built parsers](/scrape/prebuilt-parsers).
 - **Webhooks carry `costUsd` and `eventId`**, so you know what each job cost and can skip an event you already handled. See [Webhooks](/webhooks).

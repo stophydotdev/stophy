@@ -25,10 +25,10 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://www.crunchbase.com/organization/stripe",
-  formats: [{ type: "json", parser: "crunchbase-company" }],
-});
+const result = await stophy.parsed(
+  "crunchbase-company",
+  "https://www.crunchbase.com/organization/stripe",
+);
 console.log(result);
 ```
 ```python Python
@@ -36,9 +36,9 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://www.crunchbase.com/organization/stripe",
-    formats=[{"type": "json", "parser": "crunchbase-company"}],
+result = stophy.parsed(
+    "crunchbase-company",
+    "https://www.crunchbase.com/organization/stripe",
 )
 print(result)
 ```

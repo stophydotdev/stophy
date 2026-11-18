@@ -9,45 +9,7 @@ Record a session if you need a video of every tab. Use replay if you only need t
 
 ## Record a session
 
-Turn recording on before you start the session you want to review. Get an API key in the [Quickstart](/quickstart). Send `recording: true` when you open the session.
-
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/browser \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ttl": 300,
-    "activityTtl": 120,
-    "recording": true
-  }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/browser", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ ttl: 300, activityTtl: 120, recording: true }),
-});
-const session = await response.json();
-console.log(session.id, session.recordingStatus);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/browser",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={"ttl": 300, "activityTtl": 120, "recording": True},
-)
-session = response.json()
-print(session["id"], session["recordingStatus"])
-```
-</CodeGroup>
+Turn recording on before you start the session you want to review. Get an API key in the [Quickstart](/quickstart). Open the session as the [browser overview](/browser/overview) shows, and add `"recording": true` to the body of `POST /v1/browser`, for example `{ "ttl": 300, "activityTtl": 120, "recording": true }`.
 
 The answer has `recordingStatus` set to `recording` and `recordingAvailable` set to `true`. Use the session as usual, then [close it](/browser/overview#close-a-session). The video is made after the session stops. The close answer has `recordingStatus` set to `processing`.
 

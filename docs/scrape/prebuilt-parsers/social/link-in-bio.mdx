@@ -25,10 +25,7 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const result = await stophy.scrape({
-  url: "https://linktr.ee/selenagomez",
-  formats: [{ type: "json", parser: "link-in-bio" }],
-});
+const result = await stophy.parsed("link-in-bio", "https://linktr.ee/selenagomez");
 console.log(result);
 ```
 ```python Python
@@ -36,10 +33,7 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.scrape(
-    url="https://linktr.ee/selenagomez",
-    formats=[{"type": "json", "parser": "link-in-bio"}],
-)
+result = stophy.parsed("link-in-bio", "https://linktr.ee/selenagomez")
 print(result)
 ```
 </CodeGroup>

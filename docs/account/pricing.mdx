@@ -62,6 +62,7 @@ Scrape with a [parser](/scrape/prebuilt-parsers) costs the parser's price, and m
 | `craigslist-search` | $0.001 for each 10 listings |
 | `reddit-post` | $0.001 for each 200 comments |
 | `tiktok-trending` | $0.001 for each 10 videos |
+| `twitch-clips` | $0.001 for each 10 clips |
 | `instagram-transcript` | $0.002 per video plus $0.24 per hour of audio, up to 5 minutes |
 | `tiktok-transcript` | $0.001 per video that has captions. Otherwise $0.004 per video plus $0.72 per hour of audio, up to 3 minutes. |
 
@@ -81,7 +82,7 @@ You can check a job or look up what it cost without spending from your balance.
 
 ## Read what you were charged
 
-Read `x-cost-usd` to see what a call actually cost. A scrape or parse also has its cost in `data.metadata.costUsd`. Job status calls and the account, browser and monitor calls keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
+Read `x-cost-usd` to see what a call actually cost. A scrape or parse also has its cost in `data.metadata.costUsd`. Job status calls and the account, browser and monitor calls keep `costUsd` at the top level of the body.
 
 On the other endpoints, `creditsUsed` and `x-credits-used` are older fields that count the same cost in steps of $0.002. Use `costUsd`.
 
