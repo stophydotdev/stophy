@@ -5,7 +5,7 @@ og:title: "Install MCP | Stophy"
 og:description: "Connect Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Claude or Grok to the Stophy MCP server with one command or one URL and sign in with your browser."
 ---
 
-The hosted MCP server gives a compatible agent live Stophy tools for search, scrape, map, crawl, extract and every other endpoint. Clients sign in with your browser, so there is no API key to copy.
+The hosted MCP server gives a compatible agent live Stophy tools for search, scrape, map, parse, crawl, extract, agent, browsers and monitors. Clients sign in with your browser, so there is no API key to copy.
 
 <Note>
 **Server URL:** `https://mcp.stophy.dev/mcp`
@@ -25,7 +25,7 @@ The agent adds the server to its own client and asks you to finish sign-in in yo
 
 ## Connect your client
 
-Each of these connects to `https://mcp.stophy.dev/mcp` and opens your browser to sign in, so your agent can use every endpoint.
+Each of these connects to `https://mcp.stophy.dev/mcp` and opens your browser to sign in, so your agent can use every tool.
 
 <CodeGroup>
 
@@ -76,10 +76,10 @@ In Windsurf, open `mcp_config.json` with **Open MCP config file** in the Cascade
 
 ## Choose how to connect
 
-| | URL | Endpoints |
+| | URL | Tools |
 | - | - | - |
-| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every endpoint |
-| API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every endpoint |
+| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every tool |
+| API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every tool |
 | No API key | `https://api.stophy.dev/mcp` | Search, scrape, map and parse, within the [free limits](/production/rate-limits) |
 
 [Browser sign-in](/mcp/oauth) explains what happens when you approve the app. [MCP with or without an API key](/mcp/keyless) shows the other two.
@@ -135,7 +135,7 @@ Six more tools work on an open browser: `browserUpload` puts a file into it, `br
 
 A session is billed from `browserOpen` until `browserClose`, at the prices on [Browser sessions](/browser/overview#price), so ask your agent to close every browser it opens.
 
-## Give each endpoint its own tool
+## Add tools for more endpoints
 
 Add `toolsets` to the URL with a source name.
 
@@ -143,7 +143,7 @@ Add `toolsets` to the URL with a source name.
 https://api.stophy.dev/mcp?toolsets=web
 ```
 
-Your agent then also gets a tool for each web endpoint that has none yet, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
+Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`, and `toolsets=webhook` adds the webhook delivery tools.
 
 ## Run it as a local server
 
@@ -153,7 +153,7 @@ Some apps can only start a local MCP server. The `@stophy/mcp` package runs on y
 npx -y @stophy/mcp
 ```
 
-With `STOPHY_API_KEY` set, your agent can use every endpoint. Without it, your agent can use the endpoints that need no API key. `STOPHY_MCP_URL` sets the server to connect to, `https://api.stophy.dev/mcp` by default. For Claude Desktop, add this to `claude_desktop_config.json` and restart it.
+With `STOPHY_API_KEY` set, your agent can use every tool. Without it, your agent can use the tools that need no API key. `STOPHY_MCP_URL` sets the server to connect to, `https://api.stophy.dev/mcp` by default. For Claude Desktop, add this to `claude_desktop_config.json` and restart it.
 
 ```json
 {

@@ -85,5 +85,5 @@ To report a problem to support, include the `Request id` from the error, or from
 
 ## Without the CLI
 
-- **MCP:** connect to `https://mcp.stophy.dev/mcp` to sign in through the browser, or to `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>`. The tools are `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_crawl` and `stophy_extract`. A parser is a `stophy_scrape` format: `{"type":"json","parser":"reddit-search"}`.
+- **MCP:** connect to `https://mcp.stophy.dev/mcp` to sign in through the browser, or to `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>`. Without a key the tools are `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. A key adds crawl, extract, agent, browser, developer search, paper and monitor tools. A parser is a `stophy_scrape` format: `{"type":"json","parser":"reddit-search"}`.
 - **HTTP and code:** see [stophy-build](../stophy-build/SKILL.md).
