@@ -1,57 +1,82 @@
 ---
 title: "Quickstart"
-description: "Scrape a page with no key, then add a key to search, crawl and extract from cURL, TypeScript or Python. Most calls cost 1 credit, and you start with 5,000."
+description: "Scrape a page without an API key, then add one to search, read a site as JSON, crawl and batch from cURL, TypeScript or Python. New accounts get $2."
 og:title: "Quickstart | Stophy"
-og:description: "Scrape a page with no key, then add a key to search, crawl and extract from cURL, TypeScript or Python. Most calls cost 1 credit, and you start with 5,000."
+og:description: "Scrape a page without an API key, then add one to search, read a site as JSON, crawl and batch from cURL, TypeScript or Python. New accounts get $2."
 ---
 
-## Call it with no key
+Make your first Stophy request and read the result. To have a coding agent do the setup, use the [Agent quickstart](/agent-quickstart).
+
+## Try it without an API key
+
+Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address. This request needs only cURL.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com/docs/runtime/bunfig"}'
+  -d '{"url":"https://example.com","formats":["markdown"],"onlyMainContent":true}'
 ```
 
 <Accordion title="Response">
-This real response is cut to a few fields.
+This real response is cut to a few fields. A call without an API key costs nothing.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n`bunfig.toml` is Bun's configuration…",
+    "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\n…",
     "metadata": {
-      "title": "bunfig.toml | Bun Docs",
-      "sourceURL": "https://bun.com/docs/runtime/bunfig",
-      "url": "https://bun.com/docs/runtime/bunfig",
+      "title": "Example Domain",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
       "statusCode": 200,
       "contentType": "text/html",
-      "cacheState": "hit",
-      "scrapeId": "f82a75f2-1f53-4abb-ac5a-9fdbc4314549",
-      "creditsUsed": 0
+      "scrapeId": "6b6900c6-061a-4547-8732-c6004baaea86",
+      "costUsd": 0
     }
-  }
+  },
+  "id": "6b6900c6-061a-4547-8732-c6004baaea86",
+  "costUsd": 0,
+  "requestId": "6b6900c6-061a-4547-8732-c6004baaea86"
 }
 ```
 </Accordion>
 
-That is the page as markdown. Search, scrape, map and parse work like this with no key, up to 10 calls a minute and 50 a day. See [Rate limits](/rate-limits).
+Paging, crawl, batches, extract, agent, browsers and monitors need an API key. See [Rate limits](/production/rate-limits) for the free limits.
 
-## Get a key
+## 1. Get an API key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup). Your account starts with 5,000 free credits, and most calls cost 1 credit. Create a key and save it as `STOPHY_API_KEY`.
+Sign up at [stophy.dev/signup](https://stophy.dev/signup) with GitHub or Google. A new account starts with $2 to spend, with no card. Create a key and keep it as `STOPHY_API_KEY` in your secret store or your project's `.env` file, where your code reads it.
 
-An agent can get a key with no human at the keyboard: [Sign up](/api-reference/endpoint/sign-up) returns a link for its person to approve.
+Keep the key on your server. Never commit it or put it in browser code. [API keys](/account/api-keys) covers revoking a key. An agent can also request a key for you to approve. See the [Agent quickstart](/agent-quickstart).
 
-## Call it with your key
+## 2. Choose a client
+
+cURL needs no install. For TypeScript and Python the examples below use `fetch` and `requests`. The [SDKs](/sdks) wrap the same calls with types and retries.
+
+<CodeGroup>
+```bash TypeScript
+npm install stophy
+```
+```bash Python
+pip install stophy
+```
+</CodeGroup>
+
+## 3. Make a request
+
+This request searches the web for `bun runtime` and returns three results. A search of up to 10 results costs $0.001.
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/search \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"query":"nvidia earnings","sources":["web","news"],"limit":5}'
+  -d '{
+    "query": "bun runtime",
+    "sources": ["web"],
+    "limit": 3
+  }'
 ```
 ```typescript TypeScript
 const response = await fetch("https://api.stophy.dev/v1/search", {
@@ -61,12 +86,13 @@ const response = await fetch("https://api.stophy.dev/v1/search", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    query: "nvidia earnings",
-    sources: ["web", "news"],
-    limit: 5,
+    query: "bun runtime",
+    sources: ["web"],
+    limit: 3,
   }),
 });
-console.log(await response.json());
+const { data, costUsd } = await response.json();
+console.log(data.web.map((result: { url: string }) => result.url), costUsd);
 ```
 ```python Python
 import os
@@ -77,80 +103,118 @@ response = requests.post(
     "https://api.stophy.dev/v1/search",
     headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
     json={
-        "query": "nvidia earnings",
-        "sources": ["web", "news"],
-        "limit": 5,
+        "query": "bun runtime",
+        "sources": ["web"],
+        "limit": 3,
     },
 )
-print(response.json())
+body = response.json()
+print([result["url"] for result in body["data"]["web"]], body["costUsd"])
 ```
 </CodeGroup>
 
-<Accordion title="Response">
-This real response is cut to one result per source.
+## 4. Check the result
+
+This real response is cut to the fields you read first.
 
 ```json
 {
   "success": true,
   "data": {
-    "news": [
-      {
-        "title": "Stocks making the biggest moves midday: Micron, Tesla, Tripadvisor, AppLovin, Nvidia & more",
-        "url": "https://www.cnbc.com/2026/11/05/stocks-making-the-biggest-moves-midday-mu-tsla-trip-app-nvda.html",
-        "snippet": "Here are some of the companies making headlines in midday trading.",
-        "date": "2026-11-05T18:35:11.000Z",
-        "position": 1
-      }
-    ],
     "web": [
       {
-        "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
-        "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal ...",
-        "description": "GAAP and non-GAAP earnings per diluted share were $2.46 and $2.22, respectively.\n\n“AI has reached its inflection…",
+        "url": "https://github.com/oven-sh/bun",
+        "title": "GitHub - oven-sh/bun: Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one · GitHub",
+        "description": "At its core is the Bun runtime, a fast JavaScript runtime designed as a drop-in replacement for Node.js.",
         "position": 1
+      },
+      {
+        "url": "https://bun.com/docs/runtime",
+        "title": "Bun Runtime | Bun Docs",
+        "description": "Execute JavaScript/TypeScript files, package.json scripts, and executable packages with Bun's fast runtime.",
+        "position": 2
       }
     ]
   },
-  "creditsUsed": 4
+  "id": "31fb1c5e-c206-443e-9274-c8d0bf75002c",
+  "costUsd": 0.001,
+  "requestId": "31fb1c5e-c206-443e-9274-c8d0bf75002c"
 }
 ```
-</Accordion>
 
-`creditsUsed` is what the call cost in credits. This search of web and news cost 4: 2 credits for each source. See [Pricing](/billing).
+`success` is `true` and the results are in `data`. `costUsd` is what the call cost in dollars. Empty fields are left out, so a field you do not see was empty. A failed call has `success: false`, an `error` that says what to do and a `code`. A failed call costs nothing. See [Troubleshooting](/production/troubleshooting).
 
 ## Read a site as JSON
 
-To get a site's own data, send its page to scrape with a parser:
+To get a site's own data, send its page to scrape with a [parser](/scrape/prebuilt-parsers). This call reads a Reddit search.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://www.reddit.com/search/?q=web+scraping&sort=top&t=year","formats":[{"type":"json","parser":"reddit-search"}]}'
+  -d '{
+    "url": "https://www.reddit.com/search/?q=web+scraping&sort=top&t=year",
+    "formats": [{ "type": "json", "parser": "reddit-search" }]
+  }'
 ```
 
-The posts come back in `data.json`. See [Parsers](/guides/parsers).
+The posts come back in `data.json.results`, with a `cursor` for the next page. This real response is cut to one post.
+
+```json
+{
+  "success": true,
+  "data": {
+    "json": {
+      "results": [
+        {
+          "id": "1rxxkol",
+          "title": "What's else in this list?",
+          "community": { "name": "PythonLearning", "url": "https://www.reddit.com/r/PythonLearning/" },
+          "publishedAt": "2026-03-19T11:13:15.803Z",
+          "likes": 1230,
+          "comments": 43
+        }
+      ],
+      "cursor": "MjQ="
+    }
+  },
+  "costUsd": 0.001
+}
+```
 
 ## Crawl a site
 
-Crawl reads many pages in the background. Start it, poll about every 2 seconds until it is `completed`, then read the pages. Send `scrapeOptions.formats` to read more than markdown, for example `["markdown","links"]`, and each page in `data` has every format the crawl read. Starting is free, and each page costs 1 credit.
+Crawl reads many pages in the background. Starting is free, and each page costs $1 per 1,000. A page that comes back with a 404 or 410 status costs nothing. Start it, poll about every 2 seconds until `status` is no longer `scraping`, then read the pages.
 
 ```bash
 ID=$(curl -s -X POST https://api.stophy.dev/v1/crawl \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://bun.com/docs","limit":10}' | jq -r .id)
+  -d '{"url":"https://bun.com/docs","limit":3}' | jq -r .id)
 
 until [ "$(curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq -r .status)" != scraping ]; do sleep 2; done
 
 curl -s https://api.stophy.dev/v1/crawl/$ID -H "Authorization: Bearer $STOPHY_API_KEY" | jq '{status, completed, pages: [.data[].metadata.url], next}'
 ```
 
-A status answer holds up to 100 finished pages. If it has `next`, call that URL for the rest. See [Page through results](/guides/paging).
+```json
+{
+  "status": "completed",
+  "completed": 3,
+  "pages": [
+    "https://bun.com/docs",
+    "https://bun.com/docs/bundler",
+    "https://bun.com/docs/bundler/bytecode"
+  ],
+  "next": null
+}
+```
+
+Send `scrapeOptions.formats` to get more than `markdown`, for example `["markdown","links"]`. A status answer holds up to 100 finished pages or 2 MB. If it has `next`, call that URL for the rest. See [Crawl](/crawl/overview) and [Read a crawl](/crawl/async).
 
 ## Scrape many pages
 
-Batch scrape takes a list of URLs and works the same way. Poll `https://api.stophy.dev/v1/batch/scrape/<id>` about every 2 seconds until `status` is `completed`. Each page in `data` has the same shape as a scrape.
+A batch takes a list of URLs and works the same way. Poll `https://api.stophy.dev/v1/batch/scrape/<id>` about every 2 seconds until `status` is `completed`. Each page in `data` has the same shape as a scrape.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/batch/scrape \
@@ -159,13 +223,33 @@ curl -X POST https://api.stophy.dev/v1/batch/scrape \
   -d '{"urls":["https://bun.com/docs/runtime/bunfig","https://bun.com/docs/runtime/env"]}'
 ```
 
+The answer holds the job `id` and its `url`. See [Batches](/batches/overview).
+
+## Try another API
+
+Every endpoint uses the same API key and the same `Authorization` header. Send one of these, then follow its guide for options.
+
+| API | Send | Guide |
+| - | - | - |
+| Scrape, other formats | Add `links`, `screenshot`, `summary` or `json` to `formats` | [Scrape](/scrape/overview) |
+| Map | `POST /v1/map` with `url` | [Map](/map/overview) |
+| Crawl | `POST /v1/crawl` with `url` and `limit` | [Crawl](/crawl/overview) |
+| Batches | `POST /v1/batch/scrape` with `urls` | [Batches](/batches/overview) |
+| Search | `POST /v1/search` with `query` | [Search](/search/overview) |
+| Extract | `POST /v1/extract` with `urls` and `prompt` or `schema` | [Extract](/extract/overview) |
+| Agent | `POST /v1/agent` with `prompt` | [Agent](/agent/overview) |
+| Parse | `POST /v1/parse` with a file | [Parse](/parse/overview) |
+| Browser sessions | `POST /v1/browser` | [Browser sessions](/browser/overview) |
+| Browser tasks | `POST /v1/browser/task` with `url` and `goal` | [Browser tasks](/browser/tasks) |
+| Monitors | `POST /v1/monitor` with `targets` and a `schedule` | [Monitors](/monitors/overview) |
+
 ## Next
 
 <CardGroup cols={2}>
-  <Card title="Parsers" icon="brackets-curly" href="/guides/parsers">
-    Read Reddit, YouTube, Google Maps and 100 more sites as JSON.
+  <Card title="Pricing" icon="coins" href="/account/pricing">
+    Prices in dollars for every endpoint.
   </Card>
-  <Card title="Crawl a site" icon="spider" href="/api-reference/endpoint/crawl">
-    Read every page of a site in the background.
+  <Card title="Production checklist" icon="list-check" href="/production/checklist">
+    Timeouts, retries and limits before you ship.
   </Card>
 </CardGroup>

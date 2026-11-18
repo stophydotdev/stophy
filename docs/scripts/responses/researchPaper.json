@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/search/research/papers/W4411630045"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "paper": {
+      "paperId": "W4411630045",
+      "ids": {
+        "openalex": [
+          "W4411630045"
+        ],
+        "doi": [
+          "10.18653/v1/2024.eacl-demo.16"
+        ]
+      },
+      "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
+      "abstract": "Shahul Es, Jithin James, Luis Espinosa Anke, Steven Schockaert. Proceedings of the 18th Conference of the European…",
+      "authors": "Shahul Es, Jithin James, Luis Espinosa-Anke, Steven Schockaert"
+    },
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "c063e5f5-dc47-4f6e-afc1-332abfc92686"
+  }
+}

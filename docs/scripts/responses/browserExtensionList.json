@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/extensions"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "items": [],
+    "totalItems": 0,
+    "pageNumber": 1,
+    "pageSize": 10,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "3271fc6d-7873-4982-bc4b-24d2075a3f12"
+  }
+}

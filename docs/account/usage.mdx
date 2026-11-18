@@ -1,0 +1,200 @@
+---
+title: "Usage"
+description: "Read your balance, what you spent per hour, day or month, your per-minute limits and your monthly spend. Account calls are free and need an API key."
+og:title: "Usage | Stophy"
+og:description: "Read your balance, what you spent per hour, day or month, your per-minute limits and your monthly spend. Account calls are free and need an API key."
+---
+
+Four calls show your balance, what you spent and your limits. They are free and need an API key. Every amount is in dollars. Each response also has older fields that count the same amounts in steps of $0.002. This page leaves them out. Use the dollar fields.
+
+| Call | What it shows |
+| - | - |
+| `GET /v1/limits` | Your tier, balance, per-minute limits, calls and jobs at once, and key expiry |
+| `GET /v1/usage` | Your balance, and what all your calls have cost |
+| `GET /v1/usage/history` | What you spent and how many paid calls you made, per hour, day or month |
+| `GET /v1/team/credit-usage` | Your balance, and what you spent each month |
+
+## Check your limits and balance
+
+<CodeGroup>
+```bash cURL
+curl https://api.stophy.dev/v1/limits \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/limits", {
+  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
+});
+const { data } = await response.json();
+console.log(data.balanceUsd, data.perMinute);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.get(
+    "https://api.stophy.dev/v1/limits",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+)
+data = response.json()["data"]
+print(data["balanceUsd"], data["perMinute"])
+```
+</CodeGroup>
+
+<Accordion title="Response">
+This is a real response. The balance is an example.
+
+```json
+{
+  "success": true,
+  "data": {
+    "tier": "paid",
+    "balanceUsd": 25,
+    "rateLimit": {
+      "limitPerMinute": 600,
+      "remaining": 597,
+      "resetsAt": "2026-11-17T17:44:00.000Z"
+    },
+    "perMinute": { "calls": 600, "jobs": 100, "interact": 100, "reads": 1500 },
+    "concurrency": { "limit": 10, "inUse": 1 },
+    "jobsAtOnce": 10,
+    "queuedJobs": 20,
+    "sessionsAtOnce": 10,
+    "paidLimits": null,
+    "keyExpiresAt": null,
+    "billingUrl": "https://stophy.dev/billing"
+  },
+  "costUsd": 0,
+  "requestId": "5f9f38f3-3b4b-4cf0-87c5-d88404d9ad2f"
+}
+```
+</Accordion>
+
+| Field | What it is |
+| - | - |
+| `tier` | `free` until your first top-up, then `paid` |
+| `balanceUsd` | What is left on the account, in dollars |
+| `rateLimit` | Calls a minute this key may make, how many are left counting this request, and when the minute resets. `null` when the counter is unavailable. |
+| `perMinute` | The limit a minute for each kind of call: `calls`, `jobs`, `interact` and `reads` |
+| `concurrency` | How many calls may run at once and how many run now |
+| `jobsAtOnce`, `queuedJobs` | Crawls, batches, extracts and agent runs that may run at once, and that may wait |
+| `sessionsAtOnce` | Browser sessions that may be open at once |
+| `paidLimits` | On the `free` tier, the limits a `paid` account has. `null` on `paid`. |
+| `keyExpiresAt` | When this key stops working, or `null` when it does not expire |
+| `billingUrl` | Where to add money |
+
+`GET /v1/limits` counts as one call toward the per-minute limit. See [Rate limits](/production/rate-limits) for what each limit means.
+
+## Check what you have used
+
+```bash
+curl https://api.stophy.dev/v1/usage -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "balanceMicros": 25000000,
+  "balanceUsd": 25,
+  "costUsd": 4.31,
+  "requestCount": 1850
+}
+```
+
+`balanceMicros` is the balance in millionths of a dollar. `costUsd` is what all your calls have cost, and `requestCount` is how many paid calls you made. This response has no `success` or `data` wrapper. The numbers are an example.
+
+## Read your spending over time
+
+`GET /v1/usage/history` groups your paid calls into buckets.
+
+<CodeGroup>
+```bash cURL
+curl "https://api.stophy.dev/v1/usage/history?interval=day&endpoint=scrape&from=2026-11-15" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const params = new URLSearchParams({ interval: "day", endpoint: "scrape", from: "2026-11-15" });
+const response = await fetch(`https://api.stophy.dev/v1/usage/history?${params}`, {
+  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
+});
+const { data } = await response.json();
+console.log(data.totals, data.buckets);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.get(
+    "https://api.stophy.dev/v1/usage/history",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    params={"interval": "day", "endpoint": "scrape", "from": "2026-11-15"},
+)
+data = response.json()["data"]
+print(data["totals"], data["buckets"])
+```
+</CodeGroup>
+
+<Accordion title="Response">
+This is a real response.
+
+```json
+{
+  "success": true,
+  "data": {
+    "interval": "day",
+    "from": "2026-11-15T00:00:00.000Z",
+    "to": "2026-11-17T17:44:39.769Z",
+    "totals": { "costUsd": 0.36, "requests": 140 },
+    "buckets": [
+      { "start": "2026-11-15T00:00:00Z", "costUsd": 0.06, "requests": 30 },
+      { "start": "2026-11-16T00:00:00Z", "costUsd": 0.03, "requests": 3 },
+      { "start": "2026-11-17T00:00:00Z", "costUsd": 0.27, "requests": 107 }
+    ]
+  },
+  "costUsd": 0
+}
+```
+</Accordion>
+
+| Parameter | Default | What it does |
+| - | - | - |
+| `interval` | `day` | The bucket size: `hour`, `day` or `month` |
+| `from` | 2 days, 30 days or 366 days before `to`, for `hour`, `day` and `month` | The start of the window. An ISO time such as `2026-11-01` or `2026-11-01T08:00:00Z`. |
+| `to` | Now | The end of the window, not included |
+| `endpoint` | All | Only calls to this endpoint, such as `scrape` |
+| `apiKeyId` | All | Only calls made with this key |
+
+The window can span at most 31 days for `hour` and 366 days for `day` and `month`, and `from` must be before `to`, or the call answers `invalidRequest`. `start` is the UTC start of the bucket. Buckets with no paid calls are left out, and calls that cost nothing are not counted. `totals` adds the buckets.
+
+## Read your monthly spend
+
+`GET /v1/team/credit-usage` returns your balance. `GET /v1/team/credit-usage/historical` returns one row for each month of the last year, with what you spent. The first call returns `balanceUsd`. There are no plans, so its plan and period fields are `null`.
+
+```bash
+curl https://api.stophy.dev/v1/team/credit-usage/historical \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "periods": [
+    { "startDate": "2026-09-01T00:00:00.000Z", "endDate": "2026-10-01T00:00:00.000Z", "totalCostUsd": 0.52, "costUsd": 0.52 },
+    { "startDate": "2026-10-01T00:00:00.000Z", "endDate": "2026-11-01T00:00:00.000Z", "totalCostUsd": 1.84, "costUsd": 1.84 },
+    { "startDate": "2026-11-01T00:00:00.000Z", "endDate": "2026-12-01T00:00:00.000Z", "totalCostUsd": 3.07, "costUsd": 3.07 }
+  ],
+  "costUsd": 0
+}
+```
+
+This is the real shape, cut to the last three months. The amounts are an example. Send `byApiKey=true` to split each month by the key that made the calls. Each row then has the key's name in `apiKey`.
+
+For the model use of extract and agent, see [Usage and logs](/production/usage-and-logs).
+
+## Related
+
+* [Pricing](/account/pricing)
+* [API keys](/account/api-keys)
+* [Usage and logs](/production/usage-and-logs)
+* [Rate limits](/production/rate-limits)

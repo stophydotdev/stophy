@@ -1,11 +1,11 @@
 ---
 title: "Errors"
-description: "Every Stophy error comes back as success false, error and code. Here is each code, its HTTP status and whether to retry. A failed call costs nothing."
-og:title: "API errors | Stophy"
-og:description: "Every Stophy error comes back as success false, error and code. Here is each code, its HTTP status and whether to retry. A failed call costs nothing."
+description: "Every Stophy error has success false, a message and a stable code. See each code, its HTTP status and whether to retry. A failed call costs nothing."
+og:title: "Errors | Stophy"
+og:description: "Every Stophy error has success false, a message and a stable code. See each code, its HTTP status and whether to retry. A failed call costs nothing."
 ---
 
-Send a field the endpoint does not take and read the error.
+Every Stophy error has the same flat shape and a stable `code`, and a failed call costs nothing. This request sends a field that scrape does not take.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
@@ -20,59 +20,70 @@ The status is `400`. The list of fields is cut.
 ```json
 {
   "success": false,
-  "error": "Unknown field `colour`. Fields: url, formats, onlyMainContent, onlyCleanContent, includeTags, excludeTags, maxAge, …",
-  "code": "invalidRequest"
+  "error": "Unknown field `colour`. Fields: formats, onlyMainContent, onlyCleanContent, includeTags, excludeTags, maxAge, minAge, …",
+  "code": "invalidRequest",
+  "retryable": false,
+  "requestId": "4897a792-9571-47d6-bfd4-5a3db0a7c022"
 }
 ```
 </Accordion>
 
-Every error has this flat shape.
+Every error has this flat shape, on every operation.
 
 | Field | What it is |
 | --- | --- |
 | `success` | Always `false`. |
 | `error` | What went wrong and what to do next, in plain words. |
 | `code` | A stable code from the table below. |
-| `retryAfterSeconds` | Present when you should wait a set time. The `Retry-After` header has the same value. When it is absent, back off as [Errors and retries](/guides/errors-and-retries) says. |
-| `signupUrl` | Present on `apiKeyRequired`, `freeLimit` and a key that is not valid. Where a person gets a key. |
-| `signup` | Sent next to `signupUrl`: `POST https://api.stophy.dev/v1/signup`, the call that gets an agent a key. See [Sign up](/api-reference/endpoint/sign-up). |
-
-The `X-Request-ID` header names the request. Include it when you contact support.
+| `retryable` | `true` when sending the same call again can work. |
+| `retryAfterSeconds` | Present when you should wait a set time. The `Retry-After` header has the same value. When it is absent, back off as [Troubleshooting](/production/troubleshooting) says. |
+| `requestId` | Names the request. Include it when you contact support. The `X-Request-ID` header has the same value. |
+| `requiredUsd`, `availableUsd`, `billingUrl` | Present on `insufficientCredits`: the most the call can cost, what is left on the account, and where to add money. `requiredCredits` and `availableCredits` are the older fields for the same two numbers. |
+| `signupUrl` | Present on `apiKeyRequired`, `freeLimit` and a key that is not valid. Where a person gets an API key. |
+| `signup` | Sent next to `signupUrl`: `POST https://api.stophy.dev/v1/signup`, the call that gets an agent an API key. See [Sign up](/api-reference/endpoint/sign-up). |
 
 ## Error codes
 
 | Code | Status | Retry | What it means |
 | --- | --- | --- | --- |
-| `invalidRequest` | 400 | No | The input is not valid. The error names the field. |
-| `apiKeyRequired` | 401 | No | This call needs an API key: the endpoint, paging or a field you sent. |
+| `invalidRequest` | 400, 409 | No | The input is not valid. The error names the field. A 409 means the name is already taken, or the thing is not ready for the change. |
+| `prohibitedPermission` | 400 | No | The extension's `manifest.json` has a `key` field or asks for a permission that is not allowed. |
+| `apiKeyRequired` | 401 | No | This call needs an API key: the operation, paging or a field you sent. |
 | `unauthorized` | 401 | No | The API key is not valid or has expired. |
-| `insufficientCredits` | 402 | No | Your balance is too low for this call, and nothing was charged. The `x-required-credits` and `x-available-credits` headers say by how much. [Top up](/billing). |
+| `insufficientCredits` | 402 | No | Your balance is too low for this call, and nothing was charged. Add money at `billingUrl`. See [Pricing](/account/pricing). |
 | `forbidden` | 403 | No | This needs the Stophy dashboard. Sign in at stophy.dev and make the change there. |
-| `siteNotRead` | 403 | No | Stophy does not read this site as a page. Use a [parser](/guides/parsers). |
-| `notFound` | 404 | No | The endpoint, the page or the job does not exist. |
+| `siteNotRead` | 403 | No | Stophy does not read this site as a page. Use a [pre-built parser](/scrape/prebuilt-parsers). |
+| `promptInjectionDetected` | 403 | No | `checkPromptInjection` found text on the page written to instruct an AI assistant. See [Safety](/scrape/safety). |
+| `notFound` | 404, 410 | No | The operation, the page, the id or the job does not exist. A 410 means the browser session has ended. |
 | `methodNotAllowed` | 405 | No | The path takes another method. The `Allow` header names it. |
-| `jobFinished` | 409 | No | The crawl or batch scrape already ended, so there is nothing to cancel. |
-| `profileBusy` | 409 | No | Another call is using this browser profile. |
+| `jobFinished` | 409 | No | The crawl, batch scrape or agent run already ended, so you cannot cancel it or add URLs to the batch. |
+| `checkRunning` | 409 | No | A check of this monitor is already running. Wait for it to finish, then run it again. |
+| `profileBusy` | 409 | Yes | Another call is saving to this browser profile. Wait, then send the call again, or send `saveChanges: false`. |
 | `payloadTooLarge` | 413 | No | The request body is too large. |
 | `profileTooLarge` | 413 | No | The browser profile is too large to save. |
 | `unsupportedMediaType` | 415 | No | Send the body as JSON with `Content-Type: application/json`. |
-| `freeLimit` | 429 | Yes | You used the free calls without a key. Get a key at `signupUrl`, or wait `retryAfterSeconds`. |
-| `rateLimited` | 429 | Yes | Too many requests. Wait `retryAfterSeconds`. |
-| `internalError` | 500, 503 | Yes | That one is on us, and it cost nothing. Retry in a second. If it fails again, send support the `X-Request-ID`. |
+| `freeLimit` | 429 | Yes | You used the free calls without an API key. Get an API key at `signupUrl`, or wait `retryAfterSeconds`. |
+| `rateLimited` | 429 | Yes | Too many requests, or the most browser sessions are open at once. Wait `retryAfterSeconds`, or close a session. |
+| `internalError` | 500, 503 | Yes | The error is on Stophy's side, and the call cost nothing. Retry in a second. If it fails again, send support the `X-Request-ID`. |
 | `sourceChanged` | 502 | No | The site answered in a shape Stophy could not read. Retrying will not help yet. |
+| `busy` | 503, 409 | Yes | Stophy, or every browser, is busy. A 409 means a network policy or a proxy change on a session is still being applied. Wait `retryAfterSeconds`. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering right now. Wait `retryAfterSeconds`. |
 | `sourceRefused` | 503 | Yes | The site is refusing requests right now. Wait `retryAfterSeconds`. |
 | `sourceTimeout` | 504 | Yes | The site took too long to answer. Try again. |
 
+The code `insufficientCredits` keeps its name, and its message and fields are in dollars.
+
 ## Real errors
 
-**No key on an endpoint that needs one.** `401 apiKeyRequired`, from crawl.
+**No API key on an operation that needs one.** `401 apiKeyRequired`, from crawl.
 
 ```json
 {
   "success": false,
   "error": "This needs an API key. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
   "code": "apiKeyRequired",
+  "retryable": false,
+  "requestId": "fb8eba5b-0aa8-4d66-ac0c-64b49eef7512",
   "signupUrl": "https://stophy.dev/signup",
   "signup": "POST https://api.stophy.dev/v1/signup"
 }
@@ -85,18 +96,22 @@ The `X-Request-ID` header names the request. Include it when you contact support
   "success": false,
   "error": "This API key is not valid or has expired. POST https://api.stophy.dev/v1/signup returns a claim link for your person to approve and a code that collects the key. Send it as Authorization: Bearer <key>.",
   "code": "unauthorized",
+  "retryable": false,
   "signupUrl": "https://stophy.dev/signup",
-  "signup": "POST https://api.stophy.dev/v1/signup"
+  "signup": "POST https://api.stophy.dev/v1/signup",
+  "requestId": "003839dc-8633-4e0b-8518-220919a28bec"
 }
 ```
 
-**A path that is not an endpoint.** `404 notFound`, from a removed path like `/v1/google/search`.
+**A path that is not an operation.** `404 notFound`, from a removed path like `/v1/google/search`.
 
 ```json
 {
   "success": false,
   "error": "No endpoint at this path. See every endpoint at https://api.stophy.dev/openapi.json",
-  "code": "notFound"
+  "code": "notFound",
+  "retryable": false,
+  "requestId": "45c02f70-4561-430f-b8a3-0cc1457046c0"
 }
 ```
 
@@ -106,13 +121,27 @@ The `X-Request-ID` header names the request. Include it when you contact support
 {
   "success": false,
   "error": "That address has no website behind it. Check the spelling of the domain, then try again.",
-  "code": "notFound"
+  "code": "notFound",
+  "retryable": false,
+  "requestId": "7b741bd3-9d8f-4e3e-9a97-3a0f2471a6c3"
+}
+```
+
+**A recording that is not ready.** `409 invalidRequest`, from [Delete a recording](/api-reference/endpoint/browser-recording-delete).
+
+```json
+{
+  "success": false,
+  "error": "The video is not ready yet. Delete it when recordingStatus is ready or failed.",
+  "code": "invalidRequest",
+  "retryable": false,
+  "requestId": "d70fe307-5f88-4d3a-8b6e-5387ed3c2a86"
 }
 ```
 
 ## Account codes
 
-These come from signing in to the CLI and from invites, not from a data endpoint.
+These come from signing in to the CLI and from invites, not from a data operation.
 
 | Code | Status | What it means |
 | --- | --- | --- |
@@ -128,4 +157,4 @@ These come from signing in to the CLI and from invites, not from a data endpoint
 
 ## Retrying
 
-Retry only the codes marked Yes. [Errors and retries](/guides/errors-and-retries) has the wait and the most tries for each code, and a retry loop for TypeScript and Python.
+Retry only the codes marked Yes, or any error with `retryable: true`. [Troubleshooting](/production/troubleshooting) has the wait and the most tries for each code, and a retry loop for TypeScript and Python.

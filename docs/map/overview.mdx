@@ -1,0 +1,121 @@
+---
+title: "Map"
+description: "List the pages of a website without reading them: URLs with a title and description where known, in one request. $0.50 per 1,000 calls."
+og:title: "Map | Stophy"
+og:description: "List the pages of a website without reading them: URLs with a title and description where known, in one request. $0.50 per 1,000 calls."
+---
+
+Map returns the URLs on a website so you can choose which pages to read. It returns a list of pages, not their content.
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This request lists the first 5 pages of a site.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/map \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com",
+    "limit": 5
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/map", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com",
+    limit: 5,
+  }),
+});
+const { links } = await response.json();
+for (const link of links) console.log(link.url, link.title);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/map",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com",
+        "limit": 5,
+    },
+)
+for link in response.json()["links"]:
+    print(link["url"], link.get("title"))
+```
+</CodeGroup>
+
+You can try Map without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).
+
+## Read the response
+
+`links` is a list of pages. Each has a `url`, and a `title` and `description` when Stophy knows them. A page with none has only its `url`.
+
+```json
+{
+  "success": true,
+  "links": [
+    {
+      "url": "https://bun.com/",
+      "title": "Bun — A fast all-in-one JavaScript runtime",
+      "description": "Bundle, install, and run JavaScript & TypeScript — all in Bun. Bun is a fast JavaScript runtime & toolkit with a bundler, test runner, and npm-compatible package manager built in."
+    },
+    { "url": "https://bun.com/404" },
+    { "url": "https://bun.com/blog" },
+    { "url": "https://bun.com/blog/2x-faster-bun-install-windows" },
+    { "url": "https://bun.com/blog/behind-the-scenes-of-bun-install" }
+  ],
+  "costUsd": 0.0005,
+  "creditsUsed": 1,
+  "requestId": "7513a729-b559-4752-8605-cba5f521d6ca"
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `url` | `string` | none | Any page of the site to map, such as `https://bun.com`. Required. |
+| `limit` | `number` | `5000` | The most URLs to return, 1 to 100,000. |
+| `timeout` | `number` | none | Stop looking after this many milliseconds, at least 1,000, and return what was found. |
+| `location` | `object` | United States | `country` and `languages` to read the site from. See [Location and headers](/scrape/location-and-headers). |
+| `ignoreCache` | `boolean` | `false` | Send `true` to build the list again instead of reusing one made in the last 6 hours. |
+
+To narrow the list by topic, sitemap, subdomain or query string, see [Filter and search](/map/filter-and-search).
+
+## Use the results
+
+Pick the URLs you need and read them:
+
+- [Scrape](/scrape/overview) reads one URL.
+- [Batches](/batches/overview) read a list of URLs in the background.
+- [Crawl](/crawl/overview) follows links from one URL on its own, without a list.
+
+## Limits and errors
+
+- A site that cannot be reached returns `503 sourceUnavailable`.
+- `sitemap: "only"` on a site with no sitemap returns `404 notFound`. Send `sitemap: "include"` to list its pages instead.
+- A site Stophy does not read returns `403 siteNotRead`.
+- A URL on a private network returns `400 invalidRequest`.
+- `includeSubdomains: true` without an API key returns `401 apiKeyRequired`. Without an API key, the list covers one host.
+- A map lists what was found in the time allowed. It may not find every page of the site. A site that exposes few pages returns a short list.
+
+## Price
+
+$0.50 per 1,000 calls, whatever the length of the list. A call that fails costs nothing. See [Pricing](/account/pricing).
+
+## Choose another API
+
+- [Scrape](/scrape/overview) reads one page.
+- [Crawl](/crawl/overview) reads every page of a site in the background.
+- [Batches](/batches/overview) read a list of URLs in the background.
+- [Search](/search/overview) finds pages from a query and can read each result.

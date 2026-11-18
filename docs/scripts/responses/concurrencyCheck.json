@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/concurrency-check"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "concurrency": 1,
+    "maxConcurrency": 10,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "34622286-ba4a-4e3b-bc0c-670bf9e53d91"
+  }
+}

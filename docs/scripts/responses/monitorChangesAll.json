@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/monitor/changes"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "changes": [
+        {
+          "id": "mon_gYdxFOZnpRdWHJUN.1794938034683.-lGDFZjoODqPCUeF",
+          "monitorId": "mon_gYdxFOZnpRdWHJUN",
+          "monitorName": "Docs example, renamed",
+          "at": "2026-11-17T17:53:54.066Z",
+          "url": "https://bun.com/docs/runtime/bunfig",
+          "changeStatus": "new",
+          "creditsUsed": 1,
+          "costUsd": 0.001
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "b23e0523-509a-4288-aa2a-26fec0b20fa3"
+  }
+}

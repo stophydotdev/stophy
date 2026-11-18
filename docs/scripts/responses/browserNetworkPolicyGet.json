@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/network-policies/3b278838-610e-4e91-9a6c-c627d3a46e63"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "3b278838-610e-4e91-9a6c-c627d3a46e63",
+    "name": "docs-example",
+    "defaultAction": "block",
+    "allow": {
+      "domains": [
+        "bun.com"
+      ]
+    },
+    "block": {
+      "domains": []
+    },
+    "version": 1,
+    "createdAt": "2026-11-17T17:49:05.858Z",
+    "updatedAt": "2026-11-17T17:49:05.858Z",
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "afc880ec-b73f-4110-b4ba-a75f0b435994"
+  }
+}

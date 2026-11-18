@@ -1,0 +1,207 @@
+---
+title: "Tasks"
+description: "Give a public website and a goal in plain words, and a browser clicks through it and returns an answer. $0.84 per hour of browser time, capped by maxCost."
+og:title: "Tasks | Stophy"
+og:description: "Give a public website and a goal in plain words, and a browser clicks through it and returns an answer. $0.84 per hour of browser time, capped by maxCost."
+---
+
+A browser task does a few steps a person would click through on a public site, such as a search with filters or a form to fill, and returns what it found. You send a start page and a goal. You do not open or close a session.
+
+## Start a task
+
+Get an API key in the [Quickstart](/quickstart). Send `url`, `goal` and, if you want fields back, a `schema`. `POST /v1/browser/task` answers at once with an `id`, and the task runs in the background.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/browser/task \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.python.org",
+    "goal": "Open the Downloads page and find the latest Python release number and its release date.",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "releaseDate": { "type": "string" }
+      }
+    },
+    "maxSteps": 10,
+    "maxCost": 0.05
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/browser/task", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://www.python.org",
+    goal: "Open the Downloads page and find the latest Python release number and its release date.",
+    schema: {
+      type: "object",
+      properties: {
+        version: { type: "string" },
+        releaseDate: { type: "string" },
+      },
+    },
+    maxSteps: 10,
+    maxCost: 0.05,
+  }),
+});
+const { data } = await response.json();
+console.log(data.id, data.status);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/browser/task",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://www.python.org",
+        "goal": "Open the Downloads page and find the latest Python release number and its release date.",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "version": {"type": "string"},
+                "releaseDate": {"type": "string"},
+            },
+        },
+        "maxSteps": 10,
+        "maxCost": 0.05,
+    },
+)
+data = response.json()["data"]
+print(data["id"], data["status"])
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "aadd0435-20b6-45a1-b24d-1e4e6305affc",
+    "status": "running"
+  },
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "ab69f06f-e9e8-464c-90e3-263cd2335064"
+}
+```
+
+## Read the result
+
+Send the `id` to `POST /v1/browser/task/status` until `status` is `done`. The call is free. While the task runs, `result` is `null`.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/browser/task/status \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "id": "<the id your task returned>" }'
+```
+```typescript TypeScript
+const taskId = "<the id your task returned>";
+const status = await fetch("https://api.stophy.dev/v1/browser/task/status", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ id: taskId }),
+});
+const { data: task } = await status.json();
+console.log(task.status, task.result?.fields, task.costUsd);
+```
+```python Python
+import os
+
+import requests
+
+task_id = "<the id your task returned>"
+status = requests.post(
+    "https://api.stophy.dev/v1/browser/task/status",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={"id": task_id},
+)
+task = status.json()["data"]
+print(task["status"], task["result"]["fields"], task["costUsd"])
+```
+</CodeGroup>
+
+This real task finished in 9 seconds.
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "done",
+    "result": {
+      "done": true,
+      "answer": "The latest Python release is 3.15.2, released Oct. 25, 2026.",
+      "steps": ["click link \"Downloads\""],
+      "url": "https://www.python.org/downloads/",
+      "title": "Download Python | Python.org",
+      "seconds": 9.2,
+      "fields": {
+        "version": "3.15.2",
+        "releaseDate": "Oct. 25, 2026"
+      },
+      "confidence": {
+        "version": 0.9695,
+        "releaseDate": 0.7751
+      }
+    },
+    "creditsUsed": 7,
+    "costUsd": 0.014
+  },
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "30037a3f-86b8-4cc0-b020-b533b4d7f51a"
+}
+```
+
+`result.done` says whether the goal was met. `answer` is the result in words, and `steps` lists what the task clicked. `url` and `title` are the page it ended on. With a `schema`, `fields` holds one value per property, and `confidence` says how sure the task is of each, from 0 to 1. A field that no page stated comes back `null`. When the goal was not met, `done` is `false` and `reason` says why. `costUsd` on `data` is what the task cost. `creditsUsed` is the older field for the same amount, in steps of $0.002.
+
+A task is kept for 24 hours after it starts.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `url` | `string` | none | The public page to start on, such as `https://www.python.org`. Required. |
+| `goal` | `string` | none | What to get done, in one or two sentences, up to 1,000 characters. Required. |
+| `values` | `string` | none | Values the steps need, such as `from London, to Istanbul, date 2026-12-01`. Up to 1,000 characters. They are typed only on the start page's site. |
+| `schema` | `object` | none | Fields to fill when the task is done, as a JSON Schema object with `properties`. Each is checked against the pages the task saw. |
+| `maxSteps` | `number` | `50` | The most steps the task may take, 1 to 50. |
+| `maxCost` | `number` | the full 10 minutes | The most the task may spend, in US dollars. At least $0.014. The task stops when it is spent. |
+
+## What a task will not do
+
+A task stops before anything that pays, books, sends, submits or deletes. It never signs in to a site. It takes up to 50 steps and 10 minutes. For logged-in work, or a flow you want to control, open a [browser session](/browser/overview) and use [Execute](/browser/execute).
+
+## Price
+
+$0.84 per hour of browser time the task runs, billed by the minute, one minute at least, up to `maxCost`. Each minute is $0.014. The task above ran 9 seconds and cost $0.014, one minute. A task that ends before its first step costs nothing.
+
+Starting a task sets aside the most it can cost, and what it does not use comes back when it ends. Send `maxCost` to set that amount: `0.05` allows 3 minutes. Without it, the task may spend up to 10 minutes, $0.14. See [Pricing](/account/pricing).
+
+## Limits and errors
+
+- You can have 2 tasks open at once. A third returns `429 rateLimited`: `You have 2 browser tasks open, the most at once. Start another when one ends, which is within 15 minutes.`
+- A `maxCost` below one minute returns `400 invalidRequest`: `maxCost must cover at least one browser minute, which is $0.014 ($0.84 per hour).`
+- A `schema` that is not an object with `properties` returns `400 invalidRequest`: `schema: Send a JSON Schema object with properties, or one whose $ref points at such an object`.
+- A task id that is unknown, or older than 24 hours, returns `404 notFound`: `Stophy has no browser task with that id. Check the id. A browser task is kept for 24 hours after it starts.`
+- A balance too low to cover `maxCost` returns `402 insufficientCredits` and the task does not start.
+
+## Related
+
+- [Browser sessions](/browser/overview) give you a browser to drive yourself.
+- [Execute](/browser/execute) runs a prompt in a session you control.
+- [Scrape](/scrape/overview) reads a page with no clicks.
+- [Task reference](/api-reference/endpoint/browser-task) and [status reference](/api-reference/endpoint/browser-task-status) list every field.

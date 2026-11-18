@@ -17,22 +17,27 @@
     "data": {
       "news": [
         {
-          "title": "Stocks making the biggest moves midday: Micron, Tesla, Tripadvisor, AppLovin, Nvidia & more",
-          "url": "https://www.cnbc.com/2026/11/05/stocks-making-the-biggest-moves-midday-mu-tsla-trip-app-nvda.html",
-          "snippet": "Here are some of the companies making headlines in midday trading.",
-          "date": "2026-11-05T18:35:11.000Z",
+          "title": "Nvidia earnings live updates: Wall Street braces for first report since Huang's ouster",
+          "url": "https://www.cnbc.com/2026/11/17/nvidia-nvda-earnings-report-q3-2027.html",
+          "snippet": "Nvidia is scheduled to release fiscal third-quarter 2027 results Tuesday, November 17, at approximately 4:20 p.m. ET,…",
+          "date": "2026-11-17T12:49:26.000Z",
+          "imageUrl": "https://example.com/",
           "position": 1
         }
       ],
       "web": [
         {
-          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
-          "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal ...",
-          "description": "GAAP and non-GAAP earnings per diluted share were $2.46 and $2.22, respectively.\n\n“AI has reached its inflection…",
-          "position": 1
+          "url": "https://www.cnbc.com/2026/11/17/nvidia-nvda-earnings-report-q3-2027.html",
+          "title": "Nvidia earnings live updates: Wall Street braces for first report since Huang's ouster",
+          "description": "Growth remains explosive, with revenue expansion expected to reach 91% in the latest quarter from $59 billion in the…",
+          "position": 1,
+          "date": "2026-11-17T00:00:00.000Z"
         }
       ]
     },
-    "creditsUsed": 4
+    "id": "8cb72541-6e23-4f56-b9eb-fa02af8943b4",
+    "costUsd": 0.002,
+    "creditsUsed": 1,
+    "requestId": "8cb72541-6e23-4f56-b9eb-fa02af8943b4"
   }
 }

@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/crawl/params-preview",
+    "body": {
+      "url": "https://bun.com/docs",
+      "prompt": "Only the runtime pages, at most 10"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "url": "https://bun.com/docs",
+      "includePaths": [
+        "runtime/.*"
+      ],
+      "limit": 10
+    },
+    "costUsd": 0.003,
+    "creditsUsed": 2,
+    "requestId": "317a53e1-d485-4e83-8b7f-329f805fdd2c"
+  }
+}

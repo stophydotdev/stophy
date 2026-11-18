@@ -1,0 +1,34 @@
+{
+  "request": {
+    "method": "PATCH",
+    "path": "/v1/browser/network-policies/3b278838-610e-4e91-9a6c-c627d3a46e63",
+    "body": {
+      "name": "docs-example-renamed"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "id": "3b278838-610e-4e91-9a6c-c627d3a46e63",
+    "name": "docs-example-renamed",
+    "defaultAction": "block",
+    "allow": {
+      "domains": [
+        "bun.com"
+      ]
+    },
+    "block": {
+      "domains": []
+    },
+    "version": 2,
+    "createdAt": "2026-11-17T17:49:05.858Z",
+    "updatedAt": "2026-11-17T17:49:06.327Z",
+    "runningSessions": 0,
+    "appliedSessions": 0,
+    "pendingSessionIds": [],
+    "closedConnections": 0,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "b79921f7-7a8b-4d84-95b3-bee0b8a2184a"
+  }
+}

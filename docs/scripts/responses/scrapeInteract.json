@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/scrape/ac28ed59-d0d8-4639-92e1-e1b0db5e9abb/interact",
+    "body": {
+      "code": "console.log(await page.title())",
+      "language": "node"
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "output": "bunfig.toml | Bun Docs\n",
+    "stdout": "bunfig.toml | Bun Docs\n",
+    "stderr": "",
+    "exitCode": 0,
+    "killed": false,
+    "truncated": false,
+    "cdpUrl": "<cdpUrl>",
+    "liveViewUrl": "<liveViewUrl>",
+    "interactiveLiveViewUrl": "<interactiveLiveViewUrl>",
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "775f17d2-f341-4812-905a-8338679820ae"
+  }
+}

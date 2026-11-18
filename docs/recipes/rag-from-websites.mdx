@@ -1,0 +1,253 @@
+---
+title: "RAG from websites"
+description: "Crawl a docs section, split each page into chunks that keep their source URL and heading, and load them into a search index. 3 pages cost $0.003."
+og:title: "RAG from websites | Stophy"
+og:description: "Crawl a docs section, split each page into chunks that keep their source URL and heading, and load them into a search index. 3 pages cost $0.003."
+---
+
+A retrieval index is only as good as its chunks. You crawl a docs section, cut each page at its headings, and keep the page URL and heading on every chunk. When the index returns a chunk, you can link to where it came from.
+
+You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). The run on this page read 3 pages and cost $0.003.
+
+## 1. Crawl the section
+
+Crawl starts at one page, follows its links, and reads every page it finds. Starting is free, and each page is charged when it finishes. This request stops after 3 pages, which is enough to build and check the pipeline. Raise `limit` for the whole section.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/crawl \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime",
+    "limit": 3
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/crawl", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime",
+    limit: 3,
+  }),
+});
+const { id } = await response.json();
+console.log(id);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/crawl",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime",
+        "limit": 3,
+    },
+)
+print(response.json()["id"])
+```
+</CodeGroup>
+
+The call answers at once with the crawl's `id`.
+
+```json
+{
+  "success": true,
+  "id": "job_9FAn-0pRXhHk7olrXk0sVg",
+  "url": "https://api.stophy.dev/v1/crawl/job_9FAn-0pRXhHk7olrXk0sVg",
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "a02dc5f9-a3b8-4ce5-9368-a155b693f74b"
+}
+```
+
+To keep a crawl to one part of a site, set `includePaths` and `excludePaths`. See [Scope and limits](/crawl/scope). To read only chosen pages, list them with [Map](/map/overview) and send the ones you want to a [batch](/batches/overview).
+
+## 2. Read every page
+
+Poll `GET /v1/crawl/{id}` until `status` is `completed`. Then read the pages with `GET /v1/crawl/{id}/results`, up to 100 at a time, and send `cursor` from `data.cursor` until it is missing. Both calls are free, and the pages are kept for 24 hours. See [Read a crawl](/crawl/async).
+
+Each result has the page's `markdown`, its `url`, its `title` and its `depth`. This is the real answer for the 3 pages, cut to the first result.
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "job_9FAn-0pRXhHk7olrXk0sVg",
+    "status": "completed",
+    "total": 3,
+    "completed": 3,
+    "failed": 0,
+    "creditsUsed": 2,
+    "costUsd": 0.003,
+    "errors": [],
+    "results": [
+      {
+        "markdown": "# Bun Runtime\n\n> Execute JavaScript/TypeScript files, package.json scripts, and …",
+        "url": "https://bun.com/docs/runtime",
+        "title": "Bun Runtime",
+        "depth": 0,
+        "statusCode": 200,
+        "isTruncated": false
+      }
+    ]
+  }
+}
+```
+
+## 3. Cut each page into chunks
+
+Split at headings, and keep a fenced code block whole, so a shell comment that starts with `#` is not read as a heading. Pack paragraphs into chunks of about 1,200 characters. Every chunk keeps the `url`, the page `title` and the `heading` it sits under. Save this file as `chunk.ts`.
+
+````typescript
+export interface Page {
+  url: string;
+  title: string;
+  markdown: string;
+}
+
+export interface Chunk {
+  id: string;
+  url: string;
+  title: string;
+  heading: string;
+  text: string;
+}
+
+const MAX_CHARS = 1200;
+
+export function chunkPage({ url, title, markdown }: Page): Chunk[] {
+  const chunks: Chunk[] = [];
+  let heading = title;
+  let blocks: string[] = [];
+  let block: string[] = [];
+  let inFence = false;
+
+  const endBlock = () => {
+    if (block.length > 0) blocks.push(block.join("\n"));
+    block = [];
+  };
+  const endSection = () => {
+    endBlock();
+    let text = "";
+    for (const piece of blocks) {
+      if (text !== "" && text.length + piece.length > MAX_CHARS) {
+        chunks.push({ id: `${url}#${chunks.length}`, url, title, heading, text });
+        text = "";
+      }
+      text = text === "" ? piece : `${text}\n\n${piece}`;
+    }
+    if (text !== "") chunks.push({ id: `${url}#${chunks.length}`, url, title, heading, text });
+    blocks = [];
+  };
+
+  for (const line of markdown.split("\n")) {
+    if (line.startsWith("```")) inFence = !inFence;
+    if (!inFence && /^#{1,3} /.test(line)) {
+      endSection();
+      heading = line.replace(/^#+ /, "");
+    } else if (!inFence && line.trim() === "") {
+      endBlock();
+    } else {
+      block.push(line);
+    }
+  }
+  endSection();
+  return chunks;
+}
+````
+
+This function joins steps 1 to 3. It starts the crawl, waits, reads every result and returns the chunks.
+
+```typescript
+import { chunkPage, type Chunk } from "./chunk.ts";
+
+const headers = {
+  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+  "Content-Type": "application/json",
+};
+
+interface Result {
+  url: string;
+  title: string;
+  markdown: string;
+}
+
+interface ResultsAnswer {
+  data: { results: Result[]; cursor?: string };
+}
+
+export async function crawlToChunks(startUrl: string, limit: number): Promise<Chunk[]> {
+  const start = await fetch("https://api.stophy.dev/v1/crawl", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ url: startUrl, limit }),
+  });
+  const { id } = await start.json();
+  const crawl = `https://api.stophy.dev/v1/crawl/${id}`;
+
+  for (;;) {
+    const { status } = await (await fetch(crawl, { headers })).json();
+    if (status !== "queued" && status !== "scraping") break;
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  const chunks: Chunk[] = [];
+  let cursor: string | undefined;
+  do {
+    const query = new URLSearchParams({ limit: "100", ...(cursor && { cursor }) });
+    const answer: ResultsAnswer = await (await fetch(`${crawl}/results?${query}`, { headers })).json();
+    for (const page of answer.data.results) chunks.push(...chunkPage(page));
+    cursor = answer.data.cursor;
+  } while (cursor !== undefined);
+  return chunks;
+}
+```
+
+On the 3 pages above it returned 61 chunks, from 3 different URLs. The longest was 1,483 characters, because a code block is never split. This is one of them.
+
+```json
+{
+  "id": "https://bun.com/docs/runtime/archive#2",
+  "url": "https://bun.com/docs/runtime/archive",
+  "title": "Archive",
+  "heading": "Creating Archives",
+  "text": "Use `new Bun.Archive()` to create an archive from an object where keys are file paths and values are file contents. By default, archives are uncompressed:\n\n```ts\n// Creates an uncompressed tar archive (default)\nconst archive = new Bun.Archive({ … });\n```\n\nFile contents can be: …"
+}
+```
+
+## 4. Index with the source
+
+Embed `text` with your model and store the whole chunk next to the vector: `id`, `url`, `title`, `heading` and `text`. The `id` is the page URL and the chunk number. When you crawl a page again, delete the chunks with that `url` first, then add the new ones, so no old chunk stays behind.
+
+When your retrieval returns a chunk, show `title`, `heading` and a link to `url`. Put the `url` in the prompt too, and tell the model to cite it.
+
+## 5. Keep it fresh
+
+Crawl again to rebuild the index. To re-read only what changed, create a [monitor](/monitors/targets#crawl-targets) with a `crawl` target on the same section. It sends a `monitor.page` event for each page that changed or appeared. Read those pages again with [Scrape](/scrape/overview) and replace their chunks.
+
+## What to check
+
+- The crawl's `completed` equals its `total`, and `errors` is empty. Pages that failed are listed in `GET /v1/crawl/{id}/errors`.
+- Every chunk has a `url` under your start page.
+- The chunk count per page is plausible. A page with 1 chunk and 20,000 characters means the headings were not split.
+- Pick three chunks, open their `url` and find the text. If you cannot, fix the chunker before you embed.
+- Ask three questions you know the answer to. The right page should come back in the top results.
+
+## What it costs
+
+Crawl costs $1 per 1,000 pages, which is $0.001 a page. A 100-page section costs $0.10, and a 1,000-page section costs $1. Reading the results costs nothing, and neither does a page that fails. A monitor on the same section costs the same per page, on every check. See [Pricing](/account/pricing).
+
+## Related
+
+- [Crawl](/crawl/overview) explains the start options.
+- [Page content](/crawl/page-content) sets what each page returns, such as `onlyMainContent`.
+- [Website change digest](/recipes/website-change-digest) turns page changes into a summary.
+- [Parse documents](/parse/overview) turns your own PDFs into Markdown for the same pipeline.

@@ -1,0 +1,108 @@
+---
+title: "MCP with or without an API key"
+sidebarTitle: "With or without an API key"
+description: "Add Stophy to Claude Code, Codex, Cursor, VS Code, Windsurf or OpenCode without an API key for the free endpoints, then add one to use every endpoint."
+og:title: "MCP with or without an API key | Stophy"
+og:description: "Add Stophy to Claude Code, Codex, Cursor, VS Code, Windsurf or OpenCode without an API key for the free endpoints, then add one to use every endpoint."
+---
+
+Connect to `https://api.stophy.dev/mcp` without an API key to try Stophy, then add one to use every endpoint. To sign in with your browser instead, see [Install MCP](/install-mcp).
+
+## Connect without an API key
+
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http stophy https://api.stophy.dev/mcp
+```
+
+```bash Codex
+codex mcp add stophy --url https://api.stophy.dev/mcp
+```
+
+```bash VS Code
+code --add-mcp '{"name":"stophy","type":"http","url":"https://api.stophy.dev/mcp"}'
+```
+
+```json Cursor (~/.cursor/mcp.json)
+{
+  "mcpServers": {
+    "stophy": { "url": "https://api.stophy.dev/mcp" }
+  }
+}
+```
+
+```json Windsurf (mcp_config.json)
+{
+  "mcpServers": {
+    "stophy": { "serverUrl": "https://api.stophy.dev/mcp" }
+  }
+}
+```
+
+```bash OpenCode
+opencode mcp add stophy --url https://api.stophy.dev/mcp
+```
+
+</CodeGroup>
+
+In Windsurf, open `mcp_config.json` with **Open MCP config file** in the Cascade MCP menu.
+
+Without an API key, your agent can search, scrape, map and parse, and use the parsers marked `keyless: true` in the [parser list](https://api.stophy.dev/v1/parsers), up to 10 calls a minute and 50 calls a day per IP address. Reddit search, YouTube transcripts and Google Maps search are among those parsers. Paging, crawl, batches, extract, agent, browsers and monitors need an API key.
+
+`GET /v1/keyless/eligibility` returns `remainingToday` and `remainingThisMinute`, the calls your IP address has left. See [Rate limits](/production/rate-limits).
+
+## Add an API key
+
+For every endpoint, [create an API key](https://stophy.dev/signup) and send it to the same URL. Keep it in `STOPHY_API_KEY` or your client's secret settings, never in a file you commit.
+
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http stophy https://api.stophy.dev/mcp --header "Authorization: Bearer $STOPHY_API_KEY"
+```
+
+```bash Codex
+codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
+```
+
+```json VS Code (.vscode/mcp.json)
+{
+  "inputs": [
+    { "type": "promptString", "id": "stophy-key", "description": "Stophy API key", "password": true }
+  ],
+  "servers": {
+    "stophy": {
+      "type": "http",
+      "url": "https://api.stophy.dev/mcp",
+      "headers": { "Authorization": "Bearer ${input:stophy-key}" }
+    }
+  }
+}
+```
+
+```bash OpenCode
+opencode mcp add stophy --url https://api.stophy.dev/mcp --header 'Authorization=Bearer {env:STOPHY_API_KEY}'
+```
+
+</CodeGroup>
+
+VS Code asks for the key the first time the server starts and stores it. The server refuses a wrong key. Remove the header to go back to the free endpoints. In Cursor, Windsurf and Gemini CLI, use [browser sign-in](/mcp/oauth) instead of a key.
+
+An agent without an API key can get one on its own with the `stophy_signup` tool. It returns a link for you to approve and a code, then the key when it calls again with the code. See the [Agent quickstart](/agent-quickstart).
+
+## Check it
+
+Ask your agent this.
+
+```text
+Search YouTube for "rust tutorial" and summarize the top three videos.
+```
+
+If `stophy` shows no tools, restart your client.
+
+## Related
+
+* [Install MCP](/install-mcp)
+* [Browser sign-in](/mcp/oauth)
+* [Rate limits](/production/rate-limits)

@@ -1,51 +1,39 @@
 {
   "request": {
     "method": "GET",
-    "path": "/v1/crawl/job_a-Bqc0NaZ8ADzLB4rhpeKA"
+    "path": "/v1/crawl/job_qqmWroHTkWk61kDjA32Q3g"
   },
   "status": 200,
   "response": {
     "success": true,
-    "status": "completed",
-    "total": 2,
-    "completed": 2,
-    "creditsUsed": 2,
-    "createdAt": "2026-11-05T23:35:26.793Z",
-    "completedAt": "2026-11-05T23:35:28.779Z",
-    "duration": 1.986,
-    "expiresAt": "2026-11-06T23:35:26.793Z",
     "data": [
       {
-        "markdown": "# Welcome to Bun\n\nBun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.\n\n[Bun Runtime…",
+        "markdown": "# Welcome to Bun\n\n> Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.\n…",
         "metadata": {
-          "viewport": "width=device-width, initial-scale=1",
-          "theme-color": [
-            "#ffffff",
-            "#0d0a0c"
-          ],
-          "og:type": "website",
-          "og:image": "https://bun.com/og/docs.png",
-          "twitter:site": "@bunjavascript",
-          "twitter:card": "summary_large_image",
-          "ogTitle": "Welcome to Bun | Bun Docs",
-          "ogDescription": "Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.",
-          "ogUrl": "https://bun.com/docs",
-          "ogLocale": "en_US",
-          "ogSiteName": "Bun",
-          "favicon": "https://bun.com/favicon.ico",
-          "title": "Welcome to Bun | Bun Docs",
-          "description": "Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.",
-          "language": "en",
-          "ogImage": "https://bun.com/og/docs.png",
+          "proxyUsed": "basic",
+          "title": "Welcome to Bun",
           "sourceURL": "https://bun.com/docs",
           "url": "https://bun.com/docs",
           "statusCode": 200,
-          "contentType": "text/html",
+          "contentType": "text/markdown",
           "cacheState": "miss",
-          "scrapeId": "job_a-Bqc0NaZ8ADzLB4rhpeKA",
-          "creditsUsed": 1
+          "scrapeId": "job_qqmWroHTkWk61kDjA32Q3g",
+          "creditsUsed": 1,
+          "costUsd": 0.001
         }
       }
-    ]
+    ],
+    "status": "completed",
+    "total": 2,
+    "completed": 2,
+    "failed": 0,
+    "creditsUsed": 1,
+    "costUsd": 0.002,
+    "createdAt": "2026-11-17T17:49:57.354Z",
+    "completedAt": "2026-11-17T17:50:00.027Z",
+    "duration": 2.673,
+    "expiresAt": "2026-11-18T17:49:57.354Z",
+    "errors": [],
+    "requestId": "1b7bbd19-1533-4db8-94ec-1603b4b3d912"
   }
 }

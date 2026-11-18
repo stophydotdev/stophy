@@ -1,0 +1,40 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/search/developer",
+    "body": {
+      "query": "bun sqlite",
+      "k": 5
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "partial": false,
+    "results": [
+      {
+        "id": "83ecaf7c2fab80b6",
+        "url": "https://github.com/oven-sh/bun/issues/19701",
+        "title": "SQLite adapter with `Bun.sql`",
+        "license": null,
+        "passages": [
+          {
+            "text": "oven-sh/bun issue #19701 · open · labels: enhancement, bun:sqlite, sql\n\nBun has a built-in SQLite client with…",
+            "citation_url": "https://github.com/oven-sh/bun/issues/19701",
+            "truncated": false
+          }
+        ],
+        "type": "issue",
+        "repo": "oven-sh/bun",
+        "stars": 96579,
+        "language": "Rust",
+        "date": "2025-06-06T02:57:58Z",
+        "state": "open"
+      }
+    ],
+    "repos": [],
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "0ddebe1f-9ec4-463e-b0fb-3ff45f357054"
+  }
+}

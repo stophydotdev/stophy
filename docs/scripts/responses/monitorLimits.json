@@ -1,0 +1,33 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/monitor/limits"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "monitors": {
+        "used": 1,
+        "limit": 25,
+        "active": 1
+      },
+      "pages": {
+        "used": 1,
+        "limit": 1000
+      },
+      "perMonitor": {
+        "pages": 100,
+        "targets": 50
+      },
+      "intervalSeconds": {
+        "min": 300,
+        "max": 2592000
+      },
+      "estimatedCreditsPerMonth": 30
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "fde4f015-aabe-413c-98b4-34c2e39890cb"
+  }
+}

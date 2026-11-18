@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/monitor/usage"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "from": "2026-10-18T17:54:13.594Z",
+      "to": "2026-11-17T17:54:13.594Z",
+      "totalCredits": 21,
+      "totalCostUsd": 0.042,
+      "monitors": [
+        {
+          "id": "mon_0t7c4BOHDH9HfJUK",
+          "credits": 6,
+          "costUsd": 0.012,
+          "charges": 4,
+          "deleted": true
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "0f573a17-309b-428a-80ed-38643ba60514"
+  }
+}

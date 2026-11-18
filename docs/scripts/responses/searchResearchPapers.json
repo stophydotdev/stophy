@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/search/research/papers",
+    "body": {
+      "query": "retrieval augmented generation",
+      "k": 5
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "results": [
+      {
+        "paperId": "W4411630045",
+        "primaryId": "doi:10.18653/v1/2024.eacl-demo.16",
+        "ids": {
+          "openalex": [
+            "W4411630045"
+          ],
+          "doi": [
+            "10.18653/v1/2024.eacl-demo.16"
+          ]
+        },
+        "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
+        "abstract": "Shahul Es, Jithin James, Luis Espinosa Anke, Steven Schockaert. Proceedings of the 18th Conference of the European…",
+        "authors": [
+          "Shahul Es",
+          "Jithin James",
+          "Luis Espinosa-Anke"
+        ],
+        "year": 2024,
+        "citedByCount": 537,
+        "openAccessUrl": "https://aclanthology.org/2024.eacl-demo.16.pdf",
+        "score": 102194.48
+      }
+    ],
+    "costUsd": 0.001,
+    "creditsUsed": 1,
+    "requestId": "be6c6aa2-b90a-4956-b93f-5f2080287e82"
+  }
+}

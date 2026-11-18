@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/agent"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "agents": [
+      {
+        "id": "job_4kxytfWzbr774qn3-Ju4Qw",
+        "createdAt": "2026-11-17T17:50:23.347Z",
+        "status": "completed",
+        "targetHint": "https://bun.com/docs/runtime/bunfig",
+        "origin": "api",
+        "options": {
+          "urls": [
+            "https://bun.com/docs/runtime/bunfig"
+          ],
+          "prompt": "What is the name of the configuration file this page describes?",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string"
+              }
+            }
+          },
+          "model": "spark-2",
+          "effort": "high"
+        }
+      }
+    ],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "b8a685b9-d570-4fff-9bdb-486d9a76cd28"
+  }
+}

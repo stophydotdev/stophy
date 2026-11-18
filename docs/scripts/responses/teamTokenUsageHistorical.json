@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/team/token-usage/historical"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "periods": [
+      {
+        "startDate": "2025-12-01T00:00:00.000Z",
+        "endDate": "2026-01-01T00:00:00.000Z",
+        "totalTokens": 0,
+        "tokensUsed": 0
+      }
+    ],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "d652abae-e25b-4a55-a931-b99cb92e4463"
+  }
+}

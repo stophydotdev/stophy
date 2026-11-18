@@ -1,0 +1,222 @@
+---
+title: "Filters"
+description: "Narrow a search to chosen sites, a time window, a place or a language. Use includeDomains, tbs, location, country, lang and safe in one request."
+og:title: "Filters | Stophy"
+og:description: "Narrow a search to chosen sites, a time window, a place or a language. Use includeDomains, tbs, location, country, lang and safe in one request."
+---
+
+Filters narrow the results of a [search](/search/overview) by site, time, place, language and safety. Send them next to `query`.
+
+## Search selected sites
+
+Get an API key in the [Quickstart](/quickstart). This request searches two sites and keeps results from the past year.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/search \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "sqlite driver",
+    "includeDomains": ["bun.com", "nodejs.org"],
+    "tbs": "qdr:y",
+    "limit": 3
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/search", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "sqlite driver",
+    includeDomains: ["bun.com", "nodejs.org"],
+    tbs: "qdr:y",
+    limit: 3,
+  }),
+});
+const { data } = await response.json();
+console.log(data.web.map((result) => result.url));
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/search",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "query": "sqlite driver",
+        "includeDomains": ["bun.com", "nodejs.org"],
+        "tbs": "qdr:y",
+        "limit": 3,
+    },
+)
+data = response.json()["data"]
+print([result["url"] for result in data["web"]])
+```
+</CodeGroup>
+
+## Read the response
+
+Every result is on one of the sites you named. This real response is cut to a shorter description for each row.
+
+```json
+{
+  "success": true,
+  "data": {
+    "web": [
+      {
+        "url": "https://bun.com/",
+        "title": "Bun — A fast all-in-one JavaScript runtime",
+        "description": "import { dlopen, FFIType, suffix } from \"bun:ffi\"; // \"dylib\" on macOS, \"so\" on Linux, \"dll\" on Windows …",
+        "position": 1
+      },
+      {
+        "url": "https://bun.com/blog/bun-v1.3.3",
+        "title": "Bun v1.3.3 | Bun Blog",
+        "description": "bun:sqlite has been updated to SQLite v3.51.0.",
+        "position": 2,
+        "date": "2025-11-21T00:00:00.000Z"
+      },
+      {
+        "url": "https://bun.com/blog/bun-v1.4.4",
+        "title": "Bun v1.4.4 | Bun Blog",
+        "description": "We reworked Bun.SQL, bun:sqlite and node:sqlite in a single change that replaces 149 open pull requests and fixes 51 issues.",
+        "position": 3
+      }
+    ]
+  },
+  "id": "ab7b621b-14a0-460c-8546-7cc62739420b",
+  "costUsd": 0.001,
+  "requestId": "ab7b621b-14a0-460c-8546-7cc62739420b"
+}
+```
+
+A filter can leave fewer results than `limit`. A call that returns nothing costs nothing and carries a `warning`.
+
+## Search from a place
+
+`location` and `lang` steer which pages come back. This request searches from Berlin and asks for German pages.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/search \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "bakery",
+    "location": "Berlin,Germany",
+    "lang": "de",
+    "limit": 3
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/search", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "bakery",
+    location: "Berlin,Germany",
+    lang: "de",
+    limit: 3,
+  }),
+});
+const { data } = await response.json();
+console.log(data.web.map((result) => result.title));
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/search",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "query": "bakery",
+        "location": "Berlin,Germany",
+        "lang": "de",
+        "limit": 3,
+    },
+)
+data = response.json()["data"]
+print([result["title"] for result in data["web"]])
+```
+</CodeGroup>
+
+This real response is cut to two of the three rows.
+
+```json
+{
+  "success": true,
+  "data": {
+    "web": [
+      {
+        "url": "https://www.tripadvisor.com/Restaurants-g187323-zfg9901-Berlin.html",
+        "title": "THE 10 BEST Bakeries in Berlin - Tripadvisor",
+        "description": "Bakeries in Berlin, Germany: Find Tripadvisor traveler reviews of Berlin Bakeries and search by price, location, and more.",
+        "position": 1
+      },
+      {
+        "url": "https://www.visitberlin.de/en/blog/11-top-bakeries-berlin",
+        "title": "11 top bakeries in Berlin - visitberlin.de",
+        "description": "Artisan bakeries in Berlin - sourdough, wholemeal and gluten-free - Find out more at visitberlin.de",
+        "position": 3
+      }
+    ]
+  },
+  "id": "b6c151b4-22d8-45c1-8714-5846147281fc",
+  "costUsd": 0.001,
+  "requestId": "b6c151b4-22d8-45c1-8714-5846147281fc"
+}
+```
+
+`lang` steers which pages come back, but some results can still be in other languages.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `includeDomains` | `array of string` | none | Keep only results on these sites. Up to 10 domains. A domain also matches its subdomains. Not with `excludeDomains`. |
+| `excludeDomains` | `array of string` | none | Drop results on these sites. Up to 10 domains. Not with `includeDomains`. |
+| `tbs` | `string` | any time | The time window, see the table below. Web takes every value, news takes `qdr` and `sbd`, images take none. |
+| `location` | `string` | none | Where to search from, such as `Germany` or `San Francisco,California,United States`. The last part is the country and replaces `country`. A city before it narrows web results to that place. |
+| `country` | `string` | `us` | Two-letter country to search from, such as `de`. `uk` is read as `gb`. Image results are always from the US. |
+| `lang` | `string` | none | Two-letter language for web results, such as `de`. |
+| `safe` | `boolean` | `false` | Hide explicit web, news and image results. |
+
+A filter sent at the top level applies to every source it fits. To give web results their own `tbs`, `location`, `country` or `lang`, send the web source as an object: `"sources": [{ "type": "web", "tbs": "qdr:w", "country": "de" }]`. See [Sources](/search/sources).
+
+### Time window
+
+| `tbs` | Effect |
+| - | - |
+| `qdr:d`, `qdr:w`, `qdr:m`, `qdr:y` | The past day, week, month or year. |
+| `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY` | A date range. Send `cd_min`, `cd_max` or both. Web only. |
+| `sbd:1` | Newest first. Results without a date come last, and a `warning` says how many. |
+
+Join values with a comma, such as `sbd:1,qdr:w` for the past week, newest first.
+
+## Limits and errors
+
+- `includeDomains` together with `excludeDomains` returns `400 invalidRequest`. The error says `Send includeDomains or excludeDomains, not both.`
+- A `tbs` that is not in the table returns `400 invalidRequest`, and the error names the part it did not understand. `qdr` takes `d`, `w`, `m` or `y`, and `cd_min` must be on or before `cd_max`.
+- A date range (`cdr`) with `news` in `sources` returns `400 invalidRequest`. The error says `News takes qdr and sbd only.`
+- `tbs` with only `images` in `sources` returns `400 invalidRequest`. The error says `Image results cannot be filtered by time. Leave tbs out or drop images.` With other sources, images are left unfiltered and `warning` says so.
+- A `location` that does not end in a country returns `400 invalidRequest`. The error says `Send a place that ends with a country, like Berlin,Germany or Germany, or use country.`
+- A `country` other than `us` with `images` in `sources` returns `400 invalidRequest`, because image results are always from the US.
+- With `categories` of `research` and `web` in `sources`, `includeDomains` and `excludeDomains` return `400 invalidRequest`, because research already limits the search to academic sites.
+
+## Related
+
+- [Sources](/search/sources) lists what each source and category returns.
+- [Page content](/search/page-content) reads each result.
+- [Search overview](/search/overview) lists every search field.
+- [Location and headers](/scrape/location-and-headers) sets the country a page is read from.

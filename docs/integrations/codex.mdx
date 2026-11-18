@@ -1,0 +1,37 @@
+---
+title: "Codex"
+description: "Add Stophy to Codex with one command. Start without an API key, then sign in with your browser or add an API key to use every endpoint."
+og:title: "Codex | Stophy"
+og:description: "Add Stophy to Codex with one command. Start without an API key, then sign in with your browser or add an API key to use every endpoint."
+---
+
+This one command gives [Codex](https://developers.openai.com/codex) the free Stophy endpoints.
+
+```bash
+codex mcp add stophy --url https://api.stophy.dev/mcp
+```
+
+Run `codex mcp list` to check it.
+
+## Sign in with your browser
+
+```bash
+codex mcp add stophy --url https://mcp.stophy.dev/mcp
+codex mcp login stophy
+```
+
+After you sign in, every endpoint works.
+
+## Use an API key
+
+```bash
+codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
+```
+
+Set `STOPHY_API_KEY` first. [Get an API key](https://stophy.dev/signup). Codex reads the variable each time it starts, so the key itself is never saved to `~/.codex/config.toml`.
+
+## Try it
+
+```text
+Use Stophy to get the transcript of https://www.youtube.com/watch?v=dQw4w9WgXcQ and summarize it.
+```

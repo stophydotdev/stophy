@@ -10,7 +10,11 @@ openapi: 'api-reference/openapi.json POST /v1/signup/poll'
 
 <Note>Needs no API key.</Note>
 
-Free, and needs no key. Answers 202 with status waiting until your person approves, so poll every few seconds. After approval it answers 200 with the key exactly once. A code that is unknown, expired or already collected is notFound: sign up again.
+## Price
+
+Free, and needs no key.
+
+See [Pricing](/account/pricing).
 
 <RequestExample>
 ```bash cURL
@@ -47,8 +51,9 @@ print(response.json())
     "status": "waiting",
     "claimUrl": "<claimUrl>"
   },
+  "costUsd": 0,
   "creditsUsed": 0,
-  "requestId": "f178fb12-7986-4688-a700-915024faa1b9"
+  "requestId": "6c027275-0648-4f22-b16c-d8535842b72d"
 }
 ```
 </ResponseExample>

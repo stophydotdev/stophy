@@ -1,0 +1,145 @@
+---
+title: "Results"
+description: "Read what an extract found with GET /v1/extract/{id}. See the page behind each value, set timeouts, get a webhook, and know how long results are kept."
+og:title: "Results | Stophy"
+og:description: "Read what an extract found with GET /v1/extract/{id}. See the page behind each value, set timeouts, get a webhook, and know how long results are kept."
+---
+
+An extract answers with an `id`. `GET /v1/extract/{id}` returns what it found, for 24 hours, and costs nothing.
+
+## Read a result
+
+Get an API key in the [Quickstart](/quickstart). Use the `id` that [Extract](/extract/overview) returned.
+
+<CodeGroup>
+```bash cURL
+curl https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9 \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const response = await fetch(
+  "https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9",
+  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
+);
+const result = await response.json();
+console.log(result.status, result.data);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.get(
+    "https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+)
+result = response.json()
+print(result["status"], result["data"])
+```
+</CodeGroup>
+
+## Read the response
+
+This is the real result of the request on [Extract](/extract/overview).
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "data": {
+    "module": "bun:sqlite",
+    "queryMethods": ["all", "get", "run", "values", "iterate"],
+    "transactionModes": ["deferred", "immediate", "exclusive"]
+  },
+  "confidence": {
+    "module": 0.9627,
+    "queryMethods": 0.7573,
+    "transactionModes": 0.9246
+  },
+  "urls": ["https://bun.com/docs/runtime/sqlite"],
+  "costUsd": 0.005,
+  "expiresAt": "2026-11-18T18:09:35.938Z"
+}
+```
+
+| Field | What it holds |
+| - | - |
+| `status` | `completed`, or `failed` when the run ended without an answer. A failed result has an `error` and no `data`. |
+| `data` | The fields that the pages state. A field they do not state is left out. |
+| `confidence` | For each field in `data`, a number from 0 to 1 for how sure Stophy is that the value is on the page. |
+| `urls` | The pages that were read. |
+| `warning` | The pages that could not be read, and why, or a note that a page was cut. The fields come from the rest. |
+| `sources` | With `showSources`, the pages behind each field. |
+| `costUsd` | What the extract cost. |
+| `expiresAt` | When the result is deleted. |
+
+## Show sources
+
+Send `"showSources": true` with the extract to get `sources`: for each field, the pages whose text states the value. Use it to link a value back to its page. This real result came from a call that also sent `showSources`.
+
+```json
+{
+  "sources": {
+    "module": ["https://bun.com/docs/runtime/sqlite"],
+    "queryMethods": ["https://bun.com/docs/runtime/sqlite"],
+    "transactionModes": ["https://bun.com/docs/runtime/sqlite"]
+  }
+}
+```
+
+A field that is not in `data` is not in `sources`. The full request is on [Schema](/extract/schema).
+
+## Set a timeout
+
+`timeout` is how long to keep reading the pages, in milliseconds, from 1,000 to 300,000. The default is 30,000 ms. A page that is not read by then is skipped, named in `warning`, and costs nothing. The call fails only when no page can be read.
+
+```json
+{
+  "urls": ["https://bun.com/docs/runtime/sqlite", "https://bun.com/docs/runtime/bunfig"],
+  "schema": { "type": "object", "properties": { "module": { "type": "string" } } },
+  "timeout": 60000
+}
+```
+
+After the pages are read, the answer takes up to 45 more seconds. Set your client timeout above `timeout` plus 45 seconds. `warning` reads like `Read 1 of 2 pages. Skipped <url>: <reason>`, and like `1 of 1 pages were longer than 50000 characters and were cut there.` when a page is long. With several pages, each page gets a smaller share, and all together are read up to 150,000 characters.
+
+## Get a webhook
+
+Send `webhook` with a public address, or with an object, to be told when the extract ends instead of asking.
+
+```json
+{
+  "urls": ["https://bun.com/docs/runtime/sqlite"],
+  "prompt": "the import path of the SQLite driver",
+  "webhook": {
+    "url": "https://example.com/hooks/extract",
+    "headers": { "X-Source": "docs" },
+    "metadata": { "job": "sqlite-check" },
+    "events": ["completed", "failed"]
+  }
+}
+```
+
+Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event` (`completed` or `failed`), the `status`, the `data`, `confidence`, `urls`, `warning`, `sources`, `costUsd` and your `metadata`. Each call is signed: `Stophy-Signature` holds `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. See [Webhooks](/webhooks).
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `showSources` | `boolean` | `false` | Add `sources` to the result. |
+| `timeout` | `number` | 30,000 ms | Milliseconds to read the pages, from 1,000 to 300,000. |
+| `webhook` | `string` or `object` | none | Where to be told when the extract ends. An object takes `url`, `headers`, `metadata` and `events`. `events` is `completed`, `failed` or both, which is the default. |
+
+## Limits and errors
+
+- A result is kept for 24 hours. With `zeroDataRetention` it is kept for 1 hour. After that, `GET` returns `404 notFound` with `No extract with that id. Results are kept for 24 hours.`
+- A call that cannot read any page fails with the error of the page, such as `sourceTimeout` or `siteNotRead`. A failed call costs nothing, and a failed extract can be read back with `status` of `failed`.
+- Without an API key, `GET /v1/extract/{id}` returns `401 apiKeyRequired`. You can read only your own results.
+- More than 25 `urls` returns `400 invalidRequest`. `urls` with no public page in them returns `400 invalidRequest` with `None of these is a public website URL.`
+
+## Related
+
+- [Extract overview](/extract/overview) lists every request field.
+- [Schema](/extract/schema) describes the fields you want.
+- [Webhooks](/webhooks) covers signatures and delivery.
+- [Timeouts](/production/timeouts) covers deadlines across the API.

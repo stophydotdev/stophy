@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/6bd8981c-f2a8-403c-b188-352828c08bc2/downloads"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "files": [],
+    "nextCursor": null,
+    "hasMore": false,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "3c46b35a-c291-4046-88b5-af0f59a3b977"
+  }
+}

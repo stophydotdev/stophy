@@ -1,0 +1,257 @@
+---
+title: "Research papers"
+description: "Find recent papers on a topic, keep the ones with an open PDF, and read their first pages as Markdown with a source for every note. 3 papers cost about $0.004."
+og:title: "Research papers | Stophy"
+og:description: "Find recent papers on a topic, keep the ones with an open PDF, and read their first pages as Markdown with a source for every note. 3 papers cost about $0.004."
+---
+
+Paper search finds papers by title and abstract. Many papers have no abstract in the index, so you read the paper itself. You search, keep the papers with an open PDF, and read the first pages of each with Scrape.
+
+You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). Paper search needs an API key.
+
+## 1. Search for papers
+
+This request finds papers from 2024 on, newest first, and asks for 3.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/search/research/papers \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "retrieval augmented generation",
+    "k": 3,
+    "from": "2024-01-01",
+    "sort": "date_desc"
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/search/research/papers", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "retrieval augmented generation",
+    k: 3,
+    from: "2024-01-01",
+    sort: "date_desc",
+  }),
+});
+const { results } = await response.json();
+console.log(results.map((paper) => `${paper.year} ${paper.title}`));
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/search/research/papers",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "query": "retrieval augmented generation",
+        "k": 3,
+        "from": "2024-01-01",
+        "sort": "date_desc",
+    },
+)
+for paper in response.json()["results"]:
+    print(paper["year"], paper["title"])
+```
+</CodeGroup>
+
+`results` holds the papers. This is the real answer. The abstracts are cut, and two of the three papers had none.
+
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "paperId": "W4406771321",
+      "primaryId": "doi:10.1007/978-981-96-1024-2_8",
+      "title": "Evaluation of Retrieval-Augmented Generation: A Survey",
+      "abstract": "",
+      "authors": ["Hao Yu", "Aoran Gan", "Kai Zhang", "Shiwei Tong", "Qi Liu", "Zhaofeng Liu"],
+      "year": 2025,
+      "venue": "Communications in computer and information science",
+      "citedByCount": 173,
+      "openAccessUrl": "https://arxiv.org/pdf/2405.07437"
+    },
+    {
+      "paperId": "W4410705984",
+      "primaryId": "doi:10.2139/ssrn.5267341",
+      "title": "Corrective Retrieval Augmented Generation",
+      "abstract": "",
+      "year": 2025,
+      "openAccessUrl": "https://doi.org/10.2139/ssrn.5267341"
+    },
+    {
+      "paperId": "W4411630045",
+      "primaryId": "doi:10.18653/v1/2024.eacl-demo.16",
+      "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
+      "year": 2024,
+      "citedByCount": 537,
+      "openAccessUrl": "https://aclanthology.org/2024.eacl-demo.16.pdf"
+    }
+  ],
+  "costUsd": 0.001,
+  "creditsUsed": 1,
+  "requestId": "c652a02b-9e9b-4037-ba5f-ae19673b740b"
+}
+```
+
+`primaryId` is the paper's best outside id, and `openAccessUrl` is where a free copy lives. It is a PDF for the first and third paper, and a landing page for the second. See [Papers](/search/papers) for every option.
+
+## 2. Read a paper
+
+Scrape reads a PDF the way it reads a page and returns Markdown. This request reads the first 2 pages of the third paper and cuts the text at 2,000 characters.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://aclanthology.org/2024.eacl-demo.16.pdf",
+    "parsers": [{ "type": "pdf", "maxPages": 2 }],
+    "maxChars": 2000
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://aclanthology.org/2024.eacl-demo.16.pdf",
+    parsers: [{ type: "pdf", maxPages: 2 }],
+    maxChars: 2000,
+  }),
+});
+const { data } = await response.json();
+console.log(data.metadata.totalPages, data.markdown);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://aclanthology.org/2024.eacl-demo.16.pdf",
+        "parsers": [{"type": "pdf", "maxPages": 2}],
+        "maxChars": 2000,
+    },
+)
+data = response.json()["data"]
+print(data["metadata"]["totalPages"], data["markdown"])
+```
+</CodeGroup>
+
+This real answer is cut. The middle of the text is left out.
+
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics\nSystem Demonstrations, pages 150–158\n\n## RAGAS: Automated Evaluation of Retrieval Augmented Generation\n\nShahul Es†, Jithin James†, Luis Espinosa-Anke∗♢, Steven Schockaert∗\n…\n\nAbstract\nWe introduce RAGAS1 (Retrieval Augmented\nGeneration Assessment), a framework for\nreference-free evaluation of Retrieval Augmented Generation (RAG) pipelines. …",
+    "nextOffset": 1969,
+    "warning": "The page text was cut short. Send offset 1969 to read on.",
+    "metadata": {
+      "sourceURL": "https://aclanthology.org/2024.eacl-demo.16.pdf",
+      "statusCode": 200,
+      "contentType": "application/pdf",
+      "numPages": 9,
+      "totalPages": 9,
+      "costUsd": 0.0015
+    }
+  },
+  "id": "2b821fa7-e7f2-4ec2-8109-bf3e4950b10b",
+  "costUsd": 0.0015,
+  "creditsUsed": 1,
+  "requestId": "2b821fa7-e7f2-4ec2-8109-bf3e4950b10b"
+}
+```
+
+`totalPages` is the pages in the file, 9 here. `nextOffset` says where to read on. Send the same request with `"offset": 1969`. Send a larger `maxPages` for more pages, and `pageMarkers: true` to see where each page starts. See [PDFs and documents](/scrape/pdfs-and-documents). The read cost $0.0015.
+
+A landing page such as the second paper's is not a PDF. Scrape reads it as a page, and it may not hold the paper. Keep the papers whose link ends in `.pdf` or points at `arxiv.org/pdf`.
+
+## 3. Read every paper
+
+This function searches, keeps the papers with a direct PDF link, reads the first 2 pages of each, and returns notes with the id, title, year and text. The `id` is the paper's `primaryId`, so a citation points at the same paper wherever you saw it.
+
+```typescript
+interface Paper {
+  primaryId: string;
+  title: string;
+  year?: number;
+  openAccessUrl?: string;
+}
+
+async function post<Answer>(path: string, body: object): Promise<Answer> {
+  const response = await fetch(`https://api.stophy.dev${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  return response.json();
+}
+
+export async function readPapers(query: string) {
+  const { results } = await post<{ results: Paper[] }>("/v1/search/research/papers", {
+    query,
+    k: 3,
+    from: "2024-01-01",
+    sort: "date_desc",
+  });
+  const notes = [];
+  for (const paper of results) {
+    const link = paper.openAccessUrl;
+    if (link === undefined || !/\.pdf$|arxiv\.org\/pdf\//.test(link)) continue;
+    const { data } = await post<{ data: { markdown: string } }>("/v1/scrape", {
+      url: link,
+      parsers: [{ type: "pdf", maxPages: 2 }],
+      maxChars: 2000,
+    });
+    notes.push({ id: paper.primaryId, title: paper.title, year: paper.year, text: data.markdown });
+  }
+  return notes;
+}
+```
+
+Each note is ready to hand to a model with the instruction to quote only from `text` and cite `id`. For a paper you hold as a file, [Parse documents](/parse/overview) gives the same Markdown from an upload.
+
+## What to check
+
+- `results` is not empty, and the papers match your topic. If not, change the query, or add `authors`, `from` and `to`.
+- Every note has a `text` that starts with the paper's title. If a PDF comes back empty, try `"mode": "ocr"` in the PDF options.
+- The text you hand a model is cut at `maxChars`. Read on with `nextOffset` when the answer needs the methods or the results.
+- A claim in your summary is a quote you can find in `text`. Check three.
+
+## What it costs
+
+| Item | Price |
+| - | - |
+| A paper search of up to 10 papers | $0.001 |
+| A PDF read: the page, plus each page of text that comes back, at least one | $0.001 plus $0.0005 a page |
+| A paper read as above, cut at 2,000 characters | $0.0015 |
+| 3 papers: 1 search and 2 PDF reads | $0.004 |
+
+A page that cannot be read costs nothing. See [Pricing](/account/pricing).
+
+## Related
+
+- [Papers](/search/papers) reads one paper by id, DOI or arXiv id, and finds similar papers.
+- [PDFs and documents](/scrape/pdfs-and-documents) lists the PDF options.
+- [Search](/search/overview) finds web pages, news and videos about the same topic.
+- [Live web context for agents](/recipes/live-web-context-for-agents) wraps reading as tools for an agent.

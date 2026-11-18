@@ -1,0 +1,84 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/monitor",
+    "body": {
+      "name": "Docs example",
+      "targets": [
+        {
+          "type": "scrape",
+          "urls": [
+            "https://bun.com/docs/runtime/bunfig"
+          ]
+        }
+      ],
+      "schedule": {
+        "text": "daily"
+      }
+    }
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "id": "mon_gYdxFOZnpRdWHJUN",
+      "name": "Docs example",
+      "status": "active",
+      "schedule": {
+        "cron": "0 0 * * *",
+        "timezone": "UTC",
+        "everySeconds": null
+      },
+      "nextRunAt": "2026-11-17T17:53:00.141Z",
+      "lastRunAt": null,
+      "currentCheckId": null,
+      "targets": [
+        {
+          "type": "scrape",
+          "urls": [
+            "https://bun.com/docs/runtime/bunfig"
+          ],
+          "id": "68493bf9-027b-4ae0-ab28-af34706dec07"
+        }
+      ],
+      "goal": null,
+      "judgeEnabled": false,
+      "retentionDays": 30,
+      "estimatedCreditsPerMonth": 30,
+      "estimatedCostUsdPerMonth": 0.06,
+      "notification": {
+        "email": {
+          "enabled": false,
+          "recipients": [],
+          "includeDiffs": false,
+          "recipientStates": []
+        }
+      },
+      "emailRecipientSubscriptions": [],
+      "webhook": null,
+      "createdAt": "2026-11-17T17:53:00.141Z",
+      "updatedAt": "2026-11-17T17:53:00.141Z",
+      "urls": [
+        "https://bun.com/docs/runtime/bunfig"
+      ],
+      "interval": null,
+      "formats": [
+        "markdown"
+      ],
+      "changeTracking": {
+        "modes": [
+          "diff"
+        ]
+      },
+      "nextCheckAt": "2026-11-17T17:53:00.141Z",
+      "lastCheckAt": null,
+      "checks": 0,
+      "creditsUsed": 0,
+      "costUsd": 0
+    },
+    "id": "mon_gYdxFOZnpRdWHJUN",
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "d17e9eac-f236-4108-b81b-7ad58891372b"
+  }
+}

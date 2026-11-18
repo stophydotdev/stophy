@@ -1,0 +1,43 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/monitor/mon_gYdxFOZnpRdWHJUN/checks"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": [
+      {
+        "id": "f3f7c552-c652-43c7-8c49-e18d15c5f54b",
+        "monitorId": "mon_gYdxFOZnpRdWHJUN",
+        "status": "completed",
+        "trigger": "scheduled",
+        "scheduledFor": "2026-11-17T17:53:53.974Z",
+        "startedAt": "2026-11-17T17:53:53.984Z",
+        "finishedAt": "2026-11-17T17:53:54.919Z",
+        "estimatedCredits": 1,
+        "estimatedCostUsd": 0.001,
+        "reservedCredits": null,
+        "actualCredits": 1,
+        "actualCostUsd": 0.001,
+        "billingStatus": "confirmed",
+        "summary": {
+          "totalPages": 1,
+          "same": 0,
+          "changed": 0,
+          "new": 1,
+          "removed": 0,
+          "error": 0
+        },
+        "targetResults": null,
+        "notificationStatus": null,
+        "error": null,
+        "createdAt": "2026-11-17T17:53:53.984Z",
+        "updatedAt": "2026-11-17T17:53:54.919Z"
+      }
+    ],
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "fb5df400-68a5-4541-b6e9-4dcf21d6474a"
+  }
+}

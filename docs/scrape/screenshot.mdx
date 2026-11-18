@@ -1,0 +1,207 @@
+---
+title: "Screenshot"
+description: "Capture the visible part of a page or the whole page as a JPEG link. Set the window size and quality, or a phone size. $1 per 1,000 pages."
+og:title: "Screenshot | Stophy"
+og:description: "Capture the visible part of a page or the whole page as a JPEG link. Set the window size and quality, or a phone size. $1 per 1,000 pages."
+---
+
+`screenshot` returns a link to a JPEG of the page. The link works for 7 days.
+
+## Take a screenshot
+
+Get an API key in the [Quickstart](/quickstart). This request captures the visible part of a page.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["screenshot"]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://example.com",
+    formats: ["screenshot"],
+  }),
+});
+const { data } = await response.json();
+console.log(data.screenshot);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://example.com",
+        "formats": ["screenshot"],
+    },
+)
+data = response.json()["data"]
+print(data["screenshot"])
+```
+</CodeGroup>
+
+## Read the response
+
+`data.screenshot` is a public link to the image. To keep the image longer than 7 days, download it.
+
+```json
+{
+  "success": true,
+  "data": {
+    "screenshot": "https://stophy.agentfsusercontent.com/screenshots/a42c14fa-494b-4053-9a51-06e4588416f4.jpg",
+    "metadata": {
+      "title": "Example Domain",
+      "sourceURL": "https://example.com/",
+      "url": "https://example.com/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "e1b1aacf-26d7-4657-84b1-f5e3b76b227d",
+      "costUsd": 0.001
+    }
+  },
+  "id": "e1b1aacf-26d7-4657-84b1-f5e3b76b227d",
+  "costUsd": 0.001,
+  "requestId": "e1b1aacf-26d7-4657-84b1-f5e3b76b227d"
+}
+```
+
+## Capture a full page at phone size
+
+Send the format as an object to change what is captured. This request captures the whole page in a 390 by 844 window at JPEG quality 80.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://bun.com/docs/runtime/bunfig",
+    "formats": [
+      {
+        "type": "screenshot",
+        "fullPage": true,
+        "quality": 80,
+        "viewport": { "width": 390, "height": 844 }
+      }
+    ]
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://bun.com/docs/runtime/bunfig",
+    formats: [
+      {
+        type: "screenshot",
+        fullPage: true,
+        quality: 80,
+        viewport: { width: 390, height: 844 },
+      },
+    ],
+  }),
+});
+const { data } = await response.json();
+console.log(data.screenshot);
+console.log(data.screenshotCropped);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://bun.com/docs/runtime/bunfig",
+        "formats": [
+            {
+                "type": "screenshot",
+                "fullPage": True,
+                "quality": 80,
+                "viewport": {"width": 390, "height": 844},
+            },
+        ],
+    },
+)
+data = response.json()["data"]
+print(data["screenshot"])
+print(data.get("screenshotCropped"))
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "data": {
+    "screenshot": "https://stophy.agentfsusercontent.com/screenshots/76bebfe2-718b-4208-8ae3-1cf11d63e61b.jpg",
+    "screenshotCropped": true,
+    "metadata": {
+      "title": "bunfig.toml | Bun Docs",
+      "sourceURL": "https://bun.com/docs/runtime/bunfig",
+      "url": "https://bun.com/docs/runtime/bunfig",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "3dc3399a-1048-4099-90f6-7d05d569bcac",
+      "costUsd": 0.001
+    }
+  },
+  "id": "3dc3399a-1048-4099-90f6-7d05d569bcac",
+  "costUsd": 0.001,
+  "requestId": "3dc3399a-1048-4099-90f6-7d05d569bcac"
+}
+```
+
+`screenshotCropped` is `true` when the page is taller than 15,000 pixels and the bottom is cut off. The field is left out when the whole page fits.
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `type` | `string` | none | `"screenshot"`. The plain name `"screenshot"` works too and uses the defaults below. |
+| `fullPage` | `boolean` | `false` | Capture the page from top to bottom instead of the visible part. |
+| `quality` | `number` | `70` | JPEG quality from 1 to 100. |
+| `viewport` | `object` | 1,280 by 800 | The window size in pixels: `width` from 200 to 3,840 and `height` from 200 to 2,160. |
+
+With `mobile` set to `true` and no `viewport`, the window is 390 by 844. See [Waiting and rendering](/scrape/waiting-and-rendering).
+
+## Limits and errors
+
+- A full page is captured up to 15,000 pixels tall. Taller pages come back with `screenshotCropped: true`.
+- `quality` above 100 returns `400 invalidRequest` with the message `formats.0.quality: Send a number of at most 100.`
+- A screenshot is kept as a file, so you cannot combine it with `zeroDataRetention`. That combination returns `400 invalidRequest`.
+- A PDF cannot be captured. It comes back as Markdown only.
+- A screenshot reads the page in a browser, so it takes a few seconds.
+- To capture the page after a click or a scroll, add [browser actions](/scrape/browser-actions). Those screenshots come back in `data.actions.screenshots`.
+
+## Price
+
+$1 per 1,000 pages, the same as any page. A screenshot adds nothing.
+
+## Related
+
+- [Browser actions](/scrape/browser-actions) take screenshots in the middle of a flow.
+- [Waiting and rendering](/scrape/waiting-and-rendering) lets a late page finish loading first.
+- [Branding](/scrape/branding) reads the colors and fonts of a page.
+- [Scrape overview](/scrape/overview) lists every format.

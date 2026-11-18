@@ -1,0 +1,180 @@
+---
+title: "Files"
+description: "Put a file in an open browser session for a file field to use, and read the files the session downloaded, with a link that works for 15 minutes."
+og:title: "Files | Stophy"
+og:description: "Put a file in an open browser session for a file field to use, and read the files the session downloaded, with a link that works for 15 minutes."
+---
+
+A browser session can take files in and hand files out. Upload a file for a page's file field to use, and list what the page downloaded. Both calls are free, and both need a session that is still running.
+
+## Upload a file
+
+`POST /v1/browser/{session_id}/uploads` puts a file in the session under the `name` you give it. Send the bytes as `base64`, or send a `url` for Stophy to fetch.
+
+<CodeGroup>
+```bash cURL
+SESSION_ID="<the id your session returned>"
+curl -X POST https://api.stophy.dev/v1/browser/$SESSION_ID/uploads \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "notes.txt",
+    "base64": "SGVsbG8gZnJvbSBTdG9waHk="
+  }'
+```
+```typescript TypeScript
+const sessionId = "<the id your session returned>";
+const response = await fetch(
+  `https://api.stophy.dev/v1/browser/${sessionId}/uploads`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: "notes.txt",
+      base64: Buffer.from("Hello from Stophy").toString("base64"),
+    }),
+  },
+);
+console.log(await response.json());
+```
+```python Python
+import base64
+import os
+
+import requests
+
+session_id = "<the id your session returned>"
+response = requests.post(
+    f"https://api.stophy.dev/v1/browser/{session_id}/uploads",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "name": "notes.txt",
+        "base64": base64.b64encode(b"Hello from Stophy").decode(),
+    },
+)
+print(response.json())
+```
+</CodeGroup>
+
+```json
+{
+  "success": true,
+  "name": "notes.txt",
+  "size": 17,
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "75628e66-b3cc-4ab4-972b-03878e9ce067"
+}
+```
+
+To have Stophy fetch the file, send `url` instead of `base64`. `name` is optional then, and defaults to the last part of the address.
+
+```json
+{
+  "name": "robots.txt",
+  "url": "https://httpbin.org/robots.txt"
+}
+```
+
+That upload answered with `size` 30. The address must open the file with no sign-in, and Stophy waits 30 seconds for it.
+
+## Use the file on a page
+
+Point a file field at the uploaded name. This call opens an upload form, picks `notes.txt`, submits, and returns the name the page shows.
+
+```json
+{
+  "code": "await page.goto('https://the-internet.herokuapp.com/upload');\nawait page.locator('#file-upload').setInputFiles('notes.txt');\nawait page.locator('#file-submit').click();\nreturn await page.locator('#uploaded-files').innerText();"
+}
+```
+
+Send it to [Execute](/browser/execute). The real answer had `result` set to `notes.txt`, so the page took the file. A running session lists its uploads in `uploads` when you [read it](/browser/overview#read-and-list-sessions).
+
+## Read downloads
+
+A file the page downloads is saved in the session. `GET /v1/browser/{session_id}/downloads` lists them, sorted by name. Add `includeUrls=true` to get a link for each file.
+
+<CodeGroup>
+```bash cURL
+SESSION_ID="<the id your session returned>"
+curl "https://api.stophy.dev/v1/browser/$SESSION_ID/downloads?includeUrls=true" \
+  -H "Authorization: Bearer $STOPHY_API_KEY"
+```
+```typescript TypeScript
+const sessionId = "<the id your session returned>";
+const response = await fetch(
+  `https://api.stophy.dev/v1/browser/${sessionId}/downloads?includeUrls=true`,
+  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
+);
+const { files } = await response.json();
+for (const file of files) {
+  const bytes = await (await fetch(file.url)).arrayBuffer();
+  console.log(file.name, bytes.byteLength);
+}
+```
+```python Python
+import os
+
+import requests
+
+session_id = "<the id your session returned>"
+response = requests.get(
+    f"https://api.stophy.dev/v1/browser/{session_id}/downloads",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    params={"includeUrls": "true"},
+)
+for file in response.json()["files"]:
+    print(file["name"], requests.get(file["url"]).content)
+```
+</CodeGroup>
+
+This real session downloaded one file after a click on a link with a `download` name. The signature is cut.
+
+```json
+{
+  "success": true,
+  "files": [
+    {
+      "name": "report.txt",
+      "size": 17,
+      "contentType": "text/plain;charset=utf-8",
+      "url": "https://api.stophy.dev/v1/browser/96aa4901-52b9-440a-9dab-5df9b53a5387/downloads/report.txt?expires=1794940294041&signature=…"
+    }
+  ],
+  "nextCursor": null,
+  "hasMore": false,
+  "costUsd": 0,
+  "creditsUsed": 0,
+  "requestId": "28526382-508c-4c64-b247-c2429adc23f4"
+}
+```
+
+The link needs no API key, so you can hand it to a browser or a download tool. It answered `200` with `text/plain` and the body `Hello from Stophy`. It stops working after 15 minutes. Read the list again for a new link.
+
+## Options
+
+| Field | Where | Type | Default | Effect |
+| - | - | - | - | - |
+| `name` | upload body | `string` | none | The name the page sees. Required with `base64`. |
+| `base64` | upload body | `string` | none | The file's bytes, Base64 encoded. |
+| `url` | upload body | `string` | none | A public `http` or `https` address Stophy fetches. Not with `base64`. |
+| `includeUrls` | downloads query | `boolean` | `false` | Adds a `url` to each file of 10 MB or less. |
+| `limit` | downloads query | `number` | `50` | Files per page, 1 to 100. |
+| `cursor` | downloads query | `string` | none | `nextCursor` from the last page. |
+
+## Limits and errors
+
+- A file is at most 20 MB, and a session takes at most 100 MB of uploads. A larger file returns `400 invalidRequest` with `A file can be at most 20 MB.`
+- Sending both `base64` and `url` returns `400 invalidRequest` with `Send base64 or url, not both.` Sending neither, or `base64` with no `name`, returns `400 invalidRequest` with `Send the file as base64 with a name, or as a url.`
+- A `url` that does not answer with a success status returns `400 invalidRequest`. This real one pointed at a missing file: `The file address answered 404. Send an address that opens the file without signing in.`
+- A session that has ended answers `410 notFound` to an upload, and `409 invalidRequest` to a download list: `This browser session is not running, and its files are removed when it closes.`
+- Downloads and uploads are removed when the session closes. Fetch what you need first.
+
+## Related
+
+- [Browser sessions](/browser/overview) opens and closes the session.
+- [Execute](/browser/execute) clicks the file field and downloads.
+- [Upload reference](/api-reference/endpoint/browser-upload) and [downloads reference](/api-reference/endpoint/browser-downloads) list every field.

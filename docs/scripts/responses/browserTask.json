@@ -20,10 +20,11 @@
   "response": {
     "success": true,
     "data": {
-      "id": "7c76df71-1d78-4d05-b09c-2f7840b12400",
+      "id": "0ceb6236-3b40-4d57-aa78-1c281363da45",
       "status": "running"
     },
+    "costUsd": 0,
     "creditsUsed": 0,
-    "requestId": "3e29cc22-93d3-4b70-ac60-52c18b07ca4f"
+    "requestId": "5de02021-54b2-4bd8-b457-e2652b8ab2db"
   }
 }

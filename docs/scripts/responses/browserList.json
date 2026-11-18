@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "sessions": [
+      {
+        "id": "6bd8981c-f2a8-403c-b188-352828c08bc2",
+        "status": "active",
+        "createdAt": "2026-11-17T17:50:55.511Z",
+        "startedAt": "2026-11-17T17:50:55.511Z",
+        "finishedAt": null,
+        "timeoutAt": "2026-11-17T17:51:55.511Z",
+        "lastActivity": "2026-11-17T17:50:55.511Z",
+        "expiresAt": "2026-11-17T17:55:55.505Z",
+        "metadata": {
+          "purpose": "docs-example"
+        },
+        "networkPolicyId": null,
+        "networkPolicyVersion": null,
+        "extensions": [],
+        "proxyUsedMb": null,
+        "browserCredits": null,
+        "browserCostUsd": null,
+        "proxyCredits": null,
+        "proxyCostUsd": null,
+        "cdpUrl": "<cdpUrl>",
+        "liveViewUrl": "<liveViewUrl>",
+        "interactiveLiveViewUrl": "<interactiveLiveViewUrl>",
+        "streamWebView": true
+      }
+    ],
+    "nextCursor": null,
+    "hasMore": false,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "30c200ad-1f60-49a1-bbd7-19182239a4da"
+  }
+}

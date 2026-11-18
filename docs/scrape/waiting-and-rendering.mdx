@@ -1,0 +1,122 @@
+---
+title: "Waiting and rendering"
+description: "Wait for a page that loads late, read it as a phone would, skip the browser for speed, or load its ads. Four fields shape how Scrape renders a page."
+og:title: "Waiting and rendering | Stophy"
+og:description: "Wait for a page that loads late, read it as a phone would, skip the browser for speed, or load its ads. Four fields shape how Scrape renders a page."
+---
+
+Four fields shape how a page is rendered before it is read. `waitFor` gives a slow page more time, `mobile` reads the phone version, `fastMode` skips the browser, and `blockAds` controls what loads. The `waitFor` wait runs after the page loads and before any [browser actions](/scrape/browser-actions).
+
+## Make a request
+
+Get an API key in the [Quickstart](/quickstart). This page draws its quotes with JavaScript after it loads. The request waits 2 seconds and reads the phone version.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://quotes.toscrape.com/js/",
+    "formats": ["markdown"],
+    "waitFor": 2000,
+    "mobile": true
+  }'
+```
+```typescript TypeScript
+const response = await fetch("https://api.stophy.dev/v1/scrape", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://quotes.toscrape.com/js/",
+    formats: ["markdown"],
+    waitFor: 2000,
+    mobile: true,
+  }),
+});
+const { data } = await response.json();
+console.log(data.markdown);
+```
+```python Python
+import os
+
+import requests
+
+response = requests.post(
+    "https://api.stophy.dev/v1/scrape",
+    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
+    json={
+        "url": "https://quotes.toscrape.com/js/",
+        "formats": ["markdown"],
+        "waitFor": 2000,
+        "mobile": True,
+    },
+)
+print(response.json()["data"]["markdown"])
+```
+</CodeGroup>
+
+## Read the response
+
+The quotes are in the Markdown, so the page finished loading before it was read. This real response is cut after the first quote.
+
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n[Login](https://quotes.toscrape.com/login)\n\n“The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.”by Albert Einstein\n\n…",
+    "metadata": {
+      "title": "Quotes to Scrape",
+      "language": "en",
+      "sourceURL": "https://quotes.toscrape.com/js/",
+      "url": "https://quotes.toscrape.com/js/",
+      "statusCode": 200,
+      "contentType": "text/html",
+      "cacheState": "miss",
+      "scrapeId": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26",
+      "costUsd": 0.001
+    }
+  },
+  "id": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26",
+  "costUsd": 0.001,
+  "requestId": "bc7a7e95-b5dc-4f39-b873-40b46b3bfb26"
+}
+```
+
+## Options
+
+| Field | Type | Default | Effect |
+| - | - | - | - |
+| `waitFor` | `number` | none | Extra milliseconds to wait before reading, 0 to 60,000. Needs an API key and loads the page in a browser. |
+| `mobile` | `boolean` | `false` | Read the page as a phone would: a phone-sized screen and the mobile version of the site. Loads the page in a browser. |
+| `fastMode` | `boolean` | `false` | Read the page without opening a browser. The answer comes sooner. |
+| `blockAds` | `boolean` | `true` | Ads and trackers are not loaded when a page runs in a browser. Send `false` to load them. |
+
+To wait for an element instead of a fixed time, add a [`wait` action](/scrape/browser-actions) with a `selector`.
+
+## Choose between them
+
+- Use `waitFor` when content appears a moment after the page loads. Start near 2,000 and raise it only if the page still comes back thin.
+- Use `fastMode` for pages that are plain HTML. A page that needs a browser, or that refuses a plain request, comes back as an error instead of being tried again. `fastMode` is ignored when the call already needs a browser: with `actions`, `screenshot`, `waitFor`, `mobile`, `profile`, `network` or `branding`.
+- Use `blockAds: false` only when you need the ads or trackers to load, for example to read what an ad slot shows.
+
+## Limits and errors
+
+- `waitFor` above 60,000 returns `400 invalidRequest`.
+- `waitFor` without an API key returns `401 apiKeyRequired`.
+- Waits count toward `timeout`. A page that needs a browser needs at least 5 seconds. See [Timeouts and errors](/scrape/timeouts-and-errors).
+- A read that waits, or runs in a browser, costs the same as any other page.
+
+## Price
+
+$1 per 1,000 pages. Waiting, `mobile`, `fastMode` and `blockAds` add nothing.
+
+## Related
+
+- [Browser actions](/scrape/browser-actions) wait for an element, click and scroll.
+- [Screenshot](/scrape/screenshot) takes a picture of the rendered page.
+- [Timeouts and errors](/scrape/timeouts-and-errors) sets how long a read may take.
+- [Scrape overview](/scrape/overview) lists every format and option.

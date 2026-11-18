@@ -1,0 +1,44 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/agent/threads/job_4kxytfWzbr774qn3-Ju4Qw"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "thread": {
+      "id": "job_4kxytfWzbr774qn3-Ju4Qw",
+      "createdAt": "2026-11-17T17:50:23.347Z",
+      "updatedAt": "2026-11-17T17:50:28.183Z",
+      "status": "idle",
+      "runs": [
+        {
+          "id": "job_4kxytfWzbr774qn3-Ju4Qw",
+          "turn": 1,
+          "mode": "extract",
+          "prompt": "What is the name of the configuration file this page describes?",
+          "urls": [
+            "https://bun.com/docs/runtime/bunfig"
+          ],
+          "schema": {
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string"
+              }
+            }
+          },
+          "effort": "high",
+          "status": "succeeded",
+          "createdAt": "2026-11-17T17:50:23.347Z",
+          "finishedAt": "2026-11-17T17:50:28.183Z",
+          "creditsUsed": 2,
+          "costUsd": 0.004
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "691854ef-0d70-4067-b6a6-6a63c3ed9e93"
+  }
+}

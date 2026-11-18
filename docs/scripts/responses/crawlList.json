@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/crawl"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "crawls": [
+        {
+          "id": "job_qqmWroHTkWk61kDjA32Q3g",
+          "status": "scraping",
+          "total": 1,
+          "completed": 0,
+          "failed": 0,
+          "creditsUsed": 0,
+          "costUsd": 0,
+          "createdAt": "2026-11-17T17:49:57.354Z",
+          "expiresAt": "2026-11-18T17:49:57.354Z"
+        }
+      ]
+    },
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "347c4750-229f-42a5-9977-55e45da4b3a0"
+  }
+}

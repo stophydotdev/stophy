@@ -1,0 +1,69 @@
+---
+title: "Timeouts"
+description: "Set how long each Stophy call may take, know what happens when it runs out, and keep your client timeout longer than the API's so retries do not pile up."
+og:title: "Timeouts | Stophy"
+og:description: "Set how long each Stophy call may take, know what happens when it runs out, and keep your client timeout longer than the API's so retries do not pile up."
+---
+
+Most endpoints take a `timeout` that sets how long Stophy may work on your call. Your own client has a timeout too, for how long it waits for the answer. Set both, and keep your client's longer.
+
+## Set a deadline
+
+The `timeout` field is in milliseconds on the endpoints below, except where the table says seconds.
+
+| Endpoint | Field | Default | Range | When it runs out |
+| - | - | - | - | - |
+| [Scrape](/scrape/timeouts-and-errors) | `timeout` | 60,000 | 1,000 to 300,000 | The read is an error and costs nothing |
+| [Batches](/batches/limits-and-errors) | `timeout` | 60,000 | 1,000 to 300,000 | That page is an error and costs nothing |
+| [Search](/search/overview) | `timeout` | 3,000, or 60,000 when `scrapeOptions.formats` reads pages | 1,000 to 120,000. More is read as 120,000. | A source that has not answered is left out with a warning. When none has answered, the call fails and costs nothing. |
+| [Extract](/extract/overview) | `timeout` | 30,000 | 1,000 to 300,000 | A page not read is skipped, named in `warning`, and costs nothing |
+| [Map](/map/overview) | `timeout` | None | 1,000 and up | Map stops and returns the pages it found |
+| [Parse](/parse/overview) | `timeout` | None | None | Accepted and not used: a file has no page to wait for |
+| [Browser execute](/browser/execute) and [interact](/scrape/interact) | `timeout`, in seconds | 30 | 1 to 300 | Set it to the longest step you run |
+
+A page that needs a browser needs at least 5 seconds. Some pages need 10 to 30 seconds the first time. Do not set a scrape `timeout` below 5,000 unless you want it to fail fast.
+
+This real call asked for a fresh read with a 1-second timeout. It could not finish, and it cost nothing.
+
+```bash
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://bun.com/docs/runtime/bunfig","maxAge":0,"timeout":1000}'
+```
+
+```json
+{
+  "success": false,
+  "error": "The source is not answering right now. Try again shortly.",
+  "code": "sourceUnavailable",
+  "retryable": true,
+  "retryAfterSeconds": 5,
+  "requestId": "51c9165a-a278-4e62-a99f-dac62bd25e99"
+}
+```
+
+Retry with a longer `timeout`, or wait `retryAfterSeconds`. See [Troubleshooting](/production/troubleshooting).
+
+## Calls that answer at once
+
+Crawl, batches and agent answer at once with an `id`. You read the result with their status calls, so your client never waits for the work. A browser task works the same way. Start it, then read it with `POST /v1/browser/task/status`. Browser work has its own bounds.
+
+| Call | Bound |
+| - | - |
+| [Browser session](/browser/overview) | `ttl` is the most it can live: 600 seconds by default, from 30 to 21,600. `activityTtl` is how long it waits with no call before it closes: 300 seconds by default, from 10 to 21,600. |
+| [Browser task](/browser/tasks) | `maxSteps` is 50 by default and at most 50. `maxCost` stops the task when it has spent that much. Without it, a task runs at most 10 minutes. |
+
+Results are kept for 24 hours. That covers a scrape, which you can read again with `GET /v1/scrape/{id}`, and a crawl, a batch or an extract. After that the `id` answers `notFound`. See [Zero data retention](/production/zero-data-retention) for the shorter time that option gives.
+
+## Set your client timeout
+
+Keep your client's timeout longer than the API deadline plus a few seconds. Most calls answer within 15 seconds. A slow page, a long PDF or a transcript can take up to a minute, and a scrape with the default `timeout` can take 60 seconds. Set your client timeout to at least 65 seconds, or raise it with the `timeout` you send.
+
+The [SDKs](/sdks) wait 70 seconds for each attempt. The TypeScript SDK does not retry a timed-out attempt, because the first call may still be running. The Python SDK does retry it. Before you retry a call after a client timeout, check the first one in [`GET /v1/logs`](/production/usage-and-logs).
+
+## Related
+
+* [Rate limits](/production/rate-limits)
+* [Troubleshooting](/production/troubleshooting)
+* [Production checklist](/production/checklist)

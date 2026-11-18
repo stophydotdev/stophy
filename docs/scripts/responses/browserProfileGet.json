@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/browser/profiles/docs-example"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "name": "docs-example",
+    "cookies": 0,
+    "origins": 0,
+    "costUsd": 0,
+    "creditsUsed": 0,
+    "requestId": "ebaf3a37-6cc5-457c-ad2c-be3db7fff6ce"
+  }
+}
