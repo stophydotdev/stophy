@@ -38,14 +38,11 @@ The SDKs have no methods for [agent](/agent/overview), [browser sessions](/brows
 
 ## Timeouts and retries
 
-Check these defaults before you raise a timeout or add your own retries.
+Check these defaults before you add your own retries. Each attempt waits up to 70 seconds. Both SDKs retry eligible calls twice by default, using a backoff or the delay returned by the API. They stop if the requested delay exceeds 60 seconds. A `DELETE` is not retried.
 
-* Each attempt waits up to 70 seconds. The TypeScript SDK does not retry an attempt that timed out. The Python SDK retries it like a network error.
-* Both SDKs retry twice after a network error and after the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
-* If the API asks for a wait longer than 60 seconds, the SDK stops and throws with `retryAfterSeconds` set.
-* A `DELETE` call is never retried.
+Some writes cannot be safely replayed after a lost response. If a write may have run, the error can carry `outcomeUnknown` in TypeScript or `outcome_unknown` in Python. Check whether the work finished before making a new request. When a replayable write has an unresolved outcome, the error can carry its original idempotency key. Reuse that key and the same request body to recover the result; a new key can start new work.
 
-Set `maxRetries` to `0` to turn retries off. For a call that takes longer than 70 seconds, raise the timeout. See [Timeouts](/production/timeouts).
+For calls that accept a key, pass `idempotencyKey` in the TypeScript call options or `idempotency_key` in Python. For a `StophyError`, read the recovery key from `error.details.idempotencyKey` in TypeScript or `error.details["idempotencyKey"]` in Python. Network errors carry it as `idempotencyKey` in TypeScript or `idempotency_key` in Python. See [Timeouts](/production/timeouts).
 
 ## Handle errors
 
