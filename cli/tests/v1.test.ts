@@ -23,6 +23,15 @@ test("a lone data is unwrapped, other bodies keep their fields", () => {
   expect(payloadOf({ status: "cancelled" })).toEqual({ status: "cancelled" });
 });
 
+test("a body without data drops creditsUsed and keeps costUsd", () => {
+  expect(
+    payloadOf({ success: true, links: [], creditsUsed: 0, costUsd: 0, requestId: "r" }),
+  ).toEqual({ links: [], costUsd: 0, requestId: "r" });
+  expect(
+    payloadOf({ success: true, id: "c1", url: "https://a.test", creditsUsed: 1, costUsd: 0.001 }),
+  ).toEqual({ id: "c1", url: "https://a.test", costUsd: 0.001 });
+});
+
 test("--parser and --parserOptions become a json format on scrape", () => {
   const [scrape] = withParserFlags([endpoint("scrape")]);
   expect(scrape?.input.properties).toHaveProperty("parser");
@@ -189,4 +198,34 @@ test("a --json call prints what it cost, in dollars, on stderr", async () => {
     ["search", "bun", "--json"],
   );
   expect(err).toBe("cost: $0.001\n");
+});
+
+const priced = () =>
+  Response.json({
+    success: true,
+    data: { web: [] },
+    creditsUsed: 1,
+    costUsd: 0.001,
+    requestId: "r",
+  });
+
+test("--raw prints the body exactly as the API sent it", async () => {
+  const { out } = await runAgainst(priced, ["search", "bun", "--raw"]);
+  expect(JSON.parse(out)).toEqual({
+    success: true,
+    data: { web: [] },
+    creditsUsed: 1,
+    costUsd: 0.001,
+    requestId: "r",
+  });
+});
+
+test("the one-line agent output keeps costUsd and drops creditsUsed", async () => {
+  const { out } = await runAgainst(priced, ["search", "bun"]);
+  expect(JSON.parse(out)).toEqual({
+    success: true,
+    data: { web: [] },
+    costUsd: 0.001,
+    requestId: "r",
+  });
 });

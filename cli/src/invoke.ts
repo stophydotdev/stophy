@@ -24,10 +24,11 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
 
   const body = jsonRecord.safeParse(response.json);
   if (!body.success) throw new CliError("Server returned an unexpected response shape.");
-  const format =
-    parsed.call.format === "text" && isAgentMode() && parsed.call.outputFile === undefined
-      ? "raw"
-      : parsed.call.format;
+  const { format } = parsed.call;
+  if (format === "text" && isAgentMode() && parsed.call.outputFile === undefined) {
+    handleOutput(agentLineOf(body.data));
+    return;
+  }
   if (format === "json" && response.costUsd !== null) {
     process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
   }
@@ -40,10 +41,16 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
   });
 }
 
-const COUNTERS = new Set(["success", "costUsd"]);
+function without(body: JsonRecord, dropped: readonly string[]): JsonRecord {
+  return Object.fromEntries(Object.entries(body).filter(([key]) => !dropped.includes(key)));
+}
+
+export function agentLineOf(body: JsonRecord): JsonRecord {
+  return without(body, ["creditsUsed"]);
+}
 
 export function payloadOf(body: JsonRecord): JsonValue {
-  const rest = Object.fromEntries(Object.entries(body).filter(([key]) => !COUNTERS.has(key)));
+  const rest = without(body, ["success", "creditsUsed"]);
   return rest.data ?? rest;
 }
 
