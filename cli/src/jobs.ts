@@ -21,6 +21,8 @@ const agentById = {
   required: ["id"],
 };
 
+const agentRunExample = { id: "job_1" };
+
 const AGENT_JOB_ENDPOINTS: readonly CatalogEndpoint[] = [
   {
     id: "agent.list",
@@ -49,6 +51,7 @@ const AGENT_JOB_ENDPOINTS: readonly CatalogEndpoint[] = [
     keyless: false,
     costUsd: 0,
     input: agentById,
+    example: agentRunExample,
   },
   {
     id: "agent.cancel",
@@ -58,6 +61,7 @@ const AGENT_JOB_ENDPOINTS: readonly CatalogEndpoint[] = [
     keyless: false,
     costUsd: 0,
     input: agentById,
+    example: agentRunExample,
   },
 ];
 
