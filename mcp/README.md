@@ -8,11 +8,11 @@ Give your agents the live web over MCP. Your agent can search, scrape, map, craw
 
 Most apps connect to the hosted server directly, with nothing to install.
 
-| URL                          | How you connect                      | What your agent can use                                                                                                   |
-| ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `https://api.stophy.dev/mcp` | No key                               | The endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), within a free allowance |
-| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every endpoint                                                                                                            |
-| `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every endpoint                                                                                                            |
+| URL                          | How you connect                      | What your agent can use                                |
+| ---------------------------- | ------------------------------------ | ------------------------------------------------------ |
+| `https://api.stophy.dev/mcp` | No key                               | Search, scrape, map and parse, within a free allowance |
+| `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every tool                                             |
+| `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every tool                                             |
 
 Get an API key at [stophy.dev/signup](https://stophy.dev/signup).
 
