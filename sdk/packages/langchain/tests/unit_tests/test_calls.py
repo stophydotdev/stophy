@@ -1,6 +1,10 @@
 import json
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from queue import Queue
+from socket import socket
+from threading import Barrier, Thread
 from typing import Any, Iterator
 
 import pytest
@@ -13,6 +17,7 @@ from langchain_stophy import (
     StophyPlaceSearch,
     StophyProductSearch,
     StophyRedditSearch,
+    StophyToolkit,
     StophyWebSearch,
 )
 
@@ -25,6 +30,9 @@ DATA = {
 class FakeStophy:
     def __init__(self) -> None:
         self.requests: list[dict[str, Any]] = []
+        self.connections: list[int] = []
+        self.closed: Queue[int] = Queue()
+        self.parallel: Barrier | None = None
         self.status = 200
         self.reply: dict[str, Any] = {
             "success": True,
@@ -34,16 +42,20 @@ class FakeStophy:
         }
 
 
-@pytest.fixture
-def api(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeStophy]:
+@contextmanager
+def loopback_stophy() -> Iterator[tuple[FakeStophy, str]]:
     fake = FakeStophy()
 
     class Handler(BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
         def do_POST(self) -> None:
             body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             fake.requests.append(
                 {"path": self.path, "body": body, "auth": self.headers.get("Authorization")}
             )
+            if fake.parallel is not None:
+                fake.parallel.wait()
             payload = json.dumps(fake.reply).encode()
             self.send_response(fake.status)
             self.send_header("Content-Type", "application/json")
@@ -51,14 +63,68 @@ def api(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeStophy]:
             self.end_headers()
             self.wfile.write(payload)
 
+        def finish(self) -> None:
+            super().finish()
+            fake.closed.put(self.client_address[1])
+
         def log_message(self, format: str, *args: Any) -> None:
             pass
 
-    server = HTTPServer(("127.0.0.1", 0), Handler)
-    Thread(target=server.serve_forever, daemon=True).start()
-    monkeypatch.setenv("STOPHY_BASE_URL", f"http://127.0.0.1:{server.server_port}")
-    yield fake
-    server.shutdown()
+    class CountingServer(ThreadingHTTPServer):
+        def get_request(self) -> tuple[socket, tuple[str, int]]:
+            connection, peer = super().get_request()
+            fake.connections.append(peer[1])
+            return connection, peer
+
+    with CountingServer(("127.0.0.1", 0), Handler) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield fake, f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            thread.join()
+
+
+@pytest.fixture
+def api(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeStophy]:
+    with loopback_stophy() as (fake, url):
+        monkeypatch.setenv("STOPHY_BASE_URL", url)
+        yield fake
+
+
+def test_toolkit_reuses_one_connection_across_tools(api: FakeStophy) -> None:
+    toolkit = StophyToolkit(api_key=SecretStr("st_toolkit"))
+    tools = {tool.name: tool for tool in toolkit.get_tools()}
+    assert tools["stophy_web_search"].invoke({"query": "first"}) == DATA
+    assert tools["stophy_read_page"].invoke({"url": "https://example.com"}) == DATA
+    assert tools["stophy_web_search"].model_copy(deep=True).invoke({"query": "second"}) == DATA
+    assert len(api.connections) == 1
+    toolkit.close()
+    assert api.closed.get(timeout=3) == api.connections[0]
+
+
+def test_parallel_calls_close_both_sockets_without_affecting_another_toolkit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with loopback_stophy() as (first, first_url), loopback_stophy() as (second, second_url):
+        monkeypatch.setenv("STOPHY_BASE_URL", second_url)
+        with StophyToolkit(api_key=SecretStr("st_second")) as other:
+            other_search = other.get_tools()[0]
+            monkeypatch.setenv("STOPHY_BASE_URL", first_url)
+            with StophyToolkit(api_key=SecretStr("st_first")) as toolkit:
+                search = toolkit.get_tools()[0]
+                first.parallel = Barrier(2, timeout=3)
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    replies = list(pool.map(search.invoke, [{"query": "a"}, {"query": "b"}]))
+                assert replies == [DATA, DATA]
+                assert len(first.connections) == 2
+            closed = {first.closed.get(timeout=3), first.closed.get(timeout=3)}
+            assert closed == set(first.connections)
+            assert other_search.invoke({"query": "c"}) == DATA
+            assert [request["auth"] for request in first.requests] == ["Bearer st_first"] * 2
+            assert [request["auth"] for request in second.requests] == ["Bearer st_second"]
+        assert second.closed.get(timeout=3) == second.connections[0]
 
 
 def test_sends_the_input_and_gives_the_model_json(api: FakeStophy) -> None:
