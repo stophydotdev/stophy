@@ -1,5 +1,26 @@
 # stophy
 
+## 1.4.0
+
+### Minor Changes
+
+- 5e37286: The parser names and the response types match the live API. `search.developer` is new, `search` takes `scrapeLimit`, twelve parsers are new, `extract` and `parse` no longer require a body, and results carry `costUsd`.
+
+  The API already refuses everything below, so no working call stops working, but code that names these no longer compiles:
+
+  - `EndpointCatalog`, `ExtractInputSchema1` and `ExtractInputSchema2` are gone from the exported types.
+  - `parsed("company", ...)` is gone: the `company` parser no longer exists.
+  - `search` no longer takes the categories `developer` and `gov`, nor `domainTools`, `toolDetail` and `threatProtection`.
+  - `scrape` and `batch.scrape` no longer take `domainTools`, `crawl` no longer takes `ignoreRobotsTxt`, and `signup` no longer takes `scopes`.
+  - `cacheState` can now also be `stale`, and an extract `status` can now also be `failed`, so a `switch` over them needs a new case.
+  - In `BrowserTaskStatusResponse`, the values in `result.fields` can now be `null`.
+
+### Patch Changes
+
+- 59f3c85: Errors keep the API's `code`, `retryable`, request id and extra fields. A permanent `sourceChanged` is tried once, `profileBusy` is retried, and the CLI signs up after `freeLimit` and `apiKeyRequired`.
+- 8d6c1d8: The `google-scholar` parser is gone from the parser types, because the API no longer offers it.
+- 59f3c85: Every `POST` made with an API key carries an `Idempotency-Key`, the same on every retry, so a retry after a lost answer or a timeout cannot run a call twice. Pass `{ idempotencyKey }` as the second argument to choose it, or set `Idempotency-Key` in `headers`. A call with `zeroDataRetention` that is not a crawl or a batch scrape is not sent again after a lost answer: it throws the lost attempt's error with `outcomeUnknown` set. A `POST` that ends with no answer throws the same error as before, with the key on it as `idempotencyKey`. The TypeScript SDK retries a timed-out attempt when the call carries an API key. Aborting a call stops the wait between retries.
+
 ## 1.3.0
 
 ### Minor Changes

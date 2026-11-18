@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.3.2
+
+### Patch Changes
+
+- add4d91: The README lists the tools the server has now: five without a key, and a tool for each product with one.
+
 ## 1.3.1
 
 ### Patch Changes

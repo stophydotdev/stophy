@@ -1,5 +1,16 @@
 # @stophy/ai-sdk
 
+## 1.3.1
+
+### Patch Changes
+
+- 5e37286: The README prices each tool in dollars, as the API does.
+- Updated dependencies [59f3c85]
+- Updated dependencies [8d6c1d8]
+- Updated dependencies [5e37286]
+- Updated dependencies [59f3c85]
+  - stophy@1.4.0
+
 ## 1.3.0
 
 ### Minor Changes
