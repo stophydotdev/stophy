@@ -126,7 +126,7 @@ The SDK retries network errors, timeouts, and every error the API marks `retryab
 | `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                  |
 | `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is retried. |
 
-Each method also takes `signal` to cancel the request.
+Each method also takes `signal` to cancel the request, and `idempotencyKey` to choose the key of one `POST`.
 
 ## Check your account
 

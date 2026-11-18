@@ -106,9 +106,9 @@ except StophyError as error:
     print(error.code, str(error), error.retryable)
 ```
 
-`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
+`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id`, and `details`, which holds the other fields of the error. The message is `str(error)`. It says what went wrong and what to do next.
 
-The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
+The SDK retries network errors, timeouts, and every error the API marks `retryable`, and it waits as long as the API asks. Every `POST` made with an API key carries an `Idempotency-Key`, the same on each retry, so a retry after a lost answer does not run a crawl or a batch twice. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
 
 ## Options
 

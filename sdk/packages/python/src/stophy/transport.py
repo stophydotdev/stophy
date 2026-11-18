@@ -135,7 +135,6 @@ class _RetryConfig:
         seconds = error.retry_after_seconds
         if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
             return None
-        call.sent_before = call.sent_before or _may_have_run(error)
         return self.backoff(attempt) if seconds is None else float(seconds)
 
 
@@ -153,17 +152,33 @@ def _answer_is_kept(path: str, body: Any) -> bool:
     )
 
 
+SEND_AGAIN = (
+    "Check before you send it again as a new call, or send it again with the same "
+    "Idempotency-Key in details['idempotencyKey']."
+)
+NEVER_SENT = (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
+
+
 class _Call:
-    def __init__(self, method: str, path: str, kwargs: dict[str, Any]) -> None:
-        self.key = str(uuid.uuid4()) if method == "POST" else None
+    def __init__(
+        self,
+        client: httpx.Client | httpx.AsyncClient,
+        method: str,
+        path: str,
+        kwargs: dict[str, Any],
+    ) -> None:
+        self.key = (
+            client.headers.get("idempotency-key") or str(uuid.uuid4()) if method == "POST" else None
+        )
         self.replayable = self.key is None or _answer_is_kept(path, kwargs.get("json"))
-        self.sent_before = False
+        self.earlier_send_lost = False
         self.kwargs = (
             kwargs if self.key is None else {**kwargs, "headers": {"Idempotency-Key": self.key}}
         )
 
     def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
-        if not self.replayable:
+        may_have_left = not isinstance(error, NEVER_SENT)
+        if may_have_left and not self.replayable:
             raise StophyError(
                 f"Stophy did not answer ({error}), and the call may have run. It keeps no copy of "
                 "its answer, so sending it again could run and charge it twice. Check your usage "
@@ -172,21 +187,29 @@ class _Call:
                 code="outcomeUnknown",
             ) from error
         if attempt >= max_retries:
+            if may_have_left and self.key is not None:
+                raise StophyError(
+                    f"Stophy did not answer ({error}), and the request may still complete. "
+                    f"{SEND_AGAIN}",
+                    status=0,
+                    code="timeout" if isinstance(error, httpx.TimeoutException) else "networkError",
+                    retryable=True,
+                    details={"idempotencyKey": self.key},
+                ) from error
             raise error
-        self.sent_before = True
+        self.earlier_send_lost = self.earlier_send_lost or may_have_left
 
     def finish(self, response: httpx.Response) -> Any:
         try:
             return handle_response(response)
         except StophyError as error:
-            if self.key is None or not self.sent_before or not _may_have_run(error):
+            if self.key is None or not self.earlier_send_lost or not _may_have_run(error):
                 raise
             raise StophyError(
-                f"{error} The request may still complete. Check before you send it again as a "
-                "new call, or repeat it over HTTP with the Idempotency-Key in "
-                "details['idempotencyKey'].",
+                f"{error} An earlier send may still complete. {SEND_AGAIN}",
                 status=error.status,
                 code=error.code,
+                retryable=error.retryable,
                 retry_after_seconds=error.retry_after_seconds,
                 request_id=error.request_id,
                 details={**error.details, "idempotencyKey": self.key},
@@ -207,7 +230,7 @@ class SyncTransport(_RetryConfig):
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
-        call = _Call(method, path, kwargs)
+        call = _Call(self.client, method, path, kwargs)
         while True:
             try:
                 response = self.client.request(method, path, **call.kwargs)
@@ -237,7 +260,7 @@ class AsyncTransport(_RetryConfig):
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         attempt = 0
         max_retries = 0 if method == "DELETE" else self.max_retries
-        call = _Call(method, path, kwargs)
+        call = _Call(self.client, method, path, kwargs)
         while True:
             try:
                 response = await self.client.request(method, path, **call.kwargs)

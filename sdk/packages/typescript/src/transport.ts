@@ -11,6 +11,7 @@ const USER_AGENT = `stophy-typescript/${version}`;
 
 export interface CallOptions {
   signal?: AbortSignal;
+  idempotencyKey?: string;
 }
 
 export type Method = "GET" | "POST" | "DELETE";
@@ -58,7 +59,10 @@ export function createCaller(options: TransportOptions): Caller {
     }
     headers.set("accept", "application/json");
     if (spec.body !== undefined) headers.set("content-type", "application/json");
-    const key = spec.method === "POST" ? crypto.randomUUID() : undefined;
+    const key =
+      spec.method === "POST"
+        ? (spec.options?.idempotencyKey ?? headers.get("idempotency-key") ?? crypto.randomUUID())
+        : undefined;
     if (key !== undefined) headers.set("idempotency-key", key);
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
@@ -101,6 +105,23 @@ function answerIsKept(path: string, body: JsonValue): boolean {
   );
 }
 
+interface NetworkError extends Error {
+  code?: string;
+  cause?: { code?: string };
+}
+
+const NEVER_SENT = new Set([
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "UND_ERR_CONNECT_TIMEOUT",
+]);
+
+const requestMayHaveLeft = (error: NetworkError) =>
+  !NEVER_SENT.has(error.code ?? error.cause?.code ?? "");
+
 function outcomeUnknown(reason: Error): StophyError {
   return new StophyError(
     `Stophy did not answer (${reason.message}), and the call may have run. It keeps no copy of its answer, so sending it again could run and charge it twice. Check your usage before you send it again.`,
@@ -108,18 +129,30 @@ function outcomeUnknown(reason: Error): StophyError {
   );
 }
 
-function mayStillComplete(error: StophyError, key: string): StophyError {
+const SEND_AGAIN =
+  "Check before you send it again as a new call, or send it again with the same Idempotency-Key in details.idempotencyKey.";
+
+function noAnswer(reason: Error, key: string): StophyError {
   return new StophyError(
-    `${error.message} The request may still complete. Check before you send it again as a new call, or repeat it over HTTP with the Idempotency-Key in details.idempotencyKey.`,
+    `Stophy did not answer (${reason.message}), and the request may still complete. ${SEND_AGAIN}`,
     {
-      status: error.status,
-      code: error.code,
-      retryable: false,
-      retryAfterSeconds: error.retryAfterSeconds,
-      requestId: error.requestId,
-      details: { ...error.details, idempotencyKey: key },
+      status: 0,
+      code: reason.name === "TimeoutError" ? "timeout" : "networkError",
+      retryable: true,
+      details: { idempotencyKey: key },
     },
   );
+}
+
+function mayStillComplete(error: StophyError, key: string): StophyError {
+  return new StophyError(`${error.message} An earlier send may still complete. ${SEND_AGAIN}`, {
+    status: error.status,
+    code: error.code,
+    retryable: error.retryable,
+    retryAfterSeconds: error.retryAfterSeconds,
+    requestId: error.requestId,
+    details: { ...error.details, idempotencyKey: key },
+  });
 }
 
 async function send<Result>(
@@ -130,24 +163,27 @@ async function send<Result>(
   retry: RetryPolicy,
   plan: CallPlan,
 ): Promise<Result> {
-  let sentBefore = false;
+  let earlierSendLost = false;
   const mayHaveRun = (error: StophyError) => error.status >= 500 && error.code !== "busy";
   const failWith = (error: StophyError) =>
-    plan.key !== undefined && sentBefore && mayHaveRun(error)
+    plan.key !== undefined && earlierSendLost && mayHaveRun(error)
       ? mayStillComplete(error, plan.key)
       : error;
   for (let n = 0; ; n += 1) {
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
-      const response = await baseFetch(url, init(deadline.signal)).catch((error) => {
+      const response = await baseFetch(url, init(deadline.signal)).catch((error: NetworkError) => {
         if (signal?.aborted) throw error;
-        if (!plan.replayable) throw outcomeUnknown(error);
-        if (n >= retry.maxRetries) throw error;
+        const mayHaveLeft = requestMayHaveLeft(error);
+        if (mayHaveLeft && !plan.replayable) throw outcomeUnknown(error);
+        if (n >= retry.maxRetries) {
+          throw mayHaveLeft && plan.key !== undefined ? noAnswer(error, plan.key) : error;
+        }
+        earlierSendLost ||= mayHaveLeft;
         return undefined;
       });
       if (response === undefined) {
-        sentBefore = true;
         waitMs = backoffMs(n, retry.initialDelayMs);
       } else if (response.ok) {
         return await readBody<Result>(response);
@@ -156,7 +192,6 @@ async function send<Result>(
         const seconds = error.retryAfterSeconds;
         if (!error.retryable || n >= retry.maxRetries) throw failWith(error);
         if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw failWith(error);
-        sentBefore ||= mayHaveRun(error);
         waitMs = seconds === undefined ? backoffMs(n, retry.initialDelayMs) : seconds * 1000;
       }
     } finally {

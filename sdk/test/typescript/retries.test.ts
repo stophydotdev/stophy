@@ -166,7 +166,7 @@ describe("retries", () => {
       retryInitialDelayMs: 0,
       timeoutMs: 20,
     });
-    const err = await client.search({ query: "x" }).catch((error) => error);
+    const err = await client.crawl.status({ id: "job_1" }).catch((error) => error);
     expect(err.name).toBe("TimeoutError");
     expect(n).toBe(3);
   });

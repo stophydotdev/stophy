@@ -21,7 +21,7 @@ class FakeApi:
                 outer.keys.append(key)
                 reply = answer(key, len(outer.keys))
                 if reply == "hang":
-                    time.sleep(1)
+                    time.sleep(0.5)
                     self.connection.close()
                     return
                 if reply == "drop":

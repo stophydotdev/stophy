@@ -1,5 +1,6 @@
 import asyncio
 
+import httpx
 import pytest
 
 from fake_api import accept_jobs
@@ -61,14 +62,16 @@ def test_every_post_carries_a_fresh_key_and_the_same_key_on_each_retry(serve):
     assert first and retry == first and second != first
 
 
-def test_a_key_set_in_the_client_headers_never_joins_two_calls(serve):
+def test_a_key_set_in_the_client_headers_is_kept_so_the_same_body_returns_the_first_job(
+    serve,
+):
     answer, _ = accept_jobs([])
     api = serve(answer)
     with sync_client(api, headers={"Idempotency-Key": "mine"}) as client:
         first = client.crawl(url="https://a.test")
         second = client.crawl(url="https://a.test")
-    assert [first["id"], second["id"]] == ["job_1", "job_2"]
-    assert "mine" not in api.keys
+    assert [first["id"], second["id"]] == ["job_1", "job_1"]
+    assert api.keys == ["mine", "mine"]
 
 
 def test_a_charged_call_that_keeps_no_data_is_not_sent_again_after_a_lost_answer(serve):
@@ -103,25 +106,69 @@ def test_a_call_still_running_on_the_server_ends_with_an_error_that_carries_its_
     with sync_client(api) as client:
         with pytest.raises(StophyError) as info:
             client.crawl(url="https://a.test")
-    assert (info.value.status, info.value.code) == (503, "internalError")
+    assert (info.value.status, info.value.code, info.value.retryable) == (
+        503,
+        "internalError",
+        True,
+    )
     assert "may still complete" in str(info.value)
     assert info.value.details["idempotencyKey"] == api.keys[0]
     assert len(api.keys) == 3
 
 
-def test_a_first_503_internal_error_or_a_busy_503_is_not_marked_as_possibly_running(
+def test_an_ordinary_5xx_the_server_finished_keeps_its_retryable_and_carries_no_key(
     serve,
 ):
-    first = serve(lambda key, count: (503, flat("internalError", True)))
-    with Stophy("k", base_url=first.base_url, max_retries=0) as client:
+    api = serve(
+        lambda key, count: (504, flat("sourceTimeout", True, retryAfterSeconds=0))
+    )
+    with sync_client(api) as client:
         with pytest.raises(StophyError) as info:
-            client.crawl(url="https://a.test")
-    assert info.value.details == {}
-    busy = serve(lambda key, count: (503, flat("busy", True, retryAfterSeconds=0)))
-    with sync_client(busy) as client:
+            client.search(query="x")
+    assert (info.value.status, info.value.code, info.value.retryable) == (
+        504,
+        "sourceTimeout",
+        True,
+    )
+    assert info.value.details == {} and "may still complete" not in str(info.value)
+    assert len(api.keys) == 3
+
+
+def test_a_busy_503_after_a_lost_send_is_not_marked_as_possibly_running(serve):
+    api = serve(
+        lambda key, count: (
+            "drop" if count == 1 else (503, flat("busy", True, retryAfterSeconds=0))
+        )
+    )
+    with sync_client(api) as client:
         with pytest.raises(StophyError) as info:
             client.crawl(url="https://a.test")
     assert info.value.details == {} and info.value.retryable
+
+
+def test_a_crawl_whose_every_attempt_times_out_ends_with_an_error_that_carries_its_key(
+    serve,
+):
+    api = serve(lambda key, count: "hang")
+    with sync_client(api, timeout=0.05) as client:
+        with pytest.raises(StophyError) as info:
+            client.crawl(url="https://a.test")
+    assert (info.value.code, info.value.retryable) == ("timeout", True)
+    assert "may still complete" in str(info.value)
+    assert info.value.details["idempotencyKey"] == api.keys[0]
+    assert len(api.keys) == 3
+
+
+def test_a_refused_connection_is_retried_as_before_and_says_nothing_about_a_call_that_ran(
+    serve,
+):
+    api = serve(lambda key, count: "drop")
+    refused = api.base_url
+    api.close()
+    with Stophy("k", base_url=refused, max_retries=2, retry_initial_delay=0) as client:
+        with pytest.raises(httpx.ConnectError):
+            client.scrape(url="https://a.test", zero_data_retention=True)
+    assert api.keys == []
 
 
 def test_reads_carry_no_key_and_are_retried_after_a_lost_answer(serve):

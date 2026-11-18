@@ -55,14 +55,26 @@ test("every POST carries a fresh key, and the same key on each retry of one call
   expect(second).not.toBe(first);
 });
 
-test("a key set in the client headers never joins two calls", async () => {
+test("a key set in the client headers is kept, so the same body returns the first job", async () => {
   const jobs = acceptJobs([]);
   const fake = await api(jobs.answer);
   const client = clientFor(fake.baseUrl, { headers: { "Idempotency-Key": "mine" } });
   const first = await client.crawl({ url: "https://a.test" });
   const second = await client.crawl({ url: "https://a.test" });
-  expect([first, second]).toMatchObject([{ id: "job_1" }, { id: "job_2" }]);
-  expect(fake.received.map((received) => received.key)).not.toContain("mine");
+  expect([first, second]).toMatchObject([{ id: "job_1" }, { id: "job_1" }]);
+  expect(fake.received.map((received) => received.key)).toEqual(["mine", "mine"]);
+});
+
+test("a key in the call options wins over the client headers and a generated key", async () => {
+  const jobs = acceptJobs([]);
+  const fake = await api(jobs.answer);
+  const client = clientFor(fake.baseUrl, { headers: { "Idempotency-Key": "client" } });
+  await client.crawl({ url: "https://a.test" }, { idempotencyKey: "import-1" });
+  await clientFor(fake.baseUrl).batch.scrape(
+    { urls: ["https://a.test"] },
+    { idempotencyKey: "import-2" },
+  );
+  expect(fake.received.map((received) => received.key)).toEqual(["import-1", "import-2"]);
 });
 
 test("a charged call that keeps no data is not sent again after a lost answer", async () => {
@@ -94,27 +106,56 @@ test("a call still running on the server ends with an error that carries its key
   const error = await clientFor(fake.baseUrl)
     .crawl({ url: "https://a.test" })
     .catch((e) => e);
-  expect(error).toMatchObject({ status: 503, code: "internalError", retryable: false });
+  expect(error).toMatchObject({ status: 503, code: "internalError", retryable: true });
   expect(error.message).toContain("may still complete");
   expect(error.details.idempotencyKey).toBe(fake.received[0]?.key);
   expect(fake.received.length).toBe(3);
 });
 
-test("a first answer of 503 internalError, or a busy 503, is not marked as possibly running", async () => {
-  const first = await api(() => ({ status: 503, body: flat("internalError", true) }));
-  const error = await clientFor(first.baseUrl, { maxRetries: 0 })
-    .crawl({ url: "https://a.test" })
-    .catch((e) => e);
-  expect(error.details).toEqual({});
-  const busy = await api(() => ({
-    status: 503,
-    body: flat("busy", true, { retryAfterSeconds: 0 }),
+test("an ordinary 5xx the server finished keeps its retryable and carries no key", async () => {
+  const fake = await api(() => ({
+    status: 504,
+    body: flat("sourceTimeout", true, { retryAfterSeconds: 0 }),
   }));
-  const busyError = await clientFor(busy.baseUrl)
+  const error = await clientFor(fake.baseUrl)
+    .search({ query: "x" })
+    .catch((e) => e);
+  expect(error).toMatchObject({ status: 504, code: "sourceTimeout", retryable: true, details: {} });
+  expect(error.message).not.toContain("may still complete");
+  expect(fake.received.length).toBe(3);
+});
+
+test("a busy 503 after a lost send is not marked as possibly running", async () => {
+  const fake = await api((_, count) =>
+    count === 1 ? "drop" : { status: 503, body: flat("busy", true, { retryAfterSeconds: 0 }) },
+  );
+  const error = await clientFor(fake.baseUrl)
     .crawl({ url: "https://a.test" })
     .catch((e) => e);
-  expect(busyError.details).toEqual({});
-  expect(busyError.retryable).toBe(true);
+  expect(error).toMatchObject({ code: "busy", retryable: true, details: {} });
+});
+
+test("a crawl whose every attempt times out ends with an error that carries its key", async () => {
+  const fake = await api(() => "hang");
+  const error = await clientFor(fake.baseUrl, { timeoutMs: 50 })
+    .crawl({ url: "https://a.test" })
+    .catch((e) => e);
+  expect(error).toBeInstanceOf(StophyError);
+  expect(error).toMatchObject({ code: "timeout", retryable: true });
+  expect(error.message).toContain("may still complete");
+  expect(error.details.idempotencyKey).toBe(fake.received[0]?.key);
+  expect(fake.received.length).toBe(3);
+});
+
+test("a refused connection is retried as before, and says nothing about a call that may have run", async () => {
+  const fake = await fakeApi(() => "drop");
+  const refused = fake.baseUrl;
+  fake.close();
+  const error = await clientFor(refused)
+    .scrape({ url: "https://a.test", zeroDataRetention: true })
+    .catch((e) => e);
+  expect(error).not.toBeInstanceOf(StophyError);
+  expect(fake.received.length).toBe(0);
 });
 
 test("reads carry no key and are retried after a lost answer", async () => {

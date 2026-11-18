@@ -2,6 +2,7 @@ import type { Caller, Method, Query } from "./transport";
 
 export interface RequestOptions {
   signal?: AbortSignal;
+  idempotencyKey?: string;
 }
 
 export function post<Body, Response>(path: string, call: Caller) {

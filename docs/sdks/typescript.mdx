@@ -141,7 +141,7 @@ The SDK retries network errors and every error the API marks `retryable`, and it
 | `headers` | none | Extra headers to send with every call |
 | `fetch` | the global `fetch` | A `fetch` function to use instead |
 
-Each method also takes `signal` as its second argument to cancel the request.
+Each method also takes `signal` as its second argument to cancel the request, and `idempotencyKey` to choose the key of one `POST`.
 
 ## Check your account
 
