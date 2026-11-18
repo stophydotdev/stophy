@@ -167,13 +167,17 @@ class _Call:
         path: str,
         kwargs: dict[str, Any],
     ) -> None:
-        self.key = (
+        sent_key = (
             client.headers.get("idempotency-key") or str(uuid.uuid4()) if method == "POST" else None
         )
-        self.replayable = self.key is None or _answer_is_kept(path, kwargs.get("json"))
+        has_api_key = "authorization" in client.headers
+        self.key = sent_key if has_api_key else None
+        self.replayable = (
+            sent_key is None or not has_api_key or _answer_is_kept(path, kwargs.get("json"))
+        )
         self.earlier_send_lost = False
         self.kwargs = (
-            kwargs if self.key is None else {**kwargs, "headers": {"Idempotency-Key": self.key}}
+            kwargs if sent_key is None else {**kwargs, "headers": {"Idempotency-Key": sent_key}}
         )
 
     def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
@@ -182,7 +186,7 @@ class _Call:
             vars(error).update(outcome_unknown=True)
             raise error
         if attempt >= max_retries:
-            if may_have_left and self.key is not None:
+            if (may_have_left or self.earlier_send_lost) and self.key is not None:
                 vars(error).update(idempotency_key=self.key)
             raise error
         self.earlier_send_lost = self.earlier_send_lost or may_have_left

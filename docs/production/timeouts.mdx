@@ -60,7 +60,7 @@ Results are kept for 24 hours. That covers a scrape, which you can read again wi
 
 Keep your client's timeout longer than the API deadline plus a few seconds. Most calls answer within 15 seconds. A slow page, a long PDF or a transcript can take up to a minute, and a scrape with the default `timeout` can take 60 seconds. Set your client timeout to at least 65 seconds, or raise it with the `timeout` you send.
 
-The [SDKs](/sdks) wait 70 seconds for each attempt. Both retry a timed-out attempt with the same `Idempotency-Key`, so a call Stophy already accepted does not run twice. A call made without an API key is not replayed by the API. A call with `zeroDataRetention` that is not a crawl or a batch scrape is not retried, and the SDK throws the error of the lost attempt with `outcomeUnknown` set. Before you retry a call yourself after a client timeout, check the first one in [`GET /v1/logs`](/production/usage-and-logs).
+The [SDKs](/sdks) wait 70 seconds for each attempt. The TypeScript SDK does not retry a timed-out attempt, because the first call may still be running. The Python SDK does retry it. Before you retry a call after a client timeout, check the first one in [`GET /v1/logs`](/production/usage-and-logs).
 
 ## Related
 

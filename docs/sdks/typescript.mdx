@@ -123,11 +123,11 @@ try {
 }
 ```
 
-This prints `invalidRequest`, the message, and `false`. `StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, `requestId` and `details`. The message says what went wrong and what to do next.
+This prints `invalidRequest`, the message, and `false`. `StophyError` has `code`, `message`, `retryable`, `retryAfterSeconds`, `status` and `requestId`. The message says what went wrong and what to do next.
 
 A call your balance cannot cover throws `insufficientCredits` with status `402` and charges nothing. Add money at [stophy.dev/billing](https://stophy.dev/billing), then send the call again.
 
-The SDK retries network errors and every error the API marks `retryable`, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
+The SDK retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
 
 ## Options
 
@@ -137,11 +137,11 @@ The SDK retries network errors and every error the API marks `retryable`, and it
 | `baseUrl` | `STOPHY_BASE_URL`, or the Stophy API | The server to call |
 | `maxRetries` | `2` | Retries per request. `0` turns retries off. |
 | `retryInitialDelayMs` | `500` | The first retry wait. It doubles each time. |
-| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is retried. |
+| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
 | `headers` | none | Extra headers to send with every call |
 | `fetch` | the global `fetch` | A `fetch` function to use instead |
 
-Each method also takes `signal` as its second argument to cancel the request, and `idempotencyKey` to choose the key of one `POST`.
+Each method also takes `signal` as its second argument to cancel the request.
 
 ## Check your account
 

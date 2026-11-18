@@ -38,21 +38,16 @@ The SDKs have no methods for [agent](/agent/overview), [browser sessions](/brows
 
 ## Timeouts and retries
 
-* Each attempt waits up to 70 seconds. Both SDKs retry an attempt that timed out like a network error.
-* Both SDKs retry twice after a network error and after an error whose `retryable` is `true`, such as `rateLimited`, `busy` and `profileBusy`. An error with `retryable: false`, such as `sourceChanged`, is thrown after one attempt. When the error has no `retryable`, the SDK retries the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
+* Each attempt waits up to 70 seconds. The TypeScript SDK does not retry an attempt that timed out. The Python SDK retries it like a network error.
+* Both SDKs retry twice after a network error and after the statuses 429, 500, 502, 503 and 504. The wait starts at 0.5 seconds and doubles, or follows `retryAfterSeconds` when the API sends it.
 * If the API asks for a wait longer than 60 seconds, the SDK stops and throws with `retryAfterSeconds` set.
 * A `DELETE` call is never retried.
-* Every `POST` made with an API key is sent with an `Idempotency-Key`, one per call and the same on every retry, so a retry after a lost answer returns the first answer instead of running the call again. A call made without an API key is not replayed by the API, so a retry can run it again.
-* In TypeScript, pass `{ idempotencyKey }` as the second argument to choose the key for one call. A key you set in the client's `headers` is kept and goes on every call, so the same body within 24 hours returns the first answer. Python has no per-call option.
-* A call with `zeroDataRetention` that is not a crawl or a batch scrape leaves no answer to return, so the SDK does not send it again after a lost answer or a timeout. It throws the same error as before, a fetch error or an `httpx` error, with `outcomeUnknown` (TypeScript) or `outcome_unknown` (Python) set to `true`. Check [`GET /v1/logs`](/production/usage-and-logs) before you send it again. A refused connection or a failed address lookup is retried as usual, because nothing was sent.
-* When a `POST` ends with no answer, a network error or a timeout, the SDK throws the same error as before, with the key on it as `idempotencyKey` (TypeScript) or `idempotency_key` (Python). The request may still complete, so check before you send it again as a new call. When an earlier send was lost and a later one ends with a server error, the `StophyError` keeps its code and `retryable` and adds the key to `details.idempotencyKey`.
-* Aborting a call stops the wait between retries at once.
 
 Set `maxRetries` to `0` to turn retries off. For a call that takes longer than 70 seconds, raise the timeout. See [Timeouts](/production/timeouts).
 
 ## Handle errors
 
-Both SDKs throw a `StophyError` with `code`, `retryable`, `retryAfterSeconds`, `status`, the `requestId` and `details`, which holds the other fields of the error, such as `billingUrl` or `signupUrl`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
+Both SDKs throw a `StophyError` with `code`, `retryable`, `retryAfterSeconds`, `status` and the `requestId`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
 
 A call your balance cannot cover fails with `insufficientCredits` and status `402`, and charges nothing. The message names your balance and the most the call can cost. Add money at [stophy.dev/billing](https://stophy.dev/billing) and send the call again. See [Pricing](/account/pricing).
 

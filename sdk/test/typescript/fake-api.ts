@@ -10,7 +10,8 @@ export interface Received {
 type Answer =
   | { status: number; body: JsonValue; headers?: Record<string, string> }
   | "drop"
-  | "hang";
+  | "hang"
+  | "drop-then-refuse";
 
 export async function fakeApi(answer: (received: Received, count: number) => Answer) {
   const received: Received[] = [];
@@ -27,6 +28,10 @@ export async function fakeApi(answer: (received: Received, count: number) => Ans
       received.push(item);
       const reply = answer(item, received.length);
       if (reply === "hang") return;
+      if (reply === "drop-then-refuse") {
+        server.close();
+        return req.socket.destroy();
+      }
       if (reply === "drop") return req.socket.destroy();
       res.writeHead(reply.status, { "content-type": "application/json", ...reply.headers });
       res.end(JSON.stringify(reply.body));

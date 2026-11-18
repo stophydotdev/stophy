@@ -65,6 +65,8 @@ export function createCaller(options: TransportOptions): Caller {
         : undefined;
     if (key !== undefined) headers.set("idempotency-key", key);
 
+    const hasApiKey = headers.has("authorization");
+
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
     return send<Result>(
       baseFetch,
@@ -78,9 +80,11 @@ export function createCaller(options: TransportOptions): Caller {
       spec.options?.signal,
       spec.method === "DELETE" ? { ...retry, maxRetries: 0 } : retry,
       {
-        key,
+        key: hasApiKey ? key : undefined,
+        hasApiKey,
         replayable:
           key === undefined ||
+          !hasApiKey ||
           answerIsKept(spec.path, parseJson(JSON.stringify(spec.body ?? null))),
       },
     );
@@ -95,6 +99,7 @@ interface RetryPolicy {
 
 interface CallPlan {
   key: string | undefined;
+  hasApiKey: boolean;
   replayable: boolean;
 }
 
@@ -158,8 +163,9 @@ async function send<Result>(
         if (signal?.aborted) throw error;
         const mayHaveLeft = requestMayHaveLeft(error);
         if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
+        if (error.name === "TimeoutError" && !plan.hasApiKey) throw error;
         if (n >= retry.maxRetries) {
-          throw mayHaveLeft && plan.key !== undefined
+          throw (mayHaveLeft || earlierSendLost) && plan.key !== undefined
             ? Object.assign(error, { idempotencyKey: plan.key })
             : error;
         }

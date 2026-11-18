@@ -158,6 +158,17 @@ def test_a_crawl_whose_every_attempt_times_out_raises_the_same_httpx_error_with_
     assert len(api.keys) == 3
 
 
+def test_a_crawl_the_server_took_before_it_went_away_ends_with_its_key_on_the_refused_error(
+    serve,
+):
+    api = serve(lambda key, count: "drop-then-refuse")
+    with sync_client(api) as client:
+        with pytest.raises(httpx.ConnectError) as info:
+            client.crawl(url="https://a.test")
+    assert info.value.idempotency_key == api.keys[0]
+    assert len(api.keys) == 1
+
+
 def test_a_refused_connection_is_retried_as_before_and_says_nothing_about_a_call_that_ran(
     serve,
 ):

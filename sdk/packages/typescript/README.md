@@ -119,12 +119,12 @@ The SDK retries network errors, timeouts, and every error the API marks `retryab
 
 ## Options
 
-| Option       | Default                              | What it does                                                 |
-| ------------ | ------------------------------------ | ------------------------------------------------------------ |
-| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                 |
-| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                           |
-| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                  |
-| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is retried. |
+| Option       | Default                              | What it does                                                                                  |
+| ------------ | ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                                                  |
+| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                                                            |
+| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                                                   |
+| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is retried when the call carries an API key. |
 
 Each method also takes `signal` to cancel the request, and `idempotencyKey` to choose the key of one `POST`.
 

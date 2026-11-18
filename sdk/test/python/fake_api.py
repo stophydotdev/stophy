@@ -20,6 +20,11 @@ class FakeApi:
                 key = self.headers.get("idempotency-key")
                 outer.keys.append(key)
                 reply = answer(key, len(outer.keys))
+                if reply == "drop-then-refuse":
+                    self.connection.close()
+                    outer.server.shutdown()
+                    outer.server.server_close()
+                    return
                 if reply == "hang":
                     time.sleep(0.5)
                     self.connection.close()

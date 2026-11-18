@@ -91,7 +91,7 @@ test("a charged call that keeps no data is not sent again after a lost answer", 
 test("a crawl that times out is sent again with the same key and runs once", async () => {
   const jobs = acceptJobs(["hang"]);
   const fake = await api(jobs.answer);
-  await clientFor(fake.baseUrl, { timeoutMs: 100 }).crawl({ url: "https://a.test" });
+  await clientFor(fake.baseUrl, { timeoutMs: 400 }).crawl({ url: "https://a.test" });
   expect(fake.received.length).toBe(2);
   expect(fake.received[1]?.key).toBe(fake.received[0]?.key);
   expect(jobs.charges.length).toBe(1);
@@ -145,6 +145,27 @@ test("a crawl whose every attempt times out throws the same TimeoutError, with i
   expect(error).not.toBeInstanceOf(StophyError);
   expect(error.idempotencyKey).toBe(fake.received[0]?.key);
   expect(fake.received.length).toBe(3);
+});
+
+test("a crawl the server took before it went away ends with its key on the refused error", async () => {
+  const fake = await api(() => "drop-then-refuse");
+  const error = await clientFor(fake.baseUrl)
+    .crawl({ url: "https://a.test" })
+    .catch((e) => e);
+  expect(error).toBeInstanceOf(TypeError);
+  expect(error.code).toBe("ECONNREFUSED");
+  expect(error.idempotencyKey).toBe(fake.received[0]?.key);
+  expect(fake.received.length).toBe(1);
+});
+
+test("a call without an API key that times out is tried once, as before", async () => {
+  const fake = await api(() => "hang");
+  const error = await clientFor(fake.baseUrl, { apiKey: undefined, timeoutMs: 50 })
+    .search({ query: "x" })
+    .catch((e) => e);
+  expect(error.name).toBe("TimeoutError");
+  expect(error.idempotencyKey).toBeUndefined();
+  expect(fake.received.length).toBe(1);
 });
 
 test("a refused connection is retried as before, and says nothing about a call that may have run", async () => {

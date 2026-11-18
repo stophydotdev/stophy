@@ -130,11 +130,11 @@ except StophyError as error:
     print(error.code, str(error), error.retryable)
 ```
 
-This prints `invalidRequest`, the message, and `False`. `StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id` and `details`. The message is `str(error)`. It says what went wrong and what to do next.
+This prints `invalidRequest`, the message, and `False`. `StophyError` has `code`, `retryable`, `retry_after_seconds`, `status` and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
 
 A call your balance cannot cover raises `insufficientCredits` with status `402` and charges nothing. Add money at [stophy.dev/billing](https://stophy.dev/billing), then send the call again.
 
-The SDK retries network errors and every error the API marks `retryable`, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
+The SDK retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
 
 ## Options
 
