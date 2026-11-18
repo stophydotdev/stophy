@@ -1,5 +1,13 @@
 # @stophy/ai-sdk
 
+## 1.3.2
+
+### Patch Changes
+
+- 8af3fe2: The README and description use the new Stophy line and a shorter guide.
+- Updated dependencies [8af3fe2]
+  - stophy@1.4.1
+
 ## 1.3.1
 
 ### Patch Changes

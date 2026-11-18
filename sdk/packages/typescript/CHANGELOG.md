@@ -1,5 +1,11 @@
 # stophy
 
+## 1.4.1
+
+### Patch Changes
+
+- 8af3fe2: The README and description use the new Stophy line and a shorter guide.
+
 ## 1.4.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "stophy",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Search, read, and act on the web. The Stophy client for TypeScript and JavaScript.",
   "keywords": [
     "ads",

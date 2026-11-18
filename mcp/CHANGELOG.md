@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.3.3
+
+### Patch Changes
+
+- 8af3fe2: The README and description use the new Stophy line and a shorter guide.
+
 ## 1.3.2
 
 ### Patch Changes
