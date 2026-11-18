@@ -43,7 +43,7 @@ stophy scrape "https://www.linkedin.com/ad-library/search?keyword=software&count
 ## Tips
 
 - Put the country in the page URL: `region` on Google and TikTok, `country` on Meta, `countries` on LinkedIn.
-- Every call here costs 1 credit.
+- Every call here costs $0.001 ($1 per 1,000 calls).
 
 ## See also
 

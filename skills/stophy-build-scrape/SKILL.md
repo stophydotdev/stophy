@@ -75,7 +75,7 @@ if (job.id) {
 
 - Parser option names are camelCase, as `/v1/parsers` lists them, in both SDKs.
 - `scrape` with `maxAge` accepts a stored copy up to that many milliseconds old for free.
-- A scrape or a parser call costs 1 credit; a crawl 1 credit a page.
+- A scrape or a parser call costs $0.001; a crawl $0.001 a page.
 
 ## See also
 

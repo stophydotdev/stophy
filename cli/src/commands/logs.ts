@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { type LogEntry, logsDataSchema } from "../account.js";
+import { type LogEntry, formatUsd, logsDataSchema } from "../account.js";
 import { request } from "../client.js";
 import { CliError } from "../errors.js";
 import { handleOutput } from "../output.js";
@@ -88,7 +88,7 @@ function printLogTable(logs: readonly LogEntry[]) {
       endpoint: log.endpoint,
       method: log.method,
       status: log.status,
-      credits: log.credits,
+      costUsd: formatUsd(log.costUsd),
       createdAt: formatTimestamp(log.createdAt),
       apiKey: log.apiKeyName ?? "-",
     })),

@@ -15,7 +15,7 @@ allowed-tools:
 
 Find videos and read what they say and what viewers say about them.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). The parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). The parsers marked "no key" work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -57,6 +57,8 @@ stophy scrape "https://www.instagram.com/reel/DfS8Xbng4MD/" --parser instagram-t
 | `tiktok-hashtag` | tiktok.com/tag/... | cursor |
 | `tiktok-sound` | tiktok.com/music/...-<sound id> | cursor |
 | `tiktok-followers`, `tiktok-following` | tiktok.com/@handle | cursor |
+| `tiktok-trending` | tiktok.com/explore | country |
+| `twitch-clips` | twitch.tv/<channel>/clips | period, limit |
 | `instagram-transcript` | an Instagram reel or video post | language, includeTimestamps |
 
 ## Tips
@@ -64,7 +66,7 @@ stophy scrape "https://www.instagram.com/reel/DfS8Xbng4MD/" --parser instagram-t
 - Save a transcript with `-o` and read it from the file. Add `--parserOptions '{"includeTimestamps":true}'` to cite the moment a line is said.
 - For the replies to one comment, send its id as `--parserOptions '{"comment":"<id>"}'`.
 - TikTok shows video search only to signed-in accounts, so find TikTok videos on a topic with `tiktok-hashtag`.
-- Every call here costs 1 credit, except transcripts made from audio. A TikTok transcript costs 1 credit with captions, or 2 credits plus 1 per 10 seconds of audio without, up to 3 minutes. An Instagram transcript costs 1 credit plus 1 per 30 seconds of audio, up to 5 minutes.
+- Every call here costs $0.001, except `tiktok-trending`: $0.001 per 10 videos, `twitch-clips`: $0.001 per 10 clips, and transcripts made from audio. A TikTok transcript costs $0.001 with captions, or $0.004 plus $0.72 per hour of audio without, up to 3 minutes. An Instagram transcript costs $0.002 plus $0.24 per hour of audio, up to 5 minutes.
 
 ## See also
 

@@ -6,7 +6,7 @@ const ok = {
   json: {
     success: true,
     data: { results: [] },
-    creditsUsed: 1,
+    costUsd: 0.001,
     requestId: "req_1",
   },
 };
@@ -18,7 +18,7 @@ describe("retries", () => {
       { maxRetries: 2, retryInitialDelayMs: 0 },
     );
     const res = await client.search({ query: "x" });
-    expect(res.creditsUsed).toBe(1);
+    expect(res.costUsd).toBe(0.001);
     expect(calls.length).toBe(2);
   });
 

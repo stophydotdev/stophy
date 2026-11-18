@@ -15,7 +15,7 @@ allowed-tools:
 
 Let a browser take the steps a person would take on a public site.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Browser tasks need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Browser tasks need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -35,8 +35,8 @@ The task answers at once with an `id` and `status: running`. `status` returns `r
 
 - Write the goal as one or two sentences a person could follow. Put inputs in `--values`, like `--values "from London, to Istanbul, date 2026-12-01"`.
 - `--schema.type object --schema.properties '<json>'` returns the answer as those fields.
-- A task takes at most 20 steps and 3 minutes, and is kept for 24 hours.
-- It costs 3 credits a step, up to `--maxSteps`. Starting a task sets aside the most it can cost and returns what it does not use. A task that ends before its first step costs nothing.
+- A task takes at most 50 steps and 10 minutes, and is kept for 24 hours.
+- It costs $0.84 per hour of browser time, billed by the minute with one minute at least, up to `--maxCost`. Starting a task sets aside the most it can cost and returns what it does not use. A task that ends before its first step costs nothing.
 
 ## See also
 

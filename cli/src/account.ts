@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const usageDataSchema = z.object({
-  creditsUsed: z.number(),
+  costUsd: z.number(),
   requestCount: z.number(),
 });
 
 export const limitsSchema = z.object({
-  data: z.object({ balanceCredits: z.number() }),
+  data: z.object({ balanceUsd: z.number() }),
 });
 
 export type UsageData = z.infer<typeof usageDataSchema>;
@@ -18,7 +18,7 @@ const logEntrySchema = z.object({
   endpoint: z.string(),
   method: z.string(),
   status: z.number(),
-  credits: z.number(),
+  costUsd: z.number(),
   durationMs: z.number().nullable(),
   response: z.string().nullable(),
   createdAt: z.string(),
@@ -36,6 +36,6 @@ export const logsDataSchema = z.object({
 export type LogsData = z.infer<typeof logsDataSchema>;
 export type LogEntry = z.infer<typeof logEntrySchema>;
 
-export function formatBalance(credits: number): string {
-  return `${Math.floor(credits).toLocaleString("en-US")} credits`;
+export function formatUsd(dollars: number): string {
+  return `$${dollars.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
 }

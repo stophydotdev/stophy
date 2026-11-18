@@ -38,6 +38,8 @@ import type {
 	ScrapeData,
 	ScrapeResponse,
 	SearchData,
+	SearchDeveloperData,
+	SearchDeveloperResponse,
 	SearchResponse,
 	SignUpData,
 	SignUpResponse,
@@ -46,9 +48,7 @@ import type { Caller } from "../transport";
 
 function bindSurface(call: Caller) {
 	return {
-		endpoints: sendEmpty<ListEndpointsResponse>("GET", "/v1/endpoints", call),
-		parsers: sendEmpty<ListParsersResponse>("GET", "/v1/parsers", call),
-		extract: Object.assign(post<ExtractData["body"], ExtractResponse>("/v1/extract", call), {
+		extract: Object.assign(postOptional<ExtractData["body"], ExtractResponse>("/v1/extract", call), {
 				result: send<ExtractResultData["path"], ExtractResultResponse>("GET", "/v1/extract/{id}", call),
 			}),
 		signup: Object.assign(postOptional<SignUpData["body"], SignUpResponse>("/v1/signup", call), {
@@ -60,14 +60,18 @@ function bindSurface(call: Caller) {
 		key: {
 			revoke: sendEmpty<RevokeKeyResponse>("DELETE", "/v1/key", call),
 		},
-		search: post<SearchData["body"], SearchResponse>("/v1/search", call),
+		parsers: sendEmpty<ListParsersResponse>("GET", "/v1/parsers", call),
+		endpoints: sendEmpty<ListEndpointsResponse>("GET", "/v1/endpoints", call),
+		search: Object.assign(post<SearchData["body"], SearchResponse>("/v1/search", call), {
+				developer: post<SearchDeveloperData["body"], SearchDeveloperResponse>("/v1/search/developer", call),
+			}),
 		scrape: post<ScrapeData["body"], ScrapeResponse>("/v1/scrape", call),
 		browser: {
 			task: Object.assign(post<BrowserTaskData["body"], BrowserTaskResponse>("/v1/browser/task", call), {
 					status: post<BrowserTaskStatusData["body"], BrowserTaskStatusResponse>("/v1/browser/task/status", call),
 				}),
 		},
-		parse: post<ParseData["body"], ParseResponse>("/v1/parse", call),
+		parse: postOptional<ParseData["body"], ParseResponse>("/v1/parse", call),
 		map: post<MapData["body"], MapResponse>("/v1/map", call),
 		crawl: Object.assign(post<CrawlData["body"], CrawlResponse>("/v1/crawl", call), {
 				status: send<CrawlStatusData["path"] & NonNullable<CrawlStatusData["query"]>, CrawlStatusResponse>("GET", "/v1/crawl/{id}", call),
@@ -85,14 +89,14 @@ function bindSurface(call: Caller) {
 type BoundSurface = ReturnType<typeof bindSurface>;
 
 export class Surface {
-	readonly endpoints: BoundSurface["endpoints"];
-	readonly parsers: BoundSurface["parsers"];
 	readonly extract: BoundSurface["extract"];
 	readonly signup: BoundSurface["signup"];
 	readonly limits: BoundSurface["limits"];
 	readonly usage: BoundSurface["usage"];
 	readonly logs: BoundSurface["logs"];
 	readonly key: BoundSurface["key"];
+	readonly parsers: BoundSurface["parsers"];
+	readonly endpoints: BoundSurface["endpoints"];
 	readonly search: BoundSurface["search"];
 	readonly scrape: BoundSurface["scrape"];
 	readonly browser: BoundSurface["browser"];
@@ -103,14 +107,14 @@ export class Surface {
 
 	constructor(call: Caller) {
 		const bound = bindSurface(call);
-		this.endpoints = bound.endpoints;
-		this.parsers = bound.parsers;
 		this.extract = bound.extract;
 		this.signup = bound.signup;
 		this.limits = bound.limits;
 		this.usage = bound.usage;
 		this.logs = bound.logs;
 		this.key = bound.key;
+		this.parsers = bound.parsers;
+		this.endpoints = bound.endpoints;
 		this.search = bound.search;
 		this.scrape = bound.scrape;
 		this.browser = bound.browser;

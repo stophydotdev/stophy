@@ -15,7 +15,7 @@ allowed-tools:
 
 Read any public page you have a link to.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Markdown, screenshots, PDFs and the parsers marked "no key" work without a key, 10 calls a minute and 50 a day. Links, JSON fields, summaries and other parsers need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Markdown, screenshots, PDFs and the parsers marked "no key" work without a key, 10 calls a minute and 50 a day. Links, JSON fields, summaries and other parsers need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -45,10 +45,10 @@ stophy scrape "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dum
 - `--maxChars` cuts long markdown; `isTruncated` says when it did. Save long pages with `-o page.md` and read them from the file.
 - `--formats` takes `markdown`, `summary`, `links`, `images`, `html`, `rawHtml`, `screenshot` and `changeTracking`, and a json format with a `prompt` or a `schema`. A screenshot is a link to a JPEG kept for 7 days.
 - For a page that loads late, add `--waitFor 3000`. To click first, send `--actions`; `stophy scrape --help` lists the steps.
-- A scrape costs 1 credit. A summary or json fields add 4 credits when they return something, and a PDF adds 1 credit a page. A page that cannot be read costs nothing.
+- A scrape costs $0.001. A summary or json fields add $0.003 when they return something, and a PDF adds $0.0005 a page of text from its text layer or $0.0025 a page read from a picture. A page that cannot be read costs nothing.
 
 ## See also
 
 - [stophy-search](../stophy-search/SKILL.md): find the URL first
-- [stophy-extract](../stophy-extract/SKILL.md): the same fields from up to 10 pages, each checked against its page
+- [stophy-extract](../stophy-extract/SKILL.md): the same fields from up to 25 pages, each checked against its page
 - [stophy-monitor](../stophy-monitor/SKILL.md): what changed on a page since you last read it

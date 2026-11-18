@@ -78,7 +78,7 @@ Treat the API key as a secret. Do not commit it, print it, or paste it into a sh
 | [`stophy-scrape`](./skills/stophy-scrape/SKILL.md) | One page you have a URL for: markdown, fields, a screenshot, or a site's data through a parser |
 | [`stophy-search`](./skills/stophy-search/SKILL.md) | Web, news and image search, with the page text if you ask |
 | [`stophy-crawl`](./skills/stophy-crawl/SKILL.md) | List a site's pages, crawl a site, batch scrape a list of URLs |
-| [`stophy-extract`](./skills/stophy-extract/SKILL.md) | Named fields from up to 10 pages, from a prompt or a schema |
+| [`stophy-extract`](./skills/stophy-extract/SKILL.md) | Named fields from up to 25 pages, from a prompt or a schema |
 | [`stophy-parse`](./skills/stophy-parse/SKILL.md) | PDF, Word, Excel and PowerPoint files to markdown |
 | [`stophy-monitor`](./skills/stophy-monitor/SKILL.md) | What changed on a page since the last read |
 | [`stophy-download`](./skills/stophy-download/SKILL.md) | A site or a docs section saved as markdown files |
@@ -119,7 +119,7 @@ Site data:
 
 ## For agents
 
-Start with `stophy`, which names the skill for the task. Run the command, read the output, then summarize. Never invent data. Site data comes from scraping the site's own page with a parser: `stophy scrape "<page URL>" --parser <name>`. `stophy parsers` lists them. Each call returns one page. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. Most calls cost 1 credit, a search costs 2 credits per 10 results from each source, and each skill names the few that cost more.
+Start with `stophy`, which names the skill for the task. Run the command, read the output, then summarize. Never invent data. Site data comes from scraping the site's own page with a parser: `stophy scrape "<page URL>" --parser <name>`. `stophy parsers` lists them. Each call returns one page. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. Most calls cost $0.001, a search costs $0.001 per 10 results from each source, and each skill names the few that cost more.
 
 ## Docs
 

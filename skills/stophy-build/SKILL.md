@@ -18,8 +18,8 @@ Wire Stophy into the user's code.
 ## Install
 
 ```bash
-npm install stophy   # TypeScript, 2.0.0 or later
-pip install stophy   # Python, 2.0.0 or later
+npm install stophy   # TypeScript, 1.3.0 or later
+pip install stophy   # Python, 1.3.0 or later
 ```
 
 ## The key
@@ -65,7 +65,7 @@ Every call returns the API's JSON as is: `{ success, data }`. The SDKs throw a `
 | a site's own data (Reddit, Amazon, Maps...) | `parsed(parser, pageUrl)`, see [stophy-build-scrape](../stophy-build-scrape/SKILL.md) |
 | results for a query | `search`, see [stophy-build-search](../stophy-build-search/SKILL.md) |
 | a site's pages | `map`, then `crawl` with `crawl.status`, or `batch.scrape` |
-| fields from up to 10 pages | `extract` |
+| fields from up to 25 pages | `extract` |
 | a document's text | `parse` |
 
 `GET https://api.stophy.dev/v1/endpoints` lists every endpoint with its input and price, and `GET /v1/parsers` every parser.

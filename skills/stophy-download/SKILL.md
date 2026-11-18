@@ -15,7 +15,7 @@ allowed-tools:
 
 Crawl a site and write each page to a markdown file.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`), and `jq`. Crawling needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`), and `jq`. Crawling needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -48,7 +48,7 @@ This writes files like `bun-docs/bun.com_docs_bundler_css.md`.
 - Start with `stophy map "<site>" --search <topic>` to see how many pages there are, then set `--limit`.
 - The crawl stays under the start URL's path. `--includePaths` and `--excludePaths` narrow it.
 - A crawl and its pages are kept for 24 hours, so you can write the files again without crawling again.
-- It costs 1 credit a page.
+- It costs $0.001 a page.
 
 ## See also
 

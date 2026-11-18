@@ -29,7 +29,7 @@ class FakeStophy:
         self.reply: dict[str, Any] = {
             "success": True,
             "data": DATA,
-            "creditsUsed": 1,
+            "costUsd": 0.001,
             "requestId": "req_1",
         }
 

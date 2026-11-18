@@ -8,6 +8,8 @@ export type _Error = {
   error: string;
   code:
     | "apiKeyRequired"
+    | "busy"
+    | "checkRunning"
     | "cliSessionCompleted"
     | "cliSessionExists"
     | "cliSessionNotFound"
@@ -28,6 +30,8 @@ export type _Error = {
     | "payloadTooLarge"
     | "profileBusy"
     | "profileTooLarge"
+    | "prohibitedPermission"
+    | "promptInjectionDetected"
     | "rateLimited"
     | "sourceChanged"
     | "sourceRefused"
@@ -36,7 +40,32 @@ export type _Error = {
     | "sourceUnavailable"
     | "unauthorized"
     | "unsupportedMediaType";
+  /**
+   * true when trying again can help.
+   */
+  retryable?: boolean;
   retryAfterSeconds?: number;
+  requestId?: string;
+  /**
+   * Older field: the most the call can cost, in $0.002 steps. Sent when the balance is too low.
+   */
+  requiredCredits?: number;
+  /**
+   * Older field: the balance in $0.002 steps. Sent with requiredCredits.
+   */
+  availableCredits?: number;
+  /**
+   * The most the call can cost, in dollars. Sent when the balance is too low.
+   */
+  requiredUsd?: number;
+  /**
+   * What is left on the account, in dollars. Sent with requiredUsd.
+   */
+  availableUsd?: number;
+  /**
+   * Where to add money. Sent with requiredUsd.
+   */
+  billingUrl?: string;
   /**
    * Where a person gets a key. Sent with apiKeyRequired, freeLimit and an invalid key.
    */
@@ -47,75 +76,34 @@ export type _Error = {
   signup?: "POST https://api.stophy.dev/v1/signup";
 };
 
-export type EndpointCatalog = {
-  sources: Array<{
-    id: string;
-    /**
-     * The source's name, such as YouTube or Google Maps.
-     */
-    name: string;
-    /**
-     * What you can get from this source.
-     */
-    summary: string;
-    /**
-     * aiAnswers when the source returns another AI's answer, site otherwise.
-     */
-    kind: "site" | "aiAnswers";
-  }>;
-  endpoints: Array<{
-    id: string;
-    /**
-     * A short name for the endpoint within its source, such as Comment replies.
-     */
-    title: string;
-    /**
-     * What this endpoint returns, in one line.
-     */
-    summary: string;
-    /**
-     * When this endpoint beats a similar one, such as another source with the same kind of data. Null when there is no overlap worth calling out.
-     */
-    bestWhen: string | null;
-    method: "POST";
-    path: string;
-    /**
-     * What one call costs, or the lowest it can cost when pricing is set.
-     */
-    credits: number;
-    /**
-     * The most one call can cost. The same as credits when pricing is null.
-     */
-    maxCredits: number;
-    /**
-     * How the price changes with the answer. Null when every call costs the same.
-     */
-    pricing?: string | null;
-    keyless: boolean;
-    cacheTtlSeconds: number;
-    /**
-     * The endpoint's input as JSON Schema.
-     */
-    input?: {
-      [key: string]: unknown;
-    };
-    /**
-     * A real input for this endpoint, or null when there is none.
-     */
-    example: {
-      [key: string]: unknown;
-    } | null;
-  }>;
-};
-
-export type ExtractResultSchema0 =
+export type SearchInputSchema0 =
   | string
   | number
   | boolean
   | null
-  | Array<ExtractResultSchema0>
+  | Array<SearchInputSchema0>
   | {
-      [key: string]: ExtractResultSchema0;
+      [key: string]: SearchInputSchema0;
+    };
+
+export type SearchInputSchema1 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<SearchInputSchema1>
+  | {
+      [key: string]: SearchInputSchema1;
+    };
+
+export type SearchInputSchema2 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<SearchInputSchema2>
+  | {
+      [key: string]: SearchInputSchema2;
     };
 
 export type SearchSchema0 =
@@ -139,21 +127,13 @@ export type ScrapeInputSchema0 =
     };
 
 export type ScrapeInputSchema1 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ScrapeInputSchema1>
   | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: ScrapeInputSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: ScrapeInputSchema1;
-      };
-      description?: string;
+      [key: string]: ScrapeInputSchema1;
     };
 
 export type ScrapeInputSchema2 =
@@ -177,59 +157,53 @@ export type ScrapeSchema0 =
     };
 
 export type ExtractInputSchema0 =
-  | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: ExtractInputSchema0;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: ExtractInputSchema0;
-      };
-      description?: string;
-    };
-
-export type ExtractInputSchema1 =
   | string
   | number
   | boolean
   | null
-  | Array<ExtractInputSchema1>
+  | Array<ExtractInputSchema0>
   | {
-      [key: string]: ExtractInputSchema1;
-    };
-
-export type ExtractInputSchema2 =
-  | string
-  | number
-  | boolean
-  | null
-  | Array<ExtractInputSchema2>
-  | {
-      [key: string]: ExtractInputSchema2;
+      [key: string]: ExtractInputSchema0;
     };
 
 export type BrowserTaskInputSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<BrowserTaskInputSchema0>
   | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
+      [key: string]: BrowserTaskInputSchema0;
+    };
+
+export type BrowserTaskStatusSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<BrowserTaskStatusSchema0>
   | {
-      type: "array";
-      items: BrowserTaskInputSchema0;
-      description?: string;
-    }
+      [key: string]: BrowserTaskStatusSchema0;
+    };
+
+export type ParseInputSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ParseInputSchema0>
   | {
-      type: "object";
-      properties: {
-        [key: string]: BrowserTaskInputSchema0;
-      };
-      description?: string;
+      [key: string]: ParseInputSchema0;
+    };
+
+export type ParseSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ParseSchema0>
+  | {
+      [key: string]: ParseSchema0;
     };
 
 export type CrawlInputSchema0 =
@@ -243,21 +217,13 @@ export type CrawlInputSchema0 =
     };
 
 export type CrawlInputSchema1 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<CrawlInputSchema1>
   | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: CrawlInputSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: CrawlInputSchema1;
-      };
-      description?: string;
+      [key: string]: CrawlInputSchema1;
     };
 
 export type CrawlInputSchema2 =
@@ -291,21 +257,13 @@ export type BatchScrapeInputSchema0 =
     };
 
 export type BatchScrapeInputSchema1 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<BatchScrapeInputSchema1>
   | {
-      type: "string" | "number" | "integer" | "boolean";
-      description?: string;
-    }
-  | {
-      type: "array";
-      items: BatchScrapeInputSchema1;
-      description?: string;
-    }
-  | {
-      type: "object";
-      properties: {
-        [key: string]: BatchScrapeInputSchema1;
-      };
-      description?: string;
+      [key: string]: BatchScrapeInputSchema1;
     };
 
 export type BatchScrapeInputSchema2 =
@@ -328,60 +286,35 @@ export type BatchScrapeStatusSchema0 =
       [key: string]: BatchScrapeStatusSchema0;
     };
 
+export type ExtractResultSchema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ExtractResultSchema0>
+  | {
+      [key: string]: ExtractResultSchema0;
+    };
+
+export type ListEndpoints26Schema0 =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<ListEndpoints26Schema0>
+  | {
+      [key: string]: ListEndpoints26Schema0;
+    };
+
+/**
+ * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+ */
+export type IdempotencyKey = string;
+
 /**
  * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
  */
 export type MaxTextLength = number;
-
-export type ListEndpointsData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/v1/endpoints";
-};
-
-export type ListEndpointsResponses = {
-  /**
-   * The endpoint catalog.
-   */
-  200: EndpointCatalog;
-};
-
-export type ListEndpointsResponse =
-  ListEndpointsResponses[keyof ListEndpointsResponses];
-
-export type ListParsersData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/v1/parsers";
-};
-
-export type ListParsersResponses = {
-  /**
-   * The parsers.
-   */
-  200: {
-    success?: boolean;
-    data?: {
-      parsers?: Array<{
-        name?: string;
-        takes?: string;
-        example?: string;
-        options?: Array<{
-          [key: string]: unknown;
-        }>;
-        returns?: Array<string>;
-        price?: string;
-        credits?: number;
-        keyless?: boolean;
-      }>;
-    };
-  };
-};
-
-export type ListParsersResponse =
-  ListParsersResponses[keyof ListParsersResponses];
 
 export type ExtractResultData = {
   body?: never;
@@ -411,14 +344,41 @@ export type ExtractResultResponses = {
    */
   200: {
     success: true;
-    status: "completed";
+    status: "completed" | "failed";
     data: {
       [key: string]: ExtractResultSchema0;
     };
     confidence: {
       [key: string]: number;
     };
+    /**
+     * The pages that could not be read and why. The fields come from the rest.
+     */
+    warning?: string;
+    /**
+     * Why the run failed. Only when status is failed.
+     */
+    error?: string;
+    /**
+     * The pages the fields were read from.
+     */
+    urls: Array<string>;
+    /**
+     * For each field, the pages its value came from.
+     */
+    sources?: {
+      [key: string]: Array<string>;
+    };
+    creditsUsed: number;
+    /**
+     * What the run cost, in dollars.
+     */
+    costUsd: number;
     expiresAt: string;
+    /**
+     * Tokens used, counted the way v2 clients expect: 15 tokens for each $0.002 spent.
+     */
+    tokensUsed?: number;
   };
 };
 
@@ -427,10 +387,7 @@ export type ExtractResultResponse =
 
 export type SignUpData = {
   body: {
-    /**
-     * What the key may do besides the calls every key can make.
-     */
-    scopes?: Array<unknown>;
+    [key: string]: unknown;
   };
   path?: never;
   query?: never;
@@ -471,6 +428,10 @@ export type SignUpResponses = {
       expiresAt: string;
     };
     creditsUsed: 0;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
 };
@@ -520,6 +481,10 @@ export type PollSignUpResponses = {
       apiKey?: string;
     };
     creditsUsed: 0;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
   /**
@@ -542,6 +507,10 @@ export type PollSignUpResponses = {
       apiKey?: string;
     };
     creditsUsed: 0;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
 };
@@ -580,9 +549,13 @@ export type GetLimitsResponses = {
        */
       tier: "free" | "paid";
       /**
-       * Credits left on the account.
+       * Older field: the balance in $0.002 steps.
        */
       balanceCredits: number;
+      /**
+       * What is left on the account, in dollars.
+       */
+      balanceUsd: number;
       /**
        * Calls allowed per minute with this key and how many are left, counting this request. Null when the counter is unavailable.
        */
@@ -592,15 +565,71 @@ export type GetLimitsResponses = {
         resetsAt?: string;
       } | null;
       /**
+       * Calls allowed per minute by kind: calls for scrape, search and the rest, jobs for crawl, batch, extract and agent, interact for browser sessions, and reads for polling a job.
+       */
+      perMinute: {
+        calls?: number;
+        jobs?: number;
+        interact?: number;
+        reads?: number;
+      };
+      /**
+       * Calls that may run at once on this account, and how many run now.
+       */
+      concurrency: {
+        limit?: number;
+        /**
+         * Null when the counter is unavailable.
+         */
+        inUse?: number | null;
+      };
+      /**
+       * Crawls, batches and agent runs running at once.
+       */
+      jobsAtOnce: number;
+      /**
+       * Jobs that may wait for a place to run.
+       */
+      queuedJobs: number;
+      /**
+       * Browser sessions open at once.
+       */
+      sessionsAtOnce: number;
+      /**
+       * What a paid account gets, so a free account can see the difference. Null on a paid account.
+       */
+      paidLimits?: {
+        /**
+         * Calls allowed per minute by kind: calls for scrape, search and the rest, jobs for crawl, batch, extract and agent, interact for browser sessions, and reads for polling a job.
+         */
+        perMinute?: {
+          calls?: number;
+          jobs?: number;
+          interact?: number;
+          reads?: number;
+        };
+        /**
+         * Calls that may run at once.
+         */
+        concurrency?: number;
+        jobsAtOnce?: number;
+        queuedJobs?: number;
+        sessionsAtOnce?: number;
+      } | null;
+      /**
        * When this key stops working. Null when it does not expire.
        */
       keyExpiresAt: string | null;
       /**
-       * Where a person adds credits.
+       * Where a person adds money.
        */
       billingUrl: "https://stophy.dev/billing";
     };
     creditsUsed: 0;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
 };
@@ -634,9 +663,17 @@ export type GetUsageResponses = {
   200: {
     balanceMicros: number;
     /**
-     * Credits used across all calls.
+     * The balance, in dollars.
+     */
+    balanceUsd: number;
+    /**
+     * Older field: spent across all calls, in $0.002 steps.
      */
     creditsUsed: number;
+    /**
+     * What all your calls cost, in dollars.
+     */
+    costUsd: number;
     requestCount: number;
   };
 };
@@ -691,7 +728,23 @@ export type GetLogsResponses = {
       requestId?: string;
       createdAt?: string;
       endpoint?: string;
+      /**
+       * Always POST today.
+       */
+      method?: string;
+      /**
+       * Always 200 today.
+       */
+      status?: number;
+      /**
+       * Always success today.
+       */
+      response?: string;
       credits?: number;
+      /**
+       * What the call cost, in dollars.
+       */
+      costUsd?: number;
       durationMs?: number | null;
       apiKeyId?: string | null;
       apiKeyName?: string | null;
@@ -736,11 +789,171 @@ export type RevokeKeyResponses = {
 
 export type RevokeKeyResponse = RevokeKeyResponses[keyof RevokeKeyResponses];
 
-export type SearchData = {
+export type ListParsersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/parsers";
+};
+
+export type ListParsersResponses = {
+  /**
+   * The parsers.
+   */
+  200: {
+    success?: boolean;
+    data?: {
+      parsers?: Array<{
+        name?: string;
+        takes?: string;
+        example?: string;
+        options?: Array<{
+          [key: string]: unknown;
+        }>;
+        returns?: Array<string>;
+        price?: string;
+        credits?: number;
+        keyless?: boolean;
+      }>;
+    };
+  };
+};
+
+export type ListParsersResponse =
+  ListParsersResponses[keyof ListParsersResponses];
+
+export type ListEndpointsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/endpoints";
+};
+
+export type ListEndpointsErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type ListEndpointsError = ListEndpointsErrors[keyof ListEndpointsErrors];
+
+export type ListEndpointsResponses = {
+  /**
+   * The endpoints and the sources they read.
+   */
+  200: {
+    readonly sources: Array<{
+      id: string;
+      name: string;
+      summary: string;
+      kind: "site" | "aiAnswers";
+    }>;
+    readonly endpoints: Array<{
+      id: string;
+      title: string;
+      summary: string;
+      bestWhen: string | null;
+      method: "POST";
+      path: string;
+      credits: number;
+      maxCredits: number;
+      costUsd?: number;
+      maxCostUsd?: number;
+      pricing: string | null;
+      keyless: boolean;
+      cacheTtlSeconds: number;
+      input: {
+        [key: string]: ListEndpoints26Schema0;
+      };
+      example: {
+        [key: string]: ListEndpoints26Schema0;
+      } | null;
+    }>;
+  };
+};
+
+export type ListEndpointsResponse =
+  ListEndpointsResponses[keyof ListEndpointsResponses];
+
+export type SearchDeveloperData = {
   body: {
     query: string;
+    k?: number;
+    types?: string | Array<string>;
+    repos?: string | Array<string>;
+    language?: string;
+    min_stars?: number;
+    max_stars?: number;
+    passages?: boolean | ("true" | "false");
+  };
+  path?: never;
+  query?: never;
+  url: "/v1/search/developer";
+};
+
+export type SearchDeveloperErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type SearchDeveloperError =
+  SearchDeveloperErrors[keyof SearchDeveloperErrors];
+
+export type SearchDeveloperResponses = {
+  /**
+   * The results.
+   */
+  200: {
+    success: true;
+    partial?: boolean;
+    results?: Array<{
+      id?: string;
+      url?: string;
+      title?: string;
+      passages?: Array<{
+        [key: string]: unknown;
+      }>;
+      type?: string;
+      repo?: string | null;
+      stars?: number | null;
+      language?: string | null;
+      date?: string | null;
+      state?: string | null;
+    }>;
+    repos?: Array<{
+      [key: string]: unknown;
+    }>;
+    creditsUsed: number;
     /**
-     * What to search: web, news, images. Each is a string or {type}.
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
+    requestId: string;
+  };
+};
+
+export type SearchDeveloperResponse =
+  SearchDeveloperResponses[keyof SearchDeveloperResponses];
+
+export type SearchData = {
+  body: {
+    /**
+     * What to search for, up to 500 characters. Search operators work in web results: quotes for an exact phrase, -word, site:, -site:, filetype:, inurl:, allinurl:, intitle: and allintitle:. In image results, imagesize:WIDTHxHEIGHT keeps images of exactly that size and larger:WIDTHxHEIGHT keeps images at least that large.
+     */
+    query: string;
+    /**
+     * What to search: web, news, images. Each is a string or {type}. Default web, or none when categories asks for research or videos.
      */
     sources?: Array<
       | ("web" | "news" | "images")
@@ -748,18 +961,26 @@ export type SearchData = {
           type: "web";
           tbs?: string;
           location?: string;
+          /**
+           * ISO 3166-1 alpha-2 country code, e.g. us. Any case is accepted.
+           */
+          country?: string;
+          /**
+           * Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.
+           */
+          lang?: string;
         }
       | {
           type: "news" | "images";
         }
     >;
     /**
-     * pdf: web results that are PDF files. research: web results from academic sites only.
+     * pdf: web results that are PDF files. research: scholarly papers, in a research list, ranked by relevance then citations. videos: YouTube videos for the query, in YouTube's order, in a videos list, with the channel, length, views and watch link; a video whose captions we hold also gets the passage that matches the query and where it starts.
      */
     categories?: Array<
-      | ("developer" | "gov" | "research" | "pdf")
+      | ("research" | "pdf" | "videos")
       | {
-          type: "developer" | "gov" | "research" | "pdf";
+          type: "research" | "pdf" | "videos";
         }
     >;
     /**
@@ -767,11 +988,15 @@ export type SearchData = {
      */
     maxAge?: number;
     /**
-     * Most results to return for each source. Default 10, or 5 with scrapeOptions, which reads at most 5 pages. News returns at most 50.
+     * Most results to return for each source. Default 10, or 5 when scrapeOptions has formats, which reads every web and news result returned unless scrapeLimit sets fewer. News returns at most 50.
      */
     limit?: number;
     /**
-     * Time filter: qdr:h, qdr:d, qdr:w, qdr:m or qdr:y, or cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY. Web takes both; news takes qdr only; images take none.
+     * With scrapeOptions formats: read only the top this many web results and the top this many news results, and return the other results without page text. Cannot be more than limit. Without it every result returned is read. Only pages that are read are charged for.
+     */
+    scrapeLimit?: number;
+    /**
+     * Time filter: qdr:d, qdr:w, qdr:m or qdr:y, or cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY, plus sbd:1, like sbd:1,qdr:w. sbd:1 sorts newest first; results without a date come last. Web takes all of them; news takes qdr and sbd; images take none.
      */
     tbs?: string;
     /**
@@ -779,17 +1004,21 @@ export type SearchData = {
      */
     location?: string;
     /**
-     * Two-letter country to search from, like us. Image results are always US.
+     * Two-letter country to search from, like us. uk is read as gb. Image results are always US.
      */
     country?: string;
+    /**
+     * Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.
+     */
+    lang?: string;
     includeDomains?: Array<string>;
     excludeDomains?: Array<string>;
     /**
-     * Hide explicit web and image results when true.
+     * Hide explicit web, news and image results when true.
      */
     safe?: boolean;
     /**
-     * Milliseconds to wait for the sources.
+     * Milliseconds to wait for the sources, from 1,000 to 120,000; more is read as 120,000. Default 3,000, or 60,000 when scrapeOptions has formats and the search reads pages. A source that has not answered by then is left out with a warning. When none has, the call fails and costs nothing.
      */
     timeout?: number;
     /**
@@ -797,504 +1026,160 @@ export type SearchData = {
      */
     ignoreInvalidURLs?: boolean;
     /**
-     * On by default. When a web result's page is already stored, its description is the passages of that page that best match the query. Send false for the snippet the search engine shows.
+     * Off by default. With true, a web result whose page we already hold gets the passages that best match the query as its description, in markdown, up to about 2,000 characters; others keep the engine's snippet.
      */
     highlights?: boolean;
-    domainTools?: false;
-    toolDetail?: "compact";
-    threatProtection?: {};
     /**
-     * Reads the top web results, up to 5, and puts the passages that best match the query in each description. Add "markdown" to formats to get the whole page text too. Costs 1 more credit for each page read.
+     * With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. Costs what scrape costs for each page read: $1 per 1,000 pages, plus $3 per 1,000 pages for each summary or json with a schema or prompt that returns something.
      */
     scrapeOptions?: {
-      formats?: Array<
-        | string
-        | {
-            type: string;
-          }
-      >;
-      onlyMainContent?: true;
-      onlyCleanContent?: false;
-      maxAge?: 172800000;
       /**
-       * Send true to keep nothing from the pages read, and read each one live. Costs 1 more credit per page.
+       * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes ["git-diff","json"] with a schema or prompt to compare fields too), question (send { "type": "question", "question": "..." } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.
        */
-      zeroDataRetention?: boolean;
-      headers?: {};
-      waitFor?: 0;
-      mobile?: false;
-      skipTlsVerification?: false;
-      timeout?: 60000;
-      removeBase64Images?: true;
-      blockAds?: true;
-      proxy?: "auto";
-      storeInCache?: true;
-      lockdown?: false;
-      checkPromptInjection?: false;
-      redactPII?: false;
-    };
-  };
-  path?: never;
-  query?: {
-    /**
-     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
-     */
-    maxTextLength?: number;
-  };
-  url: "/v1/search";
-};
-
-export type SearchErrors = {
-  /**
-   * The request failed. Retry-After says when trying again can help.
-   */
-  "4XX": _Error;
-  /**
-   * The request failed. Retry-After says when trying again can help.
-   */
-  "5XX": _Error;
-};
-
-export type SearchError = SearchErrors[keyof SearchErrors];
-
-export type SearchResponses = {
-  /**
-   * The data, and the credits this call used.
-   */
-  200: {
-    success: true;
-    data?: {
-      web?: Array<{
-        url?: string;
-        title?: string;
-        description?: string;
-        position: number;
-        markdown?: string;
-        html?: string;
-        rawHtml?: string;
-        links?: Array<string>;
-        screenshot?: string;
-        metadata?: {
-          [key: string]: SearchSchema0;
-        };
-        scrapeError?: string;
-      }>;
-      news?: Array<{
-        url?: string;
-        title?: string;
-        snippet?: string;
-        date?: string;
-        imageUrl?: string;
-        position: number;
-        markdown?: string;
-        html?: string;
-        rawHtml?: string;
-        links?: Array<string>;
-        screenshot?: string;
-        metadata?: {
-          [key: string]: SearchSchema0;
-        };
-        scrapeError?: string;
-      }>;
-      images?: Array<{
-        url?: string;
-        imageUrl?: string;
-        imageWidth?: number;
-        imageHeight?: number;
-        position: number;
-      }>;
-    };
-    warning?: string;
-    creditsUsed: number;
-  };
-};
-
-export type SearchResponse = SearchResponses[keyof SearchResponses];
-
-export type ScrapeData = {
-  body: {
-    /**
-     * The page or PDF to read, such as https://bun.com/docs.
-     */
-    url: string;
-    /**
-     * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
-     */
-    formats?: Array<
-      | (
-          | "markdown"
-          | "summary"
-          | "html"
-          | "rawHtml"
-          | "links"
-          | "images"
-          | "network"
-          | "branding"
-          | "screenshot"
-          | "changeTracking"
-        )
-      | {
-          type:
+      formats?: Array<
+        | (
             | "markdown"
             | "summary"
             | "html"
             | "rawHtml"
+            | "rawBase64"
             | "links"
             | "images"
             | "network"
-            | "branding";
-        }
-      | {
-          type: "changeTracking";
-          modes?: Array<"git-diff">;
-          tag?: null;
-        }
-      | {
-          type: "screenshot";
-          /**
-           * Capture the whole page from top to bottom instead of the visible part.
-           */
-          fullPage?: boolean;
-        }
-      | {
-          type: "highlights";
-          /**
-           * What you are looking for on the page, such as refund policy.
-           */
-          query: string;
-          /**
-           * How many passages to return, best match first.
-           */
-          count?: number;
-        }
-      | {
-          type: "json";
-          /**
-           * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
-           */
-          parser?: string;
-          /**
-           * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
-           */
-          options?: {
-            [key: string]: ScrapeInputSchema0;
-          };
-          /**
-           * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
-           */
-          schema?: {
-            type: "object";
-            properties: {
-              [key: string]: ScrapeInputSchema1;
+            | "branding"
+            | "audio"
+            | "video"
+            | "screenshot"
+            | "changeTracking"
+            | "product"
+            | "menu"
+          )
+        | {
+            type:
+              | "markdown"
+              | "summary"
+              | "html"
+              | "rawHtml"
+              | "rawBase64"
+              | "links"
+              | "images"
+              | "network"
+              | "branding"
+              | "audio"
+              | "video";
+          }
+        | {
+            type: "changeTracking";
+            /**
+             * git-diff returns a unified diff of the markdown. json compares the fields in schema or prompt between this read and the last one. Without modes you get git-diff.
+             */
+            modes?: Array<"git-diff" | "json">;
+            /**
+             * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+             */
+            schema?: {
+              [key: string]: SearchInputSchema0;
             };
-          };
-          /**
-           * What to pull from the page in plain words, such as the version and the release date.
-           */
-          prompt?: string;
-          /**
-           * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
-           */
-          rules?: {
-            [key: string]: ScrapeInputSchema2;
-          };
-          checkPromptInjection?: false;
-        }
-      | {
-          type: "attributes";
-          /**
-           * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
-           */
-          selectors: Array<{
-            selector: string;
-            attribute: string;
-          }>;
-        }
-    >;
-    /**
-     * Keep only the page's main content, without menus, headers, footers and ads.
-     */
-    onlyMainContent?: boolean;
-    onlyCleanContent?: false;
-    /**
-     * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
-     */
-    includeTags?: Array<string>;
-    /**
-     * Remove the parts of the page that match these CSS selectors, such as .comments.
-     */
-    excludeTags?: Array<string>;
-    /**
-     * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.
-     */
-    maxAge?: number;
-    /**
-     * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
-     */
-    minAge?: number;
-    /**
-     * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
-     */
-    waitFor?: number;
-    mobile?: false;
-    skipTlsVerification?: false;
-    /**
-     * How long to keep trying, in milliseconds, between 10 seconds and 2 minutes. Pages behind a bot check can need 10 to 30 seconds the first time.
-     */
-    timeout?: number;
-    /**
-     * Only ["pdf"] is supported: PDFs are read as markdown.
-     */
-    parsers?: Array<
-      | "pdf"
-      | {
-          type: "pdf";
-          mode?: "auto";
-          pages?: false;
-          blocks?: false;
-          pageMarkers?: false;
-        }
-    >;
-    /**
-     * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 30 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs 1 credit, the same as any page, and each perform action costs 2 credits more. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
-     */
-    actions?: Array<
-      | {
-          type: "wait";
-          milliseconds: number;
-        }
-      | {
-          type: "wait";
-          selector: string;
-        }
-      | {
-          type: "click";
-          selector: string;
-          all?: false;
-        }
-      | {
-          type: "write";
-          text: string;
-        }
-      | {
-          type: "press";
-          key: string;
-        }
-      | {
-          type: "scroll";
-          direction?: "up" | "down" | "left" | "right";
-          amount?: number | ("viewport" | "max");
-          maxScrolls?: number;
-          selector?: string;
-        }
-      | {
-          type: "screenshot";
-          fullPage?: boolean;
-          quality?: number;
-          viewport?: {
-            width: number;
-            height: number;
-          };
-        }
-      | {
-          type: "scrape";
-        }
-      | {
-          type: "executeJavascript";
-          script: string;
-        }
-      | {
-          type: "pdf";
-          format?:
-            | "Letter"
-            | "Legal"
-            | "Tabloid"
-            | "Ledger"
-            | "A0"
-            | "A1"
-            | "A2"
-            | "A3"
-            | "A4"
-            | "A5"
-            | "A6";
-          landscape?: boolean;
-          scale?: number;
-        }
-      | {
-          type: "perform";
-          action: string;
-        }
-    >;
-    /**
-     * Where to read the page from. The default is the United States.
-     */
-    location?: {
-      /**
-       * Two-letter country code to read the page from, such as DE or JP.
-       */
-      country?: string;
-    };
-    removeBase64Images?: true;
-    blockAds?: true;
-    proxy?: "auto";
-    /**
-     * Send false to neither read nor keep a stored copy of this page.
-     */
-    storeInCache?: boolean;
-    lockdown?: false;
-    checkPromptInjection?: false;
-    redactPII?: false;
-    /**
-     * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs 1 credit, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
-     */
-    profile?: {
-      /**
-       * A name you choose, such as shop-login. Calls with the same name share state.
-       */
-      name: string;
-      /**
-       * Keep the cookies and local storage this read leaves behind for the next call with this name. Send false to read with the profile without changing it.
-       */
-      saveChanges?: boolean;
-    };
-    /**
-     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
-     */
-    zeroDataRetention?: boolean;
-    domainTools?: false;
-    /**
-     * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
-     */
-    linkStyle?: "inline" | "numbered" | "none";
-    /**
-     * Cut the markdown at this many characters; isTruncated says when that happened.
-     */
-    maxChars?: number;
-  };
-  path?: never;
-  query?: {
-    /**
-     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
-     */
-    maxTextLength?: number;
-  };
-  url: "/v1/scrape";
-};
-
-export type ScrapeErrors = {
-  /**
-   * The request failed. Retry-After says when trying again can help.
-   */
-  "4XX": _Error;
-  /**
-   * The request failed. Retry-After says when trying again can help.
-   */
-  "5XX": _Error;
-};
-
-export type ScrapeError = ScrapeErrors[keyof ScrapeErrors];
-
-export type ScrapeResponses = {
-  /**
-   * The data, and the credits this call used.
-   */
-  200: {
-    success: true;
-    data: {
-      markdown?: string;
-      summary?: string;
-      html?: string;
-      rawHtml?: string;
-      links?: Array<string>;
-      images?: Array<string>;
-      attributes?: Array<{
-        selector?: string;
-        attribute?: string;
-        values?: Array<string>;
-      }>;
-      screenshot?: string;
-      json?: ScrapeSchema0;
-      highlights?: string;
-      changeTracking?: {
-        previousScrapeAt?: string;
-        changeStatus?: "new" | "same" | "changed";
-        visibility?: string;
-        diff?: string;
-      };
-      branding?: {
-        [key: string]: ScrapeSchema0;
-      };
-      actions?: {
-        screenshots?: Array<string>;
-        scrapes?: Array<{
-          url?: string;
-          html?: string;
-        }>;
-        javascriptReturns?: Array<{
-          type?: string;
-          value?: ScrapeSchema0;
-        }>;
-        pdfs?: Array<string>;
-      };
-      warning?: string;
-      /**
-       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and any other meta tag appears under its own name.
-       */
-      metadata: {
-        title?: string;
-        description?: string;
-        language?: string;
-        ogImage?: string;
-        sourceURL?: string;
-        url?: string;
-        statusCode: number;
-        contentType?: string;
-        numPages?: number;
-        totalPages?: number;
-        cacheState?: "hit" | "miss";
-        cachedAt?: string;
-        scrapeId?: string;
-        creditsUsed?: number;
-        [key: string]: unknown | string | number | ("hit" | "miss") | undefined;
-      };
-    };
-  };
-};
-
-export type ScrapeResponse = ScrapeResponses[keyof ScrapeResponses];
-
-export type ExtractData = {
-  body: {
-    /**
-     * The pages to read, up to 10, such as ["https://bun.com/blog/bun-v1.3"]. With more than one, the fields are filled from all of them together.
-     */
-    urls: Array<string>;
-    /**
-     * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
-     */
-    schema?: {
-      type: "object";
-      properties: {
-        [key: string]: ExtractInputSchema0;
-      };
-    };
-    /**
-     * What to pull from the pages in plain words, such as the version and the release date.
-     */
-    prompt?: string;
-    enableWebSearch?: false;
-    ignoreSitemap?: boolean;
-    includeSubdomains?: boolean;
-    showSources?: false;
-    /**
-     * How to read each page, the same options as scrape.
-     */
-    scrapeOptions?: {
+            /**
+             * With json mode: what to compare, in plain words, such as the price and stock.
+             */
+            prompt?: string;
+            tag?: null;
+          }
+        | {
+            type: "question";
+            /**
+             * A question to answer from the page, such as what the refund window is.
+             */
+            question: string;
+          }
+        | {
+            type: "product";
+          }
+        | {
+            type: "menu";
+          }
+        | {
+            type: "screenshot";
+            /**
+             * Capture the whole page from top to bottom instead of the visible part.
+             */
+            fullPage?: boolean;
+            /**
+             * JPEG quality from 1 to 100. The default is 70.
+             */
+            quality?: number;
+            /**
+             * The window size in pixels, such as { width: 390, height: 844 }.
+             */
+            viewport?: {
+              width: number;
+              height: number;
+            };
+          }
+        | {
+            type: "highlights";
+            /**
+             * What you are looking for on the page, such as refund policy.
+             */
+            query: string;
+            /**
+             * How many passages to return, best match first.
+             */
+            count?: number;
+          }
+        | {
+            type: "json";
+            /**
+             * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
+             */
+            parser?: string;
+            /**
+             * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
+             */
+            options?: {
+              [key: string]: SearchInputSchema1;
+            };
+            /**
+             * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+             */
+            schema?: {
+              [key: string]: SearchInputSchema0;
+            };
+            /**
+             * What to pull from the page in plain words, such as the version and the release date.
+             */
+            prompt?: string;
+            /**
+             * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
+             */
+            rules?: {
+              [key: string]: SearchInputSchema2;
+            };
+            /**
+             * Deprecated: send checkPromptInjection at the top level of the call.
+             */
+            checkPromptInjection?: boolean;
+          }
+        | {
+            type: "attributes";
+            /**
+             * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
+             */
+            selectors: Array<{
+              selector: string;
+              attribute: string;
+            }>;
+          }
+      >;
       /**
        * Keep only the page's main content, without menus, headers, footers and ads.
        */
       onlyMainContent?: boolean;
-      onlyCleanContent?: false;
+      /**
+       * Send true to have a model remove what onlyMainContent leaves behind in the markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It only removes whole paragraphs and lists; it never rewrites or adds text, and code blocks are always kept. Skipped with a warning when the page is too long to clean or the model does not answer. Not with zeroDataRetention. Summary, answers and highlights are made from the cleaned markdown.
+       */
+      onlyCleanContent?: boolean;
       /**
        * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
        */
@@ -1304,7 +1189,7 @@ export type ExtractData = {
        */
       excludeTags?: Array<string>;
       /**
-       * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.
+       * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.
        */
       maxAge?: number;
       /**
@@ -1312,30 +1197,58 @@ export type ExtractData = {
        */
       minAge?: number;
       /**
-       * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
+       * Extra request headers to send to the site, such as { "x-plan": "pro" }. A read with headers is never answered from or saved to a stored copy.
+       */
+      headers?: {
+        [key: string]: string;
+      };
+      /**
+       * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs $1 per 1,000 pages, the same as any page.
        */
       waitFor?: number;
-      mobile?: false;
-      skipTlsVerification?: false;
       /**
-       * How long to keep trying, in milliseconds, between 10 seconds and 2 minutes. Pages behind a bot check can need 10 to 30 seconds the first time.
+       * Read the page as a phone would: a phone-sized screen and the mobile version of the site. The page loads in a browser.
+       */
+      mobile?: boolean;
+      /**
+       * Send true to read a page whose certificate is expired, self-signed or for another name. The read is not private against someone between us and the site.
+       */
+      skipTlsVerification?: boolean;
+      /**
+       * How long to keep trying, in milliseconds, from 1 second to 5 minutes; 30 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.
        */
       timeout?: number;
       /**
-       * Only ["pdf"] is supported: PDFs are read as markdown.
+       * Only the pdf parser exists. Send "pdf" or { "type": "pdf", mode, maxPages, pages, blocks, pageMarkers } with the same meaning as in parse. Without mode a PDF is read as auto: from its text layer, and from the picture of any page that has no text. fast reads the text layer only, and ocr reads the picture of every page, up to 20 pages. Each page of text that comes back costs $0.50 per 1,000 pages from its text layer and $2.50 per 1,000 pages from its picture. Pictures are read only with an API key.
        */
       parsers?: Array<
         | "pdf"
         | {
             type: "pdf";
-            mode?: "auto";
-            pages?: false;
-            blocks?: false;
-            pageMarkers?: false;
+            /**
+             * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+             */
+            mode?: "fast" | "auto" | "ocr";
+            /**
+             * Read at most this many pages, up to 500, which is also the default.
+             */
+            maxPages?: number;
+            /**
+             * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+             */
+            pages?: boolean;
+            /**
+             * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+             */
+            blocks?: boolean;
+            /**
+             * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+             */
+            pageMarkers?: boolean;
           }
       >;
       /**
-       * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 30 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs 1 credit, the same as any page, and each perform action costs 2 credits more. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
+       * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 60 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs $1 per 1,000 pages, the same as any page; the actions themselves add nothing. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
        */
       actions?: Array<
         | {
@@ -1412,19 +1325,62 @@ export type ExtractData = {
          * Two-letter country code to read the page from, such as DE or JP.
          */
         country?: string;
+        /**
+         * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+         */
+        languages?: Array<string>;
       };
-      removeBase64Images?: true;
-      blockAds?: true;
-      proxy?: "auto";
+      /**
+       * Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.
+       */
+      removeBase64Images?: boolean;
+      /**
+       * Ads and trackers are not loaded when a page runs in a browser. Send false to load them.
+       */
+      blockAds?: boolean;
+      /**
+       * Send true to read the page without opening a browser: the answer comes sooner, but a page that needs a browser, or that refuses a plain request, comes back as an error instead of being retried. Ignored when the call needs a browser (actions, screenshot, waitFor, mobile, profile, network, branding).
+       */
+      fastMode?: boolean;
+      /**
+       * auto: basic first, enhanced once if the site refuses. basic: one plain attempt. enhanced: the stronger read from the start. stealth is the same as enhanced. Same price.
+       */
+      proxy?: "auto" | "basic" | "enhanced" | "stealth";
       /**
        * Send false to neither read nor keep a stored copy of this page.
        */
       storeInCache?: boolean;
-      lockdown?: false;
-      checkPromptInjection?: false;
-      redactPII?: false;
       /**
-       * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs 1 credit, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
+       * Send true to answer only from a stored copy of the page and never read it live, whatever its age. A page with no stored copy is notFound. The same as minAge 0.
+       */
+      lockdown?: boolean;
+      /**
+       * Send true to scan the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with 403 promptInjectionDetected and costs nothing. The scan adds $2.50 per 1,000 pages when it runs; a page it cannot scan fully comes back with a warning and no charge.
+       */
+      checkPromptInjection?: boolean;
+      /**
+       * Send true, or an object, to hide personal data in the markdown and in everything made from it (summary, answers, highlights, json). Links, html and rawHtml are not changed. A page the model cannot scan is refused rather than returned unredacted.
+       */
+      redactPII?:
+        | boolean
+        | {
+            /**
+             * accurate finds names and places with the model and the rest by pattern. aggressive adds guesses that catch more and may hide a little too much. fast uses patterns only, so it finds no ordinary names or places.
+             */
+            mode?: "accurate" | "aggressive" | "fast";
+            /**
+             * What to hide: PERSON, EMAIL, PHONE, LOCATION, FINANCIAL, SECRET. All by default.
+             */
+            entities?: Array<
+              "PERSON" | "EMAIL" | "PHONE" | "LOCATION" | "FINANCIAL" | "SECRET"
+            >;
+            /**
+             * tag writes <EMAIL>, mask writes * for each character, remove deletes it.
+             */
+            replaceStyle?: "tag" | "mask" | "remove";
+          };
+      /**
+       * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs $1 per 1,000 pages, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
        */
       profile?: {
         /**
@@ -1437,113 +1393,1382 @@ export type ExtractData = {
         saveChanges?: boolean;
       };
       /**
-       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
-      domainTools?: false;
-      /**
-       * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
-       */
-      formats?: Array<
-        | (
+    };
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/search";
+};
+
+export type SearchErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type SearchError = SearchErrors[keyof SearchErrors];
+
+export type SearchResponses = {
+  /**
+   * The data, and what this call cost in dollars.
+   */
+  200: {
+    success: true;
+    data?: {
+      web?: Array<{
+        /**
+         * For a PDF read with the pdf parser and pages true: each page's markdown.
+         */
+        pages?: Array<{
+          pageNumber: number;
+          markdown?: string;
+        }>;
+        /**
+         * For a PDF read with the pdf parser and blocks true: each title, section header or run of text with its page, order, bbox and span.
+         */
+        blocks?: Array<{
+          [key: string]: SearchSchema0;
+        }>;
+        /**
+         * A short summary of the page.
+         */
+        summary?: string;
+        /**
+         * The answer to the question format. Left out, with a warning, when the page does not state one.
+         */
+        answer?: string;
+        /**
+         * The product the page sells: title, brand, category, url, description and variants, each with its price, sale, availability and images. Left out, with a warning, when the page is not a product page.
+         */
+        product?: {};
+        /**
+         * The menu on the page: isMenu, confidence, merchant, currency and sections with their items. Left out, with a warning, when the page is not a menu.
+         */
+        menu?: {};
+        html?: string;
+        rawHtml?: string;
+        /**
+         * A link to the audio of a YouTube video as an M4A file. The link works for 1 hour.
+         */
+        audio?: string;
+        /**
+         * A link to a YouTube video as an MP4 file with sound, in the best single-file quality YouTube offers. The link works for 1 hour.
+         */
+        video?: string;
+        /**
+         * The bytes the site sent, Base64 encoded, without a data: prefix. metadata.contentType says what they are. Always read live.
+         */
+        rawBase64?: string;
+        links?: Array<string>;
+        images?: Array<string>;
+        /**
+         * A link to a JPEG of the page. The link works for 7 days.
+         */
+        screenshot?: string;
+        /**
+         * true when the page was taller than the screenshot, so the bottom is cut off.
+         */
+        screenshotCropped?: boolean;
+        /**
+         * The passages that best match the highlights query, best first.
+         */
+        highlights?: Array<{
+          section?: string;
+          text?: string;
+        }>;
+        /**
+         * The JSON responses the page loaded while it rendered, with their bodies.
+         */
+        network?: Array<{
+          url?: string;
+          method?: string;
+          status: number;
+          contentType?: string;
+          body?: string;
+        }>;
+        /**
+         * The page's look: colorScheme, logo, colors (hex), fonts, typography, spacing, components, images and layout. Each field is left out or null when the page does not show it.
+         */
+        branding?: {
+          colorScheme: "light" | "dark";
+          logo?: string;
+          colors?: {
+            primary?: string;
+            secondary?: string;
+            accent?: string;
+            background?: string;
+            textPrimary?: string;
+            textSecondary?: string;
+            link?: string;
+            success?: string;
+            warning?: string;
+            error?: string;
+          };
+          fonts?: Array<{
+            family: string;
+          }>;
+          typography?: {
+            fontFamilies?: {
+              primary?: string;
+              heading?: string;
+              code?: string;
+            };
+            fontSizes?: {
+              h1?: string;
+              h2?: string;
+              h3?: string;
+              body?: string;
+            };
+            fontWeights?: {
+              light?: number;
+              regular?: number;
+              medium?: number;
+              bold?: number;
+            };
+            lineHeights?: {
+              heading?: string;
+              body?: string;
+            };
+          };
+          spacing?: {
+            baseUnit?: number;
+            borderRadius?: string;
+            padding?: {
+              [key: string]: string;
+            };
+            margins?: {
+              [key: string]: string;
+            };
+          };
+          components?: {
+            buttonPrimary?: {
+              background?: string;
+              textColor?: string;
+              borderRadius?: string;
+            };
+            buttonSecondary?: {
+              background?: string;
+              textColor?: string;
+              borderColor?: string;
+              borderRadius?: string;
+            };
+            input?: {
+              [key: string]: string;
+            };
+          };
+          icons?: {
+            [key: string]: string;
+          };
+          images?: {
+            logo?: string;
+            favicon?: string;
+            ogImage?: string;
+          };
+          animations?: {
+            [key: string]: string;
+          };
+          layout?: {
+            [key: string]: string;
+          };
+          personality?: {
+            [key: string]: string;
+          };
+        };
+        /**
+         * How many JSON responses were left out because the page loaded too many or they were too big.
+         */
+        networkDropped?: number;
+        /**
+         * What you asked for with the json format. A page from a site Stophy reads natively, such as a Reddit post, comes back as its own data. Any other page comes back as the fields in your schema or prompt, each null when the page does not state it.
+         */
+        json?: {};
+        /**
+         * new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did. With json mode, json holds each field's previous and current value.
+         */
+        changeTracking?: {
+          status: "new" | "same" | "changed";
+          previousAt?: string;
+          diff?: string;
+          json?: {
+            [key: string]: {
+              previous?: SearchSchema0;
+              current?: SearchSchema0;
+            };
+          };
+        };
+        /**
+         * The values the attributes format read, one entry per selector.
+         */
+        attributes?: Array<{
+          selector?: string;
+          attribute?: string;
+          values?: Array<string>;
+        }>;
+        /**
+         * What the screenshot, scrape, executeJavascript and pdf actions captured, each in the order the actions ran: screenshots and pdfs as links that work for 7 days, scrapes as the page url and html at that point, javascriptReturns as the type and value each script returned.
+         */
+        actions?: {
+          screenshots?: Array<string>;
+          scrapes?: Array<{
+            url?: string;
+            html?: string;
+          }>;
+          javascriptReturns?: Array<{
+            type?: string;
+            value?: unknown;
+          }>;
+          pdfs?: Array<string>;
+        };
+        /**
+         * Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.
+         */
+        warning?: string;
+        /**
+         * Where the next part of the text starts, when more follows. Send it as offset, with the same maxChars, to read on.
+         */
+        nextOffset?: number;
+        url: string;
+        title?: string;
+        description?: string;
+        position: number;
+        markdown?: string;
+        metadata?: {
+          [key: string]: string | number | Array<string>;
+        };
+        /**
+         * What kind of page this is, when it is one of github, research or pdf.
+         */
+        category?: "github" | "research" | "pdf";
+        /**
+         * When the page was published or last updated, when known.
+         */
+        date?: string;
+      }>;
+      news?: Array<{
+        /**
+         * For a PDF read with the pdf parser and pages true: each page's markdown.
+         */
+        pages?: Array<{
+          pageNumber: number;
+          markdown?: string;
+        }>;
+        /**
+         * For a PDF read with the pdf parser and blocks true: each title, section header or run of text with its page, order, bbox and span.
+         */
+        blocks?: Array<{
+          [key: string]: SearchSchema0;
+        }>;
+        /**
+         * A short summary of the page.
+         */
+        summary?: string;
+        /**
+         * The answer to the question format. Left out, with a warning, when the page does not state one.
+         */
+        answer?: string;
+        /**
+         * The product the page sells: title, brand, category, url, description and variants, each with its price, sale, availability and images. Left out, with a warning, when the page is not a product page.
+         */
+        product?: {};
+        /**
+         * The menu on the page: isMenu, confidence, merchant, currency and sections with their items. Left out, with a warning, when the page is not a menu.
+         */
+        menu?: {};
+        html?: string;
+        rawHtml?: string;
+        /**
+         * A link to the audio of a YouTube video as an M4A file. The link works for 1 hour.
+         */
+        audio?: string;
+        /**
+         * A link to a YouTube video as an MP4 file with sound, in the best single-file quality YouTube offers. The link works for 1 hour.
+         */
+        video?: string;
+        /**
+         * The bytes the site sent, Base64 encoded, without a data: prefix. metadata.contentType says what they are. Always read live.
+         */
+        rawBase64?: string;
+        links?: Array<string>;
+        images?: Array<string>;
+        /**
+         * A link to a JPEG of the page. The link works for 7 days.
+         */
+        screenshot?: string;
+        /**
+         * true when the page was taller than the screenshot, so the bottom is cut off.
+         */
+        screenshotCropped?: boolean;
+        /**
+         * The passages that best match the highlights query, best first.
+         */
+        highlights?: Array<{
+          section?: string;
+          text?: string;
+        }>;
+        /**
+         * The JSON responses the page loaded while it rendered, with their bodies.
+         */
+        network?: Array<{
+          url?: string;
+          method?: string;
+          status: number;
+          contentType?: string;
+          body?: string;
+        }>;
+        /**
+         * The page's look: colorScheme, logo, colors (hex), fonts, typography, spacing, components, images and layout. Each field is left out or null when the page does not show it.
+         */
+        branding?: {
+          colorScheme: "light" | "dark";
+          logo?: string;
+          colors?: {
+            primary?: string;
+            secondary?: string;
+            accent?: string;
+            background?: string;
+            textPrimary?: string;
+            textSecondary?: string;
+            link?: string;
+            success?: string;
+            warning?: string;
+            error?: string;
+          };
+          fonts?: Array<{
+            family: string;
+          }>;
+          typography?: {
+            fontFamilies?: {
+              primary?: string;
+              heading?: string;
+              code?: string;
+            };
+            fontSizes?: {
+              h1?: string;
+              h2?: string;
+              h3?: string;
+              body?: string;
+            };
+            fontWeights?: {
+              light?: number;
+              regular?: number;
+              medium?: number;
+              bold?: number;
+            };
+            lineHeights?: {
+              heading?: string;
+              body?: string;
+            };
+          };
+          spacing?: {
+            baseUnit?: number;
+            borderRadius?: string;
+            padding?: {
+              [key: string]: string;
+            };
+            margins?: {
+              [key: string]: string;
+            };
+          };
+          components?: {
+            buttonPrimary?: {
+              background?: string;
+              textColor?: string;
+              borderRadius?: string;
+            };
+            buttonSecondary?: {
+              background?: string;
+              textColor?: string;
+              borderColor?: string;
+              borderRadius?: string;
+            };
+            input?: {
+              [key: string]: string;
+            };
+          };
+          icons?: {
+            [key: string]: string;
+          };
+          images?: {
+            logo?: string;
+            favicon?: string;
+            ogImage?: string;
+          };
+          animations?: {
+            [key: string]: string;
+          };
+          layout?: {
+            [key: string]: string;
+          };
+          personality?: {
+            [key: string]: string;
+          };
+        };
+        /**
+         * How many JSON responses were left out because the page loaded too many or they were too big.
+         */
+        networkDropped?: number;
+        /**
+         * What you asked for with the json format. A page from a site Stophy reads natively, such as a Reddit post, comes back as its own data. Any other page comes back as the fields in your schema or prompt, each null when the page does not state it.
+         */
+        json?: {};
+        /**
+         * new the first time your key reads this page, same when nothing changed, changed with a unified diff of the markdown when something did. With json mode, json holds each field's previous and current value.
+         */
+        changeTracking?: {
+          status: "new" | "same" | "changed";
+          previousAt?: string;
+          diff?: string;
+          json?: {
+            [key: string]: {
+              previous?: SearchSchema0;
+              current?: SearchSchema0;
+            };
+          };
+        };
+        /**
+         * The values the attributes format read, one entry per selector.
+         */
+        attributes?: Array<{
+          selector?: string;
+          attribute?: string;
+          values?: Array<string>;
+        }>;
+        /**
+         * What the screenshot, scrape, executeJavascript and pdf actions captured, each in the order the actions ran: screenshots and pdfs as links that work for 7 days, scrapes as the page url and html at that point, javascriptReturns as the type and value each script returned.
+         */
+        actions?: {
+          screenshots?: Array<string>;
+          scrapes?: Array<{
+            url?: string;
+            html?: string;
+          }>;
+          javascriptReturns?: Array<{
+            type?: string;
+            value?: unknown;
+          }>;
+          pdfs?: Array<string>;
+        };
+        /**
+         * Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.
+         */
+        warning?: string;
+        /**
+         * Where the next part of the text starts, when more follows. Send it as offset, with the same maxChars, to read on.
+         */
+        nextOffset?: number;
+        title?: string;
+        url: string;
+        snippet?: string;
+        date?: string;
+        imageUrl?: string;
+        position: number;
+        markdown?: string;
+        metadata?: {
+          [key: string]: string | number | Array<string>;
+        };
+      }>;
+      images?: Array<{
+        title?: string;
+        imageUrl: string;
+        imageWidth: number;
+        imageHeight: number;
+        url: string;
+        position: number;
+      }>;
+      research?: Array<{
+        title?: string;
+        /**
+         * The paper's DOI link, or its OpenAlex page when it has no DOI.
+         */
+        url: string;
+        doi?: string;
+        /**
+         * The part of the abstract that best matches the query.
+         */
+        snippet?: string;
+        /**
+         * Up to the first 10 authors.
+         */
+        authors?: Array<string>;
+        year?: number;
+        /**
+         * The journal, conference or repository.
+         */
+        venue?: string;
+        /**
+         * article, preprint, review, book-chapter and so on.
+         */
+        type?: string;
+        citedByCount: number;
+        /**
+         * A free copy of the paper, when one exists.
+         */
+        openAccessUrl?: string;
+        position: number;
+      }>;
+      videos?: Array<{
+        /**
+         * Watch link. It carries &t= when Stophy knows where in the video the snippet is said.
+         */
+        url: string;
+        title?: string;
+        channel?: string;
+        channelUrl?: string;
+        /**
+         * Approximate: YouTube lists show only how long ago a video was published.
+         */
+        publishedAt?: string;
+        durationSeconds?: number;
+        views?: number;
+        /**
+         * A passage that matches the query, as spoken, when Stophy holds the captions.
+         */
+        snippet?: string;
+        /**
+         * Where the snippet starts, in seconds, when it is known exactly.
+         */
+        startSeconds?: number;
+        position: number;
+      }>;
+    };
+    warning?: string;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
+  };
+};
+
+export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type ScrapeData = {
+  body: {
+    /**
+     * The page or PDF to read, such as https://bun.com/docs.
+     */
+    url: string;
+    /**
+     * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes ["git-diff","json"] with a schema or prompt to compare fields too), question (send { "type": "question", "question": "..." } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.
+     */
+    formats?: Array<
+      | (
+          | "markdown"
+          | "summary"
+          | "html"
+          | "rawHtml"
+          | "rawBase64"
+          | "links"
+          | "images"
+          | "network"
+          | "branding"
+          | "audio"
+          | "video"
+          | "screenshot"
+          | "changeTracking"
+          | "product"
+          | "menu"
+        )
+      | {
+          type:
             | "markdown"
             | "summary"
             | "html"
             | "rawHtml"
+            | "rawBase64"
             | "links"
             | "images"
             | "network"
             | "branding"
-            | "screenshot"
-            | "changeTracking"
-          )
+            | "audio"
+            | "video";
+        }
+      | {
+          type: "changeTracking";
+          /**
+           * git-diff returns a unified diff of the markdown. json compares the fields in schema or prompt between this read and the last one. Without modes you get git-diff.
+           */
+          modes?: Array<"git-diff" | "json">;
+          /**
+           * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+           */
+          schema?: {
+            [key: string]: ScrapeInputSchema0;
+          };
+          /**
+           * With json mode: what to compare, in plain words, such as the price and stock.
+           */
+          prompt?: string;
+          tag?: null;
+        }
+      | {
+          type: "question";
+          /**
+           * A question to answer from the page, such as what the refund window is.
+           */
+          question: string;
+        }
+      | {
+          type: "product";
+        }
+      | {
+          type: "menu";
+        }
+      | {
+          type: "screenshot";
+          /**
+           * Capture the whole page from top to bottom instead of the visible part.
+           */
+          fullPage?: boolean;
+          /**
+           * JPEG quality from 1 to 100. The default is 70.
+           */
+          quality?: number;
+          /**
+           * The window size in pixels, such as { width: 390, height: 844 }.
+           */
+          viewport?: {
+            width: number;
+            height: number;
+          };
+        }
+      | {
+          type: "highlights";
+          /**
+           * What you are looking for on the page, such as refund policy.
+           */
+          query: string;
+          /**
+           * How many passages to return, best match first.
+           */
+          count?: number;
+        }
+      | {
+          type: "json";
+          /**
+           * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
+           */
+          parser?: string;
+          /**
+           * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
+           */
+          options?: {
+            [key: string]: ScrapeInputSchema1;
+          };
+          /**
+           * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+           */
+          schema?: {
+            [key: string]: ScrapeInputSchema0;
+          };
+          /**
+           * What to pull from the page in plain words, such as the version and the release date.
+           */
+          prompt?: string;
+          /**
+           * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
+           */
+          rules?: {
+            [key: string]: ScrapeInputSchema2;
+          };
+          /**
+           * Deprecated: send checkPromptInjection at the top level of the call.
+           */
+          checkPromptInjection?: boolean;
+        }
+      | {
+          type: "attributes";
+          /**
+           * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
+           */
+          selectors: Array<{
+            selector: string;
+            attribute: string;
+          }>;
+        }
+    >;
+    /**
+     * Keep only the page's main content, without menus, headers, footers and ads.
+     */
+    onlyMainContent?: boolean;
+    /**
+     * Send true to have a model remove what onlyMainContent leaves behind in the markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It only removes whole paragraphs and lists; it never rewrites or adds text, and code blocks are always kept. Skipped with a warning when the page is too long to clean or the model does not answer. Not with zeroDataRetention. Summary, answers and highlights are made from the cleaned markdown.
+     */
+    onlyCleanContent?: boolean;
+    /**
+     * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
+     */
+    includeTags?: Array<string>;
+    /**
+     * Remove the parts of the page that match these CSS selectors, such as .comments.
+     */
+    excludeTags?: Array<string>;
+    /**
+     * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.
+     */
+    maxAge?: number;
+    /**
+     * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
+     */
+    minAge?: number;
+    /**
+     * Extra request headers to send to the site, such as { "x-plan": "pro" }. A read with headers is never answered from or saved to a stored copy.
+     */
+    headers?: {
+      [key: string]: string;
+    };
+    /**
+     * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs $1 per 1,000 pages, the same as any page.
+     */
+    waitFor?: number;
+    /**
+     * Read the page as a phone would: a phone-sized screen and the mobile version of the site. The page loads in a browser.
+     */
+    mobile?: boolean;
+    /**
+     * Send true to read a page whose certificate is expired, self-signed or for another name. The read is not private against someone between us and the site.
+     */
+    skipTlsVerification?: boolean;
+    /**
+     * How long to keep trying, in milliseconds, from 1 second to 5 minutes; 60 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.
+     */
+    timeout?: number;
+    /**
+     * Only the pdf parser exists. Send "pdf" or { "type": "pdf", mode, maxPages, pages, blocks, pageMarkers } with the same meaning as in parse. Without mode a PDF is read as auto: from its text layer, and from the picture of any page that has no text. fast reads the text layer only, and ocr reads the picture of every page, up to 20 pages. Each page of text that comes back costs $0.50 per 1,000 pages from its text layer and $2.50 per 1,000 pages from its picture. Pictures are read only with an API key.
+     */
+    parsers?: Array<
+      | "pdf"
+      | {
+          type: "pdf";
+          /**
+           * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+           */
+          mode?: "fast" | "auto" | "ocr";
+          /**
+           * Read at most this many pages, up to 500, which is also the default.
+           */
+          maxPages?: number;
+          /**
+           * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+           */
+          pages?: boolean;
+          /**
+           * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+           */
+          blocks?: boolean;
+          /**
+           * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+           */
+          pageMarkers?: boolean;
+        }
+    >;
+    /**
+     * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 60 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs $1 per 1,000 pages, the same as any page; the actions themselves add nothing. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
+     */
+    actions?: Array<
+      | {
+          type: "wait";
+          milliseconds: number;
+        }
+      | {
+          type: "wait";
+          selector: string;
+        }
+      | {
+          type: "click";
+          selector: string;
+          all?: false;
+        }
+      | {
+          type: "write";
+          text: string;
+        }
+      | {
+          type: "press";
+          key: string;
+        }
+      | {
+          type: "scroll";
+          direction?: "up" | "down" | "left" | "right";
+          amount?: number | ("viewport" | "max");
+          maxScrolls?: number;
+          selector?: string;
+        }
+      | {
+          type: "screenshot";
+          fullPage?: boolean;
+          quality?: number;
+          viewport?: {
+            width: number;
+            height: number;
+          };
+        }
+      | {
+          type: "scrape";
+        }
+      | {
+          type: "executeJavascript";
+          script: string;
+        }
+      | {
+          type: "pdf";
+          format?:
+            | "Letter"
+            | "Legal"
+            | "Tabloid"
+            | "Ledger"
+            | "A0"
+            | "A1"
+            | "A2"
+            | "A3"
+            | "A4"
+            | "A5"
+            | "A6";
+          landscape?: boolean;
+          scale?: number;
+        }
+      | {
+          type: "perform";
+          action: string;
+        }
+    >;
+    /**
+     * Where to read the page from. The default is the United States.
+     */
+    location?: {
+      /**
+       * Two-letter country code to read the page from, such as DE or JP.
+       */
+      country?: string;
+      /**
+       * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+       */
+      languages?: Array<string>;
+    };
+    /**
+     * Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.
+     */
+    removeBase64Images?: boolean;
+    /**
+     * Ads and trackers are not loaded when a page runs in a browser. Send false to load them.
+     */
+    blockAds?: boolean;
+    /**
+     * Send true to read the page without opening a browser: the answer comes sooner, but a page that needs a browser, or that refuses a plain request, comes back as an error instead of being retried. Ignored when the call needs a browser (actions, screenshot, waitFor, mobile, profile, network, branding).
+     */
+    fastMode?: boolean;
+    /**
+     * auto: basic first, enhanced once if the site refuses. basic: one plain attempt. enhanced: the stronger read from the start. stealth is the same as enhanced. Same price.
+     */
+    proxy?: "auto" | "basic" | "enhanced" | "stealth";
+    /**
+     * Send false to neither read nor keep a stored copy of this page.
+     */
+    storeInCache?: boolean;
+    /**
+     * Send true to answer only from a stored copy of the page and never read it live, whatever its age. A page with no stored copy is notFound. The same as minAge 0.
+     */
+    lockdown?: boolean;
+    /**
+     * Send true to scan the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with 403 promptInjectionDetected and costs nothing. The scan adds $2.50 per 1,000 pages when it runs; a page it cannot scan fully comes back with a warning and no charge.
+     */
+    checkPromptInjection?: boolean;
+    /**
+     * Send true, or an object, to hide personal data in the markdown and in everything made from it (summary, answers, highlights, json). Links, html and rawHtml are not changed. A page the model cannot scan is refused rather than returned unredacted.
+     */
+    redactPII?:
+      | boolean
+      | {
+          /**
+           * accurate finds names and places with the model and the rest by pattern. aggressive adds guesses that catch more and may hide a little too much. fast uses patterns only, so it finds no ordinary names or places.
+           */
+          mode?: "accurate" | "aggressive" | "fast";
+          /**
+           * What to hide: PERSON, EMAIL, PHONE, LOCATION, FINANCIAL, SECRET. All by default.
+           */
+          entities?: Array<
+            "PERSON" | "EMAIL" | "PHONE" | "LOCATION" | "FINANCIAL" | "SECRET"
+          >;
+          /**
+           * tag writes <EMAIL>, mask writes * for each character, remove deletes it.
+           */
+          replaceStyle?: "tag" | "mask" | "remove";
+        };
+    /**
+     * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs $1 per 1,000 pages, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
+     */
+    profile?: {
+      /**
+       * A name you choose, such as shop-login. Calls with the same name share state.
+       */
+      name: string;
+      /**
+       * Keep the cookies and local storage this read leaves behind for the next call with this name. Send false to read with the profile without changing it.
+       */
+      saveChanges?: boolean;
+    };
+    /**
+     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+     */
+    zeroDataRetention?: boolean;
+    /**
+     * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
+     */
+    linkStyle?: "inline" | "numbered" | "none";
+    /**
+     * Cut the markdown at this many characters; isTruncated says when that happened and nextOffset where to read on. With query, how much of the page to keep, 8000 by default.
+     */
+    maxChars?: number;
+    /**
+     * Start the markdown this many characters into the page, PDF or file. Send the nextOffset of the last answer, with the same maxChars, to read on. Not with query.
+     */
+    offset?: number;
+    /**
+     * What you are looking for on the page, such as refund window. A page longer than maxChars (8000 by default) comes back as the passages that match, in page order, each with the text around it and its table header; a shorter page comes back whole. Costs nothing extra, and a PDF is charged for the share of its pages that comes back. Not with offset.
+     */
+    query?: string;
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
+     */
+    maxTextLength?: number;
+  };
+  url: "/v1/scrape";
+};
+
+export type ScrapeErrors = {
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "4XX": _Error;
+  /**
+   * The request failed. Retry-After says when trying again can help.
+   */
+  "5XX": _Error;
+};
+
+export type ScrapeError = ScrapeErrors[keyof ScrapeErrors];
+
+export type ScrapeResponses = {
+  /**
+   * The data, and what this call cost in dollars.
+   */
+  200: {
+    success: true;
+    data: {
+      markdown?: string;
+      summary?: string;
+      html?: string;
+      rawHtml?: string;
+      links?: Array<string>;
+      images?: Array<string>;
+      attributes?: Array<{
+        selector?: string;
+        attribute?: string;
+        values?: Array<string>;
+      }>;
+      screenshot?: string;
+      json?: ScrapeSchema0;
+      highlights?: string;
+      isTruncated: boolean;
+      nextOffset?: number;
+      changeTracking?: {
+        previousScrapeAt?: string;
+        changeStatus?: "new" | "same" | "changed";
+        visibility?: string;
+        diff?: string;
+      };
+      branding?: {
+        [key: string]: ScrapeSchema0;
+      };
+      actions?: {
+        screenshots?: Array<string>;
+        scrapes?: Array<{
+          url?: string;
+          html?: string;
+        }>;
+        javascriptReturns?: Array<{
+          type?: string;
+          value?: ScrapeSchema0;
+        }>;
+        pdfs?: Array<string>;
+      };
+      warning?: string;
+      /**
+       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and every meta tag also appears under its own name, such as og:title.
+       */
+      metadata: {
+        title?: string;
+        description?: string;
+        language?: string;
+        ogImage?: string;
+        sourceURL?: string;
+        url?: string;
+        statusCode: number;
+        contentType?: string;
+        numPages?: number;
+        totalPages?: number;
+        cacheState?: "hit" | "miss" | "stale";
+        cachedAt?: string;
+        scrapeId?: string;
+        creditsUsed?: number;
+        costUsd?: number;
+        [key: string]:
+          | unknown
+          | string
+          | number
+          | ("hit" | "miss" | "stale")
+          | number
+          | undefined;
+      };
+    };
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
+  };
+};
+
+export type ScrapeResponse = ScrapeResponses[keyof ScrapeResponses];
+
+export type ExtractData = {
+  body: {
+    /**
+     * The pages to read, up to 25, such as ["https://bun.com/blog/bun-v1.3"]. An address ending in * reads pages under it, found through the site's sitemap. With more than one, the fields are filled from all of them together. A page that cannot be read is skipped and named in warning, and costs nothing. A page is read up to 50000 characters. With several pages each one gets a smaller share, and all together are read up to 150000 characters. A page that is cut is counted in warning. The call fails only when no page can be read. Leave it out and send a prompt to search the web instead.
+     */
+    urls?: Array<string>;
+    /**
+     * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+     */
+    schema?: {
+      [key: string]: ExtractInputSchema0;
+    };
+    /**
+     * What to pull from the pages in plain words, such as the version and the release date, up to 10000 characters. With no urls, the web is searched for the first 400 characters of it.
+     */
+    prompt?: string;
+    /**
+     * Standing instructions for how to fill the fields, such as units or how to write dates, up to 10000 characters. They add to the rules of the extract: a value is still copied from the page and is null when the page does not state it.
+     */
+    systemPrompt?: string;
+    /**
+     * Send true to also search the web for your prompt and read the best pages it finds, up to 3 more. Needs a prompt. The search costs $1 per 1,000 searches. With no urls, the search runs without this.
+     */
+    enableWebSearch?: boolean;
+    /**
+     * Send true to also read pages on other sites that the pages link to, up to 5, picking the links whose address mentions your prompt. Each page read costs $1 per 1,000 pages.
+     */
+    allowExternalLinks?: boolean;
+    /**
+     * Accepted so a client that sends an agent model works. The value is not used. An extract reads the pages it is given and checks every value; it does not browse or click, and the answer says so in warning. To navigate a site, use the agent endpoint.
+     */
+    agent?: {
+      model: string;
+    };
+    /**
+     * Where to be told when the extract ends: a plain address, or { url } which gets one JSON POST with the id, the status, the data and costUsd. headers are sent with the call, metadata comes back in it, and events picks completed, failed or both (both by default). The call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), the HMAC-SHA256 of "<t>.<body>" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled.
+     */
+    webhook?:
+      | string
+      | {
+          url: string;
+          headers?: {
+            [key: string]: string;
+          };
+          metadata?: {
+            [key: string]: ExtractInputSchema0;
+          };
+          events?: Array<
+            "started" | "page" | "action" | "completed" | "failed" | "cancelled"
+          >;
+        };
+    /**
+     * For an address ending in *: skip the site's sitemaps and find pages by links.
+     */
+    ignoreSitemap?: boolean;
+    /**
+     * For an address ending in *: also read pages on subdomains of the site. Send false to stay on the exact host.
+     */
+    includeSubdomains?: boolean;
+    /**
+     * For an address ending in *: read at most this many pages under it. At most 25 pages are read in all.
+     */
+    limit?: number;
+    /**
+     * How long to keep reading the pages, in milliseconds, from 1 second to 5 minutes; 30 seconds by default. A page not read by then is skipped and named in warning, and costs nothing.
+     */
+    timeout?: number;
+    /**
+     * Send true to get sources: for each field, the pages that state its value.
+     */
+    showSources?: boolean;
+    /**
+     * How to read each page, the same options as scrape.
+     */
+    scrapeOptions?: {
+      /**
+       * Keep only the page's main content, without menus, headers, footers and ads.
+       */
+      onlyMainContent?: boolean;
+      /**
+       * Send true to have a model remove what onlyMainContent leaves behind in the markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It only removes whole paragraphs and lists; it never rewrites or adds text, and code blocks are always kept. Skipped with a warning when the page is too long to clean or the model does not answer. Not with zeroDataRetention. Summary, answers and highlights are made from the cleaned markdown.
+       */
+      onlyCleanContent?: boolean;
+      /**
+       * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
+       */
+      includeTags?: Array<string>;
+      /**
+       * Remove the parts of the page that match these CSS selectors, such as .comments.
+       */
+      excludeTags?: Array<string>;
+      /**
+       * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.
+       */
+      maxAge?: number;
+      /**
+       * Answer only from a stored copy that is at least this many milliseconds old, and never read the page live. 0 accepts any stored copy. A page with no such copy is notFound.
+       */
+      minAge?: number;
+      /**
+       * Extra request headers to send to the site, such as { "x-plan": "pro" }. A read with headers is never answered from or saved to a stored copy.
+       */
+      headers?: {
+        [key: string]: string;
+      };
+      /**
+       * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs $1 per 1,000 pages, the same as any page.
+       */
+      waitFor?: number;
+      /**
+       * Read the page as a phone would: a phone-sized screen and the mobile version of the site. The page loads in a browser.
+       */
+      mobile?: boolean;
+      /**
+       * Send true to read a page whose certificate is expired, self-signed or for another name. The read is not private against someone between us and the site.
+       */
+      skipTlsVerification?: boolean;
+      /**
+       * How long to keep trying, in milliseconds, from 1 second to 5 minutes; 60 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.
+       */
+      timeout?: number;
+      /**
+       * Only the pdf parser exists. Send "pdf" or { "type": "pdf", mode, maxPages, pages, blocks, pageMarkers } with the same meaning as in parse. Without mode a PDF is read as auto: from its text layer, and from the picture of any page that has no text. fast reads the text layer only, and ocr reads the picture of every page, up to 20 pages. Each page of text that comes back costs $0.50 per 1,000 pages from its text layer and $2.50 per 1,000 pages from its picture. Pictures are read only with an API key.
+       */
+      parsers?: Array<
+        | "pdf"
         | {
-            type:
-              | "markdown"
-              | "summary"
-              | "html"
-              | "rawHtml"
-              | "links"
-              | "images"
-              | "network"
-              | "branding";
+            type: "pdf";
+            /**
+             * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+             */
+            mode?: "fast" | "auto" | "ocr";
+            /**
+             * Read at most this many pages, up to 500, which is also the default.
+             */
+            maxPages?: number;
+            /**
+             * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+             */
+            pages?: boolean;
+            /**
+             * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+             */
+            blocks?: boolean;
+            /**
+             * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+             */
+            pageMarkers?: boolean;
+          }
+      >;
+      /**
+       * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 60 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs $1 per 1,000 pages, the same as any page; the actions themselves add nothing. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
+       */
+      actions?: Array<
+        | {
+            type: "wait";
+            milliseconds: number;
           }
         | {
-            type: "changeTracking";
-            modes?: Array<"git-diff">;
-            tag?: null;
+            type: "wait";
+            selector: string;
+          }
+        | {
+            type: "click";
+            selector: string;
+            all?: false;
+          }
+        | {
+            type: "write";
+            text: string;
+          }
+        | {
+            type: "press";
+            key: string;
+          }
+        | {
+            type: "scroll";
+            direction?: "up" | "down" | "left" | "right";
+            amount?: number | ("viewport" | "max");
+            maxScrolls?: number;
+            selector?: string;
           }
         | {
             type: "screenshot";
-            /**
-             * Capture the whole page from top to bottom instead of the visible part.
-             */
             fullPage?: boolean;
+            quality?: number;
+            viewport?: {
+              width: number;
+              height: number;
+            };
           }
         | {
-            type: "highlights";
-            /**
-             * What you are looking for on the page, such as refund policy.
-             */
-            query: string;
-            /**
-             * How many passages to return, best match first.
-             */
-            count?: number;
+            type: "scrape";
           }
         | {
-            type: "json";
-            /**
-             * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
-             */
-            parser?: string;
-            /**
-             * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
-             */
-            options?: {
-              [key: string]: ExtractInputSchema1;
-            };
-            /**
-             * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
-             */
-            schema?: {
-              type: "object";
-              properties: {
-                [key: string]: ExtractInputSchema0;
-              };
-            };
-            /**
-             * What to pull from the page in plain words, such as the version and the release date.
-             */
-            prompt?: string;
-            /**
-             * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
-             */
-            rules?: {
-              [key: string]: ExtractInputSchema2;
-            };
-            checkPromptInjection?: false;
+            type: "executeJavascript";
+            script: string;
           }
         | {
-            type: "attributes";
-            /**
-             * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
-             */
-            selectors: Array<{
-              selector: string;
-              attribute: string;
-            }>;
+            type: "pdf";
+            format?:
+              | "Letter"
+              | "Legal"
+              | "Tabloid"
+              | "Ledger"
+              | "A0"
+              | "A1"
+              | "A2"
+              | "A3"
+              | "A4"
+              | "A5"
+              | "A6";
+            landscape?: boolean;
+            scale?: number;
+          }
+        | {
+            type: "perform";
+            action: string;
           }
       >;
+      /**
+       * Where to read the page from. The default is the United States.
+       */
+      location?: {
+        /**
+         * Two-letter country code to read the page from, such as DE or JP.
+         */
+        country?: string;
+        /**
+         * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+         */
+        languages?: Array<string>;
+      };
+      /**
+       * Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.
+       */
+      removeBase64Images?: boolean;
+      /**
+       * Ads and trackers are not loaded when a page runs in a browser. Send false to load them.
+       */
+      blockAds?: boolean;
+      /**
+       * Send true to read the page without opening a browser: the answer comes sooner, but a page that needs a browser, or that refuses a plain request, comes back as an error instead of being retried. Ignored when the call needs a browser (actions, screenshot, waitFor, mobile, profile, network, branding).
+       */
+      fastMode?: boolean;
+      /**
+       * auto: basic first, enhanced once if the site refuses. basic: one plain attempt. enhanced: the stronger read from the start. stealth is the same as enhanced. Same price.
+       */
+      proxy?: "auto" | "basic" | "enhanced" | "stealth";
+      /**
+       * Send false to neither read nor keep a stored copy of this page.
+       */
+      storeInCache?: boolean;
+      /**
+       * Send true to answer only from a stored copy of the page and never read it live, whatever its age. A page with no stored copy is notFound. The same as minAge 0.
+       */
+      lockdown?: boolean;
+      /**
+       * Send true to scan the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with 403 promptInjectionDetected and costs nothing. The scan adds $2.50 per 1,000 pages when it runs; a page it cannot scan fully comes back with a warning and no charge.
+       */
+      checkPromptInjection?: boolean;
+      /**
+       * Send true, or an object, to hide personal data in the markdown and in everything made from it (summary, answers, highlights, json). Links, html and rawHtml are not changed. A page the model cannot scan is refused rather than returned unredacted.
+       */
+      redactPII?:
+        | boolean
+        | {
+            /**
+             * accurate finds names and places with the model and the rest by pattern. aggressive adds guesses that catch more and may hide a little too much. fast uses patterns only, so it finds no ordinary names or places.
+             */
+            mode?: "accurate" | "aggressive" | "fast";
+            /**
+             * What to hide: PERSON, EMAIL, PHONE, LOCATION, FINANCIAL, SECRET. All by default.
+             */
+            entities?: Array<
+              "PERSON" | "EMAIL" | "PHONE" | "LOCATION" | "FINANCIAL" | "SECRET"
+            >;
+            /**
+             * tag writes <EMAIL>, mask writes * for each character, remove deletes it.
+             */
+            replaceStyle?: "tag" | "mask" | "remove";
+          };
+      /**
+       * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs $1 per 1,000 pages, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
+       */
+      profile?: {
+        /**
+         * A name you choose, such as shop-login. Calls with the same name share state.
+         */
+        name: string;
+        /**
+         * Keep the cookies and local storage this read leaves behind for the next call with this name. Send false to read with the profile without changing it.
+         */
+        saveChanges?: boolean;
+      };
+      /**
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+       */
+      zeroDataRetention?: boolean;
     };
     /**
-     * Send true to keep nothing from this call: pages are read live, the result is held for one hour at most, and nothing is logged. Costs 1 credit more per page.
+     * Send true to keep nothing from this call: pages are read live, the result is held for one hour at most, and nothing is logged. Adds $2 per 1,000 pages.
      */
     zeroDataRetention?: boolean;
     /**
      * Skip addresses that are not public website URLs. Send false to refuse the call instead.
      */
     ignoreInvalidURLs?: boolean;
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -1570,12 +2795,15 @@ export type ExtractError = ExtractErrors[keyof ExtractErrors];
 
 export type ExtractResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     id?: string;
     invalidURLs: Array<string>;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -1596,22 +2824,25 @@ export type BrowserTaskData = {
      */
     values?: string;
     /**
-     * Fields to read from the last page when the task is done, as a JSON Schema object. Each one is checked against the page and comes back null when the page does not state it.
+     * Fields to fill when the task is done, as a JSON Schema object. Each one is checked against the pages the task saw and comes back null when no page states it.
      */
     schema?: {
-      type: "object";
-      properties: {
-        [key: string]: BrowserTaskInputSchema0;
-      };
+      [key: string]: BrowserTaskInputSchema0;
     };
     /**
-     * The most steps the task may take, 1 to 20.
+     * The most steps the task may take, 1 to 50.
      */
     maxSteps?: number;
     /**
-     * The most the task may cost in US dollars. Each step costs $0.006. Leave out to allow maxSteps steps.
+     * The most the task may spend, in US dollars. Browser time is $0.84 per hour, so each minute is $0.014, and the task stops when this is spent. Leave out to allow the full 10 minutes.
      */
     maxCost?: number;
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -1638,7 +2869,7 @@ export type BrowserTaskError = BrowserTaskErrors[keyof BrowserTaskErrors];
 
 export type BrowserTaskResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
@@ -1647,6 +2878,10 @@ export type BrowserTaskResponses = {
       status: "running" | "done";
     };
     creditsUsed: number;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
 };
@@ -1660,6 +2895,12 @@ export type BrowserTaskStatusData = {
      * The id browser.task returned.
      */
     id: string;
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -1687,7 +2928,7 @@ export type BrowserTaskStatusError =
 
 export type BrowserTaskStatusResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
@@ -1695,23 +2936,27 @@ export type BrowserTaskStatusResponses = {
       status: "running" | "done";
       result?: {
         done: boolean;
+        answer?: string;
         reason?: string;
         steps?: Array<string>;
         url?: string;
         title?: string;
         seconds?: number;
         fields?: {
-          [key: string]:
-            | (string | number | boolean)
-            | Array<string | number | boolean>;
+          [key: string]: BrowserTaskStatusSchema0;
         };
         confidence?: {
           [key: string]: number;
         };
       };
       creditsUsed: number;
+      costUsd: number;
     };
     creditsUsed: number;
+    /**
+     * What this call cost, in dollars.
+     */
+    costUsd: number;
     requestId: string;
   };
 };
@@ -1722,21 +2967,263 @@ export type BrowserTaskStatusResponse =
 export type ParseData = {
   body: {
     /**
-     * The file's bytes as base64, up to 36 MB: a PDF, a Word .docx, an Excel .xlsx, a PowerPoint .pptx or an HTML file.
+     * What to send back besides markdown: summary, html and rawHtml (HTML files only), links, images, or { type: json, schema or prompt }. markdown is always sent.
      */
-    file: string;
+    formats?: Array<
+      | {
+          type: "json";
+          prompt?: string;
+          /**
+           * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+           */
+          schema?: {
+            [key: string]: ParseInputSchema0;
+          };
+        }
+      | (
+          | ("markdown" | "summary" | "html" | "rawHtml" | "links" | "images")
+          | {
+              type:
+                | "markdown"
+                | "summary"
+                | "html"
+                | "rawHtml"
+                | "links"
+                | "images";
+            }
+        )
+    >;
+    /**
+     * How to read PDF pages. Other files ignore it.
+     */
+    parsers?: Array<{
+      type: "pdf";
+      /**
+       * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+       */
+      mode?: "fast" | "auto" | "ocr";
+      /**
+       * Read at most this many pages, up to 100.
+       */
+      maxPages?: number;
+      /**
+       * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+       */
+      pages?: boolean;
+      /**
+       * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+       */
+      blocks?: boolean;
+      /**
+       * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+       */
+      pageMarkers?: boolean;
+    }>;
+    /**
+     * For an HTML file: send false to keep navigation and footers. The default is true.
+     */
+    onlyMainContent?: boolean;
+    /**
+     * For an HTML file: keep only what these CSS selectors match.
+     */
+    includeTags?: Array<string>;
+    /**
+     * For an HTML file: drop what these CSS selectors match.
+     */
+    excludeTags?: Array<string>;
+    /**
+     * For an HTML file: send false to keep images that carry their data in the address.
+     */
+    removeBase64Images?: boolean;
+    /**
+     * Send true to keep nothing from this call: no stored result is read or made, and nothing is logged. Adds $2 per 1,000 pages.
+     */
+    zeroDataRetention?: boolean;
+    /**
+     * Which client sent the call. Not used.
+     */
+    origin?: string;
+    /**
+     * Which integration sent the call. Not used.
+     */
+    integration?: string;
+    /**
+     * Page-read speed. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    fastMode?: unknown;
+    /**
+     * Mobile page view. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    mobile?: unknown;
+    /**
+     * Ad blocking. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    blockAds?: unknown;
+    /**
+     * TLS checks of a page. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    skipTlsVerification?: unknown;
+    /**
+     * Page load time. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    timeout?: unknown;
+    /**
+     * Page request headers. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    headers?: unknown;
+    /**
+     * Page proxy. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    proxy?: unknown;
+    /**
+     * Page country and languages. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    location?: unknown;
+    /**
+     * Saved browser profile. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+     */
+    profile?: unknown;
+    /**
+     * Instead of file: the uploadId that POST /v1/parse/upload-url returned, after the file was sent to its uploadUrl. The stored file is deleted when the parse ends.
+     */
+    uploadRef?: string;
+    /**
+     * The file's bytes as base64, up to 36 MB: a PDF, a Word .docx, an Excel .xlsx, a PowerPoint .pptx, an HTML file or a PNG, JPEG or WebP picture of text.
+     */
+    file?: string;
     /**
      * The file's name, such as report.docx. The type is read from the file itself.
      */
     filename?: string;
     /**
-     * Read at most this many PDF pages, sheets or slides; isTruncated says when the file had more.
+     * Read at most this many PDF pages, sheets or slides; isTruncated says when the file had more. Pages of a PDF with no text layer are read from their picture, up to 20 of them, at $2.50 per 1,000 pages.
      */
     maxPages?: number;
     /**
-     * Send true to keep nothing from this call: no stored result is read or made, and nothing is logged. Costs 1 credit more.
+     * How to read the file and what to send back, with the same names scrape uses for a page.
      */
-    zeroDataRetention?: boolean;
+    options?: {
+      /**
+       * What to send back besides markdown: summary, html and rawHtml (HTML files only), links, images, or { type: json, schema or prompt }. markdown is always sent.
+       */
+      formats?: Array<
+        | {
+            type: "json";
+            prompt?: string;
+            /**
+             * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+             */
+            schema?: {
+              [key: string]: ParseInputSchema0;
+            };
+          }
+        | (
+            | ("markdown" | "summary" | "html" | "rawHtml" | "links" | "images")
+            | {
+                type:
+                  | "markdown"
+                  | "summary"
+                  | "html"
+                  | "rawHtml"
+                  | "links"
+                  | "images";
+              }
+          )
+      >;
+      /**
+       * How to read PDF pages. Other files ignore it.
+       */
+      parsers?: Array<{
+        type: "pdf";
+        /**
+         * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+         */
+        mode?: "fast" | "auto" | "ocr";
+        /**
+         * Read at most this many pages, up to 100.
+         */
+        maxPages?: number;
+        /**
+         * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+         */
+        pages?: boolean;
+        /**
+         * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+         */
+        blocks?: boolean;
+        /**
+         * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+         */
+        pageMarkers?: boolean;
+      }>;
+      /**
+       * For an HTML file: send false to keep navigation and footers. The default is true.
+       */
+      onlyMainContent?: boolean;
+      /**
+       * For an HTML file: keep only what these CSS selectors match.
+       */
+      includeTags?: Array<string>;
+      /**
+       * For an HTML file: drop what these CSS selectors match.
+       */
+      excludeTags?: Array<string>;
+      /**
+       * For an HTML file: send false to keep images that carry their data in the address.
+       */
+      removeBase64Images?: boolean;
+      zeroDataRetention?: boolean;
+      /**
+       * Which client sent the call. Not used.
+       */
+      origin?: string;
+      /**
+       * Which integration sent the call. Not used.
+       */
+      integration?: string;
+      /**
+       * Page-read speed. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      fastMode?: unknown;
+      /**
+       * Mobile page view. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      mobile?: unknown;
+      /**
+       * Ad blocking. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      blockAds?: unknown;
+      /**
+       * TLS checks of a page. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      skipTlsVerification?: unknown;
+      /**
+       * Page load time. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      timeout?: unknown;
+      /**
+       * Page request headers. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      headers?: unknown;
+      /**
+       * Page proxy. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      proxy?: unknown;
+      /**
+       * Page country and languages. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      location?: unknown;
+      /**
+       * Saved browser profile. Accepted so a client that always sends it works; a file has no page to apply it to, so it is not used.
+       */
+      profile?: unknown;
+    };
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -1763,19 +3250,37 @@ export type ParseError = ParseErrors[keyof ParseErrors];
 
 export type ParseResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     data?: {
       markdown?: string;
+      html?: string;
+      rawHtml?: string;
+      links?: Array<string>;
+      images?: Array<string>;
+      summary?: string;
+      json?: {
+        [key: string]: ParseSchema0;
+      };
+      pages?: Array<{
+        [key: string]: ParseSchema0;
+      }>;
+      blocks?: Array<{
+        [key: string]: ParseSchema0;
+      }>;
       warning?: string;
       metadata?: {
         title?: string;
         contentType?: string;
         numPages?: number;
+        ocrPages?: number;
       };
     };
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -1815,9 +3320,25 @@ export type MapData = {
      * Stop looking after this many milliseconds and return what was found.
      */
     timeout?: number;
+    /**
+     * Where to read the page from. The default is the United States.
+     */
     location?: {
+      /**
+       * Two-letter country code to read the page from, such as DE or JP.
+       */
       country?: string;
+      /**
+       * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+       */
+      languages?: Array<string>;
     };
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -1844,14 +3365,18 @@ export type MapError = MapErrors[keyof MapErrors];
 
 export type MapResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     links: Array<{
       url?: string;
       title?: string;
+      description?: string;
     }>;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -1876,7 +3401,7 @@ export type CrawlData = {
      */
     excludePaths?: Array<string>;
     /**
-     * How many links away from the start page to go, up to 10.
+     * How many links away from the start page to go. Without it there is no depth limit, and limit bounds the crawl.
      */
     maxDiscoveryDepth?: number;
     /**
@@ -1892,28 +3417,184 @@ export type CrawlData = {
      */
     regexOnFullURL?: boolean;
     /**
-     * Stop after reading this many pages in total, across every call.
+     * Stop after reading this many pages in total.
      */
     limit?: number;
     /**
      * Read the whole site, not only pages under the start page's path.
      */
     crawlEntireDomain?: boolean;
-    allowExternalLinks?: false;
+    /**
+     * Read one page when addresses differ only by www, a trailing slash, a #fragment, tracking parameters such as utm_source, or the order of the ?query. Send false to read each address.
+     */
+    deduplicateSimilarURLs?: boolean;
+    /**
+     * Also follow links to other sites. They count toward limit and maxDiscoveryDepth. Each other site's robots.txt is read too, for up to 25 new sites per page. A page on a site whose robots.txt cannot be read, or that comes after those 25, is skipped.
+     */
+    allowExternalLinks?: boolean;
     /**
      * Also read pages on subdomains, such as docs.bun.com for bun.com.
      */
     allowSubdomains?: boolean;
-    ignoreRobotsTxt?: false;
     /**
-     * How to read each page, the same options as scrape. Only markdown comes back yet.
+     * Seconds to wait between pages. With delay the crawl reads one page at a time. At most 60.
+     */
+    delay?: number;
+    /**
+     * Most pages read at once. We read at most 4 at once, so a larger number gives the same speed.
+     */
+    maxConcurrency?: number;
+    /**
+     * How to read each page, the same options and formats as scrape. Without formats, each page comes back as markdown.
      */
     scrapeOptions?: {
+      /**
+       * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes ["git-diff","json"] with a schema or prompt to compare fields too), question (send { "type": "question", "question": "..." } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.
+       */
+      formats?: Array<
+        | (
+            | "markdown"
+            | "summary"
+            | "html"
+            | "rawHtml"
+            | "rawBase64"
+            | "links"
+            | "images"
+            | "network"
+            | "branding"
+            | "audio"
+            | "video"
+            | "screenshot"
+            | "changeTracking"
+            | "product"
+            | "menu"
+          )
+        | {
+            type:
+              | "markdown"
+              | "summary"
+              | "html"
+              | "rawHtml"
+              | "rawBase64"
+              | "links"
+              | "images"
+              | "network"
+              | "branding"
+              | "audio"
+              | "video";
+          }
+        | {
+            type: "changeTracking";
+            /**
+             * git-diff returns a unified diff of the markdown. json compares the fields in schema or prompt between this read and the last one. Without modes you get git-diff.
+             */
+            modes?: Array<"git-diff" | "json">;
+            /**
+             * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+             */
+            schema?: {
+              [key: string]: CrawlInputSchema0;
+            };
+            /**
+             * With json mode: what to compare, in plain words, such as the price and stock.
+             */
+            prompt?: string;
+            tag?: null;
+          }
+        | {
+            type: "question";
+            /**
+             * A question to answer from the page, such as what the refund window is.
+             */
+            question: string;
+          }
+        | {
+            type: "product";
+          }
+        | {
+            type: "menu";
+          }
+        | {
+            type: "screenshot";
+            /**
+             * Capture the whole page from top to bottom instead of the visible part.
+             */
+            fullPage?: boolean;
+            /**
+             * JPEG quality from 1 to 100. The default is 70.
+             */
+            quality?: number;
+            /**
+             * The window size in pixels, such as { width: 390, height: 844 }.
+             */
+            viewport?: {
+              width: number;
+              height: number;
+            };
+          }
+        | {
+            type: "highlights";
+            /**
+             * What you are looking for on the page, such as refund policy.
+             */
+            query: string;
+            /**
+             * How many passages to return, best match first.
+             */
+            count?: number;
+          }
+        | {
+            type: "json";
+            /**
+             * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
+             */
+            parser?: string;
+            /**
+             * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
+             */
+            options?: {
+              [key: string]: CrawlInputSchema1;
+            };
+            /**
+             * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+             */
+            schema?: {
+              [key: string]: CrawlInputSchema0;
+            };
+            /**
+             * What to pull from the page in plain words, such as the version and the release date.
+             */
+            prompt?: string;
+            /**
+             * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
+             */
+            rules?: {
+              [key: string]: CrawlInputSchema2;
+            };
+            /**
+             * Deprecated: send checkPromptInjection at the top level of the call.
+             */
+            checkPromptInjection?: boolean;
+          }
+        | {
+            type: "attributes";
+            /**
+             * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
+             */
+            selectors: Array<{
+              selector: string;
+              attribute: string;
+            }>;
+          }
+      >;
       /**
        * Keep only the page's main content, without menus, headers, footers and ads.
        */
       onlyMainContent?: boolean;
-      onlyCleanContent?: false;
+      /**
+       * Send true to have a model remove what onlyMainContent leaves behind in the markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It only removes whole paragraphs and lists; it never rewrites or adds text, and code blocks are always kept. Skipped with a warning when the page is too long to clean or the model does not answer. Not with zeroDataRetention. Summary, answers and highlights are made from the cleaned markdown.
+       */
+      onlyCleanContent?: boolean;
       /**
        * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
        */
@@ -1923,7 +3604,7 @@ export type CrawlData = {
        */
       excludeTags?: Array<string>;
       /**
-       * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.
+       * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.
        */
       maxAge?: number;
       /**
@@ -1931,30 +3612,58 @@ export type CrawlData = {
        */
       minAge?: number;
       /**
-       * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
+       * Extra request headers to send to the site, such as { "x-plan": "pro" }. A read with headers is never answered from or saved to a stored copy.
+       */
+      headers?: {
+        [key: string]: string;
+      };
+      /**
+       * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs $1 per 1,000 pages, the same as any page.
        */
       waitFor?: number;
-      mobile?: false;
-      skipTlsVerification?: false;
       /**
-       * How long to keep trying, in milliseconds, between 10 seconds and 2 minutes. Pages behind a bot check can need 10 to 30 seconds the first time.
+       * Read the page as a phone would: a phone-sized screen and the mobile version of the site. The page loads in a browser.
+       */
+      mobile?: boolean;
+      /**
+       * Send true to read a page whose certificate is expired, self-signed or for another name. The read is not private against someone between us and the site.
+       */
+      skipTlsVerification?: boolean;
+      /**
+       * How long to keep trying each page, in milliseconds, from 1 second to 5 minutes; 20 seconds, plus waitFor, by default. A page that runs out of time is a failed page and costs nothing.
        */
       timeout?: number;
       /**
-       * Only ["pdf"] is supported: PDFs are read as markdown.
+       * Only the pdf parser exists. Send "pdf" or { "type": "pdf", mode, maxPages, pages, blocks, pageMarkers } with the same meaning as in parse. Without mode a PDF is read as auto: from its text layer, and from the picture of any page that has no text. fast reads the text layer only, and ocr reads the picture of every page, up to 20 pages. Each page of text that comes back costs $0.50 per 1,000 pages from its text layer and $2.50 per 1,000 pages from its picture. Pictures are read only with an API key.
        */
       parsers?: Array<
         | "pdf"
         | {
             type: "pdf";
-            mode?: "auto";
-            pages?: false;
-            blocks?: false;
-            pageMarkers?: false;
+            /**
+             * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+             */
+            mode?: "fast" | "auto" | "ocr";
+            /**
+             * Read at most this many pages, up to 500, which is also the default.
+             */
+            maxPages?: number;
+            /**
+             * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+             */
+            pages?: boolean;
+            /**
+             * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+             */
+            blocks?: boolean;
+            /**
+             * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+             */
+            pageMarkers?: boolean;
           }
       >;
       /**
-       * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 30 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs 1 credit, the same as any page, and each perform action costs 2 credits more. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
+       * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 60 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs $1 per 1,000 pages, the same as any page; the actions themselves add nothing. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
        */
       actions?: Array<
         | {
@@ -2031,19 +3740,62 @@ export type CrawlData = {
          * Two-letter country code to read the page from, such as DE or JP.
          */
         country?: string;
+        /**
+         * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+         */
+        languages?: Array<string>;
       };
-      removeBase64Images?: true;
-      blockAds?: true;
-      proxy?: "auto";
+      /**
+       * Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.
+       */
+      removeBase64Images?: boolean;
+      /**
+       * Ads and trackers are not loaded when a page runs in a browser. Send false to load them.
+       */
+      blockAds?: boolean;
+      /**
+       * Send true to read the page without opening a browser: the answer comes sooner, but a page that needs a browser, or that refuses a plain request, comes back as an error instead of being retried. Ignored when the call needs a browser (actions, screenshot, waitFor, mobile, profile, network, branding).
+       */
+      fastMode?: boolean;
+      /**
+       * auto: basic first, enhanced once if the site refuses. basic: one plain attempt. enhanced: the stronger read from the start. stealth is the same as enhanced. Same price.
+       */
+      proxy?: "auto" | "basic" | "enhanced" | "stealth";
       /**
        * Send false to neither read nor keep a stored copy of this page.
        */
       storeInCache?: boolean;
-      lockdown?: false;
-      checkPromptInjection?: false;
-      redactPII?: false;
       /**
-       * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs 1 credit, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
+       * Send true to answer only from a stored copy of the page and never read it live, whatever its age. A page with no stored copy is notFound. The same as minAge 0.
+       */
+      lockdown?: boolean;
+      /**
+       * Send true to scan the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with 403 promptInjectionDetected and costs nothing. The scan adds $2.50 per 1,000 pages when it runs; a page it cannot scan fully comes back with a warning and no charge.
+       */
+      checkPromptInjection?: boolean;
+      /**
+       * Send true, or an object, to hide personal data in the markdown and in everything made from it (summary, answers, highlights, json). Links, html and rawHtml are not changed. A page the model cannot scan is refused rather than returned unredacted.
+       */
+      redactPII?:
+        | boolean
+        | {
+            /**
+             * accurate finds names and places with the model and the rest by pattern. aggressive adds guesses that catch more and may hide a little too much. fast uses patterns only, so it finds no ordinary names or places.
+             */
+            mode?: "accurate" | "aggressive" | "fast";
+            /**
+             * What to hide: PERSON, EMAIL, PHONE, LOCATION, FINANCIAL, SECRET. All by default.
+             */
+            entities?: Array<
+              "PERSON" | "EMAIL" | "PHONE" | "LOCATION" | "FINANCIAL" | "SECRET"
+            >;
+            /**
+             * tag writes <EMAIL>, mask writes * for each character, remove deletes it.
+             */
+            replaceStyle?: "tag" | "mask" | "remove";
+          };
+      /**
+       * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs $1 per 1,000 pages, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
        */
       profile?: {
         /**
@@ -2056,115 +3808,37 @@ export type CrawlData = {
         saveChanges?: boolean;
       };
       /**
-       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
-      domainTools?: false;
-      /**
-       * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
-       */
-      formats?: Array<
-        | (
-            | "markdown"
-            | "summary"
-            | "html"
-            | "rawHtml"
-            | "links"
-            | "images"
-            | "network"
-            | "branding"
-            | "screenshot"
-            | "changeTracking"
-          )
-        | {
-            type:
-              | "markdown"
-              | "summary"
-              | "html"
-              | "rawHtml"
-              | "links"
-              | "images"
-              | "network"
-              | "branding";
-          }
-        | {
-            type: "changeTracking";
-            modes?: Array<"git-diff">;
-            tag?: null;
-          }
-        | {
-            type: "screenshot";
-            /**
-             * Capture the whole page from top to bottom instead of the visible part.
-             */
-            fullPage?: boolean;
-          }
-        | {
-            type: "highlights";
-            /**
-             * What you are looking for on the page, such as refund policy.
-             */
-            query: string;
-            /**
-             * How many passages to return, best match first.
-             */
-            count?: number;
-          }
-        | {
-            type: "json";
-            /**
-             * Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.
-             */
-            parser?: string;
-            /**
-             * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
-             */
-            options?: {
-              [key: string]: CrawlInputSchema0;
-            };
-            /**
-             * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
-             */
-            schema?: {
-              type: "object";
-              properties: {
-                [key: string]: CrawlInputSchema1;
-              };
-            };
-            /**
-             * What to pull from the page in plain words, such as the version and the release date.
-             */
-            prompt?: string;
-            /**
-             * Read the page with CSS rules instead of a model, no extra fee. Each field is a selector such as "h1" (the first match's text), "a@href" (an attribute) or { "selector": "li", "type": "list", "output": "text" | "html" | "@attribute" | { nested fields } }. A missing item is null and an unmatched list is []. Relative links become absolute. Up to 100 fields, 5 levels deep. Not with schema, prompt or parser.
-             */
-            rules?: {
-              [key: string]: CrawlInputSchema2;
-            };
-            checkPromptInjection?: false;
-          }
-        | {
-            type: "attributes";
-            /**
-             * The elements and attributes to read, such as { selector: 'a.buy', attribute: 'href' }.
-             */
-            selectors: Array<{
-              selector: string;
-              attribute: string;
-            }>;
-          }
-      >;
     };
     /**
-     * Send true to keep nothing from this crawl: no stored copy is read or made, page results are held for one hour at most, and nothing is logged. Costs 1 credit more per page.
+     * Send true to keep nothing from this crawl: no stored copy is read or made, page results are held for one hour at most, and nothing is logged. Adds $2 per 1,000 pages.
      */
     zeroDataRetention?: boolean;
     /**
-     * Where to be told about the job: { url } gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
+     * Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of "<t>.<body>" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
      */
-    webhook?: {
-      url: string;
-    };
+    webhook?:
+      | string
+      | {
+          url: string;
+          headers?: {
+            [key: string]: string;
+          };
+          metadata?: {
+            [key: string]: CrawlInputSchema0;
+          };
+          events?: Array<
+            "started" | "page" | "action" | "completed" | "failed" | "cancelled"
+          >;
+        };
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -2191,12 +3865,17 @@ export type CrawlError = CrawlErrors[keyof CrawlErrors];
 
 export type CrawlResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     id?: string;
     url?: string;
+    status?: "scraping";
+    queuePosition?: number;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -2231,10 +3910,14 @@ export type CrawlCancelError = CrawlCancelErrors[keyof CrawlCancelErrors];
 
 export type CrawlCancelResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     status: "cancelled";
+    success: true;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -2251,6 +3934,9 @@ export type CrawlStatusData = {
      * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
      */
     maxTextLength?: number;
+    /**
+     * The cursor from the previous response. Send it as is.
+     */
     cursor?: string;
   };
   url: "/v1/crawl/{id}";
@@ -2271,14 +3957,28 @@ export type CrawlStatusError = CrawlStatusErrors[keyof CrawlStatusErrors];
 
 export type CrawlStatusResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     status: "scraping" | "completed" | "failed" | "cancelled";
+    queuePosition?: number;
     total: number;
     completed: number;
+    failed: number;
+    error?: string;
+    errors: Array<{
+      id?: string;
+      timestamp?: string;
+      url?: string;
+      error?: string;
+      code?: string;
+      message?: string;
+      retryable: boolean;
+      at?: string;
+    }>;
     creditsUsed: number;
+    costUsd: number;
     createdAt?: string;
     completedAt?: string;
     duration?: number;
@@ -2299,6 +3999,8 @@ export type CrawlStatusResponses = {
       screenshot?: string;
       json?: CrawlStatusSchema0;
       highlights?: string;
+      isTruncated: boolean;
+      nextOffset?: number;
       changeTracking?: {
         previousScrapeAt?: string;
         changeStatus?: "new" | "same" | "changed";
@@ -2322,7 +4024,7 @@ export type CrawlStatusResponses = {
       };
       warning?: string;
       /**
-       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and any other meta tag appears under its own name.
+       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and every meta tag also appears under its own name, such as og:title.
        */
       metadata: {
         title?: string;
@@ -2335,13 +4037,21 @@ export type CrawlStatusResponses = {
         contentType?: string;
         numPages?: number;
         totalPages?: number;
-        cacheState?: "hit" | "miss";
+        cacheState?: "hit" | "miss" | "stale";
         cachedAt?: string;
         scrapeId?: string;
         creditsUsed?: number;
-        [key: string]: unknown | string | number | ("hit" | "miss") | undefined;
+        costUsd?: number;
+        [key: string]:
+          | unknown
+          | string
+          | number
+          | ("hit" | "miss" | "stale")
+          | number
+          | undefined;
       };
     }>;
+    requestId?: string;
   };
 };
 
@@ -2355,17 +4065,36 @@ export type BatchScrapeData = {
      */
     urls: Array<string>;
     /**
-     * Where to be told about the job: { url } gets a JSON POST when the job starts, for each finished page, and when the job ends. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
+     * Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of "<t>.<body>" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.
      */
-    webhook?: {
-      url: string;
-    };
+    webhook?:
+      | string
+      | {
+          url: string;
+          headers?: {
+            [key: string]: string;
+          };
+          metadata?: {
+            [key: string]: BatchScrapeInputSchema0;
+          };
+          events?: Array<
+            "started" | "page" | "action" | "completed" | "failed" | "cancelled"
+          >;
+        };
+    /**
+     * Most pages read at once for this batch. We read at most 4 at once, so a larger number gives the same speed.
+     */
+    maxConcurrency?: number;
+    /**
+     * The id of a batch of yours that is still running: add urls to it instead of starting a new batch. The batch keeps its own options and webhook. Answers jobFinished when the batch is over.
+     */
+    appendToId?: string;
     /**
      * Skip addresses that are not public website URLs and list them in invalidURLs. Send false to refuse the whole batch instead.
      */
     ignoreInvalidURLs?: boolean;
     /**
-     * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary and highlights cost 4 credits more each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs 1 credit, the same as any page. A PDF comes back as markdown only, and costs 1 credit more for each page read.
+     * What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes ["git-diff","json"] with a schema or prompt to compare fields too), question (send { "type": "question", "question": "..." } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { "type": "screenshot", "fullPage": true } for the whole page. Send { "type": "highlights", "query": "refund policy" } for the passages that best match a query. Send { "type": "json", "schema": { "type": "object", "properties": { "price": { "type": "number" } } } } or { "type": "json", "prompt": "the price and the stock" } for fields filled from the page, each checked against it. Send { "type": "json", "parser": "amazon-product" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } } to read the page with CSS rules and no model, at the page's own price. Send { "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.
      */
     formats?: Array<
       | (
@@ -2373,12 +4102,17 @@ export type BatchScrapeData = {
           | "summary"
           | "html"
           | "rawHtml"
+          | "rawBase64"
           | "links"
           | "images"
           | "network"
           | "branding"
+          | "audio"
+          | "video"
           | "screenshot"
           | "changeTracking"
+          | "product"
+          | "menu"
         )
       | {
           type:
@@ -2386,15 +4120,44 @@ export type BatchScrapeData = {
             | "summary"
             | "html"
             | "rawHtml"
+            | "rawBase64"
             | "links"
             | "images"
             | "network"
-            | "branding";
+            | "branding"
+            | "audio"
+            | "video";
         }
       | {
           type: "changeTracking";
-          modes?: Array<"git-diff">;
+          /**
+           * git-diff returns a unified diff of the markdown. json compares the fields in schema or prompt between this read and the last one. Without modes you get git-diff.
+           */
+          modes?: Array<"git-diff" | "json">;
+          /**
+           * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
+           */
+          schema?: {
+            [key: string]: BatchScrapeInputSchema0;
+          };
+          /**
+           * With json mode: what to compare, in plain words, such as the price and stock.
+           */
+          prompt?: string;
           tag?: null;
+        }
+      | {
+          type: "question";
+          /**
+           * A question to answer from the page, such as what the refund window is.
+           */
+          question: string;
+        }
+      | {
+          type: "product";
+        }
+      | {
+          type: "menu";
         }
       | {
           type: "screenshot";
@@ -2402,6 +4165,17 @@ export type BatchScrapeData = {
            * Capture the whole page from top to bottom instead of the visible part.
            */
           fullPage?: boolean;
+          /**
+           * JPEG quality from 1 to 100. The default is 70.
+           */
+          quality?: number;
+          /**
+           * The window size in pixels, such as { width: 390, height: 844 }.
+           */
+          viewport?: {
+            width: number;
+            height: number;
+          };
         }
       | {
           type: "highlights";
@@ -2424,16 +4198,13 @@ export type BatchScrapeData = {
            * Only with parser: extra inputs for it, such as { "page": 2 } for the next page of results or { "minRating": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.
            */
           options?: {
-            [key: string]: BatchScrapeInputSchema0;
+            [key: string]: BatchScrapeInputSchema1;
           };
           /**
-           * The fields to fill, as a JSON Schema object with up to 20 properties. Each is a string, number, integer, boolean, an array, or an object with its own properties, nested up to 4 levels.
+           * The fields to fill, as a JSON Schema (draft-07 or 2020-12) object with properties. Pydantic's model_json_schema() and zod's toJSONSchema() output work as they are. enum, const, anyOf, oneOf, nullable types, $ref with $defs, required, descriptions and any key names are read. Up to 100 top-level fields and 32 KB. A field the page does not state comes back null.
            */
           schema?: {
-            type: "object";
-            properties: {
-              [key: string]: BatchScrapeInputSchema1;
-            };
+            [key: string]: BatchScrapeInputSchema0;
           };
           /**
            * What to pull from the page in plain words, such as the version and the release date.
@@ -2445,7 +4216,10 @@ export type BatchScrapeData = {
           rules?: {
             [key: string]: BatchScrapeInputSchema2;
           };
-          checkPromptInjection?: false;
+          /**
+           * Deprecated: send checkPromptInjection at the top level of the call.
+           */
+          checkPromptInjection?: boolean;
         }
       | {
           type: "attributes";
@@ -2462,7 +4236,10 @@ export type BatchScrapeData = {
      * Keep only the page's main content, without menus, headers, footers and ads.
      */
     onlyMainContent?: boolean;
-    onlyCleanContent?: false;
+    /**
+     * Send true to have a model remove what onlyMainContent leaves behind in the markdown: cookie banners, ads, share widgets, breadcrumbs, sign-up prompts, comment prompts and related-article lists. It only removes whole paragraphs and lists; it never rewrites or adds text, and code blocks are always kept. Skipped with a warning when the page is too long to clean or the model does not answer. Not with zeroDataRetention. Summary, answers and highlights are made from the cleaned markdown.
+     */
+    onlyCleanContent?: boolean;
     /**
      * Keep only the parts of the page that match these CSS selectors, such as article or .price. When set, onlyMainContent is not applied.
      */
@@ -2472,7 +4249,7 @@ export type BatchScrapeData = {
      */
     excludeTags?: Array<string>;
     /**
-     * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often. 0 always reads the page live. metadata.cacheState says which one you got.
+     * Accept a stored answer up to this many milliseconds old, at most 30 days. Without it, 2 days, or less for a site whose pages change often, and a copy up to twice that age (at most 7 days) comes back at once as stale while a fresh read runs. 0 always reads the page live. metadata.cacheState says which one you got.
      */
     maxAge?: number;
     /**
@@ -2480,30 +4257,58 @@ export type BatchScrapeData = {
      */
     minAge?: number;
     /**
-     * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs 1 credit, the same as any page.
+     * Extra request headers to send to the site, such as { "x-plan": "pro" }. A read with headers is never answered from or saved to a stored copy.
+     */
+    headers?: {
+      [key: string]: string;
+    };
+    /**
+     * Extra milliseconds to wait before reading, up to 60000, for pages that load their content late. To wait for an element, add a wait action with a selector. A read that waits costs $1 per 1,000 pages, the same as any page.
      */
     waitFor?: number;
-    mobile?: false;
-    skipTlsVerification?: false;
     /**
-     * How long to keep trying, in milliseconds, between 10 seconds and 2 minutes. Pages behind a bot check can need 10 to 30 seconds the first time.
+     * Read the page as a phone would: a phone-sized screen and the mobile version of the site. The page loads in a browser.
+     */
+    mobile?: boolean;
+    /**
+     * Send true to read a page whose certificate is expired, self-signed or for another name. The read is not private against someone between us and the site.
+     */
+    skipTlsVerification?: boolean;
+    /**
+     * How long to keep trying, in milliseconds, from 1 second to 5 minutes; 60 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.
      */
     timeout?: number;
     /**
-     * Only ["pdf"] is supported: PDFs are read as markdown.
+     * Only the pdf parser exists. Send "pdf" or { "type": "pdf", mode, maxPages, pages, blocks, pageMarkers } with the same meaning as in parse. Without mode a PDF is read as auto: from its text layer, and from the picture of any page that has no text. fast reads the text layer only, and ocr reads the picture of every page, up to 20 pages. Each page of text that comes back costs $0.50 per 1,000 pages from its text layer and $2.50 per 1,000 pages from its picture. Pictures are read only with an API key.
      */
     parsers?: Array<
       | "pdf"
       | {
           type: "pdf";
-          mode?: "auto";
-          pages?: false;
-          blocks?: false;
-          pageMarkers?: false;
+          /**
+           * fast reads the text layer only. auto (the default) reads the text layer and reads the picture of any page that has none. ocr reads the picture of every page.
+           */
+          mode?: "fast" | "auto" | "ocr";
+          /**
+           * Read at most this many pages, up to 500, which is also the default.
+           */
+          maxPages?: number;
+          /**
+           * Send true to also get each page's markdown in pages, as { pageNumber, markdown }. No extra charge.
+           */
+          pages?: boolean;
+          /**
+           * Send true to also get the page's layout in blocks: each title, section header or run of text, with its page, reading order, position on the page (bbox as left, top, right, bottom from 0 to 1) and where its text sits in that page's markdown (span, as in pages). Tables, figures and formulas are not told apart. A page read from its picture is one block. No extra charge.
+           */
+          blocks?: boolean;
+          /**
+           * Send true to mark page breaks in the markdown: pages are joined with "---" and a <!-- page N --> line, where N is the page that follows. No extra charge.
+           */
+          pageMarkers?: boolean;
         }
     >;
     /**
-     * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 30 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs 1 credit, the same as any page, and each perform action costs 2 credits more. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
+     * Up to 50 steps to run on the page, in order, before reading it: { "type": "wait", "milliseconds": 500 } (up to 60 seconds), { "type": "wait", "selector": ".results" }, { "type": "click", "selector": "button.more" }, { "type": "write", "text": "tides" }, { "type": "press", "key": "Enter" }, { "type": "scroll", "direction": "down" } (also up, left or right; amount is pixels, "viewport" or "max"; maxScrolls 1 to 50; selector scrolls an inner container; "max" keeps scrolling until the page stops growing, for feeds that load as you go), { "type": "screenshot", "fullPage": true } (links come back in actions.screenshots), { "type": "scrape" } (the page at that point, in actions.scrapes), { "type": "executeJavascript", "script": "document.title" } (results in actions.javascriptReturns), { "type": "pdf", "format": "A4" } (links in actions.pdfs) or { "type": "perform", "action": "Click the Load more button" } (a step in plain words, up to 5 browser steps on this page, never leaving the site; at most 5 per call). A read with actions costs $1 per 1,000 pages, the same as any page; the actions themselves add nothing. If an action fails, you still get the page as it stood, with a warning that names the action and says why.
      */
     actions?: Array<
       | {
@@ -2580,19 +4385,62 @@ export type BatchScrapeData = {
        * Two-letter country code to read the page from, such as DE or JP.
        */
       country?: string;
+      /**
+       * Languages to ask the site for, best first, such as ["de", "en"]. Sent as Accept-Language. A read with languages is never answered from or saved to a stored copy.
+       */
+      languages?: Array<string>;
     };
-    removeBase64Images?: true;
-    blockAds?: true;
-    proxy?: "auto";
+    /**
+     * Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.
+     */
+    removeBase64Images?: boolean;
+    /**
+     * Ads and trackers are not loaded when a page runs in a browser. Send false to load them.
+     */
+    blockAds?: boolean;
+    /**
+     * Send true to read the page without opening a browser: the answer comes sooner, but a page that needs a browser, or that refuses a plain request, comes back as an error instead of being retried. Ignored when the call needs a browser (actions, screenshot, waitFor, mobile, profile, network, branding).
+     */
+    fastMode?: boolean;
+    /**
+     * auto: basic first, enhanced once if the site refuses. basic: one plain attempt. enhanced: the stronger read from the start. stealth is the same as enhanced. Same price.
+     */
+    proxy?: "auto" | "basic" | "enhanced" | "stealth";
     /**
      * Send false to neither read nor keep a stored copy of this page.
      */
     storeInCache?: boolean;
-    lockdown?: false;
-    checkPromptInjection?: false;
-    redactPII?: false;
     /**
-     * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs 1 credit, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
+     * Send true to answer only from a stored copy of the page and never read it live, whatever its age. A page with no stored copy is notFound. The same as minAge 0.
+     */
+    lockdown?: boolean;
+    /**
+     * Send true to scan the page text for instructions aimed at an AI model before anything is built from it. A page that has them is refused with 403 promptInjectionDetected and costs nothing. The scan adds $2.50 per 1,000 pages when it runs; a page it cannot scan fully comes back with a warning and no charge.
+     */
+    checkPromptInjection?: boolean;
+    /**
+     * Send true, or an object, to hide personal data in the markdown and in everything made from it (summary, answers, highlights, json). Links, html and rawHtml are not changed. A page the model cannot scan is refused rather than returned unredacted.
+     */
+    redactPII?:
+      | boolean
+      | {
+          /**
+           * accurate finds names and places with the model and the rest by pattern. aggressive adds guesses that catch more and may hide a little too much. fast uses patterns only, so it finds no ordinary names or places.
+           */
+          mode?: "accurate" | "aggressive" | "fast";
+          /**
+           * What to hide: PERSON, EMAIL, PHONE, LOCATION, FINANCIAL, SECRET. All by default.
+           */
+          entities?: Array<
+            "PERSON" | "EMAIL" | "PHONE" | "LOCATION" | "FINANCIAL" | "SECRET"
+          >;
+          /**
+           * tag writes <EMAIL>, mask writes * for each character, remove deletes it.
+           */
+          replaceStyle?: "tag" | "mask" | "remove";
+        };
+    /**
+     * Read the page with the cookies and local storage that earlier calls saved under this name, kept for your account for 30 days after the last use. A call with a profile always loads the page in a browser, costs $1 per 1,000 pages, the same as any page, and is never answered from a stored copy. Only one call at a time can save to a profile.
      */
     profile?: {
       /**
@@ -2605,18 +4453,27 @@ export type BatchScrapeData = {
       saveChanges?: boolean;
     };
     /**
-     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Costs 1 credit more per page. Not with a screenshot.
+     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
      */
     zeroDataRetention?: boolean;
-    domainTools?: false;
     /**
      * How links appear in the markdown. inline keeps [text](address). numbered writes Pricing⟨3⟩ and lists each address once at the end. none keeps only the link text, which makes link-heavy pages 10 to 70% shorter; ask for the links format to get the addresses.
      */
     linkStyle?: "inline" | "numbered" | "none";
     /**
-     * Cut the markdown at this many characters; isTruncated says when that happened.
+     * Cut the markdown at this many characters; isTruncated says when that happened and nextOffset where to read on. With query, how much of the page to keep, 8000 by default.
      */
     maxChars?: number;
+    /**
+     * What you are looking for on the page, such as refund window. A page longer than maxChars (8000 by default) comes back as the passages that match, in page order, each with the text around it and its table header; a shorter page comes back whole. Costs nothing extra, and a PDF is charged for the share of its pages that comes back. Not with offset.
+     */
+    query?: string;
+  };
+  headers?: {
+    /**
+     * A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.
+     */
+    "Idempotency-Key"?: string;
   };
   path?: never;
   query?: {
@@ -2643,13 +4500,18 @@ export type BatchScrapeError = BatchScrapeErrors[keyof BatchScrapeErrors];
 
 export type BatchScrapeResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     id?: string;
     url?: string;
+    status?: "scraping";
+    queuePosition?: number;
     invalidURLs: Array<string>;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -2686,10 +4548,14 @@ export type BatchScrapeCancelError =
 
 export type BatchScrapeCancelResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     status: "cancelled";
+    success: true;
+    creditsUsed: number;
+    costUsd: number;
+    requestId?: string;
   };
 };
 
@@ -2706,6 +4572,9 @@ export type BatchScrapeStatusData = {
      * Cut every text value in the response to this many characters. A value that was cut ends with …, and a page whose text was cut has isTruncated set to true. A screenshot is never cut. Leave it out to get the full text.
      */
     maxTextLength?: number;
+    /**
+     * The cursor from the previous response. Send it as is.
+     */
     cursor?: string;
   };
   url: "/v1/batch/scrape/{id}";
@@ -2727,14 +4596,28 @@ export type BatchScrapeStatusError =
 
 export type BatchScrapeStatusResponses = {
   /**
-   * The data, and the credits this call used.
+   * The data, and what this call cost in dollars.
    */
   200: {
     success: true;
     status: "scraping" | "completed" | "failed" | "cancelled";
+    queuePosition?: number;
     total: number;
     completed: number;
+    failed: number;
+    error?: string;
+    errors: Array<{
+      id?: string;
+      timestamp?: string;
+      url?: string;
+      error?: string;
+      code?: string;
+      message?: string;
+      retryable: boolean;
+      at?: string;
+    }>;
     creditsUsed: number;
+    costUsd: number;
     createdAt?: string;
     completedAt?: string;
     duration?: number;
@@ -2755,6 +4638,8 @@ export type BatchScrapeStatusResponses = {
       screenshot?: string;
       json?: BatchScrapeStatusSchema0;
       highlights?: string;
+      isTruncated: boolean;
+      nextOffset?: number;
       changeTracking?: {
         previousScrapeAt?: string;
         changeStatus?: "new" | "same" | "changed";
@@ -2778,7 +4663,7 @@ export type BatchScrapeStatusResponses = {
       };
       warning?: string;
       /**
-       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and any other meta tag appears under its own name.
+       * Facts about the page. Named page facts such as ogTitle or keywords appear when the page has them, and every meta tag also appears under its own name, such as og:title.
        */
       metadata: {
         title?: string;
@@ -2791,13 +4676,21 @@ export type BatchScrapeStatusResponses = {
         contentType?: string;
         numPages?: number;
         totalPages?: number;
-        cacheState?: "hit" | "miss";
+        cacheState?: "hit" | "miss" | "stale";
         cachedAt?: string;
         scrapeId?: string;
         creditsUsed?: number;
-        [key: string]: unknown | string | number | ("hit" | "miss") | undefined;
+        costUsd?: number;
+        [key: string]:
+          | unknown
+          | string
+          | number
+          | ("hit" | "miss" | "stale")
+          | number
+          | undefined;
       };
     }>;
+    requestId?: string;
   };
 };
 

@@ -50,7 +50,7 @@ stophy scrape "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11
 
 - Search first, then scrape one job page for the full description.
 - In a LinkedIn search URL, `f_TPR=r604800` keeps jobs posted in the past week.
-- Every call here costs 1 credit.
+- Every call here costs $0.001 ($1 per 1,000 calls).
 
 ## See also
 

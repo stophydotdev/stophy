@@ -60,9 +60,9 @@ Results are grouped by source in `data.web`, `data.news` and `data.images`.
 
 ## Tips
 
-- `sources` takes `web`, `news` and `images`. `tbs` filters by time, like `qdr:w`. `categories` takes `research`, `pdf`, `developer` and `gov`. `includeDomains` keeps up to 10 sites.
+- `sources` takes `web`, `news` and `images`. `tbs` filters by time, like `qdr:w`. `categories` takes `research`, `pdf` and `videos`. `includeDomains` keeps up to 10 sites.
 - With `scrapeOptions`, each web result carries its page text, so an LLM can quote it without a second call.
-- A search costs 2 credits per 10 results from each source. With `scrapeOptions`, each web result with its text adds 1 credit.
+- A search costs $0.001 per 10 results from each source. With `scrapeOptions`, each web result with its text adds $0.001.
 
 ## See also
 

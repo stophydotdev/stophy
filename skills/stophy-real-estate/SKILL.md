@@ -15,7 +15,7 @@ allowed-tools:
 
 Find homes and read their details.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -42,7 +42,7 @@ stophy scrape "https://www.zillow.com/homedetails/157-28th-Ave-San-Francisco-CA-
 ## Tips
 
 - Send filters as options, like `--parserOptions '{"status":"forRent","maxPrice":3000}'`. `stophy parsers zillow --json` lists every option.
-- `zillow-search` costs 2 credits. Every other call here costs 1 credit.
+- `zillow-search` costs $0.004. Every other call here costs $0.001.
 
 ## See also
 

@@ -1,4 +1,35 @@
-import { isRecord, isString, type JsonValue } from "../packages/typescript/src/json";
+import {
+  isRecord,
+  isString,
+  type JsonObject,
+  type JsonValue,
+} from "../packages/typescript/src/json";
+
+const sdkOperations = new Set([
+  "listEndpoints",
+  "listParsers",
+  "extractResult",
+  "signUp",
+  "pollSignUp",
+  "getLimits",
+  "getUsage",
+  "getLogs",
+  "revokeKey",
+  "search",
+  "searchDeveloper",
+  "scrape",
+  "extract",
+  "browserTask",
+  "browserTaskStatus",
+  "parse",
+  "map",
+  "crawl",
+  "crawlStatus",
+  "crawlCancel",
+  "batchScrape",
+  "batchScrapeStatus",
+  "batchScrapeCancel",
+]);
 
 const url = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
 const target = new URL("../openapi.json", import.meta.url);
@@ -17,7 +48,7 @@ if (
   throw new Error(`Response from ${url} is not an OpenAPI document.`);
 }
 
-const text = `${JSON.stringify(withoutUnsendableFields(document), null, 2)}\n`;
+const text = `${JSON.stringify(withoutUnsendableFields(onlySdkOperations(document)), null, 2)}\n`;
 await Bun.write(target, text);
 console.log(`Wrote ${target.pathname} from ${url} (${text.length} bytes).`);
 
@@ -36,6 +67,58 @@ async function parserNames(from: URL): Promise<string[]> {
   return list
     .flatMap((parser) => (isRecord(parser) && isString(parser.name) ? [parser.name] : []))
     .toSorted();
+}
+
+function onlySdkOperations(document: JsonObject): JsonObject {
+  const paths = isRecord(document.paths) ? Object.entries(document.paths) : [];
+  const kept = paths.flatMap(([path, item]) => {
+    const operations = Object.entries(isRecord(item) ? item : {}).filter(
+      ([, operation]) =>
+        isRecord(operation) &&
+        isString(operation.operationId) &&
+        sdkOperations.has(operation.operationId),
+    );
+    return operations.length === 0 ? [] : [[path, Object.fromEntries(operations)]];
+  });
+  const found = new Set(kept.flatMap(([, item]) => Object.values(item).map(operationIdOf)));
+  const missing = [...sdkOperations].filter((id) => !found.has(id));
+  if (missing.length > 0) {
+    throw new Error(`The live spec no longer has the operations ${missing.join(", ")}.`);
+  }
+  return onlyUsedComponents({ ...document, paths: Object.fromEntries(kept) });
+}
+
+function operationIdOf(operation: JsonValue): string | undefined {
+  return isRecord(operation) && isString(operation.operationId) ? operation.operationId : undefined;
+}
+
+function onlyUsedComponents(document: JsonObject): JsonObject {
+  const components = isRecord(document.components) ? document.components : {};
+  const used = new Set<string>();
+  const visit = (value: JsonValue): void => {
+    if (Array.isArray(value)) return value.forEach(visit);
+    if (!isRecord(value)) return;
+    for (const [key, child] of Object.entries(value)) {
+      if (key !== "$ref" || !isString(child)) visit(child);
+      else if (!used.has(child)) {
+        used.add(child);
+        visit(componentAt(components, child));
+      }
+    }
+  };
+  visit(document.paths);
+  const pruned = Object.entries(components).map(([kind, group]) => {
+    if (kind === "securitySchemes" || !isRecord(group)) return [kind, group];
+    const kept = Object.entries(group).filter(([name]) => used.has(`#/components/${kind}/${name}`));
+    return [kind, Object.fromEntries(kept)];
+  });
+  return { ...document, components: Object.fromEntries(pruned) };
+}
+
+function componentAt(components: JsonObject, ref: string): JsonValue {
+  const [, , kind = "", name = ""] = ref.split("/");
+  const group = components[kind];
+  return isRecord(group) ? (group[name] ?? null) : null;
 }
 
 function withoutUnsendableFields(value: JsonValue): JsonValue {

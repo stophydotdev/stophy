@@ -11,7 +11,7 @@ const search = {
   id: "youtube.search",
   method: "POST",
   path: "/v1/youtube/search",
-  credits: 1,
+  costUsd: 0.001,
   keyless: false,
   input: {
     type: "object",
@@ -50,7 +50,7 @@ const web = {
   id: "google.search",
   method: "POST",
   path: "/v1/google/search",
-  credits: 1,
+  costUsd: 0.001,
   keyless: true,
   input: {
     type: "object",
@@ -63,7 +63,7 @@ const maps = {
   id: "zillow.search",
   method: "POST",
   path: "/v1/zillow/search",
-  credits: 2,
+  costUsd: 0.004,
   keyless: false,
   input: {
     type: "object",
@@ -81,7 +81,7 @@ const video = {
   id: "youtube.video",
   method: "POST",
   path: "/v1/youtube/video",
-  credits: 1,
+  costUsd: 0.001,
   keyless: true,
   example: { videoId: "p0fybvFyOlM" },
   input: {
@@ -106,7 +106,7 @@ const profile = {
   id: "tiktok.profile",
   method: "POST",
   path: "/v1/tiktok/profile",
-  credits: 1,
+  costUsd: 0.001,
   keyless: false,
   input: {
     type: "object",
@@ -124,7 +124,7 @@ const posts = {
   id: "linkedin.posts",
   method: "POST",
   path: "/v1/linkedin/posts",
-  credits: 1,
+  costUsd: 0.001,
   keyless: false,
   input: {
     type: "object",
@@ -345,7 +345,7 @@ test("help reads like a person wrote it: summary, positional input, options, exa
     expect(help).not.toContain(internal);
   }
   expect(formatDescribe(search)).toContain("youtube.search");
-  expect(formatDescribe(search)).toContain("Price: 1 credit per call.");
+  expect(formatDescribe(search)).toContain("Price: $0.001 per call.");
 });
 
 test("the one required text field can be given without its flag", () => {
@@ -380,9 +380,9 @@ const transcript = {
   id: "instagram.transcript",
   method: "POST",
   path: "/v1/instagram/transcript",
-  credits: 1,
+  costUsd: 0.001,
   pricing:
-    "1 credit when the video has captions; otherwise 2 credits plus 1 credit for every 10 seconds of audio, up to 30 minutes",
+    "$0.001 when the video has captions; otherwise $0.004 plus $0.24 per hour of audio, up to 30 minutes",
   keyless: false,
   input: {
     type: "object",
@@ -393,16 +393,26 @@ const transcript = {
 
 test("a price that is not flat shows its terms, not one number", () => {
   expect(formatDescribe(transcript)).toContain(
-    "Price: 1 credit when the video has captions; otherwise 2 credits plus 1 credit for every 10 seconds of audio, up to 30 minutes.",
+    "Price: $0.001 when the video has captions; otherwise $0.004 plus $0.24 per hour of audio, up to 30 minutes.",
   );
   expect(formatDescribe(transcript)).not.toContain("per call");
   const list = formatEndpointIndex([search, transcript]);
-  expect(list).toMatch(/^instagram\.transcript +from 1 credit$/mu);
-  expect(list).toMatch(/^youtube\.search +1 credit +$/mu);
+  expect(list).toMatch(/^instagram\.transcript +from \$0\.001$/mu);
+  expect(list).toMatch(/^youtube\.search +\$0\.001 +$/mu);
 });
 
-test("prices count credits", () => {
-  const pricey = { ...search, credits: 5 };
-  expect(formatDescribe(pricey)).toContain("Price: 5 credits per call.");
-  expect(formatEndpointIndex([pricey])).toMatch(/^youtube\.search +5 credits *$/mu);
+test("prices are in dollars", () => {
+  const pricey = { ...search, costUsd: 0.005 };
+  expect(formatDescribe(pricey)).toContain("Price: $0.005 per call.");
+  expect(formatEndpointIndex([pricey])).toMatch(/^youtube\.search +\$0\.005 *$/mu);
+});
+
+test("a job priced per page shows its first clause, with the comma in 1,000 kept", () => {
+  const crawl = {
+    ...search,
+    id: "crawl",
+    costUsd: 0,
+    pricing: "$1 per 1,000 pages, however they are reached. Starting the job is free",
+  };
+  expect(formatEndpointIndex([crawl])).toMatch(/^crawl +\$1 per 1,000 pages *$/mu);
 });

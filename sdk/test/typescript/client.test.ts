@@ -7,7 +7,7 @@ const searchOk = {
   json: {
     success: true,
     data: { results: [] },
-    creditsUsed: 1,
+    costUsd: 0.001,
     requestId: "req_1",
   },
 };

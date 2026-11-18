@@ -15,7 +15,7 @@ allowed-tools:
 
 Find places, stays, flights and events, with prices and reviews.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). `google-maps` and `google-maps-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `google-maps` and `google-maps-reviews` work without a key, 50 calls a day, first page only. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -60,7 +60,7 @@ stophy scrape "https://luma.com/sf" --parser luma-events
 ## Tips
 
 - Put dates, guests and filters in the page URL the way the site does.
-- Every call here costs 1 credit, except `google-maps-reviews`: 1 credit per 10 reviews.
+- Every call here costs $0.001, except `google-maps-reviews`: $0.001 per 10 reviews.
 
 ## See also
 

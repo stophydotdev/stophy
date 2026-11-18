@@ -15,7 +15,7 @@ allowed-tools:
 
 Turn a place and a business type into a contact list.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`), and `jq`. `google-maps` works without a key, 10 calls a minute and 50 a day. `emails`, `phone-numbers` and LinkedIn need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`), and `jq`. `google-maps` works without a key, 10 calls a minute and 50 a day. `emails`, `phone-numbers` and LinkedIn need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -51,7 +51,7 @@ stophy scrape "https://www.linkedin.com/company/microsoft" --parser linkedin-com
 
 - Google Maps returns up to 20 places a page. For more, send `--parserOptions '{"page":2}'` (key needed), or split the area into neighborhoods.
 - Filter at the source with `--parserOptions '{"minRating":4.5}'`.
-- Every call here costs 1 credit.
+- Every call here costs $0.001 ($1 per 1,000 calls).
 
 ## See also
 

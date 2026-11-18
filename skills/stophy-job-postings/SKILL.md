@@ -15,7 +15,7 @@ allowed-tools:
 
 Search every job board, then read the roles that fit.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Every jobs parser needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Every jobs parser needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -40,7 +40,7 @@ stophy scrape "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11
 - Put the search in the board's own URL: keywords, place and date filters, like LinkedIn's `f_TPR=r604800` for the past week.
 - The same role often shows on several boards. Match on title and company, and keep the company's own posting.
 - `careers-jobs` reads Greenhouse, Lever, Ashby, Workday, Workable and SmartRecruiters boards. A company's careers page usually links to one.
-- Every call here costs 1 credit.
+- Every call here costs $0.001 ($1 per 1,000 calls).
 
 ## See also
 

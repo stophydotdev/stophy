@@ -1,3 +1,4 @@
+import { formatUsd } from "./account.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { CliError } from "./errors.js";
 import {
@@ -792,26 +793,24 @@ function valueAt(root: JsonRecord, flag: string): JsonValue | undefined {
   return current;
 }
 
-const creditCount = (credits: number): string => `${credits} credit${credits === 1 ? "" : "s"}`;
-
 export function costLine(endpoint: {
-  readonly credits?: number;
+  readonly costUsd?: number;
   readonly pricing?: string | null;
 }): string {
   if (endpoint.pricing) return `Price: ${endpoint.pricing}.`;
-  if (endpoint.credits === undefined) return "Price: shown in your usage.";
-  if (endpoint.credits === 0) return "Price: free.";
-  return `Price: ${creditCount(endpoint.credits)} per call.`;
+  if (endpoint.costUsd === undefined) return "Price: shown in your usage.";
+  if (endpoint.costUsd === 0) return "Price: free.";
+  return `Price: ${formatUsd(endpoint.costUsd)} per call.`;
 }
 
 function costCell(endpoint: {
-  readonly credits?: number;
+  readonly costUsd?: number;
   readonly pricing?: string | null;
 }): string {
-  if (endpoint.credits === undefined) return "";
-  if (endpoint.credits === 0)
-    return endpoint.pricing ? (endpoint.pricing.split(/[.,]/)[0] ?? "") : "no cost";
-  const price = creditCount(endpoint.credits);
+  if (endpoint.costUsd === undefined) return "";
+  if (endpoint.costUsd === 0)
+    return endpoint.pricing ? (endpoint.pricing.split(/[.,] /)[0] ?? "") : "no cost";
+  const price = formatUsd(endpoint.costUsd);
   return endpoint.pricing ? `from ${price}` : price;
 }
 
@@ -1019,7 +1018,7 @@ function quoteArg(value: string): string {
 }
 
 export function formatEndpointIndex(
-  endpoints: readonly Pick<CatalogEndpoint, "id" | "credits" | "pricing" | "keyless">[],
+  endpoints: readonly Pick<CatalogEndpoint, "id" | "costUsd" | "pricing" | "keyless">[],
   term?: string,
 ): string {
   const query = term?.trim().toLowerCase() ?? "";

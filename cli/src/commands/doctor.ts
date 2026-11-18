@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
-import { limitsSchema } from "../account.js";
+import { formatUsd, limitsSchema } from "../account.js";
 import { request } from "../client.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { CliError, statusFrom } from "../errors.js";
@@ -16,6 +16,7 @@ interface CheckResult {
 }
 
 const MIN_NODE_MAJOR = 18;
+const LOW_BALANCE_USD = 0.1;
 const REACHABILITY_WARN_MS = 2000;
 
 function useColor(): boolean {
@@ -59,7 +60,7 @@ interface ApiPing {
   status: number;
   durationMs: number;
   error?: string;
-  credits?: number;
+  balanceUsd?: number;
 }
 
 async function pingAccount(): Promise<ApiPing> {
@@ -74,7 +75,7 @@ async function pingAccount(): Promise<ApiPing> {
     return {
       status: response.status,
       durationMs: Date.now() - start,
-      credits: limits.success ? limits.data.data.balanceCredits : undefined,
+      balanceUsd: limits.success ? limits.data.data.balanceUsd : undefined,
     };
   } catch (error) {
     return {
@@ -209,30 +210,27 @@ function checkKeyValidity(ping: ApiPing | null): CheckResult {
   };
 }
 
-function checkCredits(ping: ApiPing | null): CheckResult {
+export function checkBalance(ping: ApiPing | null): CheckResult {
   if (!ping || ping.status === 0 || ping.status >= 400) {
-    return { name: "Credits", status: "warn", message: "unavailable" };
+    return { name: "Balance", status: "warn", message: "unavailable" };
   }
-  if (ping.credits === undefined) {
-    return {
-      name: "Credits",
-      status: "warn",
-      message: "no credit info in response",
-    };
+  if (ping.balanceUsd === undefined) {
+    return { name: "Balance", status: "warn", message: "no balance in response" };
   }
-  const label = `${ping.credits.toLocaleString("en-US")} remaining`;
-  if (ping.credits === 0) {
+  const label = `${formatUsd(ping.balanceUsd)} left`;
+  if (ping.balanceUsd === 0) {
     return {
-      name: "Credits",
+      name: "Balance",
       status: "fail",
-      message: "0 remaining",
+      message: label,
       fix: "Top up at stophy.dev/dashboard",
     };
   }
-  if (ping.credits < 100) {
-    return { name: "Credits", status: "warn", message: label };
-  }
-  return { name: "Credits", status: "pass", message: label };
+  return {
+    name: "Balance",
+    status: ping.balanceUsd < LOW_BALANCE_USD ? "warn" : "pass",
+    message: label,
+  };
 }
 
 async function runChecks(): Promise<CheckResult[]> {
@@ -250,7 +248,7 @@ async function runChecks(): Promise<CheckResult[]> {
     checkApiKey(apiKey, sessionCookie, source),
     checkReachability(baseUrl, ping),
     checkKeyValidity(ping),
-    checkCredits(ping),
+    checkBalance(ping),
     { name: "Config", status: "pass", message: getConfigPath() },
   ];
 }

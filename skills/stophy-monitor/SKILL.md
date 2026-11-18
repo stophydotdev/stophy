@@ -15,7 +15,7 @@ allowed-tools:
 
 See what changed on a page between two reads.
 
-**Prerequisite:** the Stophy CLI 2.0.0 or later (`stophy --version`). Change tracking needs `stophy login --browser` or `STOPHY_API_KEY`: the last read is kept per key. See [stophy](../stophy/SKILL.md).
+**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). Change tracking needs `stophy login --browser` or `STOPHY_API_KEY`: the last read is kept per key. See [stophy](../stophy/SKILL.md).
 
 ## Quick start
 
@@ -41,7 +41,7 @@ stophy scrape "https://httpbin.org/uuid" --formats '["markdown",{"type":"changeT
 - Send the same options every time. A read with other options is compared on its own.
 - A read is kept for 30 days.
 - To watch a page, run the same command on a schedule, such as a cron job, and act when `changeStatus` is `changed`.
-- Each check costs 1 credit.
+- Each check costs $0.001, the price of a scrape.
 
 ## See also
 

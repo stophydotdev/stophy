@@ -17,7 +17,7 @@ const envelope = {
     web: [{ title: "Bun", url: "https://bun.com", description: "A fast runtime", position: 1 }],
     json: { results: [] },
   },
-  creditsUsed: 1,
+  costUsd: 0.001,
   requestId: "req_1",
 };
 
