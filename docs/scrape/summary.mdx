@@ -22,41 +22,32 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime/bunfig",
-    formats: ["summary"],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://bun.com/docs/runtime/bunfig",
+  formats: ["summary"],
 });
-const { data } = await response.json();
 console.log(data.summary);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime/bunfig",
-        "formats": ["summary"],
-    },
-)
-data = response.json()["data"]
+data = stophy.scrape(
+    url="https://bun.com/docs/runtime/bunfig",
+    formats=["summary"],
+)["data"]
 print(data["summary"])
 ```
 </CodeGroup>
 
 ## Read the response
 
-`data.summary` is a string. `costUsd` is the price of the page and the summary together.
+`data.summary` is a string. `metadata.costUsd` is the price of the page and the summary together.
 
 ```json
 {
@@ -72,10 +63,7 @@ print(data["summary"])
       "scrapeId": "62b4a105-e59a-4ce5-a010-02c2e79aef4e",
       "costUsd": 0.004
     }
-  },
-  "id": "62b4a105-e59a-4ce5-a010-02c2e79aef4e",
-  "costUsd": 0.004,
-  "requestId": "62b4a105-e59a-4ce5-a010-02c2e79aef4e"
+  }
 }
 ```
 

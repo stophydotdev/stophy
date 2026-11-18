@@ -48,7 +48,7 @@ These add to the $1 per 1,000 pages when they return something.
 | A PDF | $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture, that come back. A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that it returns, at least one page. |
 | `zeroDataRetention` | $2 per 1,000 pages. See [Zero data retention](/production/zero-data-retention). |
 
-[Browser actions](/scrape/browser-actions) and CSS rules add nothing. An answer from a stored copy within `maxAge` costs the same as a live read. One scrape can cost at most $0.0265.
+[Browser actions](/scrape/browser-actions) and CSS rules add nothing. An answer from a stored copy within `maxAge` costs the same as a live read. One scrape can cost at most $0.1165.
 
 ### Parsers
 
@@ -79,17 +79,16 @@ The [parser list](https://api.stophy.dev/v1/parsers) has every parser's `price`.
 
 ## Read what you were charged
 
-Every response has `costUsd`, and the `x-cost-usd` header says the same. Scrape also puts it in `data.metadata.costUsd`. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
+Every response has the `x-cost-usd` header. A scrape has its cost in `data.metadata.costUsd`. The other endpoints keep `costUsd` at the top level of the body. This real scrape of `example.com` cost $0.001. The same scrape with `zeroDataRetention` cost $0.003.
 
 ```json
 {
   "success": true,
-  "data": { "metadata": { "statusCode": 200, "costUsd": 0.001 } },
-  "costUsd": 0.001
+  "data": { "metadata": { "statusCode": 200, "costUsd": 0.001 } }
 }
 ```
 
-`creditsUsed` and `x-credits-used` are older fields that count the same cost in steps of $0.002. Use `costUsd`.
+On the other endpoints, `creditsUsed` and `x-credits-used` are older fields that count the same cost in steps of $0.002. Use `costUsd`.
 
 `GET /v1/limits` shows your balance in dollars, and `GET /v1/logs` lists your recent calls with what each cost. See [Usage and logs](/production/usage-and-logs).
 

@@ -69,7 +69,7 @@ Retry only the codes marked Yes. Wait `retryAfterSeconds` when the answer has it
 | `busy` | 503, 409 | Yes | Stophy, or every browser, is busy. A 409 means a network policy or a proxy change on a session is still being applied. Wait `retryAfterSeconds`, 1 to 30 seconds. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering right now. Wait `retryAfterSeconds`. |
 | `sourceRefused` | 503 | Yes | The site is refusing requests right now. Wait `retryAfterSeconds`. |
-| `sourceTimeout` | 504 | Yes | The site took too long to answer. Try again. |
+| `sourceTimeout` | 504 | Yes | The site took too long to answer. Wait `retryAfterSeconds`, which is 5, then try again. |
 
 After the last try, stop and log the `requestId`. Three tries are enough for a retryable code. The CLI sign-in and invite codes come from signing in and invites, not from the data endpoints.
 
@@ -135,9 +135,44 @@ After the last try, stop and log the `requestId`. Three tries are enough for a r
 }
 ```
 
-## A retry loop
+## Retry with the SDK
 
-This loop retries only when the answer says `retryable`, waits as long as the answer asks and stops after three tries.
+The [SDKs](/sdks) retry network errors and the statuses 429, 500, 502, 503 and 504. They wait as long as the answer asks and stop after `maxRetries` retries, 2 by default. A call that still fails throws a `StophyError` with `code`, `retryable`, `retryAfterSeconds` and `requestId`.
+
+<CodeGroup>
+
+```ts TypeScript
+import { Stophy, StophyError } from "stophy";
+
+const stophy = new Stophy({ maxRetries: 3 });
+
+try {
+  const page = await stophy.scrape({ url: "https://bun.com/docs/runtime/bunfig" });
+  console.log(page.data.metadata.title);
+} catch (error) {
+  if (error instanceof StophyError) {
+    console.log(`${error.code}: ${error.message} (${error.requestId})`);
+  }
+}
+```
+
+```python Python
+from stophy import Stophy, StophyError
+
+stophy = Stophy(max_retries=3)
+
+try:
+    page = stophy.scrape(url="https://bun.com/docs/runtime/bunfig")
+    print(page["data"]["metadata"]["title"])
+except StophyError as error:
+    print(f"{error.code}: {error} ({error.request_id})")
+```
+
+</CodeGroup>
+
+## A retry loop for other calls
+
+The SDKs do not cover every call yet. This loop retries any call over HTTP. It retries only when the answer says `retryable`, waits as long as the answer asks and stops after three tries.
 
 <CodeGroup>
 
@@ -197,8 +232,6 @@ page = call("/v1/scrape", {"url": "https://bun.com/docs/runtime/bunfig"})
 ```
 
 </CodeGroup>
-
-The [SDKs](/sdks) do this for you. They retry network errors and the statuses 429, 500, 502, 503 and 504, and throw a `StophyError` with the same fields.
 
 ## Report a problem
 

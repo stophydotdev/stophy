@@ -23,7 +23,7 @@ The `timeout` field is in milliseconds on the endpoints below, except where the 
 
 A page that needs a browser needs at least 5 seconds. Some pages need 10 to 30 seconds the first time. Do not set a scrape `timeout` below 5,000 unless you want it to fail fast.
 
-This real call asked for a fresh read with a 1-second timeout. It could not finish, and it cost nothing.
+This real call asked for a fresh read with a 1-second timeout. It could not finish, so it answered `504 sourceTimeout` with a `Retry-After` header of `5`, and it cost nothing.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
@@ -35,11 +35,11 @@ curl -X POST https://api.stophy.dev/v1/scrape \
 ```json
 {
   "success": false,
-  "error": "The source is not answering right now. Try again shortly.",
-  "code": "sourceUnavailable",
+  "error": "The source took too long to answer. Try again.",
+  "code": "sourceTimeout",
   "retryable": true,
   "retryAfterSeconds": 5,
-  "requestId": "51c9165a-a278-4e62-a99f-dac62bd25e99"
+  "requestId": "a63c807e-333a-419f-9fca-b4f7d3f070ef"
 }
 ```
 

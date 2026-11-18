@@ -110,12 +110,18 @@ function pagesSection(op: Operation): string[] {
   ];
 }
 
+const ROBOTS_TEXT = new Map([
+  ["crawlErrors", "`robotsBlocked` lists up to 1,000 links that a robots.txt the crawl read did not allow. A link whose robots.txt could not be read is skipped and not listed."],
+  ["batchScrapeErrors", "A batch does not apply robots.txt, so `robotsBlocked` is always empty."],
+]);
+
 function errorsSection(op: Operation): string[] {
-  if (op.id !== "crawlErrors" && op.id !== "batchScrapeErrors") return [];
+  const robots = ROBOTS_TEXT.get(op.id);
+  if (robots === undefined) return [];
   return [
     "## Failed pages",
     "",
-    "Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`.",
+    `Lists every page the job could not read, up to 1,000, each with \`url\`, \`code\`, \`message\`, \`retryable\` and \`at\`. \`isTruncated\` is \`true\` when there are more. Retry a page when \`retryable\` is \`true\`. ${robots}`,
     "",
   ];
 }

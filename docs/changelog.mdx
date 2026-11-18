@@ -7,12 +7,14 @@ og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, newes
 
 Each entry covers one week and is named for the Monday it starts. The linked pages describe current behavior. Endpoint names from before November 5, 2026, such as `google.search`, belong to the per-site API that API v1 replaced.
 
-<Update label="Week of November 16, 2026" description="Lower prices, eight new parsers, costUsd on webhooks, a tool for each product on MCP, and GitHub search and Google Scholar removed">
+<Update label="Week of November 16, 2026" description="Lower prices, nine new parsers, costUsd and eventId on webhooks, clearer errors, a tool for each product on MCP, and GitHub search and Google Scholar removed">
 
 **New**
 
 - Job webhooks (crawl, batch, agent and extract) and `monitor.check.completed` now carry `costUsd`, the exact dollars charged. `creditsUsed` and `actualCredits` stay as older fields, rounded up to whole $0.002 steps. See [Webhooks](/webhooks) and [Monitor webhooks](/monitors/webhooks).
+- Job and monitor webhooks carry an `eventId` that stays the same when a call is sent again, so you can skip one you already handled. See [Webhooks](/webhooks) and [Monitor webhooks](/monitors/webhooks#read-an-event).
 - Eight new parsers: [`bsky-profile`](/scrape/prebuilt-parsers/social/bsky-profile) and [`bsky-post`](/scrape/prebuilt-parsers/social/bsky-post) for Bluesky, [`link-in-bio`](/scrape/prebuilt-parsers/social/link-in-bio) for Linktree, Komi, Linkbio and Linkme pages, [`x-community`](/scrape/prebuilt-parsers/social/x-community) for X communities and their posts, [`tiktok-trending`](/scrape/prebuilt-parsers/video/tiktok-trending) and [`tiktok-live`](/scrape/prebuilt-parsers/video/tiktok-live), and [`twitch-profile`](/scrape/prebuilt-parsers/video/twitch-profile) and [`twitch-clips`](/scrape/prebuilt-parsers/video/twitch-clips) for Twitch channels and clips.
+- [`facebook-group`](/scrape/prebuilt-parsers/social/facebook-group) reads a public Facebook group.
 
 **Changed**
 
@@ -32,6 +34,12 @@ Each entry covers one week and is named for the Monday it starts. The linked pag
   See [Pricing](/account/pricing).
 - The MCP server lists a tool for each product. Without an API key it lists `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. With one it adds tools for crawl, extract, agent, browsers, developer and paper search, and monitors, such as `stophy_crawl_status` and `stophy_monitor_create`. `?toolsets=` adds tools for more endpoints of a source. See [Install MCP](/install-mcp#what-your-agent-sees).
 
+- A scrape that runs out of time answers `504 sourceTimeout` with `Retry-After: 5`, not `503 sourceUnavailable`. An `includeTags` that matches nothing answers `400 invalidRequest`. See [Timeouts and errors](/scrape/timeouts-and-errors).
+- Search with `scrapeOptions` and no API key answers `401 apiKeyRequired`, not `400 invalidRequest`. See [Search page content](/search/page-content).
+- Crawl, batch and search pages no longer carry `metadata.scrapeId`. A single scrape keeps it. A scrape answer is `{ success, data }`, with its id and cost in `data.metadata`, and no top-level `id`, `costUsd`, `creditsUsed` or `requestId`. The request id is in the `X-Request-ID` header. See [Scrape](/scrape/overview).
+- The published maximum cost of one call, `maxCostUsd` on `GET /v1/endpoints`, now includes the most a PDF can charge: $0.1165 for a scrape or a batch page, $17.52 for a search and $1,165 for a crawl. No price changed. See [Pricing](/account/pricing).
+- The [`x-community`](/scrape/prebuilt-parsers/social/x-community) parser returns one community, with `name`, `description`, `topic` and `memberCount`, not a profile.
+
 **Removed**
 
 - The MCP tools `stophy_search_endpoints`, `stophy_describe_endpoint` and `stophy_call` are gone. Use the tool for the product, or `stophy_scrape` with a parser in `formats` for a site's data.
@@ -46,6 +54,10 @@ Each entry covers one week and is named for the Monday it starts. The linked pag
 **Fixed**
 
 - With an API key, pages on some government, bank and payment sites that failed with `sourceUnavailable` now read.
+- Run now on a paused monitor answers `409` and queues nothing, and a text schedule with a gap over 30 days is refused. See [Schedules](/monitors/schedules#run-a-check-now).
+- Paper search refuses a field it does not take, names every such field and says to send `k` for the number of papers. See [Papers](/search/papers).
+- A failed extract says `success: false` in `GET /v1/extract/{id}` and in its webhook. The HTTP status stays `200`. See [Extract results](/extract/results).
+- A crawl's `robotsBlocked` lists the links a robots.txt that the crawl read did not allow. It was always empty before. A batch never applies robots.txt. See [Crawl results](/crawl/async#read-the-errors).
 
 </Update>
 

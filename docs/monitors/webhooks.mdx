@@ -46,14 +46,15 @@ Send `webhook` when you create a monitor, or set it later with `PATCH /v1/monito
 
 ## Read an event
 
-Every event is a JSON object. `id` is the id of the monitor, `event` is the event name, and your `metadata` comes last. The call carries `Stophy-Signature` and `User-Agent: Stophy-Webhook/1`.
+Every event is a JSON object. `id` is the id of the monitor, `event` is the event name, `eventId` names the call, and your `metadata` comes last. The call carries `Stophy-Signature` and `User-Agent: Stophy-Webhook/1`.
 
-A page changed. This real event came from a monitor with a `goal`.
+A page changed. This real event came from a monitor with a `goal`. The `eventId` values on this page are examples.
 
 ```json
 {
   "id": "mon_2f3L73izJTdaA1AQ",
   "event": "monitor.page",
+  "eventId": "evt_1f7b7032-1120-47af-81b9-2ec624b3b23d",
   "url": "https://httpbin.org/uuid",
   "changeStatus": "changed",
   "at": "2026-11-17T18:20:53.979Z",
@@ -82,6 +83,7 @@ A check ended. This is the real event of a monitor's first check. `costUsd` is w
 {
   "id": "mon_hpJ-ZKa4FJLr4h1m",
   "event": "monitor.check.completed",
+  "eventId": "evt_0f49f730-60e6-465f-b43f-840cf98463f4",
   "monitorId": "mon_hpJ-ZKa4FJLr4h1m",
   "checkId": "1aba955f-75b2-40e7-a2a6-afe5dd3b5e1e",
   "status": "completed",
@@ -95,7 +97,7 @@ A check ended. This is the real event of a monitor's first check. `costUsd` is w
 
 `monitor.failed` has `reason` and `at`. When one page keeps failing, it also has the `url` and `failures`, which is 5. When your balance runs out, the `reason` is `Your balance ran out, so this monitor is paused.`
 
-An event has no id of its own. A retry or a replay sends the same body again. To ignore an event you have already handled, keep a hash of the body, or the `checkId` for check events and the `url` with `at` for page events.
+Every event has an `eventId` that stays the same when the call is sent again, by a retry or a replay. To ignore an event you have already handled, keep the `eventId` of each one.
 
 ## Verify the signature
 

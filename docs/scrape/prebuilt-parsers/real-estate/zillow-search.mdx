@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://www.zillow.com/homes/San-Francisco,-CA_rb/","formats":[{"type":"json","parser":"zillow-search"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.zillow.com/homes/San-Francisco,-CA_rb/",
-    formats: [{ type: "json", parser: "zillow-search" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "zillow-search",
+  "https://www.zillow.com/homes/San-Francisco,-CA_rb/",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.zillow.com/homes/San-Francisco,-CA_rb/",
-        "formats": [{"type": "json", "parser": "zillow-search"}],
-    },
+result = stophy.parsed(
+    "zillow-search",
+    "https://www.zillow.com/homes/San-Francisco,-CA_rb/",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 

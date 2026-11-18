@@ -31,44 +31,48 @@ while [ -n "$NEXT" ]; do
 done
 ```
 ```typescript TypeScript
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
 const id = "<the id your crawl returned>";
-const headers = { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` };
-const url = `https://api.stophy.dev/v1/crawl/${id}`;
 const over = new Set(["completed", "failed", "cancelled"]);
 
-let status = await (await fetch(url, { headers })).json();
+let status = await stophy.crawl.status({ id });
 while (!over.has(status.status)) {
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  status = await (await fetch(url, { headers })).json();
+  status = await stophy.crawl.status({ id });
 }
 
 const pages = [...status.data];
-let next: string | undefined = status.next;
+let next = status.next;
 while (next !== undefined) {
-  const more = await (await fetch(next, { headers })).json();
+  const cursor = new URL(next).searchParams.get("cursor") ?? undefined;
+  const more = await stophy.crawl.status({ id, cursor });
   pages.push(...more.data);
   next = more.next;
 }
 ```
 ```python Python
-import os
 import time
+from urllib.parse import parse_qs, urlparse
 
-import requests
+from stophy import Stophy
+
+stophy = Stophy()
 
 crawl_id = "<the id your crawl returned>"
-headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
-url = f"https://api.stophy.dev/v1/crawl/{crawl_id}"
 
-status = requests.get(url, headers=headers).json()
+status = stophy.crawl.status(id=crawl_id)
 while status["status"] not in ("completed", "failed", "cancelled"):
     time.sleep(2)
-    status = requests.get(url, headers=headers).json()
+    status = stophy.crawl.status(id=crawl_id)
 
 pages = list(status["data"])
 next_url = status.get("next")
 while next_url:
-    more = requests.get(next_url, headers=headers).json()
+    cursor = parse_qs(urlparse(next_url).query)["cursor"][0]
+    more = stophy.crawl.status(id=crawl_id, cursor=cursor)
     pages.extend(more["data"])
     next_url = more.get("next")
 ```
@@ -76,7 +80,7 @@ while next_url:
 
 A status answer holds up to 100 finished pages or 2 MB, whichever comes first. That is separate from the `limit` you sent to the crawl, which is how many pages it reads in all. A crawl with `limit` 30 is usually read in one call once it is done, and one with `limit` 250 in three.
 
-`next` appears only when more finished pages are waiting, so it never leads to an empty `data`. It is a full URL on `api.stophy.dev`. Call it with the same API key.
+`next` appears only when more finished pages are waiting, so it never leads to an empty `data`. It is a full URL on `api.stophy.dev`. Call it with the same API key. The SDK examples send its `cursor` back to `crawl.status`.
 
 ```json
 { "status": "completed", "total": 250, "completed": 250, "next": "https://api.stophy.dev/v1/crawl/job_3a2Bj6qUFGZFq-y-1MWdaA?cursor=-IEUnTHVpage_100", "data": [ … ] }
@@ -191,7 +195,7 @@ Each result has the `url` the crawl ended on, the `requestedUrl` it followed, th
 }
 ```
 
-Each item of `errors` has the page's `url`, a stable `code`, a `message`, whether trying again can help (`retryable`) and when it failed (`at`). The list holds up to 1,000 errors, and `isTruncated` says when there were more. A failed page costs nothing. Pages that the site's robots rules disallow are skipped, not counted as failures, so `robotsBlocked` stays empty.
+Each item of `errors` has the page's `url`, a stable `code`, a `message`, whether trying again can help (`retryable`) and when it failed (`at`). The list holds up to 1,000 errors, and `isTruncated` says when there were more. A failed page costs nothing. `robotsBlocked` lists up to 1,000 links that a robots.txt the crawl read did not allow. They are skipped, not counted as failures. A link whose robots.txt could not be read is skipped and not listed.
 
 A page that answers with a 404 or 410 status is not an error. It is a finished page with `statusCode` 404 and `metadata.error`, and it costs nothing.
 
@@ -308,7 +312,7 @@ Send `webhook` when you start the crawl, instead of polling. It is a URL, or an 
 | `metadata` | An object that comes back in every call. |
 | `events` | Which of `started`, `page`, `action`, `completed`, `failed` and `cancelled` to send. All by default. |
 
-Each call is signed in a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. If your endpoint answers slowly, a `page` event can carry only the page's `url`. Read that page with the status call. See [Webhooks](/webhooks).
+Each call is signed in a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. Every call has an `eventId` that stays the same when it is sent again. If your endpoint answers slowly, a `page` event can carry only the page's `url`. Read that page with the status call. See [Webhooks](/webhooks).
 
 ## Options
 

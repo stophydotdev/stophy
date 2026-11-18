@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://www.indeed.com/viewjob?jk=17c2d37519bd8374","formats":[{"type":"json","parser":"indeed-job"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.indeed.com/viewjob?jk=17c2d37519bd8374",
-    formats: [{ type: "json", parser: "indeed-job" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "indeed-job",
+  "https://www.indeed.com/viewjob?jk=17c2d37519bd8374",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.indeed.com/viewjob?jk=17c2d37519bd8374",
-        "formats": [{"type": "json", "parser": "indeed-job"}],
-    },
+result = stophy.parsed(
+    "indeed-job",
+    "https://www.indeed.com/viewjob?jk=17c2d37519bd8374",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 

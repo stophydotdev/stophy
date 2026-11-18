@@ -16,7 +16,7 @@ See [Pricing](/account/pricing).
 
 ## Failed pages
 
-Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`.
+Lists every page the job could not read, up to 1,000, each with `url`, `code`, `message`, `retryable` and `at`. `isTruncated` is `true` when there are more. Retry a page when `retryable` is `true`. `robotsBlocked` lists up to 1,000 links that a robots.txt the crawl read did not allow. A link whose robots.txt could not be read is skipped and not listed.
 
 <RequestExample>
 ```bash cURL

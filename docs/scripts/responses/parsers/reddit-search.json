@@ -70,13 +70,8 @@
         "cacheState": "hit",
         "cachedAt": "2026-11-17T17:53:24.463Z",
         "scrapeId": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e",
-        "creditsUsed": 1,
         "costUsd": 0.001
       }
-    },
-    "id": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e",
-    "costUsd": 0.001,
-    "creditsUsed": 1,
-    "requestId": "43e8aa9e-e4f3-443d-99cf-570cd13b6e0e"
+    }
   }
 }

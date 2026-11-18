@@ -248,6 +248,7 @@ The papers you start from are left out of `results`. `poolSize` is how many pape
 - A paper that is not in the index returns `404 notFound` with `No paper matches <id>.`
 - `from` later than `to` returns `400 invalidRequest` with `from: must not be later than to.` `from` and `to` must be dates as `YYYY-MM-DD`.
 - `categories` on a search returns `400 invalidRequest`, because the paper index holds no categories. `mode` set to `citers` or `references` returns `400 invalidRequest`, because the index holds no citations.
+- A field the search does not take returns `400 invalidRequest` and names every such field, as in `Unrecognized key: "limit". Use k for the number of results.` Send `k` for the number of papers.
 - A search that returns no papers costs nothing.
 
 ## Price

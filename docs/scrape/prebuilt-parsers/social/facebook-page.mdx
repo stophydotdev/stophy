@@ -21,33 +21,20 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://www.facebook.com/NASA","formats":[{"type":"json","parser":"facebook-page"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.facebook.com/NASA",
-    formats: [{ type: "json", parser: "facebook-page" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed("facebook-page", "https://www.facebook.com/NASA");
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.facebook.com/NASA",
-        "formats": [{"type": "json", "parser": "facebook-page"}],
-    },
-)
-print(response.json())
+result = stophy.parsed("facebook-page", "https://www.facebook.com/NASA")
+print(result)
 ```
 </CodeGroup>
 
@@ -103,13 +90,13 @@ $1 per 1,000 calls. See [Pricing](/account/pricing).
 
 ## Limits and errors
 
-- The URL must be a Facebook page, like facebook.com/NASA. Send options view posts for the page's posts. Any other URL fails with `invalidRequest`.
+- The URL must be a Facebook page, like facebook.com/NASA. Set options.view to posts for the page's posts. Any other URL fails with `invalidRequest`.
 - The answer comes back in `data.json`. If the page cannot be read, the call fails with an error code from [Errors](/api-reference/errors).
 
 ## Related
 
 - [Pre-built parsers](/scrape/prebuilt-parsers) lists every parser.
 - [Scrape](/scrape/overview) has the options every scrape takes.
+- [Facebook group](/scrape/prebuilt-parsers/social/facebook-group)
 - [Facebook post](/scrape/prebuilt-parsers/social/facebook-post)
 - [Facebook comments](/scrape/prebuilt-parsers/social/facebook-comments)
-- [Facebook marketplace](/scrape/prebuilt-parsers/shopping/facebook-marketplace)

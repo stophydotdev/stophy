@@ -7,7 +7,7 @@ og:description: "Crawl a docs section, split each page into chunks that keep the
 
 A retrieval index is only as good as its chunks. You crawl a docs section, cut each page at its headings, and keep the page URL and heading on every chunk. When the index returns a chunk, you can link to where it came from.
 
-You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). The run on this page read 3 pages and cost $0.003.
+You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). The TypeScript and Python examples use the SDK: `npm install stophy` or `pip install stophy`. The run on this page read 3 pages and cost $0.003.
 
 ## 1. Crawl the section
 
@@ -24,34 +24,26 @@ curl -X POST https://api.stophy.dev/v1/crawl \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/crawl", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime",
-    limit: 3,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { id } = await stophy.crawl({
+  url: "https://bun.com/docs/runtime",
+  limit: 3,
 });
-const { id } = await response.json();
 console.log(id);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/crawl",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime",
-        "limit": 3,
-    },
+result = stophy.crawl(
+    url="https://bun.com/docs/runtime",
+    limit=3,
 )
-print(response.json()["id"])
+print(result["id"])
 ```
 </CodeGroup>
 

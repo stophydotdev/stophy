@@ -50,7 +50,7 @@ const stophy = new Stophy({ apiKey: "st_..." });
 
 `new Stophy("st_...")` works too.
 
-Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is. `scrape` returns `{ success, data }`, `search` returns `{ success, data }` with a list for each source, and `map` returns `{ success, links }`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. Each result also has `costUsd`, what the call cost in dollars.
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as it is. `scrape` returns `{ success, data }`, `search` returns `{ success, data }` with a list for each source, and `map` returns `{ success, links }`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. `search` and `map` also have `costUsd`, what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
 
 ## Read a site with a parser
 

@@ -30,6 +30,6 @@ A removed page gets a redirect in `docs.json`, so no old link 404s.
 - Prices in dollars, as the catalog states them. The word credits appears only in field names such as `creditsUsed`.
 - Every fact must match the live API (`/v1/endpoints`, `/openapi.json`) or the server code. Every example request must be a real call; free endpoints are free to call.
 - Don't describe how Stophy gets its data or what runs it.
-- Examples use cURL, Node.js `fetch` and Python `requests`.
+- Examples use cURL and the `stophy` SDK for TypeScript and Python, and only methods the published SDK has. A call the SDK cannot make, or an option its types lack, keeps Node.js `fetch` and Python `requests`. Check every SDK example against the SDK's types.
 - Every page has `title`, a 120 to 160 character `description`, `og:title` as `<Title> | Stophy` and `og:description`. Use `sidebarTitle` when the title is longer than the sidebar label.
 - Sentence case for headings.

@@ -26,44 +26,36 @@ curl -X POST https://api.stophy.dev/v1/search \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/search", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.search({
+  query: "bun sqlite",
+  limit: 2,
+  scrapeOptions: {
+    formats: ["markdown"],
+    onlyMainContent: true,
   },
-  body: JSON.stringify({
-    query: "bun sqlite",
-    limit: 2,
-    scrapeOptions: {
-      formats: ["markdown"],
-      onlyMainContent: true,
-    },
-  }),
 });
-const { data } = await response.json();
-for (const result of data.web) {
-  console.log(result.url, result.markdown?.length ?? result.metadata.error);
+for (const result of data?.web ?? []) {
+  console.log(result.url, result.markdown?.length ?? result.metadata?.error);
 }
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/search",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "query": "bun sqlite",
-        "limit": 2,
-        "scrapeOptions": {
-            "formats": ["markdown"],
-            "onlyMainContent": True,
-        },
+data = stophy.search(
+    query="bun sqlite",
+    limit=2,
+    scrape_options={
+        "formats": ["markdown"],
+        "onlyMainContent": True,
     },
-)
-for result in response.json()["data"]["web"]:
+)["data"]
+for result in data["web"]:
     print(result["url"], len(result.get("markdown", "")) or result["metadata"]["error"])
 ```
 </CodeGroup>
@@ -90,8 +82,7 @@ Each web row gets `markdown` and `metadata`, the same as a [scrape](/scrape/page
           "statusCode": 200,
           "contentType": "text/markdown",
           "cacheState": "hit",
-          "costUsd": 0.001,
-          "scrapeId": "3291abae-3e8d-4b28-b3d4-1f064024090b"
+          "costUsd": 0.001
         }
       }
     ]
@@ -120,36 +111,24 @@ curl -X POST https://api.stophy.dev/v1/search \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/search", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    query: "bun sqlite transactions",
-    limit: 3,
-    highlights: true,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.search({
+  query: "bun sqlite transactions",
+  limit: 3,
+  highlights: true,
 });
-const { data } = await response.json();
-console.log(data.web.map((result) => result.description));
+console.log(data?.web?.map((result) => result.description));
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/search",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "query": "bun sqlite transactions",
-        "limit": 3,
-        "highlights": True,
-    },
-)
-print([result.get("description") for result in response.json()["data"]["web"]])
+data = stophy.search(query="bun sqlite transactions", limit=3, highlights=True)["data"]
+print([result.get("description") for result in data["web"]])
 ```
 </CodeGroup>
 
@@ -196,8 +175,7 @@ A page that cannot be read does not fail the search. The row keeps its `url`, `t
         "description": "As mentioned earlier, Bun serves as an all-encompassing JavaScript runtime, doubling as a Node.js-compatible package manager.",
         "position": 1,
         "metadata": {
-          "error": "Stophy does not read pages on linkedin.com. If a parser takes this page, send its URL with {\"type\":\"json\",\"parser\":\"<name>\"}: GET /v1/parsers lists them. Otherwise search the web with POST /v1/search to find what linkedin.com covers.",
-          "scrapeId": "59072bce-14c9-4036-a60b-e29bcb9e3735"
+          "error": "Stophy does not read pages on linkedin.com. If a parser takes this page, send its URL with {\"type\":\"json\",\"parser\":\"<name>\"}: GET /v1/parsers lists them. Otherwise search the web with POST /v1/search to find what linkedin.com covers."
         },
         "date": "2023-10-04T00:00:00.000Z"
       }
@@ -237,7 +215,7 @@ These fields live inside `scrapeOptions`. It takes the options of [Scrape](/scra
 ## Limits and errors
 
 - Only web and news results are read. `scrapeOptions.formats` with `images` in `sources` returns `400 invalidRequest`. The error says `Page text is only added to web and news results. Drop images.`
-- Without an API key, `scrapeOptions` returns `400 invalidRequest` with `scrapeOptions: Reading result pages needs an API key. Get one at https://stophy.dev/signup, or leave scrapeOptions out.`
+- Without an API key, `scrapeOptions` returns `401 apiKeyRequired` with `scrapeOptions: Reading result pages needs an API key. Get one at https://stophy.dev/signup, or leave scrapeOptions out.`
 - Up to 10 pages are read at once. The search `timeout` is 60,000 ms by default when pages are read.
 
 ## Price

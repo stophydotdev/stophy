@@ -9,7 +9,7 @@ A webhook is a JSON `POST` that Stophy sends to your address when a job reports 
 
 ## Events
 
-One shape covers every source: `id` is the job or monitor, `event` says what happened, and the rest depends on the event. Your `metadata`, if you set it, comes last.
+One shape covers every source: `id` is the job or monitor, `event` says what happened, `eventId` names the call, and the rest depends on the event. Your `metadata`, if you set it, comes last.
 
 | Source | Events | Set with |
 | - | - | - |
@@ -19,16 +19,17 @@ One shape covers every source: `id` is the job or monitor, `event` says what hap
 | [Extract](/extract/results) | `completed`, `failed` | `webhook` on `POST /v1/extract` |
 | [Monitor](/monitors/webhooks) | `monitor.page`, `monitor.check.completed`, `monitor.changed`, `monitor.failed` | `webhook` on `POST /v1/monitor` |
 
-A job sends `started` when it begins and `page` for each finished page. An agent also sends `action` for each step it takes. The last event is `completed`, `failed` or `cancelled`. These are real calls from a crawl of one page, with `metadata` of `{ "project": "docs" }`. The `page` call is cut.
+A job sends `started` when it begins and `page` for each finished page. An agent also sends `action` for each step it takes. The last event is `completed`, `failed` or `cancelled`. These calls come from a crawl of one page, with `metadata` of `{ "project": "docs" }`. The `page` call is cut, and the `eventId` values are examples.
 
 ```json
-{ "id": "job_q6vkBosI0L0OennuqYa1iw", "event": "started", "total": 1, "metadata": { "project": "docs" } }
+{ "id": "job_q6vkBosI0L0OennuqYa1iw", "event": "started", "eventId": "evt_0627f77a-35b2-494f-9f75-ea7de701805a", "total": 1, "metadata": { "project": "docs" } }
 ```
 
 ```json
 {
   "id": "job_q6vkBosI0L0OennuqYa1iw",
   "event": "page",
+  "eventId": "evt_bbfd9db6-ae39-4c54-b891-69f1a0a8ca56",
   "result": {
     "markdown": "This domain is for use in documentation examples without needing permission. …",
     "requestedUrl": "https://example.com/",
@@ -47,6 +48,7 @@ A job sends `started` when it begins and `page` for each finished page. An agent
 {
   "id": "job_q6vkBosI0L0OennuqYa1iw",
   "event": "completed",
+  "eventId": "evt_50c7394f-79a4-4863-954d-a9b3e3f8c28c",
   "status": "completed",
   "total": 1,
   "completed": 1,
@@ -57,7 +59,7 @@ A job sends `started` when it begins and `page` for each finished page. An agent
 }
 ```
 
-A `page` call holds `result` for a page that was read and `error` for one that failed. When your address falls far behind, a `page` call holds only the page `url` and `resultOmitted: true`. Read that page with the status call of the job. `failed` and `cancelled` have the same fields as `completed`, and `failed` also has a `message`. `costUsd` is what the job was charged so far, in dollars. `creditsUsed` is an older field that counts the same amount in whole steps of $0.002, rounded up. The fields of a monitor event are on [Monitor webhooks](/monitors/webhooks#read-an-event).
+Every call has an `eventId` that stays the same when the call is sent again, so you can skip one you already handled. A `page` call holds `result` for a page that was read and `error` for one that failed. When your address falls far behind, a `page` call holds only the page `url` and `resultOmitted: true`. Read that page with the status call of the job. `failed` and `cancelled` have the same fields as `completed`, and `failed` also has a `message`. `costUsd` is what the job was charged so far, in dollars. `creditsUsed` is an older field that counts the same amount in whole steps of $0.002, rounded up. The fields of a monitor event are on [Monitor webhooks](/monitors/webhooks#read-an-event).
 
 ## Set a webhook
 
@@ -175,14 +177,14 @@ def verify_signature(secret: str, body: bytes, header: str | None) -> bool:
 ```
 </CodeGroup>
 
-A receiver verifies the call, stores it, and answers `200` fast. This one imports the function above from `verify.ts` and keeps each body once, so a call Stophy sends again changes nothing. It runs on Bun.
+A receiver verifies the call, stores it, and answers `200` fast. This one imports the function above from `verify.ts` and keeps each `eventId` once, so a call Stophy sends again changes nothing. It runs on Bun.
 
 ```typescript
 import { Database } from "bun:sqlite";
 import { verifySignature } from "./verify.ts";
 
 const db = new Database("events.sqlite");
-db.run("CREATE TABLE IF NOT EXISTS events (key TEXT PRIMARY KEY, body TEXT NOT NULL)");
+db.run("CREATE TABLE IF NOT EXISTS events (eventId TEXT PRIMARY KEY, body TEXT NOT NULL)");
 
 const secret = process.env.STOPHY_WEBHOOK_SECRET ?? "";
 
@@ -191,13 +193,13 @@ export async function handle(request: Request): Promise<Response> {
   if (!verifySignature(secret, body, request.headers.get("Stophy-Signature"))) {
     return new Response("bad signature", { status: 401 });
   }
-  const key = new Bun.CryptoHasher("sha256").update(body).digest("hex");
-  db.run("INSERT OR IGNORE INTO events (key, body) VALUES (?, ?)", [key, body]);
+  const { eventId }: { eventId: string } = JSON.parse(body);
+  db.run("INSERT OR IGNORE INTO events (eventId, body) VALUES (?, ?)", [eventId, body]);
   return new Response("ok");
 }
 ```
 
-Serve it with `Bun.serve({ port: 3000, fetch: handle })`. Answer before you do slow work: a call that takes more than 5 seconds counts as failed. A retry and a replay send the same bytes, so the hash of the body is the same.
+Serve it with `Bun.serve({ port: 3000, fetch: handle })`. Answer before you do slow work: a call that takes more than 5 seconds counts as failed. A retry and a replay send the same bytes, so the `eventId` is the same.
 
 ## Acknowledge and retry
 

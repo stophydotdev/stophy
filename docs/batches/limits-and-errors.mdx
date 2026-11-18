@@ -18,24 +18,20 @@ curl -X DELETE https://api.stophy.dev/v1/batch/scrape/$BATCH_ID \
   -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
 ```typescript TypeScript
-const id = "<the id your batch returned>";
-const response = await fetch(`https://api.stophy.dev/v1/batch/scrape/${id}`, {
-  method: "DELETE",
-  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.batch.scrape.cancel({ id: "<the id your batch returned>" });
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-batch_id = "<the id your batch returned>"
-response = requests.delete(
-    f"https://api.stophy.dev/v1/batch/scrape/{batch_id}",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-print(response.json())
+result = stophy.batch.scrape.cancel(id="<the id your batch returned>")
+print(result)
 ```
 </CodeGroup>
 
