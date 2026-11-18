@@ -1,10 +1,14 @@
 # @stophy/ai-sdk
 
-Give your agents the live web. These are Stophy tools for the [Vercel AI SDK](https://ai-sdk.dev).
+Search, read, and act on the web. These are Stophy tools for the [Vercel AI SDK](https://ai-sdk.dev).
+
+## Install
 
 ```bash
 npm install @stophy/ai-sdk ai zod
 ```
+
+## Example
 
 ```ts
 import { generateText, isStepCount } from "ai";
@@ -16,11 +20,9 @@ const { text } = await generateText({
   tools: { webSearch: webSearch(), readPage: readPage() },
   stopWhen: isStepCount(5),
 });
-
-console.log(text);
 ```
 
-Each tool reads `STOPHY_API_KEY` from the environment. Without it, `webSearch`, `readPage`, `redditSearch` and `placeSearch` still work within free limits. The others return an error that tells the model a key is needed. Get a key at [stophy.dev](https://stophy.dev).
+The model searches, picks a page, reads it and answers. Give it only the tools it needs: `webSearch` and `readPage` cover most questions, and the five site tools help when the answer lives on one site.
 
 ## Tools
 
@@ -34,23 +36,27 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, `webSearch`, 
 | `jobSearch`     | Indeed jobs with company, location and salary         | $0.001                                       |
 | `homeSearch`    | Zillow homes for sale or rent with price, beds, baths | $0.004                                       |
 
-Most calls cost $0.001. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
+The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
-Pass a key or client options to any tool:
+## API key
 
-```ts
-webSearch({ apiKey: process.env.STOPHY_KEY, timeoutMs: 30_000 });
-```
+Each tool reads `STOPHY_API_KEY` from the environment. Without it, `webSearch`, `readPage`, `redditSearch` and `placeSearch` still work within free limits. The others return an error that tells the model a key is needed. Get a key at [stophy.dev/signup](https://stophy.dev/signup).
+
+To pass a key or client options, hand them to the tool: `webSearch({ apiKey: process.env.STOPHY_KEY, timeoutMs: 30_000 })`.
+
+## Errors and retries
+
+The tools call the [`stophy`](https://www.npmjs.com/package/stophy) client, so a failed call throws its `StophyError`, and the AI SDK hands the message to the model as a tool error. The client retries network errors and errors the API marks retryable, twice by default. Set `maxRetries` to change that.
 
 ## Every other source
 
-Stophy has parsers for 103 kinds of pages, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client:
+Stophy has parsers for more than 100 kinds of pages, including YouTube, TikTok, LinkedIn, Booking and the App Store. These tools cover the common ones. For the rest, connect the hosted MCP server with the AI SDK's MCP client, with the transport `{ type: "http", url: "https://api.stophy.dev/mcp" }`, or call `parsed` in the `stophy` client from your own tool.
 
-```ts
-import { createMCPClient } from "@ai-sdk/mcp";
+## Docs
 
-const stophy = await createMCPClient({
-  transport: { type: "http", url: "https://api.stophy.dev/mcp" },
-});
-const tools = await stophy.tools();
-```
+- [Vercel AI SDK guide](https://docs.stophy.dev/integrations/vercel-ai-sdk) covers the tools and the MCP client.
+- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
+
+## License
+
+MIT

@@ -1,10 +1,14 @@
 # langchain-stophy
 
-Give your agents the live web. These are Stophy tools for [LangChain](https://docs.langchain.com).
+Search, read, and act on the web. These are Stophy tools for [LangChain](https://docs.langchain.com).
+
+## Install
 
 ```bash
 pip install langchain-stophy
 ```
+
+## Example
 
 ```python
 from langchain.agents import create_agent
@@ -20,7 +24,7 @@ result = agent.invoke(
 print(result["messages"][-1].content)
 ```
 
-Each tool reads `STOPHY_API_KEY` from the environment. Without it, web search, page reading, Reddit and Google Maps still work within free limits. The other tools send the model an error that says a key is needed. Get a key at [stophy.dev](https://stophy.dev).
+The agent searches, picks a page, reads it and answers. `StophyToolkit(api_key="...").get_tools()` returns every tool below with one key, for when you want to hand the agent all of them.
 
 ## Tools
 
@@ -34,16 +38,25 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, web search, p
 | `StophyJobSearch`     | Indeed jobs with company, location and salary         | $0.001                                       |
 | `StophyHomeSearch`    | Zillow homes for sale or rent with price, beds, baths | $0.004                                       |
 
-Most calls cost $0.001. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
+The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
-To give an agent every tool with one key:
+## API key
 
-```python
-from langchain_stophy import StophyToolkit
+Each tool reads `STOPHY_API_KEY` from the environment, or takes `api_key`. Without a key, web search, page reading, Reddit and Google Maps still work within free limits. The other tools send the model an error that says a key is needed. Get a key at [stophy.dev/signup](https://stophy.dev/signup).
 
-tools = StophyToolkit(api_key="your-key").get_tools()
-```
+## Errors and retries
 
-When a call fails, the tool returns the API's message as an error `ToolMessage`, so the agent can read it and recover.
+When a call fails, the tool returns the API's message as an error `ToolMessage`, so the agent can read it and recover. The tools call the [`stophy`](https://pypi.org/project/stophy/) client, which retries network errors and errors the API marks retryable.
 
-For YouTube, TikTok, LinkedIn, Booking and the other sites Stophy has parsers for, use `parsed` in the [`stophy`](https://pypi.org/project/stophy/) SDK or the hosted MCP server at `https://api.stophy.dev/mcp`.
+## Every other source
+
+For YouTube, TikTok, LinkedIn, Booking and the other sites Stophy has parsers for, use `parsed` in the `stophy` SDK or the hosted MCP server at `https://api.stophy.dev/mcp`.
+
+## Docs
+
+- [Python guide](https://docs.stophy.dev/sdks/python) covers the client these tools call.
+- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
+
+## License
+
+MIT

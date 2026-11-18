@@ -1,12 +1,20 @@
 # Stophy MCP
 
-Give your agents the live web over MCP. Your agent can search, scrape, map, crawl and extract, and read a site's own data through a parser.
+Search, read, and act on the web. This package connects any MCP client to the hosted Stophy server, so your agent can search, scrape, map, crawl, extract, monitor pages and drive a cloud browser.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=stophy&config=eyJ1cmwiOiJodHRwczovL21jcC5zdG9waHkuZGV2L21jcCJ9)
 
-## Connect to the hosted server
+## Install
 
-Most apps connect to the hosted server directly, with nothing to install.
+Most apps connect to the hosted server directly, with nothing to install. This adds it to Claude Code and signs in with your browser:
+
+```bash
+claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
+```
+
+Then run `/mcp` in Claude Code and choose **Authenticate**. Apps that can only start a local server run this package instead, with `npx -y @stophy/mcp`. It needs Node.js 18 or later.
+
+## Connect
 
 | URL                          | How you connect                      | What your agent can use                                |
 | ---------------------------- | ------------------------------------ | ------------------------------------------------------ |
@@ -14,98 +22,22 @@ Most apps connect to the hosted server directly, with nothing to install.
 | `https://api.stophy.dev/mcp` | `Authorization: Bearer <key>` header | Every tool                                             |
 | `https://mcp.stophy.dev/mcp` | Sign in with your browser            | Every tool                                             |
 
-Get an API key at [stophy.dev/signup](https://stophy.dev/signup).
+Pick the browser sign-in when a person sets the app up, and a key when a script or an agent does. Get a key at [stophy.dev/signup](https://stophy.dev/signup).
 
-### Claude
+- **Claude on the web, Desktop or mobile.** Open [Customize > Connectors](https://claude.ai/customize/connectors), choose **Add custom connector**, paste `https://mcp.stophy.dev/mcp` and sign in.
+- **Claude Code with a key.** Add `--header "Authorization: Bearer <key>"` to the command above and use the `api.stophy.dev` URL. Leave the header out to start without a key.
+- **Codex.** `codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY` uses the key in your environment. To sign in with your browser, add `https://mcp.stophy.dev/mcp` the same way and run `codex mcp login stophy`.
+- **Cursor.** The **Add to Cursor** button above signs in with your browser. To use a key, put the `api.stophy.dev` URL and an `Authorization` header in `.cursor/mcp.json`, and leave `headers` out to start without a key.
+- **Claude Desktop, through the local package.** In `claude_desktop_config.json`, add a server named `stophy` with the command `npx`, the arguments `-y` and `@stophy/mcp`, and `STOPHY_API_KEY` in `env`. Restart Claude Desktop. Leave `env` out to start without a key.
 
-In Claude on the web, Desktop or mobile, open [Customize > Connectors](https://claude.ai/customize/connectors), choose **Add custom connector**, and paste `https://mcp.stophy.dev/mcp`. Sign in when Claude asks.
-
-### Claude Code
-
-To sign in with your browser, add the server, then run `/mcp` and choose **Authenticate**:
-
-```bash
-claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
-```
-
-To use an API key:
-
-```bash
-claude mcp add --transport http stophy https://api.stophy.dev/mcp --header "Authorization: Bearer <key>"
-```
-
-To start without a key:
-
-```bash
-claude mcp add --transport http stophy https://api.stophy.dev/mcp
-```
-
-### Codex
-
-To use the key in your `STOPHY_API_KEY` environment variable:
-
-```bash
-codex mcp add stophy --url https://api.stophy.dev/mcp --bearer-token-env-var STOPHY_API_KEY
-```
-
-To sign in with your browser instead, add the sign-in URL, then log in:
-
-```bash
-codex mcp add stophy --url https://mcp.stophy.dev/mcp
-codex mcp login stophy
-```
-
-### Cursor
-
-Use the **Add to Cursor** button above to sign in with your browser, or add this to `.cursor/mcp.json` to use a key:
-
-```json
-{
-  "mcpServers": {
-    "stophy": {
-      "url": "https://api.stophy.dev/mcp",
-      "headers": { "Authorization": "Bearer <key>" }
-    }
-  }
-}
-```
-
-To start without a key, leave out `headers`.
-
-## Run it as a local server
-
-Some apps can only start a local MCP server. For those, use this package. It runs on your computer and passes every request to the hosted server, so it always has the same tools.
-
-```bash
-npx -y @stophy/mcp
-```
-
-With `STOPHY_API_KEY` set, your agent can use every tool. Without it, your agent can use the tools that need no key, within a free allowance.
-
-### Claude Desktop
-
-Add this to `claude_desktop_config.json`, then restart Claude Desktop:
-
-```json
-{
-  "mcpServers": {
-    "stophy": {
-      "command": "npx",
-      "args": ["-y", "@stophy/mcp"],
-      "env": { "STOPHY_API_KEY": "<key>" }
-    }
-  }
-}
-```
-
-To start without a key, leave out `env`.
-
-The package needs Node.js 18 or later.
+The local package runs on your computer and passes every request to the hosted server, so it always has the same tools. It reads two variables:
 
 | Variable         | What it does                                                           |
 | ---------------- | ---------------------------------------------------------------------- |
 | `STOPHY_API_KEY` | Your Stophy API key. Optional.                                         |
 | `STOPHY_MCP_URL` | The server to connect to. The default is `https://api.stophy.dev/mcp`. |
+
+With the key set, your agent can use every tool. Without it, your agent can use the tools that need no key, within a free allowance. If the server answers 401, the package says to check `STOPHY_API_KEY` or unset it.
 
 ## Tools
 
@@ -131,20 +63,9 @@ With a key, it also lists a tool for each product:
 | `stophy_monitor_create`, `stophy_monitor_list`, `stophy_monitor_get`, `stophy_monitor_update`, `stophy_monitor_delete`, `stophy_monitor_run`, `stophy_monitor_checks`, `stophy_monitor_check` | Watch pages on a schedule and read what changed                                            |
 | `browserOpen`, `browserRun`, `browserClose` and six more                                                                                                                                      | Drive a cloud browser                                                                      |
 
-To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser:
+To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser: send `formats` as `[{ "type": "json", "parser": "reddit-search" }]` with the Reddit search page as the `url`. The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
 
-```json
-{
-  "url": "https://www.reddit.com/search/?q=bun+runtime",
-  "formats": [{ "type": "json", "parser": "reddit-search" }]
-}
-```
-
-The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
-
-A crawl runs in the background: read it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. See [pricing](https://docs.stophy.dev/account/pricing).
-
-For more endpoints of a source, add `toolsets` to the URL with the source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`.
+A crawl runs in the background: read it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. For more endpoints of a source, add `toolsets` to the URL with the source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`.
 
 ## Network and credentials
 
@@ -153,10 +74,11 @@ For more endpoints of a source, add `toolsets` to the URL with the source name, 
 - The plugin manifests (`.mcp.json`, `.grok-plugin/plugin.json`, `mcp.json`, `plugin.json`) only point at the hosted server. They run no code on your machine.
 - No telemetry.
 
-## More
+## Docs
 
-- [Stophy docs](https://docs.stophy.dev)
-- [Dashboard and API keys](https://stophy.dev/dashboard)
+- [Install the MCP server](https://docs.stophy.dev/install-mcp) has the steps for each app.
+- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
+- [Dashboard and API keys](https://stophy.dev/dashboard) is where you manage your keys.
 
 ## License
 

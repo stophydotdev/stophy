@@ -1,6 +1,6 @@
 # Stophy for Python
 
-Give your agents the live web from Python. Every method and result is typed.
+Search, read, and act on the web. This is the typed Stophy client for Python, with a sync and an async class.
 
 ## Install
 
@@ -8,109 +8,47 @@ Give your agents the live web from Python. Every method and result is typed.
 pip install stophy
 ```
 
-## Try it without a key
+## Example
 
 ```python
 from stophy import Stophy
 
 stophy = Stophy()
-
 page = stophy.scrape(url="https://example.com", formats=["markdown"])
 print(page["data"].get("markdown"))
-
-results = stophy.search(query="bun runtime", limit=3)
-print(results.get("data"))
 ```
 
-`scrape`, `search`, `map` and `parse` work without a key, within a small free allowance, and so do `parsers`, `endpoints` and `signup`. Every other method raises a `StophyError` with the code `apiKeyRequired`.
+That call needs no key. Every method and result is typed, and each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`. Arguments are keyword-only and snake_case. For async code, use `AsyncStophy`: it has the same methods, and you `await` each call.
 
-## Use an API key
+## Pick a method
 
-Get a key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STOPHY_API_KEY`, or pass it in:
+| Method                    | Use it to                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| `search`                  | Search the web, news, images, research papers or YouTube videos                 |
+| `scrape`                  | Read one page as Markdown, HTML, links, a screenshot or JSON                    |
+| `parsed`                  | Read a site's own data, such as Reddit posts or Google Maps places, as JSON     |
+| `map`                     | List the pages on a site, to find the right one before you read it              |
+| `parse`                   | Turn a PDF, Word, Excel or PowerPoint file, or a picture of text, into Markdown |
+| `crawl`, `batch.scrape`   | Read a whole section of a site, or a list of URLs, in the background            |
+| `extract`                 | Pull the fields you name from pages, each checked against the page              |
+| `browser.task`            | Click through a public site in a cloud browser to search, filter or fill a form |
+| `limits`, `usage`, `logs` | Read your balance, your all-time usage and your recent calls                    |
 
-```python
-stophy = Stophy(api_key="st_...")
-```
-
-Each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`.
-
-Arguments are keyword-only and snake_case.
-
-For async code, use `AsyncStophy`. It has the same methods, and you `await` each call.
+`limits` returns the balance in dollars as `balanceUsd`, with your rate limit. `scrape`, `search`, `map` and `parse` work without a key, within a small free allowance, and so do `parsers`, `endpoints` and `signup`. Every other method raises a `StophyError` with the code `apiKeyRequired`.
 
 ## Read a site with a parser
 
-A parser reads a site's page and returns its data as JSON: Reddit posts, Google Maps places, Amazon products, YouTube videos and more. Send the parser's name and the page URL:
+`stophy.parsed("google-maps", url)` calls `scrape` with the format `{"type": "json", "parser": ...}` and puts the result in `data.json`. The parser name is typed as `ParserName`, and `stophy.parsers()` returns each parser with the page it reads and what it returns. Extra keyword arguments are the parser's options, such as `page=2` for the next page. Paging needs an API key.
 
-```python
-places = stophy.parsed("google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana")
-print(places["data"].get("json"))
-```
+## Run a job in the background
 
-`parsed` calls `scrape` with the format `{"type": "json", "parser": ...}`. The parser name is typed as `ParserName`. `stophy.parsers()` returns each parser with the page it reads and what it returns.
+`crawl`, `batch.scrape`, `extract` and `browser.task` answer at once with an `id`. Read the result with `crawl.status(id=...)`, `batch.scrape.status(id=...)`, `extract.result(id=...)` or `browser.task.status(id=...)`. `crawl` and `batch.scrape` also have `cancel(id=...)`, which stops the job and keeps the pages already read.
 
-Extra keyword arguments are the parser's options, such as the next page:
+A crawl `status` is `scraping` until it is `completed`. While pages are left to read, the answer has `next`, a link with a `cursor`. Send that cursor with the same id to get only the pages finished since. `extract.result` raises a `StophyError` with the code `notFound` until the result is ready. A job and its result are kept for 24 hours.
 
-```python
-next_page = stophy.parsed(
-    "google-maps", "https://www.google.com/maps/search/dentists+in+Ljubljana", page=2
-)
-```
+## API key
 
-Paging needs an API key.
-
-## Crawl a site
-
-`crawl` answers at once with an id. Ask `crawl.status` for the pages:
-
-```python
-from urllib.parse import parse_qs, urlparse
-
-job = stophy.crawl(url="https://bun.com/docs", limit=20)
-job_id = job.get("id")
-if job_id:
-    status = stophy.crawl.status(id=job_id)
-    print(status["status"], status["completed"], status["total"], status["data"])
-
-    next_link = status.get("next")
-    if next_link:
-        cursor = parse_qs(urlparse(next_link).query)["cursor"][0]
-        more = stophy.crawl.status(id=job_id, cursor=cursor)
-        print(more["data"])
-```
-
-`status` is `scraping` until the crawl is `completed`. While pages are left to read, the answer has `next`, a link with a `cursor`. Send that cursor with the same id to get only the pages finished since. `stophy.crawl.cancel(id=...)` stops the crawl and keeps the pages already read. A crawl and its pages are kept for 24 hours.
-
-`stophy.batch.scrape(urls=[...])` takes a list of URLs and works the same way, with `batch.scrape.status` and `batch.scrape.cancel`.
-
-## Extract fields from pages
-
-```python
-job = stophy.extract(urls=["https://example.com"], prompt="What is this page for?")
-job_id = job.get("id")
-if job_id:
-    result = stophy.extract.result(id=job_id)
-    print(result["data"], result["confidence"])
-```
-
-`extract.result` raises a `StophyError` with the code `notFound` until the result is ready. Results are kept for 24 hours.
-
-## Handle errors
-
-```python
-from stophy import StophyError
-
-try:
-    stophy.scrape(url="not a url")
-except StophyError as error:
-    print(error.code, str(error), error.retryable)
-```
-
-`StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
-
-The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK raises right away with `retry_after_seconds` set.
-
-## Options
+Get a key at [stophy.dev/signup](https://stophy.dev/signup). The client reads `STOPHY_API_KEY`, or you pass it in with `Stophy(api_key="st_...")`.
 
 | Option        | Default                              | What it does                                |
 | ------------- | ------------------------------------ | ------------------------------------------- |
@@ -119,15 +57,20 @@ The SDK retries network errors and the HTTP statuses 429, 500, 502, 503, and 504
 | `max_retries` | `2`                                  | Retries per request. `0` turns retries off. |
 | `timeout`     | `70.0`                               | Time limit in seconds for each attempt      |
 
-## Check your account
+## Errors and retries
 
-```python
-limits = stophy.limits()
-usage = stophy.usage()
-logs = stophy.logs(days=7)
-```
+A failed call raises a `StophyError`, which you import from `stophy`. It has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id` and `details`. The message is `str(error)`, and it says what went wrong and what to do next.
 
-`limits` returns your balance in dollars as `balanceUsd`, and your rate limit. `usage` returns your all-time usage. `logs` returns your recent calls. All three need an API key.
+The client retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, it raises right away with `retry_after_seconds` set.
+
+## Docs
+
+- [Python guide](https://docs.stophy.dev/sdks/python) covers every method with examples.
+- [Quickstart](https://docs.stophy.dev/quickstart) makes a first request and reads the result.
+- [Choose an API](https://docs.stophy.dev/introduction#choose-an-api) maps what you have to the call you need.
+- [API reference](https://docs.stophy.dev/api-reference/introduction) lists every option of every call.
+- [Errors](https://docs.stophy.dev/api-reference/errors) lists every error code, and [rate limits](https://docs.stophy.dev/production/rate-limits) explains the free allowance.
+- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
 
 ## License
 

@@ -2,75 +2,33 @@
 
 [![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
 
-Give your agents the live web. This repo is a plugin with two parts:
-
-- The hosted Stophy MCP server, `https://mcp.stophy.dev/mcp`. It signs you in with your browser.
-- Agent skills for each task and kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
+Search, read, and act on the web. This repo is a plugin for coding agents with two parts: the hosted Stophy MCP server at `https://mcp.stophy.dev/mcp`, which signs you in with your browser, and agent skills for each task and kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
 
 ## Install
 
-### Claude Code
+In Claude Code, add the marketplace and install the plugin:
 
 ```
 /plugin marketplace add stophydotdev/stophy
 /plugin install stophy@stophy
 ```
 
-### Cursor
+For other agents:
 
-Stophy isn't in the Cursor Marketplace yet. Click **Add to Cursor** on [cursor.directory](https://cursor.directory/plugins/stophy), or add the server to `~/.cursor/mcp.json` yourself:
-
-```json
-{
-  "mcpServers": {
-    "stophy": { "url": "https://mcp.stophy.dev/mcp" }
-  }
-}
-```
-
-Sign in when Cursor opens the browser.
-
-### Gemini CLI
-
-```bash
-gemini extensions install https://github.com/stophydotdev/stophy
-```
-
-### Skills only
-
-Works with any agent that supports the Agent Skills format.
-
-```bash
-npx skills add stophydotdev/stophy
-npx skills add stophydotdev/stophy --skill stophy-web --skill stophy-video
-```
-
-### MCP server only
-
-```bash
-claude mcp add --transport http stophy https://mcp.stophy.dev/mcp
-```
-
-Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, the endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints) work, within a free allowance.
+- **Cursor.** Stophy isn't in the Cursor Marketplace yet. Click **Add to Cursor** on [cursor.directory](https://cursor.directory/plugins/stophy), or add the server `https://mcp.stophy.dev/mcp` under `mcpServers` in `~/.cursor/mcp.json` yourself. Sign in when Cursor opens the browser.
+- **Gemini CLI.** Run `gemini extensions install https://github.com/stophydotdev/stophy`.
+- **Skills only.** Any agent that supports the Agent Skills format can run `npx skills add stophydotdev/stophy`. Add `--skill stophy-web --skill stophy-video` to install only those.
+- **MCP server only.** Run `claude mcp add --transport http stophy https://mcp.stophy.dev/mcp`. Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, the endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints) work, within a free allowance.
 
 ## Requirements
 
-- Node.js ≥18
-- The CLI, 1.3.0 or later: `npm install -g @stophy/cli`, or run it with `npx @stophy/cli@latest`
-- An API key from [stophy.dev](https://stophy.dev/signup) for everything except `search`, `scrape`, `map`, `parse` and the parsers each skill marks "no key", which work up to 10 calls a minute and 50 a day
+The skills run the CLI, 1.3.0 or later, so you need Node.js 18 or later and `npm install -g @stophy/cli`, or `npx @stophy/cli@latest`. An API key from [stophy.dev](https://stophy.dev/signup) is needed for everything except `search`, `scrape`, `map`, `parse` and the parsers each skill marks "no key", which work up to 10 calls a minute and 50 a day.
 
-## Authentication
+## API key
 
-```bash
-stophy login --browser    # opens the browser
-stophy login --api-key    # asks for the key, so it stays out of shell history
-```
+Run `stophy login --browser` to sign in with your browser, or `stophy login --api-key` to paste a key, which keeps it out of your shell history. In CI, set `STOPHY_API_KEY` from your secret store. Treat the key as a secret: do not commit it, print it, or paste it into a shared log.
 
-In CI, set `STOPHY_API_KEY` from your secret store.
-
-Treat the API key as a secret. Do not commit it, print it, or paste it into a shared log.
-
-## Included skills
+## Skills
 
 | Skill | Covers |
 |-------|--------|
@@ -123,7 +81,9 @@ Start with `stophy`, which names the skill for the task. Run the command, read t
 
 ## Docs
 
-Full command reference: [docs.stophy.dev](https://docs.stophy.dev)
+- [Install the skills](https://docs.stophy.dev/install-skill) covers each agent.
+- [Install the CLI](https://docs.stophy.dev/install-cli) lists every command.
+- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
 
 ## License
 
