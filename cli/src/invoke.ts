@@ -4,28 +4,33 @@ import { currentArgs, flagTokens } from "./argv.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { request } from "./client.js";
 import { CliError } from "./errors.js";
-import { parseCall } from "./flags.js";
-import { requestFor } from "./jobs.js";
+import { type ParsedCall, parseCall } from "./flags.js";
+import { requestFor, reserveAgentPrompt } from "./jobs.js";
 import { type JsonRecord, type JsonValue, isJsonRecord, jsonRecord } from "./json.js";
 import { handleOutput, writeOutput } from "./output.js";
 import { renderData } from "./render.js";
 import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
-export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
-  const parsed = parseCall(flagTokens(currentArgs(), endpoint.id.split(".")), endpoint.input);
+export function parseEndpointCall(endpoint: CatalogEndpoint): ParsedCall {
+  const tokens = flagTokens(currentArgs(), endpoint.id.split("."));
+  const parsed = parseCall(tokens, endpoint.input);
   if (!parsed.ok) throw new CliError(parsed.message);
+  reserveAgentPrompt(endpoint, tokens, parsed.call.body);
+  return parsed.call;
+}
 
-  const send = () =>
-    request({ ...requestFor(endpoint, parsed.call.body), accept: "application/json" });
+export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
+  const call = parseEndpointCall(endpoint);
+  const send = () => request({ ...requestFor(endpoint, call.body), accept: "application/json" });
   const response = await withSignup(() =>
     isAgentMode() ? send() : withSpinner(`Calling ${endpoint.id.split(".").join(" ")}…`, send),
   );
 
   const body = jsonRecord.safeParse(response.json);
   if (!body.success) throw new CliError("Server returned an unexpected response shape.");
-  const { format } = parsed.call;
-  if (format === "text" && isAgentMode() && parsed.call.outputFile === undefined) {
+  const { format } = call;
+  if (format === "text" && isAgentMode() && call.outputFile === undefined) {
     handleOutput(agentLineOf(body.data));
     return;
   }
@@ -33,11 +38,11 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
     process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
   }
   if (format === "text") {
-    writeOutput(renderData(shownOf(payloadOf(body.data))), parsed.call.outputFile);
+    writeOutput(renderData(shownOf(payloadOf(body.data))), call.outputFile);
     return;
   }
   handleOutput(format === "raw" ? body.data : payloadOf(body.data), {
-    output: parsed.call.outputFile,
+    output: call.outputFile,
   });
 }
 

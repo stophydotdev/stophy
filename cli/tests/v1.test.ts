@@ -1,4 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, test } from "bun:test";
 import type { CatalogEndpoint } from "../src/catalog.ts";
 import { payloadOf } from "../src/invoke.ts";
@@ -56,6 +58,126 @@ test("job commands join the catalog under their parent and send the id in the pa
     path: "/v1/crawl/job_1",
     params: { cursor: "c2" },
   });
+});
+
+async function runAgent(args: string[], apiKey = "st_test") {
+  const home = mkdtempSync(join(tmpdir(), "stophy-cli-agent-"));
+  const calls: unknown[] = [];
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(req) {
+      const { pathname, search } = new URL(req.url);
+      calls.push([req.method, `${pathname}${search}`, await req.text()]);
+      if (req.method === "POST") return Response.json({ id: "job_new", status: "processing" });
+      if (pathname === "/v1/agent") return Response.json({ agents: [], next: null });
+      return Response.json({
+        id: "job_1",
+        status: req.method === "DELETE" ? "cancelled" : "completed",
+      });
+    },
+  });
+  try {
+    const agent = {
+      ...endpoint("agent"),
+      keyless: false,
+      input: {
+        type: "object",
+        properties: { prompt: { type: "string", minLength: 1 } },
+        required: ["prompt"],
+      },
+    };
+    mkdirSync(join(home, "stophy"));
+    writeFileSync(
+      join(home, "stophy", "catalog.json"),
+      JSON.stringify({ fetchedAt: new Date().toISOString(), endpoints: [agent] }),
+    );
+    const run = Bun.spawn(["bun", "src/index.ts", "agent", ...args], {
+      env: {
+        ...process.env,
+        XDG_CONFIG_HOME: home,
+        STOPHY_API_KEY: apiKey,
+        STOPHY_BASE_URL: `http://127.0.0.1:${server.port}`,
+        STOPHY_NO_UPDATE_CHECK: "1",
+      },
+      stderr: "pipe",
+      stdout: "pipe",
+    });
+    const [exit, out, err] = await Promise.all([
+      run.exited,
+      new Response(run.stdout).text(),
+      new Response(run.stderr).text(),
+    ]);
+    return { exit, out, err, calls };
+  } finally {
+    server.stop(true);
+    rmSync(home, { recursive: true, force: true });
+  }
+}
+
+test.each([
+  { args: ["list"], method: "GET", path: "/v1/agent", answer: { agents: [], next: null } },
+  {
+    args: ["list", "--before", "1700000000000", "--limit", "2"],
+    method: "GET",
+    path: "/v1/agent?before=1700000000000&limit=2",
+    answer: { agents: [], next: null },
+  },
+  {
+    args: ["status", "job_1"],
+    method: "GET",
+    path: "/v1/agent/job_1",
+    answer: { id: "job_1", status: "completed" },
+  },
+  {
+    args: ["cancel", "--id", "job_1"],
+    method: "DELETE",
+    path: "/v1/agent/job_1",
+    answer: { id: "job_1", status: "cancelled" },
+  },
+])("agent $args sends one $method to $path", async ({ args, method, path, answer }) => {
+  const { exit, out, calls } = await runAgent(args);
+  expect(calls).toEqual([[method, path, ""]]);
+  expect(exit).toBe(0);
+  expect(JSON.parse(out)).toEqual(answer);
+});
+
+test.each(["status", "cancel"])(
+  "agent %s without an ID fails before signup or a run",
+  async (verb) => {
+    const { exit, out, calls } = await runAgent([verb], "");
+    expect(calls).toEqual([]);
+    expect(exit).toBe(1);
+    expect(out).toContain("Missing required flag --id.");
+  },
+);
+
+test.each(["list", "status", "cancel"])(
+  "agent --prompt %s starts an explicit prompt",
+  async (prompt) => {
+    const { exit, out, calls } = await runAgent(["--prompt", prompt]);
+    expect(calls).toEqual([["POST", "/v1/agent", JSON.stringify({ prompt })]]);
+    expect(exit).toBe(0);
+    expect(JSON.parse(out)).toEqual({ id: "job_new", status: "processing" });
+  },
+);
+
+test("an option before an agent control verb cannot turn it into a prompt", async () => {
+  const { exit, out, calls } = await runAgent(["--json", "list"]);
+  expect(calls).toEqual([]);
+  expect(exit).toBe(1);
+  expect(out).toContain("--prompt");
+});
+
+test("agent help lists its lifecycle commands and shows where the ID goes", async () => {
+  const help = await runAgent(["--help"]);
+  expect(help.exit).toBe(0);
+  expect(help.calls).toEqual([]);
+  expect(help.out).toMatch(/Commands:\s+list\s+[^\n]+\s+status\s+[^\n]+\s+cancel\s+/u);
+  const status = await runAgent(["status", "--help"]);
+  expect(status.exit).toBe(0);
+  expect(status.calls).toEqual([]);
+  expect(status.out).toContain("Usage: stophy agent status <id> [options]");
 });
 
 test("crawled pages print their title and link from metadata", () => {
