@@ -5,7 +5,7 @@ name: stophy
 label:
   en_US: Stophy
 description:
-  en_US: Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.
+  en_US: Search, read, and act on the web. Stophy tools for Dify agents, chatflows and workflows.
 icon: icon.svg
 tags:
   - search

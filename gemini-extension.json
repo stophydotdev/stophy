@@ -1,7 +1,7 @@
 {
   "name": "stophy",
-  "version": "2.0.4",
-  "description": "Give your agents the live web. One API to search the web, read what people say, and look up products, places, jobs and homes.",
+  "version": "2.0.5",
+  "description": "Search, read, and act on the web. Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents.",
   "mcpServers": {
     "stophy": { "httpUrl": "https://mcp.stophy.dev/mcp" }
   }

@@ -1,5 +1,5 @@
 class Stophy < Formula
-  desc "Give your agents the live web from your terminal"
+  desc "Search, read, and act on the web. The Stophy command line"
   homepage "https://stophy.dev"
   version "1.0.8"
   license "MIT"

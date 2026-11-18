@@ -1,6 +1,6 @@
 # Stophy SDKs
 
-Give your agents the live web from TypeScript and Python.
+Search, read, and act on the web. These are the typed Stophy clients for TypeScript and Python.
 
 | Language                  | Install              | Guide                                        |
 | ------------------------- | -------------------- | -------------------------------------------- |
@@ -13,15 +13,9 @@ import { Stophy } from "stophy";
 const page = await new Stophy().scrape({ url: "https://example.com", formats: ["markdown"] });
 ```
 
-```python
-from stophy import Stophy
+Both clients are generated from the live API, so their methods and results match it. They read the key from `STOPHY_API_KEY`. Without a key they still work for every endpoint marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints), which is `search`, `scrape`, `map` and `parse`. Every other call needs a key from [stophy.dev/signup](https://stophy.dev/signup).
 
-page = Stophy().scrape(url="https://example.com", formats=["markdown"])
-```
-
-Both work with no key, like every endpoint marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints). Every other call needs a key from [stophy.dev/signup](https://stophy.dev/signup).
-
-To change the SDKs, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+The [TypeScript guide](https://docs.stophy.dev/sdks/typescript) and the [Python guide](https://docs.stophy.dev/sdks/python) on docs.stophy.dev cover each method. To change the SDKs, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 

@@ -44,7 +44,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
   program
     .name("stophy")
     .version(packageJson.version)
-    .description("Give your agents the live web from your terminal.")
+    .description("Search, read, and act on the web. The Stophy command line.")
     .showHelpAfterError()
     .addHelpText(
       "after",

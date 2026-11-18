@@ -1,6 +1,6 @@
 {
   "name": "stophy",
-  "description": "Give your agents the live web.",
+  "description": "Search, read, and act on the web. The Stophy MCP server for agents.",
   "author": {
     "name": "Stophy",
     "email": "support@stophy.dev",
