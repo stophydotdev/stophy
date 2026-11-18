@@ -89,10 +89,11 @@ Send options in the `options` object of the `json` format.
 | Option | What it does |
 | --- | --- |
 | `view` | Picks one of the answers this parser can give: `posts`. |
+| `cursor` | With `view` `posts`: the cursor from the previous response. Send it as is. |
 
 ## Price
 
-$1 per 1,000 calls. Works without an API key, within the free limits. See [Pricing](/account/pricing).
+$1 per 1,000 calls. Works without an API key, within the free limits. The `posts` view needs an API key. See [Pricing](/account/pricing).
 
 ## Limits and errors
 
@@ -104,5 +105,5 @@ $1 per 1,000 calls. Works without an API key, within the free limits. See [Prici
 - [Pre-built parsers](/scrape/prebuilt-parsers) lists every parser.
 - [Scrape](/scrape/overview) has the options every scrape takes.
 - [X post](/scrape/prebuilt-parsers/social/x-post)
+- [X community](/scrape/prebuilt-parsers/social/x-community)
 - [Reddit search](/scrape/prebuilt-parsers/social/reddit-search)
-- [Reddit post](/scrape/prebuilt-parsers/social/reddit-post)

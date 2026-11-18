@@ -931,6 +931,8 @@
         "tiktok-following",
         "tiktok-trending",
         "tiktok-live",
+        "twitch-profile",
+        "twitch-clips",
         "instagram-transcript"
       ]
     },
@@ -949,6 +951,7 @@
         "instagram-feed",
         "x-profile",
         "x-post",
+        "x-community",
         "threads-profile",
         "threads-post",
         "pinterest-search",

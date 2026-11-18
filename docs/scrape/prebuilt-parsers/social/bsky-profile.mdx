@@ -87,10 +87,12 @@ Send options in the `options` object of the `json` format.
 | Option | What it does |
 | --- | --- |
 | `view` | Picks one of the answers this parser can give: `posts`. |
+| `limit` | With `view` `posts`: return at most this many posts. You pay $0.001 for each 10 returned. |
+| `cursor` | With `view` `posts`: the cursor from the previous response. Send it as is. |
 
 ## Price
 
-$1 per 1,000 calls. See [Pricing](/account/pricing).
+$1 per 1,000 calls. The `posts` view costs $0.001 per 10 posts. See [Pricing](/account/pricing).
 
 ## Limits and errors
 
