@@ -36,13 +36,17 @@ Each tool reads `STOPHY_API_KEY` from the environment. Without it, web search, p
 
 Most calls cost $0.001. The five site tools read the site's search page with a Stophy parser and return its JSON. A page that cannot be read costs nothing.
 
-To give an agent every tool with one key:
+Use `StophyToolkit` to give an agent every Stophy tool. Use a `with` block to close the connections when you finish.
 
 ```python
 from langchain_stophy import StophyToolkit
 
-tools = StophyToolkit(api_key="your-key").get_tools()
+with StophyToolkit() as toolkit:
+    search = next(tool for tool in toolkit.get_tools() if tool.name == "stophy_web_search")
+    print(search.invoke({"query": "bun runtime"}))
 ```
+
+If you manage the toolkit without a `with` block, call `toolkit.close()` after its last tool call.
 
 When a call fails, the tool returns the API's message as an error `ToolMessage`, so the agent can read it and recover.
 
