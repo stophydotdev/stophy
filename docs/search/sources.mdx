@@ -128,7 +128,7 @@ print(list(response.json()["data"]))
 | `web` | `sources` | Web pages with `url`, `title`, `description`, and `date` and `category` when known. The default. | `web` | $0.001 per 10 results |
 | `news` | `sources` | News articles with `title`, `url`, `snippet`, `date` and `imageUrl`. Up to 50 per search. | `news` | $0.001 per 10 results |
 | `images` | `sources` | Images with `imageUrl`, `imageWidth`, `imageHeight` and the `url` of the page that holds them. | `images` | $0.001 per 10 results |
-| `pdf` | `categories` | Web results that are PDF files. A result gets `category` set to `pdf` when its address ends in `.pdf` or the page that was read for it is a PDF. | `web` | $0.001 per 10 results |
+| `pdf` | `categories` | Web results that are PDF files. A result gets `category` set to `pdf` when its address ends in `.pdf` or is an arXiv `/pdf/` link, or the page that was read for it is a PDF. | `web` | $0.001 per 10 results |
 | `research` | `categories` | Scholarly papers ranked by relevance, then by citations. Each has `doi`, `authors`, `year`, `venue`, `type`, `citedByCount` and `openAccessUrl` when known, and a `snippet` from the abstract that matches the query. | `research` | $0.001 per 10 results |
 | `videos` | `categories` | YouTube videos in YouTube's order, with `channel`, `durationSeconds`, `views` and a watch `url`. A video whose captions Stophy holds also gets the `snippet` that matches the query and `startSeconds`, and its `url` carries `&t=`. | `videos` | $0.001 per 10 results |
 
@@ -138,7 +138,7 @@ With no `sources` you get web results. With only `research` or `videos` in `cate
 
 ## Search PDFs
 
-`categories: ["pdf"]` searches for PDF files. A web result gets `category: "pdf"` when its address ends in `.pdf`, or when you add [page content](/search/page-content) and the page that was read is a PDF. A result with neither has no `category`.
+`categories: ["pdf"]` searches for PDF files. A web result gets `category: "pdf"` when its address ends in `.pdf` or is an arXiv `/pdf/` link, or when you add [page content](/search/page-content) and the page that was read is a PDF. A result with neither has no `category`.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/search \
