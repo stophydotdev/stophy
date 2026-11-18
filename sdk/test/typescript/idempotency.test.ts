@@ -83,8 +83,8 @@ test("a charged call that keeps no data is not sent again after a lost answer", 
   const error = await clientFor(fake.baseUrl)
     .scrape({ url: "https://a.test", zeroDataRetention: true })
     .catch((e) => e);
-  expect(error).toBeInstanceOf(StophyError);
-  expect(error.code).toBe("outcomeUnknown");
+  expect(error).toBeInstanceOf(TypeError);
+  expect(error.outcomeUnknown).toBe(true);
   expect(fake.received.length).toBe(1);
 });
 
@@ -135,15 +135,15 @@ test("a busy 503 after a lost send is not marked as possibly running", async () 
   expect(error).toMatchObject({ code: "busy", retryable: true, details: {} });
 });
 
-test("a crawl whose every attempt times out ends with an error that carries its key", async () => {
+test("a crawl whose every attempt times out throws the same TimeoutError, with its key on it", async () => {
   const fake = await api(() => "hang");
   const error = await clientFor(fake.baseUrl, { timeoutMs: 50 })
     .crawl({ url: "https://a.test" })
     .catch((e) => e);
-  expect(error).toBeInstanceOf(StophyError);
-  expect(error).toMatchObject({ code: "timeout", retryable: true });
-  expect(error.message).toContain("may still complete");
-  expect(error.details.idempotencyKey).toBe(fake.received[0]?.key);
+  expect(error).toBeInstanceOf(DOMException);
+  expect(error.name).toBe("TimeoutError");
+  expect(error).not.toBeInstanceOf(StophyError);
+  expect(error.idempotencyKey).toBe(fake.received[0]?.key);
   expect(fake.received.length).toBe(3);
 });
 

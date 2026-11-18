@@ -179,23 +179,11 @@ class _Call:
     def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
         may_have_left = not isinstance(error, NEVER_SENT)
         if may_have_left and not self.replayable:
-            raise StophyError(
-                f"Stophy did not answer ({error}), and the call may have run. It keeps no copy of "
-                "its answer, so sending it again could run and charge it twice. Check your usage "
-                "before you send it again.",
-                status=0,
-                code="outcomeUnknown",
-            ) from error
+            vars(error).update(outcome_unknown=True)
+            raise error
         if attempt >= max_retries:
             if may_have_left and self.key is not None:
-                raise StophyError(
-                    f"Stophy did not answer ({error}), and the request may still complete. "
-                    f"{SEND_AGAIN}",
-                    status=0,
-                    code="timeout" if isinstance(error, httpx.TimeoutException) else "networkError",
-                    retryable=True,
-                    details={"idempotencyKey": self.key},
-                ) from error
+                vars(error).update(idempotency_key=self.key)
             raise error
         self.earlier_send_lost = self.earlier_send_lost or may_have_left
 

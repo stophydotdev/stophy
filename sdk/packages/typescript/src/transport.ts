@@ -122,27 +122,8 @@ const NEVER_SENT = new Set([
 const requestMayHaveLeft = (error: NetworkError) =>
   !NEVER_SENT.has(error.code ?? error.cause?.code ?? "");
 
-function outcomeUnknown(reason: Error): StophyError {
-  return new StophyError(
-    `Stophy did not answer (${reason.message}), and the call may have run. It keeps no copy of its answer, so sending it again could run and charge it twice. Check your usage before you send it again.`,
-    { status: 0, code: "outcomeUnknown", retryable: false },
-  );
-}
-
 const SEND_AGAIN =
   "Check before you send it again as a new call, or send it again with the same Idempotency-Key in details.idempotencyKey.";
-
-function noAnswer(reason: Error, key: string): StophyError {
-  return new StophyError(
-    `Stophy did not answer (${reason.message}), and the request may still complete. ${SEND_AGAIN}`,
-    {
-      status: 0,
-      code: reason.name === "TimeoutError" ? "timeout" : "networkError",
-      retryable: true,
-      details: { idempotencyKey: key },
-    },
-  );
-}
 
 function mayStillComplete(error: StophyError, key: string): StophyError {
   return new StophyError(`${error.message} An earlier send may still complete. ${SEND_AGAIN}`, {
@@ -176,9 +157,11 @@ async function send<Result>(
       const response = await baseFetch(url, init(deadline.signal)).catch((error: NetworkError) => {
         if (signal?.aborted) throw error;
         const mayHaveLeft = requestMayHaveLeft(error);
-        if (mayHaveLeft && !plan.replayable) throw outcomeUnknown(error);
+        if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
         if (n >= retry.maxRetries) {
-          throw mayHaveLeft && plan.key !== undefined ? noAnswer(error, plan.key) : error;
+          throw mayHaveLeft && plan.key !== undefined
+            ? Object.assign(error, { idempotencyKey: plan.key })
+            : error;
         }
         earlierSendLost ||= mayHaveLeft;
         return undefined;

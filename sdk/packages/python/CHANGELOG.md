@@ -1,12 +1,5 @@
 # stophy
 
-## 1.3.1
-
-- `StophyError` keeps the API's `retryable` instead of guessing it from the status, so a permanent `sourceChanged` is tried once and a `profileBusy` is retried. It also keeps the request id from the body and the other fields of the error on `details`.
-- Every `POST` made with an API key carries an `Idempotency-Key`, the same on each retry, so a retry after a lost answer or a timeout does not run a crawl or a batch twice. A key set in `headers` is kept.
-- A call with `zero_data_retention` that is not a crawl or a batch is not sent again after a lost answer. It raises `StophyError` with the code `outcomeUnknown`.
-- A `POST` that ends with no answer raises `StophyError` with the code `networkError` or `timeout` and the key in `details["idempotencyKey"]`, instead of the `httpx` error.
-
 ## 1.3.0
 
 - Breaking: the client calls Stophy API v1. The site methods such as `stophy.youtube.search` and `stophy.reddit.search` are gone.

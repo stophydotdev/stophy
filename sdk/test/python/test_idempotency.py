@@ -78,9 +78,9 @@ def test_a_charged_call_that_keeps_no_data_is_not_sent_again_after_a_lost_answer
     answer, _ = accept_jobs()
     api = serve(answer)
     with sync_client(api) as client:
-        with pytest.raises(StophyError) as info:
+        with pytest.raises(httpx.TransportError) as info:
             client.scrape(url="https://a.test", zero_data_retention=True)
-    assert info.value.code == "outcomeUnknown"
+    assert info.value.outcome_unknown is True
     assert len(api.keys) == 1
 
 
@@ -146,16 +146,15 @@ def test_a_busy_503_after_a_lost_send_is_not_marked_as_possibly_running(serve):
     assert info.value.details == {} and info.value.retryable
 
 
-def test_a_crawl_whose_every_attempt_times_out_ends_with_an_error_that_carries_its_key(
+def test_a_crawl_whose_every_attempt_times_out_raises_the_same_httpx_error_with_its_key(
     serve,
 ):
     api = serve(lambda key, count: "hang")
     with sync_client(api, timeout=0.05) as client:
-        with pytest.raises(StophyError) as info:
+        with pytest.raises(httpx.TimeoutException) as info:
             client.crawl(url="https://a.test")
-    assert (info.value.code, info.value.retryable) == ("timeout", True)
-    assert "may still complete" in str(info.value)
-    assert info.value.details["idempotencyKey"] == api.keys[0]
+    assert not isinstance(info.value, StophyError)
+    assert info.value.idempotency_key == api.keys[0]
     assert len(api.keys) == 3
 
 

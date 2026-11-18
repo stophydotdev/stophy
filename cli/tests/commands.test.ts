@@ -478,3 +478,101 @@ test("a key piped to login --api-key is saved, not replaced by a signup", async 
   const saved = await Bun.file(`${configHome}/stophy/config.json`).json();
   expect(saved.apiKey).toBe(KEY);
 });
+
+const flatError = (code: string, status: number, extra = {}) =>
+  Response.json(
+    { success: false, error: `${code} message`, code, retryable: false, ...extra },
+    { status },
+  );
+
+const SIGNUP_URL = "https://stophy.dev/signup";
+const REQUEST_ID = "fb8eba5b-0aa8-4d66-ac0c-64b49eef7512";
+
+const apiReplies = new Map([
+  [
+    "/v1/free",
+    flatError("freeLimit", 429, {
+      retryable: true,
+      retryAfterSeconds: 3600,
+      signupUrl: SIGNUP_URL,
+      requestId: REQUEST_ID,
+    }),
+  ],
+  [
+    "/v1/needs-key",
+    flatError("apiKeyRequired", 401, { signupUrl: SIGNUP_URL, requestId: REQUEST_ID }),
+  ],
+  ["/v1/changed", flatError("sourceChanged", 502, { requestId: REQUEST_ID })],
+  [
+    "/v1/busy",
+    flatError("profileBusy", 409, { retryable: true, retryAfterSeconds: 2, requestId: REQUEST_ID }),
+  ],
+  [
+    "/v1/signup",
+    Response.json({
+      success: true,
+      data: { claimUrl: CLAIM_URL, code: CODE, expiresAt: EXPIRES_AT },
+    }),
+  ],
+]);
+
+const withApi = async (run: (seen: string[]) => Promise<void>) => {
+  await agentWithoutKey();
+  const seen: string[] = [];
+  const server = Bun.serve({
+    port: 0,
+    fetch(req) {
+      const path = new URL(req.url).pathname;
+      seen.push(path);
+      return apiReplies.get(path)?.clone() ?? flatError("notFound", 404);
+    },
+  });
+  const before = process.env.STOPHY_BASE_URL;
+  process.env.STOPHY_BASE_URL = `http://127.0.0.1:${server.port}`;
+  try {
+    await run(seen);
+  } finally {
+    if (before === undefined) delete process.env.STOPHY_BASE_URL;
+    else process.env.STOPHY_BASE_URL = before;
+    server.stop(true);
+  }
+};
+
+const callApi = async (path: string) => {
+  const { request } = await import("../src/client.ts");
+  return request({ method: "POST", path, accept: "application/json" });
+};
+
+test("a flat error keeps its code, retryability, retry delay, request id and fields", () =>
+  withApi(async () => {
+    await expect(callApi("/v1/free")).rejects.toMatchObject({
+      failure: {
+        code: "freeLimit",
+        message: "freeLimit message",
+        retryable: true,
+        retryAfterSeconds: 3600,
+        requestId: REQUEST_ID,
+        signupUrl: SIGNUP_URL,
+      },
+    });
+    await expect(callApi("/v1/changed")).rejects.toMatchObject({
+      failure: { code: "sourceChanged", retryable: false },
+    });
+    await expect(callApi("/v1/busy")).rejects.toMatchObject({
+      failure: { code: "profileBusy", retryable: true, retryAfterSeconds: 2 },
+    });
+  }));
+
+test("a keyless freeLimit or apiKeyRequired answer starts a signup", () =>
+  withApi(async (seen) => {
+    const { withSignup } = await import("../src/signup.ts");
+    const { clearStoredAuth } = await import("../src/config.ts");
+    for (const path of ["/v1/free", "/v1/needs-key"]) {
+      await clearStoredAuth();
+      seen.length = 0;
+      await expect(withSignup(() => callApi(path))).rejects.toMatchObject({
+        failure: { code: "claimRequired" },
+      });
+      expect(seen).toEqual([path, "/v1/signup"]);
+    }
+  }));
