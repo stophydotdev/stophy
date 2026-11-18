@@ -164,6 +164,7 @@
                               "scrape/prebuilt-parsers/social/pinterest-board",
                               "scrape/prebuilt-parsers/social/pinterest-profile",
                               "scrape/prebuilt-parsers/social/facebook-page",
+                              "scrape/prebuilt-parsers/social/facebook-group",
                               "scrape/prebuilt-parsers/social/facebook-post",
                               "scrape/prebuilt-parsers/social/facebook-comments",
                               "scrape/prebuilt-parsers/social/linkedin-company",

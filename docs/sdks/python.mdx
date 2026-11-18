@@ -48,7 +48,7 @@ Get an API key at [stophy.dev/signup](https://stophy.dev/signup). Set it as `STO
 stophy = Stophy(api_key="st_...")
 ```
 
-Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as a dict. `scrape` returns `success` and `data`, `search` returns `success` and `data` with a list for each source, and `map` returns `success` and `links`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. Each result also has `costUsd`, what the call cost in dollars.
+Each method sends one call to the [Stophy API](/api-reference/introduction) and returns its JSON as a dict. `scrape` returns `success` and `data`, `search` returns `success` and `data` with a list for each source, and `map` returns `success` and `links`. Each item of `links` has a `url`, plus a `title` and a `description` when the page has them. `search` and `map` also have `costUsd`, what the call cost in dollars. A scrape has it in `data.metadata.costUsd`, with its id in `data.metadata.scrapeId`.
 
 Arguments are keyword-only and snake_case.
 

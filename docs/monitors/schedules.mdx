@@ -71,7 +71,7 @@ Send `cron` or `text`, not both.
 | Field | Type | Default | Effect |
 | - | - | - | - |
 | `cron` | `string` | none | A five-field cron expression, minute to weekday. Runs may be no closer than 5 minutes. A monthly expression such as `0 0 1 * *` is fine. |
-| `text` | `string` | none | The schedule in plain words. See the table below. |
+| `text` | `string` | none | The schedule in plain words. See the table below. A gap longer than 30 days, such as `every 800 hours`, is refused. |
 | `timezone` | `string` | `UTC` | An IANA timezone such as `Europe/Ljubljana`. It sets what `daily at 9:00` and a cron expression mean. |
 
 | `text` | Runs |
@@ -129,7 +129,7 @@ A monitor runs one check at a time. While a check is queued or running, a second
 }
 ```
 
-Run a check on an active monitor. Resume a paused monitor first.
+A paused monitor cannot run a check. The call returns `409 invalidRequest` with `This monitor is paused. Send PATCH with status active to resume it, then run it again.` Nothing is queued, and nothing is charged. Resume the monitor first.
 
 ## Pause and resume
 
@@ -167,12 +167,14 @@ Every `400` below has the code `invalidRequest`.
 | Error | When |
 | - | - |
 | `400` `schedule: the minimum interval is 5 minutes` | A cron expression or a text runs more often than every 5 minutes. |
+| `400` `schedule: the maximum interval is 30 days` | A text, such as `every 800 hours`, runs less often than every 30 days. |
 | `400` `schedule.text: could not read "every banana". Try every 30 minutes, hourly, every 2 hours, daily at 9:00 or weekly` | The plain words are not one of the forms above. |
 | `400` `schedule.cron: send five fields, minute to weekday` | The cron expression has the wrong number of fields. |
 | `400` `schedule.timezone: Mars/Base is not an IANA timezone such as Europe/Ljubljana` | The timezone is not known. |
 | `400` `schedule: Send cron or text in schedule, not both` | You sent both. |
 | `400` `schedule: send cron or text` | You created a monitor with no schedule. |
 | `409` `checkRunning` | A check of this monitor is queued or running. |
+| `409` `invalidRequest` | You ran a check on a paused monitor. |
 
 ## Related
 

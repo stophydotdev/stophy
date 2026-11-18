@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://trends.google.com/trends/explore?q=bitcoin&geo=US&date=today%2012-m","formats":[{"type":"json","parser":"google-trends"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://trends.google.com/trends/explore?q=bitcoin&geo=US&date=today%2012-m",
-    formats: [{ type: "json", parser: "google-trends" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "google-trends",
+  "https://trends.google.com/trends/explore?q=bitcoin&geo=US&date=today%2012-m",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://trends.google.com/trends/explore?q=bitcoin&geo=US&date=today%2012-m",
-        "formats": [{"type": "json", "parser": "google-trends"}],
-    },
+result = stophy.parsed(
+    "google-trends",
+    "https://trends.google.com/trends/explore?q=bitcoin&geo=US&date=today%2012-m",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 
@@ -87,6 +80,7 @@ Send options in the `options` object of the `json` format.
 | `view` | Picks one of the answers this parser can give: `related`, `interest` and `regions`. |
 | `searchType` | Google Trends' own search type: web, images, news, shopping or youtube. |
 | `category` | Google Trends' own top-level category. |
+| `resolution` | With `view` `regions`: how finely to split the results. country compares countries and cannot be used with a country. region compares the regions of the country, and metro its metro areas; both need a country. Left out, Google picks. |
 
 ## Price
 

@@ -84,10 +84,7 @@ The Markdown holds the selected part only. Links are written as `⟨1⟩` and li
       "cacheState": "hit",
       "costUsd": 0.001
     }
-  },
-  "id": "f494daae-4d53-45c0-a3f6-6b7cc2806726",
-  "costUsd": 0.001,
-  "requestId": "f494daae-4d53-45c0-a3f6-6b7cc2806726"
+  }
 }
 ```
 
@@ -115,7 +112,7 @@ The filters shape the page text that `markdown` and `html` are made from, and ev
 
 ## Limits and errors
 
-- If `includeTags` matches nothing on the page, the call fails with `503 sourceUnavailable` and the message `The page did not finish loading. Try again shortly.` Nothing is charged. Check the selector against the page's HTML before you retry.
+- If `includeTags` matches nothing on the page, the call fails with `400 invalidRequest` and the `error` names `includeTags`. Nothing is charged. Check the selectors against the page's HTML, or leave `includeTags` out to read the whole page.
 - `maxChars` below 500 returns `400 invalidRequest`.
 - Send `query` or `offset`, not both.
 - `onlyCleanContent` is skipped with a `warning` when the page is too long to clean or the model does not answer.

@@ -32,13 +32,8 @@
         "cacheState": "hit",
         "cachedAt": "2026-11-13T18:00:17.852Z",
         "scrapeId": "1f9bf570-b032-4f11-99f3-552b8c934ce1",
-        "creditsUsed": 1,
         "costUsd": 0.001
       }
-    },
-    "id": "1f9bf570-b032-4f11-99f3-552b8c934ce1",
-    "costUsd": 0.001,
-    "creditsUsed": 1,
-    "requestId": "1f9bf570-b032-4f11-99f3-552b8c934ce1"
+    }
   }
 }

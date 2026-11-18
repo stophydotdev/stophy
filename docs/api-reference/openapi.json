@@ -1061,6 +1061,12 @@
           "type": "integer"
         }
       },
+      "IdempotentReplayed": {
+        "description": "true when this answer was kept from an earlier call with the same Idempotency-Key.",
+        "schema": {
+          "type": "string"
+        }
+      },
       "Cache": {
         "description": "hit if this result came from the cache, miss if it was fetched live.",
         "schema": {
@@ -1075,6 +1081,15 @@
       }
     },
     "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "A value you choose for one call. Send the same key with the same method, path and body within 24 hours and the first answer comes back with idempotent-replayed: true, with the same cost headers and no second charge. A call that sends zeroDataRetention and answers with page data is not kept, so a retry runs again. Needs an API key.",
+        "schema": {
+          "type": "string"
+        }
+      },
       "MaxTextLength": {
         "name": "maxTextLength",
         "in": "query",
@@ -1143,11 +1158,14 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "const": true
+                      "description": "False when status is failed."
                     },
                     "status": {
                       "type": "string",
-                      "const": "completed"
+                      "enum": [
+                        "completed",
+                        "failed"
+                      ]
                     },
                     "data": {
                       "type": "object",
@@ -1173,6 +1191,39 @@
                       "description": "The pages that could not be read and why. The fields come from the rest.",
                       "type": "string"
                     },
+                    "error": {
+                      "description": "Why the run failed. Only when status is failed.",
+                      "type": "string"
+                    },
+                    "urls": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The pages the fields were read from."
+                    },
+                    "sources": {
+                      "description": "For each field, the pages its value came from.",
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "creditsUsed": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "costUsd": {
+                      "type": "number",
+                      "description": "What the run cost, in dollars."
+                    },
                     "expiresAt": {
                       "type": "string"
                     },
@@ -1188,6 +1239,9 @@
                     "status",
                     "data",
                     "confidence",
+                    "urls",
+                    "creditsUsed",
+                    "costUsd",
                     "expiresAt"
                   ],
                   "additionalProperties": false
@@ -1301,6 +1355,9 @@
                         },
                         "highlights": {
                           "type": "string"
+                        },
+                        "isTruncated": {
+                          "type": "boolean"
                         },
                         "nextOffset": {
                           "type": "integer",
@@ -1464,6 +1521,7 @@
                         }
                       },
                       "required": [
+                        "isTruncated",
                         "metadata"
                       ]
                     },
@@ -1775,6 +1833,11 @@
                         "balanceCredits",
                         "balanceUsd",
                         "rateLimit",
+                        "perMinute",
+                        "concurrency",
+                        "jobsAtOnce",
+                        "queuedJobs",
+                        "sessionsAtOnce",
                         "keyExpiresAt",
                         "billingUrl"
                       ],
@@ -1811,6 +1874,92 @@
                             "resetsAt": {
                               "type": "string",
                               "format": "date-time"
+                            }
+                          }
+                        },
+                        "perMinute": {
+                          "type": "object",
+                          "description": "Calls allowed per minute by kind: calls for scrape, search and the rest, jobs for crawl, batch, extract and agent, interact for browser sessions, and reads for polling a job.",
+                          "properties": {
+                            "calls": {
+                              "type": "integer"
+                            },
+                            "jobs": {
+                              "type": "integer"
+                            },
+                            "interact": {
+                              "type": "integer"
+                            },
+                            "reads": {
+                              "type": "integer"
+                            }
+                          }
+                        },
+                        "concurrency": {
+                          "type": "object",
+                          "description": "Calls that may run at once on this account, and how many run now.",
+                          "properties": {
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "inUse": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "description": "Null when the counter is unavailable."
+                            }
+                          }
+                        },
+                        "jobsAtOnce": {
+                          "type": "integer",
+                          "description": "Crawls, batches and agent runs running at once."
+                        },
+                        "queuedJobs": {
+                          "type": "integer",
+                          "description": "Jobs that may wait for a place to run."
+                        },
+                        "sessionsAtOnce": {
+                          "type": "integer",
+                          "description": "Browser sessions open at once."
+                        },
+                        "paidLimits": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "description": "What a paid account gets, so a free account can see the difference. Null on a paid account.",
+                          "properties": {
+                            "perMinute": {
+                              "type": "object",
+                              "description": "Calls allowed per minute by kind: calls for scrape, search and the rest, jobs for crawl, batch, extract and agent, interact for browser sessions, and reads for polling a job.",
+                              "properties": {
+                                "calls": {
+                                  "type": "integer"
+                                },
+                                "jobs": {
+                                  "type": "integer"
+                                },
+                                "interact": {
+                                  "type": "integer"
+                                },
+                                "reads": {
+                                  "type": "integer"
+                                }
+                              }
+                            },
+                            "concurrency": {
+                              "type": "integer",
+                              "description": "Calls that may run at once."
+                            },
+                            "jobsAtOnce": {
+                              "type": "integer"
+                            },
+                            "queuedJobs": {
+                              "type": "integer"
+                            },
+                            "sessionsAtOnce": {
+                              "type": "integer"
                             }
                           }
                         },
@@ -2017,6 +2166,18 @@
                           },
                           "endpoint": {
                             "type": "string"
+                          },
+                          "method": {
+                            "type": "string",
+                            "description": "Always POST today."
+                          },
+                          "status": {
+                            "type": "integer",
+                            "description": "Always 200 today."
+                          },
+                          "response": {
+                            "type": "string",
+                            "description": "Always success today."
                           },
                           "credits": {
                             "type": "number"
@@ -5189,7 +5350,7 @@
                     "type": "boolean"
                   },
                   "screen": {
-                    "description": "Window size in pixels, width 500 to 6144 and height 320 to 3456, the sizes Chrome keeps. Sites still read a 1920x1080 display. Leave it out unless you need it.",
+                    "description": "Screen size in pixels, width 500 to 6144 and height 320 to 3456. The browser window fills it, and sites read it as the display. Default 1920x1080. Leave it out unless you need it.",
                     "type": "object",
                     "properties": {
                       "width": {
@@ -9055,7 +9216,7 @@
                         }
                       },
                       "events": {
-                        "description": "Which events to send: monitor.page (a page changed, appeared or went away), monitor.check.completed (a check finished), and the older monitor.changed and monitor.failed. A monitor made with url or interval sends the older two by default, any other the first two.",
+                        "description": "Which events to send: monitor.page (a page changed, appeared or went away), monitor.check.completed (a check finished), and the older monitor.changed and monitor.failed. A monitor made with url or interval sends the older two by default, any other the first two. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled.",
                         "minItems": 1,
                         "type": "array",
                         "items": {
@@ -10038,7 +10199,7 @@
                             }
                           },
                           "events": {
-                            "description": "Which events to send: monitor.page (a page changed, appeared or went away), monitor.check.completed (a check finished), and the older monitor.changed and monitor.failed. A monitor made with url or interval sends the older two by default, any other the first two.",
+                            "description": "Which events to send: monitor.page (a page changed, appeared or went away), monitor.check.completed (a check finished), and the older monitor.changed and monitor.failed. A monitor made with url or interval sends the older two by default, any other the first two. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled.",
                             "minItems": 1,
                             "type": "array",
                             "items": {
@@ -10372,7 +10533,7 @@
     "/v1/monitor/{id}/run": {
       "post": {
         "operationId": "monitorRun",
-        "summary": "Check the monitor now, outside its schedule. Answers 409 while a check is running. Costs what the pages cost.",
+        "summary": "Check the monitor now, outside its schedule. Answers 409 while a check is running or the monitor is paused. Costs what the pages cost.",
         "parameters": [
           {
             "name": "id",
@@ -10464,7 +10625,7 @@
                         },
                         "estimatedCostUsd": {
                           "type": "number",
-                          "description": "Pages watched at $1 per 1,000 pages: the most the check costs before extras, in dollars."
+                          "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
                         },
                         "reservedCredits": {
                           "type": [
@@ -10697,7 +10858,7 @@
                           },
                           "estimatedCostUsd": {
                             "type": "number",
-                            "description": "Pages watched at $1 per 1,000 pages: the most the check costs before extras, in dollars."
+                            "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
                           },
                           "reservedCredits": {
                             "type": [
@@ -10937,7 +11098,7 @@
                             },
                             "estimatedCostUsd": {
                               "type": "number",
-                              "description": "Pages watched at $1 per 1,000 pages: the most the check costs before extras, in dollars."
+                              "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
                             },
                             "reservedCredits": {
                               "type": [
@@ -11233,12 +11394,15 @@
           }
         ],
         "x-credits": 1,
-        "x-credits-max": 2010,
+        "x-credits-max": 8760,
         "x-cost-usd": 0.001,
-        "x-cost-usd-max": 4.02,
+        "x-cost-usd-max": 17.52,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -11357,7 +11521,13 @@
                     "maximum": 9007199254740991
                   },
                   "limit": {
-                    "description": "Most results to return for each source. Default 10, or 5 when scrapeOptions has formats, which reads every web and news result returned. News returns at most 50.",
+                    "description": "Most results to return for each source. Default 10, or 5 when scrapeOptions has formats, which reads every web and news result returned unless scrapeLimit sets fewer. News returns at most 50.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "scrapeLimit": {
+                    "description": "With scrapeOptions formats: read only the top this many web results and the top this many news results, and return the other results without page text. Cannot be more than limit. Without it every result returned is read. Only pages that are read are charged for.",
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 100
@@ -11417,7 +11587,7 @@
                     "type": "boolean"
                   },
                   "scrapeOptions": {
-                    "description": "With formats, reads each web and news result, as many as limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. Costs what scrape costs for each page read: $1 per 1,000 pages, plus $3 per 1,000 pages for each summary or json with a schema or prompt that returns something.",
+                    "description": "With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. Costs what scrape costs for each page read: $1 per 1,000 pages, plus $3 per 1,000 pages for each summary or json with a schema or prompt that returns something.",
                     "type": "object",
                     "properties": {
                       "formats": {
@@ -12333,6 +12503,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -13915,12 +14088,15 @@
           }
         ],
         "x-credits": 1,
-        "x-credits-max": 14,
+        "x-credits-max": 59,
         "x-cost-usd": 0.001,
-        "x-cost-usd-max": 0.0265,
+        "x-cost-usd-max": 0.1165,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -14870,6 +15046,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -14940,6 +15119,9 @@
                         },
                         "highlights": {
                           "type": "string"
+                        },
+                        "isTruncated": {
+                          "type": "boolean"
                         },
                         "nextOffset": {
                           "type": "integer",
@@ -15103,6 +15285,7 @@
                         }
                       },
                       "required": [
+                        "isTruncated",
                         "metadata"
                       ]
                     },
@@ -15149,6 +15332,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -15216,7 +15402,7 @@
                     "additionalProperties": false
                   },
                   "webhook": {
-                    "description": "Where to be told when the extract ends: a plain address, or { url } which gets one JSON POST with the id, the status, the data and costUsd. headers are sent with the call, metadata comes back in it, and events picks completed, failed or both (both by default). The call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times.",
+                    "description": "Where to be told when the extract ends: a plain address, or { url } which gets one JSON POST with the id, the status, the data and costUsd. headers are sent with the call, metadata comes back in it, and events picks completed, failed or both (both by default). The call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -15912,6 +16098,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -15976,6 +16165,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -16059,6 +16251,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -16129,6 +16324,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -16180,6 +16378,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -16315,6 +16516,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -16761,6 +16965,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -16908,6 +17115,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -17025,6 +17235,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -17093,12 +17306,15 @@
         "summary": "Crawl a website in the background",
         "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
-        "x-credits-max": 132500,
+        "x-credits-max": 582500,
         "x-cost-usd": 0,
-        "x-cost-usd-max": 265,
+        "x-cost-usd-max": 1165,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -17185,7 +17401,7 @@
                   },
                   "allowExternalLinks": {
                     "default": false,
-                    "description": "Also follow links to other sites. They count toward limit and maxDiscoveryDepth. Only the start site's robots.txt is read.",
+                    "description": "Also follow links to other sites. They count toward limit and maxDiscoveryDepth. Each other site's robots.txt is read too, for up to 25 new sites per page. A page on a site whose robots.txt cannot be read, or that comes after those 25, is skipped.",
                     "type": "boolean"
                   },
                   "allowSubdomains": {
@@ -17592,8 +17808,7 @@
                         "type": "boolean"
                       },
                       "timeout": {
-                        "default": 60000,
-                        "description": "How long to keep trying, in milliseconds, from 1 second to 5 minutes; 60 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.",
+                        "description": "How long to keep trying each page, in milliseconds, from 1 second to 5 minutes; 20 seconds, plus waitFor, by default. A page that runs out of time is a failed page and costs nothing.",
                         "type": "integer",
                         "minimum": 1000,
                         "maximum": 300000
@@ -18083,7 +18298,7 @@
                     "type": "boolean"
                   },
                   "webhook": {
-                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
+                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -18177,6 +18392,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -18248,7 +18466,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only jobs in this status.",
+              "type": "string",
+              "enum": [
+                "scraping",
+                "completed",
+                "cancelled",
+                "failed"
+              ]
             }
           },
           {
@@ -18256,7 +18481,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -18264,7 +18492,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -18436,7 +18666,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -18631,6 +18863,9 @@
                           "highlights": {
                             "type": "string"
                           },
+                          "isTruncated": {
+                            "type": "boolean"
+                          },
                           "nextOffset": {
                             "type": "integer",
                             "minimum": -9007199254740991,
@@ -18793,6 +19028,7 @@
                           }
                         },
                         "required": [
+                          "isTruncated",
                           "metadata"
                         ]
                       }
@@ -19082,6 +19318,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -19138,6 +19377,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -19237,12 +19479,15 @@
         "summary": "Scrape many pages in the background",
         "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
-        "x-credits-max": 14,
+        "x-credits-max": 59,
         "x-cost-usd": 0,
-        "x-cost-usd-max": 0.0265,
+        "x-cost-usd-max": 0.1165,
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -19262,7 +19507,7 @@
                     "description": "The pages or PDFs to read. An address sent twice is read once."
                   },
                   "webhook": {
-                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
+                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -20262,6 +20507,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -20340,7 +20588,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only jobs in this status.",
+              "type": "string",
+              "enum": [
+                "scraping",
+                "completed",
+                "cancelled",
+                "failed"
+              ]
             }
           },
           {
@@ -20348,7 +20603,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -20356,7 +20614,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -20528,7 +20788,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -20723,6 +20985,9 @@
                           "highlights": {
                             "type": "string"
                           },
+                          "isTruncated": {
+                            "type": "boolean"
+                          },
                           "nextOffset": {
                             "type": "integer",
                             "minimum": -9007199254740991,
@@ -20885,6 +21150,7 @@
                           }
                         },
                         "required": [
+                          "isTruncated",
                           "metadata"
                         ]
                       }
@@ -21176,6 +21442,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -21293,7 +21562,7 @@
                     "additionalProperties": false
                   },
                   "webhook": {
-                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
+                    "description": "Where to be told about the job: a plain address, or { url } which gets a JSON POST when the job starts, for each finished page, and when the job ends. headers are sent with every call, metadata comes back in every call, and events picks which of started, page, action, completed, failed and cancelled to send (all by default). An agent run sends action for each step it takes, and page too. Every call is signed: read Stophy-Signature (t=<unix seconds>,v1=<hex>), where v1 is the HMAC-SHA256 of \"<t>.<body>\" with your webhook secret from webhook.secret. A call that gets no 2xx is sent again, up to 3 times. Every call has an eventId that stays the same when the call is sent again, so you can skip one you already handled. If your address answers slowly, a page event can carry only the page url. Read that page with the status call.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -21398,6 +21667,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -21478,7 +21750,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only runs made before this time, in unix milliseconds.",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
             }
           },
           {
@@ -21486,7 +21761,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
             }
           },
           {
@@ -21494,7 +21771,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 200
             }
           }
         ],
@@ -21913,7 +22191,12 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Accepted and not used: no run has a live view.",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             }
           }
         ],
@@ -22137,7 +22420,12 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Send true to include each finished run's data.",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             }
           }
         ],
@@ -22227,6 +22515,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
         "requestBody": {
@@ -22274,6 +22565,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -22349,7 +22643,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -22357,7 +22654,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -23382,7 +23681,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -23390,7 +23692,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -24252,7 +24556,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "description": "The monitor id from monitor.create."
             }
           },
           {
@@ -24260,7 +24567,13 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "new",
+                "same",
+                "changed",
+                "removed"
+              ]
             }
           },
           {
@@ -24268,7 +24581,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only changes of this page address.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
             }
           },
           {
@@ -24276,7 +24592,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -24284,7 +24603,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -24583,7 +24904,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "description": "The monitor id from monitor.create."
             }
           },
           {
@@ -24591,7 +24915,16 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "queued",
+                "running",
+                "completed",
+                "failed",
+                "partial",
+                "skipped_overlap",
+                "skipped_no_credits"
+              ]
             }
           },
           {
@@ -24599,7 +24932,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "manual"
+              ]
             }
           },
           {
@@ -24607,7 +24944,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -24615,7 +24955,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -24909,7 +25251,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Start of the window. Defaults to the start of the default span.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                }
+              ]
             }
           },
           {
@@ -24917,7 +25271,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "End of the window, not included. Defaults to now.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                }
+              ]
             }
           }
         ],
@@ -25063,6 +25429,9 @@
             "$ref": "#/components/parameters/MaxTextLength"
           },
           {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -25098,6 +25467,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -25168,7 +25540,15 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only calls for this kind of job.",
+              "type": "string",
+              "enum": [
+                "batch",
+                "crawl",
+                "agent",
+                "monitor",
+                "extract"
+              ]
             }
           },
           {
@@ -25176,7 +25556,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only calls for this job or monitor id.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
             }
           },
           {
@@ -25184,7 +25567,12 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "delivered",
+                "failed",
+                "skipped"
+              ]
             }
           },
           {
@@ -25192,7 +25580,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only this event, such as completed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           {
@@ -25200,7 +25591,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -25208,7 +25602,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "The cursor from the previous response. Send it as is."
             }
           }
         ],
@@ -25635,6 +26031,9 @@
             "$ref": "#/components/parameters/MaxTextLength"
           },
           {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -25670,6 +26069,9 @@
               },
               "x-cache-age": {
                 "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -25789,7 +26191,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": 7,
+              "description": "How many days back to look, 1 to 90. Default 7.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90
             }
           }
         ],
@@ -25914,7 +26320,13 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "default": "day",
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "month"
+              ]
             }
           },
           {
@@ -25922,7 +26334,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Start of the window. Defaults to the start of the default span.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                }
+              ]
             }
           },
           {
@@ -25930,7 +26354,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "End of the window, not included. Defaults to now.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                }
+              ]
             }
           },
           {
@@ -25938,7 +26374,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only calls to this endpoint id.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           {
@@ -25946,7 +26385,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "description": "Only calls made with this key.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           }
         ],

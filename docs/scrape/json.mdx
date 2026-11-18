@@ -37,64 +37,55 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime/bunfig",
-    formats: [
-      {
-        type: "json",
-        schema: {
-          type: "object",
-          properties: {
-            configFile: { type: "string" },
-            globalPaths: {
-              type: "array",
-              items: { type: "string" },
-            },
-            hasTelemetryOption: { type: "boolean" },
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://bun.com/docs/runtime/bunfig",
+  formats: [
+    {
+      type: "json",
+      schema: {
+        type: "object",
+        properties: {
+          configFile: { type: "string" },
+          globalPaths: {
+            type: "array",
+            items: { type: "string" },
           },
+          hasTelemetryOption: { type: "boolean" },
         },
       },
-    ],
-  }),
+    },
+  ],
 });
-const { data } = await response.json();
 console.log(data.json);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime/bunfig",
-        "formats": [
-            {
-                "type": "json",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "configFile": {"type": "string"},
-                        "globalPaths": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                        },
-                        "hasTelemetryOption": {"type": "boolean"},
+data = stophy.scrape(
+    url="https://bun.com/docs/runtime/bunfig",
+    formats=[
+        {
+            "type": "json",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "configFile": {"type": "string"},
+                    "globalPaths": {
+                        "type": "array",
+                        "items": {"type": "string"},
                     },
+                    "hasTelemetryOption": {"type": "boolean"},
                 },
             },
-        ],
-    },
-)
-data = response.json()["data"]
+        },
+    ],
+)["data"]
 print(data["json"])
 ```
 </CodeGroup>
@@ -124,10 +115,7 @@ print(data["json"])
       "scrapeId": "29911e6f-d14d-4fe1-a355-caf317d4a4e2",
       "costUsd": 0.004
     }
-  },
-  "id": "29911e6f-d14d-4fe1-a355-caf317d4a4e2",
-  "costUsd": 0.004,
-  "requestId": "29911e6f-d14d-4fe1-a355-caf317d4a4e2"
+  }
 }
 ```
 
@@ -150,38 +138,29 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com/docs/runtime/bunfig",
-    formats: [
-      { type: "json", prompt: "the name of the config file and where a global one goes" },
-    ],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://bun.com/docs/runtime/bunfig",
+  formats: [
+    { type: "json", prompt: "the name of the config file and where a global one goes" },
+  ],
 });
-const { data } = await response.json();
 console.log(data.json);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com/docs/runtime/bunfig",
-        "formats": [
-            {"type": "json", "prompt": "the name of the config file and where a global one goes"},
-        ],
-    },
-)
-data = response.json()["data"]
+data = stophy.scrape(
+    url="https://bun.com/docs/runtime/bunfig",
+    formats=[
+        {"type": "json", "prompt": "the name of the config file and where a global one goes"},
+    ],
+)["data"]
 print(data["json"])
 ```
 </CodeGroup>
@@ -213,10 +192,7 @@ print(data["json"])
       "scrapeId": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170",
       "costUsd": 0.004
     }
-  },
-  "id": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170",
-  "costUsd": 0.004,
-  "requestId": "d8a4c3c3-9b1b-49c4-8305-02a7de09e170"
+  }
 }
 ```
 
@@ -242,44 +218,35 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://example.com",
-    formats: [
-      {
-        type: "attributes",
-        selectors: [{ selector: "a", attribute: "href" }],
-      },
-    ],
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://example.com",
+  formats: [
+    {
+      type: "attributes",
+      selectors: [{ selector: "a", attribute: "href" }],
+    },
+  ],
 });
-const { data } = await response.json();
 console.log(data.attributes);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://example.com",
-        "formats": [
-            {
-                "type": "attributes",
-                "selectors": [{"selector": "a", "attribute": "href"}],
-            },
-        ],
-    },
-)
-data = response.json()["data"]
+data = stophy.scrape(
+    url="https://example.com",
+    formats=[
+        {
+            "type": "attributes",
+            "selectors": [{"selector": "a", "attribute": "href"}],
+        },
+    ],
+)["data"]
 print(data["attributes"])
 ```
 </CodeGroup>
@@ -304,10 +271,7 @@ print(data["attributes"])
       "scrapeId": "589ef6d6-c921-4245-85c8-287d4cd5ba1e",
       "costUsd": 0.001
     }
-  },
-  "id": "589ef6d6-c921-4245-85c8-287d4cd5ba1e",
-  "costUsd": 0.001,
-  "requestId": "589ef6d6-c921-4245-85c8-287d4cd5ba1e"
+  }
 }
 ```
 

@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://play.google.com/store/search?q=meditation&c=apps","formats":[{"type":"json","parser":"google-play-search"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://play.google.com/store/search?q=meditation&c=apps",
-    formats: [{ type: "json", parser: "google-play-search" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "google-play-search",
+  "https://play.google.com/store/search?q=meditation&c=apps",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://play.google.com/store/search?q=meditation&c=apps",
-        "formats": [{"type": "json", "parser": "google-play-search"}],
-    },
+result = stophy.parsed(
+    "google-play-search",
+    "https://play.google.com/store/search?q=meditation&c=apps",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 

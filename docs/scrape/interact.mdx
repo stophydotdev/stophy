@@ -9,14 +9,14 @@ Interact opens a browser session on a page you already scraped. Run code or a pl
 
 ## Make a request
 
-You need an API key and the `id` of a scrape from the last 24 hours. Scrape the page first, then send code to `POST /v1/scrape/{id}/interact`.
+You need an API key and the `metadata.scrapeId` of a scrape from the last 24 hours. Scrape the page first, then send code to `POST /v1/scrape/{id}/interact`.
 
 <CodeGroup>
 ```bash cURL
 SCRAPE_ID=$(curl -s -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "url": "https://example.com" }' | jq -r .id)
+  -d '{ "url": "https://example.com" }' | jq -r .data.metadata.scrapeId)
 
 curl -X POST https://api.stophy.dev/v1/scrape/$SCRAPE_ID/interact \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
@@ -34,7 +34,8 @@ const scrape = await fetch("https://api.stophy.dev/v1/scrape", {
   headers,
   body: JSON.stringify({ url: "https://example.com" }),
 });
-const { id } = await scrape.json();
+const { data } = await scrape.json();
+const id = data.metadata.scrapeId;
 
 const response = await fetch(`https://api.stophy.dev/v1/scrape/${id}/interact`, {
   method: "POST",
@@ -56,7 +57,7 @@ scrape = requests.post(
     headers=headers,
     json={"url": "https://example.com"},
 )
-scrape_id = scrape.json()["id"]
+scrape_id = scrape.json()["data"]["metadata"]["scrapeId"]
 
 response = requests.post(
     f"https://api.stophy.dev/v1/scrape/{scrape_id}/interact",
@@ -101,12 +102,12 @@ Send `DELETE` to the same path as soon as you are done. This is when the time is
 
 <CodeGroup>
 ```bash cURL
-SCRAPE_ID="<the id your scrape returned>"
+SCRAPE_ID="<the scrapeId your scrape returned>"
 curl -X DELETE https://api.stophy.dev/v1/scrape/$SCRAPE_ID/interact \
   -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
 ```typescript TypeScript
-const id = "<the id your scrape returned>";
+const id = "<the scrapeId your scrape returned>";
 const response = await fetch(`https://api.stophy.dev/v1/scrape/${id}/interact`, {
   method: "DELETE",
   headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
@@ -118,7 +119,7 @@ import os
 
 import requests
 
-scrape_id = "<the id your scrape returned>"
+scrape_id = "<the scrapeId your scrape returned>"
 response = requests.delete(
     f"https://api.stophy.dev/v1/scrape/{scrape_id}/interact",
     headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
@@ -181,4 +182,4 @@ $0.06 per hour while the session is open, billed when you close it, one minute a
 - [Browser actions](/scrape/browser-actions) run steps before the read, with no session to close.
 - [Browser overview](/browser/overview) opens a session on any URL, not only a scraped one.
 - [Browser execute](/browser/execute) runs code in a session you opened yourself.
-- [Freshness and caching](/scrape/freshness-and-caching) explains the scrape id and its 24 hours.
+- [Freshness and caching](/scrape/freshness-and-caching) explains the `scrapeId` and its 24 hours.

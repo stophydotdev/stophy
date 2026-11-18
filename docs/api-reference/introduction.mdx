@@ -74,7 +74,7 @@ Almost every answer is JSON with `success`. Most also carry `costUsd`, `creditsU
 }
 ```
 
-`costUsd` is what the call cost, in dollars. `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
+`costUsd` is what the call cost, in dollars. `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. A scrape answer has none of `costUsd`, `creditsUsed`, `id` and `requestId`: its cost and id are in `data.metadata`, and the request id is in the `X-Request-ID` header. Crawl, batch scrape and agent start a job and answer with an `id`. Read the job with its status call.
 
 Each answer has headers too: `X-Request-ID`, `x-cost-usd`, `x-credits-used` (the older one), `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. Some operations add `x-cache` and `x-cache-age`, which say whether the result came from a stored copy. Quote the request id when you contact support.
 

@@ -128,6 +128,7 @@ Every error has the flat shape on [Errors](/api-reference/errors). A failed call
 | 401 | `apiKeyRequired` | The call has no API key. Monitors need an API key. | Send your API key. See [API keys](/account/api-keys). |
 | 404 | `notFound` | `There is no monitor with that id on your account.` A check or change id that is not yours or has expired gives the same code. | Check the id. List with `GET /v1/monitor`. |
 | 409 | `checkRunning` | `A check of this monitor is already running. Wait for it to finish, then run it again.` | Wait for the check to end, then run it again. |
+| 409 | `invalidRequest` | `This monitor is paused. Send PATCH with status active to resume it, then run it again.` Nothing is queued. | Send `{ "status": "active" }`, then run the check again. |
 | 429 | `rateLimited` | You went over the limit on monitor calls. | Wait `retryAfterSeconds`. |
 
 These are real `400` messages for a body that is not valid.
@@ -135,6 +136,7 @@ These are real `400` messages for a body that is not valid.
 | Mistake | `error` |
 | - | - |
 | A schedule that runs too often | `schedule: the minimum interval is 5 minutes` |
+| A text schedule with a gap over 30 days | `schedule: the maximum interval is 30 days` |
 | A target address that is not public | `targets.0.urls.0: Expected a public website URL` |
 | A search target with no goal | `goal: a search target needs a goal to judge results against, or judgeEnabled set to false` |
 | An event that does not exist | `webhook.events.0: Send one of: monitor.page, monitor.check.completed, monitor.changed, monitor.failed.` |

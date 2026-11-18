@@ -46,7 +46,7 @@ Every error has this flat shape, on every operation.
 
 | Code | Status | Retry | What it means |
 | --- | --- | --- | --- |
-| `invalidRequest` | 400, 409 | No | The input is not valid. The error names the field. A 409 means the name is already taken, or the thing is not ready for the change. |
+| `invalidRequest` | 400, 409 | No | The input is not valid. The error names the field, such as an `includeTags` that matches nothing on the page. A 409 means the name is already taken, or the thing is not ready for the change. |
 | `prohibitedPermission` | 400 | No | The extension's `manifest.json` has a `key` field or asks for a permission that is not allowed. |
 | `apiKeyRequired` | 401 | No | This call needs an API key: the operation, paging or a field you sent. |
 | `unauthorized` | 401 | No | The API key is not valid or has expired. |
@@ -69,7 +69,7 @@ Every error has this flat shape, on every operation.
 | `busy` | 503, 409 | Yes | Stophy, or every browser, is busy. A 409 means a network policy or a proxy change on a session is still being applied. Wait `retryAfterSeconds`. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering right now. Wait `retryAfterSeconds`. |
 | `sourceRefused` | 503 | Yes | The site is refusing requests right now. Wait `retryAfterSeconds`. |
-| `sourceTimeout` | 504 | Yes | The site took too long to answer. Try again. |
+| `sourceTimeout` | 504 | Yes | The site took too long to answer. Wait `retryAfterSeconds`, which is 5, then try again. |
 
 The code `insufficientCredits` keeps its name, and its message and fields are in dollars.
 

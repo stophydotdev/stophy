@@ -99,7 +99,7 @@ Search, scrape, map and parse work without an API key, up to 10 calls a minute a
 | A file over 2 MB. With an API key, a file can be up to 36 MB. | Parse |
 | Crawl, batches, extract, agent, browsers, monitors and webhooks | Every call |
 
-On search, `scrapeOptions` also needs an API key. Without one, that call answers `400` with code `invalidRequest`.
+On search, `scrapeOptions` also needs an API key. Without one, that call answers `401` with code `apiKeyRequired`.
 
 `GET /v1/keyless/eligibility` needs no API key. It tells you whether your IP address can still make calls without an API key.
 

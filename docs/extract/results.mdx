@@ -9,7 +9,7 @@ An extract answers with an `id`. `GET /v1/extract/{id}` returns what it found, f
 
 ## Read a result
 
-Get an API key in the [Quickstart](/quickstart). Use the `id` that [Extract](/extract/overview) returned.
+Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. Use the `id` that [Extract](/extract/overview) returned.
 
 <CodeGroup>
 ```bash cURL
@@ -17,23 +17,19 @@ curl https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9 \
   -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
 ```typescript TypeScript
-const response = await fetch(
-  "https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9",
-  { headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` } },
-);
-const result = await response.json();
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.extract.result({ id: "8ae7db78-aab6-43c1-872f-bdedfea0afd9" });
 console.log(result.status, result.data);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.get(
-    "https://api.stophy.dev/v1/extract/8ae7db78-aab6-43c1-872f-bdedfea0afd9",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-result = response.json()
+result = stophy.extract.result(id="8ae7db78-aab6-43c1-872f-bdedfea0afd9")
 print(result["status"], result["data"])
 ```
 </CodeGroup>
@@ -64,6 +60,7 @@ This is the real result of the request on [Extract](/extract/overview).
 
 | Field | What it holds |
 | - | - |
+| `success` | `true`, or `false` when `status` is `failed`. The HTTP status is still `200`. |
 | `status` | `completed`, or `failed` when the run ended without an answer. A failed result has an `error` and no `data`. |
 | `data` | The fields that the pages state. A field they do not state is left out. |
 | `confidence` | For each field in `data`, a number from 0 to 1 for how sure Stophy is that the value is on the page. |
@@ -120,7 +117,7 @@ Send `webhook` with a public address, or with an object, to be told when the ext
 }
 ```
 
-Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event` (`completed` or `failed`), the `status`, the `data`, `confidence`, `urls`, `warning`, `sources`, `costUsd` and your `metadata`. Each call is signed: `Stophy-Signature` holds `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. See [Webhooks](/webhooks).
+Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event` (`completed` or `failed`), an `eventId`, `success` (`false` for `failed`), the `status`, the `data`, `confidence`, `urls`, `warning`, `sources`, `costUsd` and your `metadata`. Each call is signed: `Stophy-Signature` holds `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. See [Webhooks](/webhooks).
 
 ## Options
 
@@ -133,7 +130,7 @@ Stophy sends one JSON `POST` when the extract ends. It has the `id`, the `event`
 ## Limits and errors
 
 - A result is kept for 24 hours. With `zeroDataRetention` it is kept for 1 hour. After that, `GET` returns `404 notFound` with `No extract with that id. Results are kept for 24 hours.`
-- A call that cannot read any page fails with the error of the page, such as `sourceTimeout` or `siteNotRead`. A failed call costs nothing, and a failed extract can be read back with `status` of `failed`.
+- A call that cannot read any page fails with the error of the page, such as `sourceTimeout` or `siteNotRead`. A failed call costs nothing, and a failed extract can be read back with `status` of `failed` and `success` of `false`.
 - Without an API key, `GET /v1/extract/{id}` returns `401 apiKeyRequired`. You can read only your own results.
 - More than 25 `urls` returns `400 invalidRequest`. `urls` with no public page in them returns `400 invalidRequest` with `None of these is a public website URL.`
 

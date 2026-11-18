@@ -23,37 +23,28 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://example.com",
-    formats: ["markdown"],
-    zeroDataRetention: true,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://example.com",
+  formats: ["markdown"],
+  zeroDataRetention: true,
 });
-const { data, id } = await response.json();
-console.log(data.metadata.cacheState, id);
+console.log(data.metadata.cacheState, data.metadata.scrapeId);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://example.com",
-        "formats": ["markdown"],
-        "zeroDataRetention": True,
-    },
+body = stophy.scrape(
+    url="https://example.com",
+    formats=["markdown"],
+    zero_data_retention=True,
 )
-body = response.json()
-print(body["data"]["metadata"]["cacheState"], body["id"])
+print(body["data"]["metadata"]["cacheState"], body["data"]["metadata"]["scrapeId"])
 ```
 </CodeGroup>
 
@@ -75,9 +66,7 @@ This real response is cut to a few fields.
       "scrapeId": "f9a3f2e7-124d-4623-9bba-6408b5eebfa3",
       "costUsd": 0.003
     }
-  },
-  "id": "f9a3f2e7-124d-4623-9bba-6408b5eebfa3",
-  "costUsd": 0.003
+  }
 }
 ```
 </Accordion>

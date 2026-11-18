@@ -21,33 +21,26 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url":"https://www.trustpilot.com/review/stripe.com?stars=1&stars=2&languages=en","formats":[{"type":"json","parser":"trustpilot-reviews"}]}'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2&languages=en",
-    formats: [{ type: "json", parser: "trustpilot-reviews" }],
-  }),
-});
-console.log(await response.json());
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const result = await stophy.parsed(
+  "trustpilot-reviews",
+  "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2&languages=en",
+);
+console.log(result);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2&languages=en",
-        "formats": [{"type": "json", "parser": "trustpilot-reviews"}],
-    },
+result = stophy.parsed(
+    "trustpilot-reviews",
+    "https://www.trustpilot.com/review/stripe.com?stars=1&stars=2&languages=en",
 )
-print(response.json())
+print(result)
 ```
 </CodeGroup>
 

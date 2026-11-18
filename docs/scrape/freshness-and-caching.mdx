@@ -23,39 +23,30 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   }'
 ```
 ```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://example.com",
-    formats: ["markdown"],
-    maxAge: 0,
-  }),
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { data } = await stophy.scrape({
+  url: "https://example.com",
+  formats: ["markdown"],
+  maxAge: 0,
 });
-const { data, id } = await response.json();
 console.log(data.metadata.cacheState);
-console.log(id);
+console.log(data.metadata.scrapeId);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://example.com",
-        "formats": ["markdown"],
-        "maxAge": 0,
-    },
+body = stophy.scrape(
+    url="https://example.com",
+    formats=["markdown"],
+    max_age=0,
 )
-body = response.json()
 print(body["data"]["metadata"]["cacheState"])
-print(body["id"])
+print(body["data"]["metadata"]["scrapeId"])
 ```
 </CodeGroup>
 
@@ -79,10 +70,7 @@ print(body["id"])
       "scrapeId": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8",
       "costUsd": 0.001
     }
-  },
-  "id": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8",
-  "costUsd": 0.001,
-  "requestId": "c6e9511e-0150-424c-80e0-a8af6cf4f4b8"
+  }
 }
 ```
 
@@ -118,7 +106,7 @@ These reads are never answered from a stored copy, and they are not saved as one
 
 ## Read a scrape again
 
-Every scrape keeps its answer for 24 hours under its `id`. `GET /v1/scrape/{id}` returns it again. It is free and needs the same API key.
+Every scrape keeps its answer for 24 hours under its `metadata.scrapeId`. `GET /v1/scrape/{id}` returns it again. It is free and needs the same API key.
 
 <CodeGroup>
 ```bash cURL
@@ -147,9 +135,9 @@ print(again.json()["data"]["markdown"])
 ```
 </CodeGroup>
 
-The answer is the original one, word for word, so `costUsd` still shows what the scrape cost. This read adds nothing to your bill.
+The answer is the original one, word for word, so `metadata.costUsd` still shows what the scrape cost. This read adds nothing to your bill.
 
-- After 24 hours, the `id` returns `404 notFound` with the message `No scrape with that id. Results are kept for 24 hours.`
+- After 24 hours, the `scrapeId` returns `404 notFound` with the message `No scrape with that id. Results are kept for 24 hours.`
 - A scrape sent with `zeroDataRetention` is not kept, and neither is an answer larger than 4 MB of text.
 - Only the account that sent a scrape can read it again. A scrape sent without an API key is not kept.
 
