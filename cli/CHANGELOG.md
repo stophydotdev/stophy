@@ -1,5 +1,24 @@
 # @stophy/cli
 
+## 2.1.0
+
+### Major Changes
+
+- The CLI shows dollars, never credits. This breaks scripts that read the old names:
+  - `stophy usage --json` returns `balanceUsd` and `costUsd` where it returned `balanceCredits` and `creditsUsed`.
+  - `stophy logs` has a `costUsd` column where it had `credits`.
+  - A `--json` call prints `cost: $0.001` on stderr where it printed `credits used: 1`.
+  - `--json`, and the one-line output you get when stdout is not a terminal (agents, pipes, scripts), no longer carry `creditsUsed`. `--raw` prints the response exactly as the API sent it. A response without a `data` wrapper, such as `map`, `crawl` and `batch scrape` start and cancel, `extract` start and `search developer`, keeps `costUsd`.
+  - `stophy usage`, `stophy status`, `stophy doctor`, `stophy endpoints` and `--help` show prices and balances like `$1.9876`.
+  - `stophy doctor --json` names the check `Balance` where it named it `Credits`, and its message reads like `$1.9876 left`.
+- Errors keep the API's own `code`: a script that matched `requestFailed` now sees the API code, such as `invalidUrl`, and a `requestId`.
+
+### Patch Changes
+
+- Errors also keep `retryable` and the API's extra fields. A permanent `sourceChanged` is tried once, `profileBusy` is retried, and the CLI signs up after `freeLimit` and `apiKeyRequired`.
+
+Most versions from 2.0.0 to 2.0.9 were already used on npm, so this release is 2.1.0.
+
 ## 1.4.0
 
 ### Minor Changes
