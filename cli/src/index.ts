@@ -17,7 +17,8 @@ import { registerUsageCommand } from "./commands/usage.js";
 import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
-import { withJobEndpoints } from "./jobs.js";
+import { parseEndpointCall } from "./invoke.js";
+import { isAgentCommand, withJobEndpoints } from "./jobs.js";
 import { writeFailure } from "./output.js";
 import { withParserFlags } from "./parsers.js";
 import { ensureKey } from "./signup.js";
@@ -94,6 +95,7 @@ Examples:
     if (!endpoint && NO_AUTH_COMMANDS.has(actionCommand.name())) return;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) return;
+    if (endpoint && isAgentCommand(endpoint.id)) parseEndpointCall(endpoint);
     await ensureKey();
   });
 
