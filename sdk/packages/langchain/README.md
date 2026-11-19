@@ -34,7 +34,7 @@ with StophyToolkit() as toolkit:
     print(search.invoke({"query": "bun runtime"}))
 ```
 
-If you don't use a `with` block, call `toolkit.close()` after the last tool call.
+If you don't use a `with` block, call `toolkit.close()` after the last tool call. A toolkit reads `STOPHY_API_KEY` and `STOPHY_BASE_URL` when you create it. If either changes, close the old toolkit and create a new one.
 
 ## Tools
 
