@@ -17,6 +17,10 @@ Both clients are generated from the live API, so their methods and results match
 
 The [TypeScript guide](https://docs.stophy.dev/sdks/typescript) and the [Python guide](https://docs.stophy.dev/sdks/python) on docs.stophy.dev cover each method. To change the SDKs, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
+## Retries
+
+The clients can retry reads and writes that support idempotency. For a supported write with an API key, the client uses one `Idempotency-Key` across all attempts. If a write may have run and cannot be replayed safely, the client stops. Look for `outcomeUnknown` in TypeScript or `outcome_unknown` in Python. Check whether the work finished before sending a new request.
+
 ## License
 
 MIT

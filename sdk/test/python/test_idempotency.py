@@ -24,35 +24,132 @@ def sync_client(api, **options):
     )
 
 
-def test_a_crawl_whose_answer_was_lost_runs_and_is_charged_once_with_the_same_key(
+@pytest.fixture(params=[False, True], ids=["sync", "async"])
+def call(serve, request):
+    def send(answer, path, *, api_key="k", key=None, body=None):
+        api = serve(answer)
+        headers = {} if key is None else {"Idempotency-Key": key}
+        options = dict(base_url=api.base_url, headers=headers, retry_initial_delay=0)
+
+        async def run():
+            async with AsyncStophy(api_key, **options) as client:
+                return await client._request("POST", path, body or {})
+
+        def invoke():
+            if request.param:
+                return asyncio.run(run())
+            with Stophy(api_key, **options) as client:
+                return client._request("POST", path, body or {})
+
+        return api, invoke
+
+    return send
+
+
+@pytest.mark.parametrize(
+    ("path", "body"),
+    [
+        ("/v1/crawl", {"url": "https://a.test"}),
+        ("/v1/batch/scrape", {"urls": ["https://a.test"], "zeroDataRetention": True}),
+        ("/v1/agent", {"prompt": "Find the price"}),
+        ("/v1/browser/task", {"prompt": "Find the price"}),
+    ],
+)
+def test_a_job_with_a_lost_answer_runs_and_is_charged_once(call, path, body):
+    answer, charges = accept_jobs()
+    api, invoke = call(answer, path, body=body)
+    assert invoke()["id"] == "job_1"
+    assert len(api.keys) == 2
+    assert api.keys[0] and api.keys[1] == api.keys[0]
+    assert charges == ["job_1"]
+
+
+@pytest.mark.parametrize(
+    ("path", "key"),
+    [
+        ("/v1/signup", None),
+        ("/v1/signup/poll", "caller-key"),
+        ("/v1/browser", "caller-key"),
+        ("/v1/interact", None),
+        ("/v1/search/developer", None),
+    ],
+)
+def test_an_unguarded_write_is_not_replayed_even_with_a_caller_key(call, path, key):
+    answer, charges = accept_jobs()
+    api, invoke = call(lambda _, count: answer(None, count), path, key=key)
+    with pytest.raises(httpx.TransportError) as info:
+        invoke()
+    assert info.value.outcome_unknown is True
+    assert api.keys == [key]
+    assert charges == ["job_1"]
+
+
+def test_a_safe_rejection_can_retry_an_unguarded_write(call):
+    api, invoke = call(
+        lambda _, count: (
+            (429, flat("rateLimited", True, retryAfterSeconds=0))
+            if count == 1
+            else (201, {"success": True, "data": {"code": "signup-1"}})
+        ),
+        "/v1/signup",
+    )
+    assert invoke()["data"] == {"code": "signup-1"}
+    assert api.keys == [None, None]
+
+
+def test_a_retry_sends_the_original_body_even_if_the_input_changes(call):
+    urls = ["https://a.test"]
+    answer, _ = accept_jobs()
+
+    def mutate(key, count):
+        urls[0] = "https://b.test"
+        return answer(key, count)
+
+    api, invoke = call(mutate, "/v1/batch/scrape", body={"urls": urls})
+    assert invoke()["id"] == "job_1"
+    assert api.bodies == [b'{"urls":["https://a.test"]}'] * 2
+
+
+def test_a_keyless_write_is_uncertain_after_response_loss(call, monkeypatch):
+    monkeypatch.delenv("STOPHY_API_KEY", raising=False)
+    answer, _ = accept_jobs()
+    api, invoke = call(answer, "/v1/scrape", api_key="", body={"url": "https://a.test"})
+    with pytest.raises(httpx.TransportError) as info:
+        invoke()
+    assert info.value.outcome_unknown is True
+    assert api.keys == [None]
+
+
+def test_an_ambiguous_http_error_keeps_the_api_error_fields(call):
+    api, invoke = call(
+        lambda *_: (504, flat("sourceTimeout", True, retryAfterSeconds=0)),
+        "/v1/extract",
+        body={"urls": ["https://a.test"], "prompt": "price", "zeroDataRetention": True},
+    )
+    with pytest.raises(StophyError) as info:
+        invoke()
+    error = info.value
+    assert error.outcome_unknown is True
+    assert (error.status, error.code, error.retryable) == (504, "sourceTimeout", True)
+    assert (error.request_id, error.retry_after_seconds) == ("body-request-id", 0)
+    assert len(api.keys) == 1
+
+
+def test_a_browser_task_lookup_retries_after_a_lost_answer(call):
+    api, invoke = call(
+        lambda _, count: (
+            "drop" if count == 1 else (200, {"success": True, "status": "done"})
+        ),
+        "/v1/browser/task/status",
+        body={"id": "job_1"},
+    )
+    assert invoke()["status"] == "done"
+    assert len(api.keys) == 2 and api.keys[0] and api.keys[0] == api.keys[1]
+
+
+def test_supported_writes_use_a_fresh_key_for_each_call_and_hold_it_across_retries(
     serve,
 ):
-    answer, charges = accept_jobs()
-    api = serve(answer)
-    with sync_client(api) as client:
-        assert client.crawl(url="https://a.test")["id"] == "job_1"
-    assert len(api.keys) == 2
-    assert api.keys[0] and api.keys[1] == api.keys[0]
-    assert len(charges) == 1
-
-
-def test_the_async_client_runs_a_lost_batch_once_even_when_it_keeps_no_data(serve):
-    answer, charges = accept_jobs()
-    api = serve(answer)
-
-    async def run():
-        async with AsyncStophy(
-            "k", base_url=api.base_url, max_retries=2, retry_initial_delay=0
-        ) as client:
-            await client.batch.scrape(urls=["https://a.test"], zero_data_retention=True)
-
-    asyncio.run(run())
-    assert len(api.keys) == 2
-    assert api.keys[0] and api.keys[1] == api.keys[0]
-    assert len(charges) == 1
-
-
-def test_every_post_carries_a_fresh_key_and_the_same_key_on_each_retry(serve):
     answer, _ = accept_jobs(["drop"])
     api = serve(answer)
     with sync_client(api) as client:

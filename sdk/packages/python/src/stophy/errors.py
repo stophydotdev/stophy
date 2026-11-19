@@ -9,6 +9,8 @@ class StophyError(Exception):
     details holds the other fields of the error, such as billingUrl or signupUrl.
     """
 
+    outcome_unknown = False
+
     def __init__(
         self,
         message: str,

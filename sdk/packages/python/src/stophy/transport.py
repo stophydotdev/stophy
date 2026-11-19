@@ -17,7 +17,17 @@ from .errors import StophyError
 DEFAULT_BASE_URL = "https://api.stophy.dev"
 MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-JOB_STARTS = {"/v1/batch/scrape", "/v1/crawl"}
+JOB_STARTS = {"/v1/agent", "/v1/batch/scrape", "/v1/crawl"}
+BROWSER_TASK_STATUS = "/v1/browser/task/status"
+KEYED_POSTS = JOB_STARTS | {
+    BROWSER_TASK_STATUS,
+    "/v1/browser/task",
+    "/v1/extract",
+    "/v1/map",
+    "/v1/parse",
+    "/v1/scrape",
+    "/v1/search",
+}
 ENVELOPE_FIELDS = {
     "success",
     "error",
@@ -134,7 +144,7 @@ class _RetryConfig:
         if response.status_code < 400 or attempt >= max_retries:
             return None
         error = _error_from(response, _payload(response))
-        if not error.retryable:
+        if not error.retryable or (not call.replayable and _may_have_run(error)):
             return None
         seconds = error.retry_after_seconds
         if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
@@ -143,7 +153,7 @@ class _RetryConfig:
 
 
 def _may_have_run(error: StophyError) -> bool:
-    return error.status >= 500 and error.code != "busy"
+    return error.status == 408 or (error.status >= 500 and error.code != "busy")
 
 
 def _answer_is_kept(path: str, body: Any) -> bool:
@@ -171,22 +181,17 @@ class _Call:
         path: str,
         kwargs: dict[str, Any],
     ) -> None:
-        sent_key = (
-            kwargs.get("headers", {}).get("Idempotency-Key")
-            or client.headers.get("idempotency-key")
-            or str(uuid.uuid4())
-            if method == "POST"
+        self.request = client.build_request(method, path, **kwargs)
+        keyed = method == "POST" and path in KEYED_POSTS and "authorization" in self.request.headers
+        if keyed and "idempotency-key" not in self.request.headers:
+            self.request.headers["idempotency-key"] = str(uuid.uuid4())
+        self.key = (
+            self.request.headers.get("idempotency-key")
+            if keyed and _answer_is_kept(path, kwargs.get("json"))
             else None
         )
-        has_api_key = "authorization" in client.headers
-        self.key = sent_key if has_api_key else None
-        self.replayable = (
-            sent_key is None or not has_api_key or _answer_is_kept(path, kwargs.get("json"))
-        )
+        self.replayable = method != "POST" or path == BROWSER_TASK_STATUS or self.key is not None
         self.earlier_send_lost = False
-        self.kwargs = (
-            kwargs if sent_key is None else {**kwargs, "headers": {"Idempotency-Key": sent_key}}
-        )
 
     def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
         may_have_left = not isinstance(error, NEVER_SENT)
@@ -203,6 +208,8 @@ class _Call:
         try:
             return handle_response(response)
         except StophyError as error:
+            if not self.replayable and _may_have_run(error):
+                error.outcome_unknown = True
             if self.key is None or not self.earlier_send_lost or not _may_have_run(error):
                 raise
             raise StophyError(
@@ -233,7 +240,7 @@ class SyncTransport(_RetryConfig):
         call = _Call(self.client, method, path, kwargs)
         while True:
             try:
-                response = self.client.request(method, path, **call.kwargs)
+                response = self.client.send(call.request)
             except httpx.TransportError as error:
                 call.lost(error, attempt, max_retries)
                 time.sleep(self.backoff(attempt))
@@ -263,7 +270,7 @@ class AsyncTransport(_RetryConfig):
         call = _Call(self.client, method, path, kwargs)
         while True:
             try:
-                response = await self.client.request(method, path, **call.kwargs)
+                response = await self.client.send(call.request)
             except httpx.TransportError as error:
                 call.lost(error, attempt, max_retries)
                 await asyncio.sleep(self.backoff(attempt))

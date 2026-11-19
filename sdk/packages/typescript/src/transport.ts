@@ -6,7 +6,18 @@ const DEFAULT_BASE_URL = "https://api.stophy.dev";
 const DEFAULT_TIMEOUT_MS = 70_000;
 const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
-const JOB_STARTS = new Set(["/v1/batch/scrape", "/v1/crawl"]);
+const JOB_STARTS = new Set(["/v1/agent", "/v1/batch/scrape", "/v1/crawl"]);
+const BROWSER_TASK_STATUS = "/v1/browser/task/status";
+const KEYED_POSTS = new Set([
+  ...JOB_STARTS,
+  BROWSER_TASK_STATUS,
+  "/v1/browser/task",
+  "/v1/extract",
+  "/v1/map",
+  "/v1/parse",
+  "/v1/scrape",
+  "/v1/search",
+]);
 const USER_AGENT = `stophy-typescript/${version}`;
 
 export interface CallOptions {
@@ -59,13 +70,18 @@ export function createCaller(options: TransportOptions): Caller {
     }
     headers.set("accept", "application/json");
     if (spec.body !== undefined) headers.set("content-type", "application/json");
+    const hasApiKey = headers.has("authorization");
+    const keyed = spec.method === "POST" && hasApiKey && KEYED_POSTS.has(spec.path);
     const key =
       spec.method === "POST"
-        ? (spec.options?.idempotencyKey ?? headers.get("idempotency-key") ?? crypto.randomUUID())
+        ? (spec.options?.idempotencyKey ??
+          headers.get("idempotency-key") ??
+          (keyed ? crypto.randomUUID() : undefined))
         : undefined;
     if (key !== undefined) headers.set("idempotency-key", key);
 
-    const hasApiKey = headers.has("authorization");
+    const body = spec.body === undefined ? undefined : JSON.stringify(spec.body);
+    const protectedKey = keyed && answerIsKept(spec.path, parseJson(body ?? "")) ? key : undefined;
 
     const url = withQuery(`${baseUrl}${spec.path}`, spec.query);
     return send<Result>(
@@ -74,18 +90,16 @@ export function createCaller(options: TransportOptions): Caller {
       (signal) => ({
         method: spec.method,
         headers,
-        body: spec.body === undefined ? undefined : JSON.stringify(spec.body),
+        body,
         signal,
       }),
       spec.options?.signal,
       spec.method === "DELETE" ? { ...retry, maxRetries: 0 } : retry,
       {
-        key: hasApiKey ? key : undefined,
+        key: protectedKey,
         hasApiKey,
         replayable:
-          key === undefined ||
-          !hasApiKey ||
-          answerIsKept(spec.path, parseJson(JSON.stringify(spec.body ?? null))),
+          spec.method !== "POST" || spec.path === BROWSER_TASK_STATUS || protectedKey !== undefined,
       },
     );
   };
@@ -127,6 +141,9 @@ const NEVER_SENT = new Set([
 const requestMayHaveLeft = (error: NetworkError) =>
   !NEVER_SENT.has(error.code ?? error.cause?.code ?? "");
 
+const mayHaveRun = (error: StophyError) =>
+  error.status === 408 || (error.status >= 500 && error.code !== "busy");
+
 const SEND_AGAIN =
   "Check before you send it again as a new call, or send it again with the same Idempotency-Key in details.idempotencyKey.";
 
@@ -150,7 +167,6 @@ async function send<Result>(
   plan: CallPlan,
 ): Promise<Result> {
   let earlierSendLost = false;
-  const mayHaveRun = (error: StophyError) => error.status >= 500 && error.code !== "busy";
   const failWith = (error: StophyError) =>
     plan.key !== undefined && earlierSendLost && mayHaveRun(error)
       ? mayStillComplete(error, plan.key)
@@ -159,25 +175,30 @@ async function send<Result>(
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
-      const response = await baseFetch(url, init(deadline.signal)).catch((error: NetworkError) => {
-        if (signal?.aborted) throw error;
-        const mayHaveLeft = requestMayHaveLeft(error);
-        if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
-        if (error.name === "TimeoutError" && !plan.hasApiKey) throw error;
-        if (n >= retry.maxRetries) {
-          throw (mayHaveLeft || earlierSendLost) && plan.key !== undefined
-            ? Object.assign(error, { idempotencyKey: plan.key })
-            : error;
-        }
-        earlierSendLost ||= mayHaveLeft;
-        return undefined;
-      });
-      if (response === undefined) {
+      const answer = await baseFetch(url, init(deadline.signal))
+        .then(async (response) => ({ response, text: await response.text() }))
+        .catch((error: NetworkError) => {
+          if (signal?.aborted) throw error;
+          const mayHaveLeft = requestMayHaveLeft(error);
+          if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
+          if (error.name === "TimeoutError" && !plan.hasApiKey) throw error;
+          if (n >= retry.maxRetries) {
+            throw (mayHaveLeft || earlierSendLost) && plan.key !== undefined
+              ? Object.assign(error, { idempotencyKey: plan.key })
+              : error;
+          }
+          earlierSendLost ||= mayHaveLeft;
+          return undefined;
+        });
+      if (answer === undefined) {
         waitMs = backoffMs(n, retry.initialDelayMs);
-      } else if (response.ok) {
-        return await readBody<Result>(response);
       } else {
-        const error = await errorFrom(response);
+        const { response, text } = answer;
+        if (response.ok) return readBody<Result>(response, text);
+        const error = errorFrom(response, text);
+        if (!plan.replayable && mayHaveRun(error)) {
+          throw Object.assign(error, { outcomeUnknown: true });
+        }
         const seconds = error.retryAfterSeconds;
         if (!error.retryable || n >= retry.maxRetries) throw failWith(error);
         if (seconds !== undefined && seconds > MAX_RETRY_WAIT_SECONDS) throw failWith(error);
@@ -211,8 +232,7 @@ function withDeadline(signal: AbortSignal | undefined, timeoutMs: number) {
   };
 }
 
-async function readBody<Result>(response: Response): Promise<Result> {
-  const text = await response.text();
+function readBody<Result>(response: Response, text: string): Result {
   if (!text) {
     throw failed(response, "Stophy returned an empty response", {});
   }
@@ -223,8 +243,7 @@ async function readBody<Result>(response: Response): Promise<Result> {
   }
 }
 
-async function errorFrom(response: Response): Promise<StophyError> {
-  const text = await response.text();
+function errorFrom(response: Response, text: string): StophyError {
   const error = readError(text ? parseJson(text) : null);
   return failed(response, error.message ?? `Stophy request failed with status ${response.status}`, {
     code: error.code,
