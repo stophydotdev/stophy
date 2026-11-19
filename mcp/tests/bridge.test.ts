@@ -40,12 +40,12 @@ test("tool deadlines let valid work finish and cut off overdue requests", async 
       {
         name: "stophy_extract",
         args: { urls: ["https://example.com"], prompt: "Find the title", timeout: 300_000 },
-        deadline: 350_000,
+        deadline: 299_000,
       },
       {
         name: "stophy_map",
         args: { url: "https://example.com", timeout: 400_000 },
-        deadline: 405_000,
+        deadline: 299_000,
       },
       {
         name: "browserRun",

@@ -14,7 +14,7 @@ import packageJson from "../package.json" with { type: "json" };
 const DEFAULT_URL = "https://api.stophy.dev/mcp";
 const RESPONSE_GRACE_MS = 5_000;
 const DEFAULT_BUDGET_MS = 60_000;
-const MAX_TIMER_MS = 2_147_483_647;
+const MAX_REQUEST_MS = 299_000;
 
 const toolTimeout = ({ name, arguments: args }: CallToolRequest["params"]): number => {
   const value = args?.["timeout"];
@@ -41,7 +41,7 @@ const toolTimeout = ({ name, arguments: args }: CallToolRequest["params"]): numb
     default:
       budget = DEFAULT_BUDGET_MS;
   }
-  return Math.min(MAX_TIMER_MS, Math.max(DEFAULT_BUDGET_MS, budget) + RESPONSE_GRACE_MS);
+  return Math.min(MAX_REQUEST_MS, Math.max(DEFAULT_BUDGET_MS, budget) + RESPONSE_GRACE_MS);
 };
 
 const toolHttpSignal = new AsyncLocalStorage<AbortSignal>();
