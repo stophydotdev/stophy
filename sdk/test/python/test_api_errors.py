@@ -1,6 +1,9 @@
+import asyncio
+
+import httpx
 import pytest
 
-from stophy import Stophy, StophyError
+from stophy import AsyncStophy, Stophy, StophyError
 
 
 def flat(code, retryable, **extra):
@@ -42,6 +45,48 @@ def test_a_profile_busy_409_is_retryable_and_is_sent_again(serve):
     ) as client:
         client.scrape(url="https://a.test")
     assert len(api.keys) == 2
+
+
+@pytest.mark.parametrize("async_client", [False, True])
+@pytest.mark.parametrize("nested", [False, True])
+def test_a_retryable_profile_refusal_prefers_body_fields(async_client, nested):
+    body = flat("profileBusy", True, retryAfterSeconds=2)
+    if nested:
+        message = body.pop("error")
+        body.pop("success")
+        body = {"success": False, "error": {"message": message, **body}}
+
+    def answer(_request):
+        return httpx.Response(
+            409,
+            json=body,
+            headers={"x-request-id": "header-request-id", "retry-after": "0"},
+        )
+
+    options = {
+        "api_key": "k",
+        "base_url": "http://127.0.0.1",
+        "transport": httpx.MockTransport(answer),
+        "max_retries": 0,
+    }
+
+    async def run():
+        async with AsyncStophy(**options) as client:
+            await client.scrape(url="https://a.test")
+
+    with pytest.raises(StophyError) as info:
+        if async_client:
+            asyncio.run(run())
+        else:
+            with Stophy(**options) as client:
+                client.scrape(url="https://a.test")
+
+    assert (info.value.code, info.value.retryable, info.value.request_id) == (
+        "profileBusy",
+        True,
+        "body-request-id",
+    )
+    assert info.value.retry_after_seconds == 2
 
 
 def test_billing_fields_of_an_error_stay_on_details(serve):

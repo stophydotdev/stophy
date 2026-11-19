@@ -103,7 +103,7 @@ def _error_from(response: httpx.Response, payload: Any) -> StophyError:
         message = f"Stophy request failed with status {response.status_code}"
     code = error.get("code")
     retryable = error.get("retryable")
-    request_id = response.headers.get("x-request-id") or error.get("requestId")
+    request_id = error.get("requestId")
     return StophyError(
         message,
         status=response.status_code,
@@ -112,7 +112,9 @@ def _error_from(response: httpx.Response, payload: Any) -> StophyError:
         if isinstance(retryable, bool)
         else response.status_code in RETRYABLE_STATUS,
         retry_after_seconds=_retry_after(response, error),
-        request_id=request_id if isinstance(request_id, str) else None,
+        request_id=request_id
+        if isinstance(request_id, str)
+        else response.headers.get("x-request-id"),
         details={key: value for key, value in error.items() if key not in ENVELOPE_FIELDS},
     )
 

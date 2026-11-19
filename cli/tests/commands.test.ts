@@ -479,10 +479,10 @@ test("a key piped to login --api-key is saved, not replaced by a signup", async 
   expect(saved.apiKey).toBe(KEY);
 });
 
-const flatError = (code: string, status: number, extra = {}) =>
+const flatError = (code: string, status: number, extra = {}, headers?: HeadersInit) =>
   Response.json(
     { success: false, error: `${code} message`, code, retryable: false, ...extra },
-    { status },
+    { status, headers },
   );
 
 const SIGNUP_URL = "https://stophy.dev/signup";
@@ -505,7 +505,16 @@ const apiReplies = new Map([
   ["/v1/changed", flatError("sourceChanged", 502, { requestId: REQUEST_ID })],
   [
     "/v1/busy",
-    flatError("profileBusy", 409, { retryable: true, retryAfterSeconds: 2, requestId: REQUEST_ID }),
+    flatError(
+      "profileBusy",
+      409,
+      { retryable: true, retryAfterSeconds: 2, requestId: REQUEST_ID },
+      { "X-Request-ID": "relay-id", "Retry-After": "99" },
+    ),
+  ],
+  [
+    "/v1/busy-until",
+    flatError("busy", 503, { retryable: true }, { "Retry-After": "Fri, 01 Jan 2038 00:00:00 GMT" }),
   ],
   [
     "/v1/signup",
@@ -559,7 +568,20 @@ test("a flat error keeps its code, retryability, retry delay, request id and fie
       failure: { code: "sourceChanged", retryable: false },
     });
     await expect(callApi("/v1/busy")).rejects.toMatchObject({
-      failure: { code: "profileBusy", retryable: true, retryAfterSeconds: 2 },
+      failure: {
+        code: "profileBusy",
+        retryable: true,
+        retryAfterSeconds: 2,
+        requestId: REQUEST_ID,
+      },
+      message: `profileBusy message Retry after 2s.\nRequest id: ${REQUEST_ID}`,
+    });
+  }));
+
+test("an HTTP-date retry header is displayed without a seconds suffix", () =>
+  withApi(async () => {
+    await expect(callApi("/v1/busy-until")).rejects.toMatchObject({
+      message: "busy message Retry after Fri, 01 Jan 2038 00:00:00 GMT.",
     });
   }));
 

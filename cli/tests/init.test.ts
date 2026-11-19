@@ -166,7 +166,7 @@ test("withRequestId appends the id, or leaves the message alone", () => {
   expect(withRequestId("Bad input.", null)).toBe("Bad input.");
 });
 
-test("an API error carries the request id from the header, then from the body", async () => {
+test("a nested API error uses the header only when the body has no request id", async () => {
   const reply = (headers: Record<string, string>, requestId?: string) => async () =>
     new Response(
       JSON.stringify({
@@ -187,11 +187,11 @@ test("an API error carries the request id from the header, then from the body", 
     fetchSpy.mockImplementation(reply({ "X-Request-ID": "from-header" }, "from-body"));
     await expect(
       request({ method: "GET", path: "/v1/x", accept: "application/json" }),
-    ).rejects.toThrow("Request id: from-header");
-    fetchSpy.mockImplementation(reply({}, "from-body"));
+    ).rejects.toThrow("Request id: from-body");
+    fetchSpy.mockImplementation(reply({ "X-Request-ID": "from-header" }));
     await expect(
       request({ method: "GET", path: "/v1/x", accept: "application/json" }),
-    ).rejects.toThrow("Request id: from-body");
+    ).rejects.toThrow("Request id: from-header");
   } finally {
     fetchSpy.mockRestore();
   }

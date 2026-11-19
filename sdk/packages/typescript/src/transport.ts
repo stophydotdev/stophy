@@ -230,7 +230,7 @@ async function errorFrom(response: Response): Promise<StophyError> {
     code: error.code,
     retryable: error.retryable ?? RETRYABLE_STATUS.has(response.status),
     retryAfterSeconds: error.retryAfterSeconds ?? headerRetryAfter(response),
-    requestId: headerRequestId(response) ?? error.requestId,
+    requestId: error.requestId ?? headerRequestId(response),
     details: error.details,
   });
 }
