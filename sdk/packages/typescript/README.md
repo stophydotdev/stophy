@@ -50,12 +50,12 @@ A crawl `status` is `scraping` until it is `completed`. While pages are left to 
 
 Get a key at [stophy.dev/signup](https://stophy.dev/signup). The client reads `STOPHY_API_KEY`, or you pass it in with `new Stophy({ apiKey: "st_..." })` or `new Stophy("st_...")`.
 
-| Option       | Default                              | What it does                                                                                  |
-| ------------ | ------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                                                                  |
-| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                                                                            |
-| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.                                                   |
-| `timeoutMs`  | `70000`                              | Time limit for each attempt. A timed-out attempt is retried when the call carries an API key. |
+| Option       | Default                              | What it does                                 |
+| ------------ | ------------------------------------ | -------------------------------------------- |
+| `apiKey`     | `STOPHY_API_KEY`                     | Your API key                                 |
+| `baseUrl`    | `STOPHY_BASE_URL`, or the Stophy API | The server to call                           |
+| `maxRetries` | `2`                                  | Retries per request. `0` turns retries off.  |
+| `timeoutMs`  | `70000`                              | Time limit in milliseconds for each attempt. |
 
 Each method also takes `signal` to cancel the request, and `idempotencyKey` to choose the key of one `POST`.
 
@@ -63,7 +63,7 @@ Each method also takes `signal` to cancel the request, and `idempotencyKey` to c
 
 A failed call throws a `StophyError`, which you import from `stophy`. It has `code`, `message`, `retryable`, `retryAfterSeconds`, `status`, `requestId` and `details`. The message says what went wrong and what to do next.
 
-The client retries network errors, timeouts and every error the API marks `retryable`, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, it throws right away with `retryAfterSeconds` set.
+The SDK retries eligible reads and writes. If a write may have run and the SDK cannot safely replay it, the SDK stops and sets `outcomeUnknown` on the error, even if the API marked it `retryable`. Check whether the work finished before sending a new request. If a retry would require waiting more than 60 seconds, the SDK throws with `retryAfterSeconds` set.
 
 ## Docs
 

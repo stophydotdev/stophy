@@ -19,15 +19,16 @@ MAX_RETRY_WAIT_SECONDS = 60
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 JOB_STARTS = {"/v1/agent", "/v1/batch/scrape", "/v1/crawl"}
 BROWSER_TASK_STATUS = "/v1/browser/task/status"
-KEYED_POSTS = JOB_STARTS | {
-    BROWSER_TASK_STATUS,
-    "/v1/browser/task",
-    "/v1/extract",
-    "/v1/map",
-    "/v1/parse",
-    "/v1/scrape",
-    "/v1/search",
-}
+KEYLESS_READS = {"/v1/map", "/v1/parse", "/v1/scrape", "/v1/search"}
+KEYED_POSTS = (
+    JOB_STARTS
+    | KEYLESS_READS
+    | {
+        BROWSER_TASK_STATUS,
+        "/v1/browser/task",
+        "/v1/extract",
+    }
+)
 ENVELOPE_FIELDS = {
     "success",
     "error",
@@ -144,7 +145,7 @@ class _RetryConfig:
         if response.status_code < 400 or attempt >= max_retries:
             return None
         error = _error_from(response, _payload(response))
-        if not error.retryable or (not call.replayable and _may_have_run(error)):
+        if not error.retryable or call.outcome_is_unknown(error):
             return None
         seconds = error.retry_after_seconds
         if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
@@ -182,7 +183,9 @@ class _Call:
         kwargs: dict[str, Any],
     ) -> None:
         self.request = client.build_request(method, path, **kwargs)
-        keyed = method == "POST" and path in KEYED_POSTS and "authorization" in self.request.headers
+        self.path = path
+        has_api_key = "authorization" in self.request.headers
+        keyed = method == "POST" and path in KEYED_POSTS and has_api_key
         if keyed and "idempotency-key" not in self.request.headers:
             self.request.headers["idempotency-key"] = str(uuid.uuid4())
         self.key = (
@@ -190,8 +193,20 @@ class _Call:
             if keyed and _answer_is_kept(path, kwargs.get("json"))
             else None
         )
-        self.replayable = method != "POST" or path == BROWSER_TASK_STATUS or self.key is not None
+        self.replayable = (
+            method != "POST"
+            or path == BROWSER_TASK_STATUS
+            or (not has_api_key and path in KEYLESS_READS)
+            or self.key is not None
+        )
         self.earlier_send_lost = False
+
+    def outcome_is_unknown(self, error: StophyError) -> bool:
+        definite_scrape_failure = self.path == "/v1/scrape" and (error.status, error.code) in {
+            (504, "sourceTimeout"),
+            (503, "sourceUnavailable"),
+        }
+        return not self.replayable and _may_have_run(error) and not definite_scrape_failure
 
     def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
         may_have_left = not isinstance(error, NEVER_SENT)
@@ -208,7 +223,7 @@ class _Call:
         try:
             return handle_response(response)
         except StophyError as error:
-            if not self.replayable and _may_have_run(error):
+            if self.outcome_is_unknown(error):
                 error.outcome_unknown = True
             if self.key is None or not self.earlier_send_lost or not _may_have_run(error):
                 raise

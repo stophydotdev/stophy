@@ -77,7 +77,7 @@ Catch errors and check `error instanceof StophyError` before you read its fields
 
 A call your balance cannot cover throws `insufficientCredits` with status `402` and charges nothing. Add money at [stophy.dev/billing](https://stophy.dev/billing), then send the call again.
 
-The SDK retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, the SDK throws right away with `retryAfterSeconds` set.
+The SDK retries eligible reads and writes. If a write may have run and the SDK cannot safely replay it, the SDK stops and sets `outcomeUnknown` on the error, even if the API marked it `retryable`. Check whether the work finished before sending a new request. If a retry would require waiting more than 60 seconds, the SDK throws with `retryAfterSeconds` set.
 
 ## Options
 
@@ -89,7 +89,7 @@ Pass these options to the constructor when the defaults do not fit your app.
 | `baseUrl` | `STOPHY_BASE_URL`, or the Stophy API | The server to call |
 | `maxRetries` | `2` | Retries per request. `0` turns retries off. |
 | `retryInitialDelayMs` | `500` | The first retry wait. It doubles each time. |
-| `timeoutMs` | `70000` | Time limit for each attempt. A timed-out attempt is not retried. |
+| `timeoutMs` | `70000` | Time limit in milliseconds for each attempt. |
 | `headers` | none | Extra headers to send with every call |
 | `fetch` | the global `fetch` | A `fetch` function to use instead |
 

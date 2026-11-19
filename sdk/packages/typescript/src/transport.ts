@@ -8,15 +8,13 @@ const MAX_RETRY_WAIT_SECONDS = 60;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const JOB_STARTS = new Set(["/v1/agent", "/v1/batch/scrape", "/v1/crawl"]);
 const BROWSER_TASK_STATUS = "/v1/browser/task/status";
+const KEYLESS_READS = new Set(["/v1/map", "/v1/parse", "/v1/scrape", "/v1/search"]);
 const KEYED_POSTS = new Set([
   ...JOB_STARTS,
+  ...KEYLESS_READS,
   BROWSER_TASK_STATUS,
   "/v1/browser/task",
   "/v1/extract",
-  "/v1/map",
-  "/v1/parse",
-  "/v1/scrape",
-  "/v1/search",
 ]);
 const USER_AGENT = `stophy-typescript/${version}`;
 
@@ -98,8 +96,12 @@ export function createCaller(options: TransportOptions): Caller {
       {
         key: protectedKey,
         hasApiKey,
+        path: spec.path,
         replayable:
-          spec.method !== "POST" || spec.path === BROWSER_TASK_STATUS || protectedKey !== undefined,
+          spec.method !== "POST" ||
+          spec.path === BROWSER_TASK_STATUS ||
+          (!hasApiKey && KEYLESS_READS.has(spec.path)) ||
+          protectedKey !== undefined,
       },
     );
   };
@@ -114,6 +116,7 @@ interface RetryPolicy {
 interface CallPlan {
   key: string | undefined;
   hasApiKey: boolean;
+  path: string;
   replayable: boolean;
 }
 
@@ -196,7 +199,11 @@ async function send<Result>(
         const { response, text } = answer;
         if (response.ok) return readBody<Result>(response, text);
         const error = errorFrom(response, text);
-        if (!plan.replayable && mayHaveRun(error)) {
+        const definiteScrapeFailure =
+          plan.path === "/v1/scrape" &&
+          ((error.status === 504 && error.code === "sourceTimeout") ||
+            (error.status === 503 && error.code === "sourceUnavailable"));
+        if (!plan.replayable && mayHaveRun(error) && !definiteScrapeFailure) {
           throw Object.assign(error, { outcomeUnknown: true });
         }
         const seconds = error.retryAfterSeconds;

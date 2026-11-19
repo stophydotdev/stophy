@@ -151,15 +151,43 @@ test("a retry sends the original body even if the input changes", async () => {
   ]);
 });
 
-test("a keyless write is uncertain after response loss", async () => {
-  const fake = await api((_, count) =>
-    count === 1 ? "drop" : { status: 200, body: { success: true, data: {} } },
-  );
-  const call = createCaller({ baseUrl: fake.baseUrl, retryInitialDelayMs: 0 });
-  await expect(
-    call({ method: "POST", path: "/v1/scrape", body: { url: "https://a.test" } }),
-  ).rejects.toMatchObject({ outcomeUnknown: true });
-  expect(fake.received.map((request) => request.key)).toEqual([undefined]);
+test.each(["/v1/scrape", "/v1/search", "/v1/map", "/v1/parse"])(
+  "keyless %s retries a 5xx and a lost reply",
+  async (path) => {
+    const result = { success: true, data: { answer: "found" } };
+    const fake = await api((_, count) => {
+      if (count === 1) return { status: 503, body: flat("internalError", true) };
+      if (count === 2) return "drop";
+      return { status: 200, body: result };
+    });
+    const call = createCaller({ baseUrl: fake.baseUrl, retryInitialDelayMs: 0 });
+    await expect(call({ method: "POST", path, body: {} })).resolves.toEqual(result);
+    expect(fake.received.map((request) => request.key)).toEqual([undefined, undefined, undefined]);
+  },
+);
+
+test("a keyless signup poll does not replay a possibly collected key", async () => {
+  const fake = await api(() => "drop");
+  const client = clientFor(fake.baseUrl, { apiKey: undefined });
+  await expect(client.signup.poll({ code: "claim" })).rejects.toMatchObject({
+    outcomeUnknown: true,
+  });
+  expect(fake.received).toHaveLength(1);
+});
+
+test("a scrape that keeps no data retries a definite source failure", async () => {
+  const result = { success: true, data: { markdown: "found" } };
+  const fake = await api((_, count) => {
+    if (count === 1) return { status: 504, body: flat("sourceTimeout", true) };
+    if (count === 2) return { status: 503, body: flat("sourceUnavailable", true) };
+    return { status: 200, body: result };
+  });
+  const page = await clientFor(fake.baseUrl).scrape({
+    url: "https://a.test",
+    zeroDataRetention: true,
+  });
+  expect(page.data.markdown).toBe("found");
+  expect(fake.received).toHaveLength(3);
 });
 
 test("an ambiguous HTTP error on an unprotected write keeps its API error fields", async () => {

@@ -110,14 +110,51 @@ def test_a_retry_sends_the_original_body_even_if_the_input_changes(call):
     assert api.bodies == [b'{"urls":["https://a.test"]}'] * 2
 
 
-def test_a_keyless_write_is_uncertain_after_response_loss(call, monkeypatch):
+@pytest.mark.parametrize("path", ["/v1/scrape", "/v1/search", "/v1/map", "/v1/parse"])
+def test_a_keyless_read_retries_a_5xx_and_a_lost_reply(call, monkeypatch, path):
     monkeypatch.delenv("STOPHY_API_KEY", raising=False)
-    answer, _ = accept_jobs()
-    api, invoke = call(answer, "/v1/scrape", api_key="", body={"url": "https://a.test"})
+    result = {"success": True, "data": {"answer": "found"}}
+
+    def answer(_, count):
+        if count == 1:
+            return 503, flat("internalError", True)
+        if count == 2:
+            return "drop"
+        return 200, result
+
+    api, invoke = call(answer, path, api_key="")
+    assert invoke() == result
+    assert api.keys == [None, None, None]
+
+
+def test_a_keyless_signup_poll_does_not_replay_a_possibly_collected_key(
+    call, monkeypatch
+):
+    monkeypatch.delenv("STOPHY_API_KEY", raising=False)
+    api, invoke = call(
+        lambda *_: "drop", "/v1/signup/poll", api_key="", body={"code": "claim"}
+    )
     with pytest.raises(httpx.TransportError) as info:
         invoke()
     assert info.value.outcome_unknown is True
     assert api.keys == [None]
+
+
+def test_a_scrape_that_keeps_no_data_retries_a_definite_source_failure(call):
+    result = {"success": True, "data": {"markdown": "found"}}
+
+    def answer(_, count):
+        if count == 1:
+            return 504, flat("sourceTimeout", True)
+        if count == 2:
+            return 503, flat("sourceUnavailable", True)
+        return 200, result
+
+    api, invoke = call(
+        answer, "/v1/scrape", body={"url": "https://a.test", "zeroDataRetention": True}
+    )
+    assert invoke() == result
+    assert len(api.keys) == 3
 
 
 def test_an_ambiguous_http_error_keeps_the_api_error_fields(call):
