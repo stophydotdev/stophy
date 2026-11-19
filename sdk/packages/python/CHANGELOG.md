@@ -1,7 +1,9 @@
 # stophy
 
-## Unreleased
+## 1.4.2
 
+- A write is retried only when the API can replay it. If a write may have run and cannot be replayed safely, the call raises with `outcome_unknown` set. One `Idempotency-Key` is kept across the retries of a call.
+- An error keeps the request ID and retry delay from the API's error body when a response header disagrees.
 - The response models now match the API. Scrape, search, map, parse, and the starts and cancels of crawl, batch and extract jobs no longer have top-level `costUsd`, `creditsUsed` or `requestId`; the cost is the `x-cost-usd` header, and scrape and parse also keep it in `data.metadata.costUsd`. Extract results can report `success: false` when the job fails.
 
 ## 1.4.0

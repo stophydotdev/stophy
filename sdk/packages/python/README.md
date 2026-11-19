@@ -59,9 +59,9 @@ Get a key at [stophy.dev/signup](https://stophy.dev/signup). The client reads `S
 
 ## Errors and retries
 
-A failed call raises a `StophyError`, which you import from `stophy`. It has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id` and `details`. The message is `str(error)`, and it says what went wrong and what to do next.
+A failed call raises a `StophyError`, which you import from `stophy`. It has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id`, `details` and `outcome_unknown`. The message is `str(error)`, and it says what went wrong and what to do next.
 
-The client retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, it raises right away with `retry_after_seconds` set.
+The SDK retries eligible reads and writes. If a write may have run and the SDK cannot safely replay it, the SDK stops and sets `outcome_unknown` on the exception, even if the API marked it `retryable`. Check whether the work finished before sending a new request. If a retry would require waiting more than 60 seconds, the SDK raises with `retry_after_seconds` set.
 
 ## Docs
 
