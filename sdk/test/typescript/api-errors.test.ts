@@ -55,6 +55,33 @@ test("a profileBusy 409 is retryable and is sent again", async () => {
   expect(fake.received.length).toBe(2);
 });
 
+test.each([
+  flat("profileBusy", true, { retryAfterSeconds: 2 }),
+  {
+    success: false,
+    error: {
+      code: "profileBusy",
+      message: "Profile busy",
+      retryable: true,
+      retryAfterSeconds: 2,
+      requestId: "body-request-id",
+    },
+  },
+])("a retryable profile refusal prefers body fields", async (body) => {
+  const fake = await api(() => ({
+    status: 409,
+    body,
+    headers: { "x-request-id": "header-request-id", "retry-after": "0" },
+  }));
+  const client = new Stophy({ apiKey: "k", baseUrl: fake.baseUrl, maxRetries: 0 });
+  await expect(client.scrape({ url: "https://a.test" })).rejects.toMatchObject({
+    code: "profileBusy",
+    retryable: true,
+    requestId: "body-request-id",
+    retryAfterSeconds: 2,
+  });
+});
+
 test("billing and signup fields of an error stay on details", async () => {
   const fake = await api(() => ({
     status: 402,

@@ -105,7 +105,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const retryAfter = response.headers.get("Retry-After");
   if (!response.ok) {
     const failure = failureOf(json, response.status, retryAfter);
-    const requestId = response.headers.get("X-Request-ID") ?? failure.requestId ?? null;
+    const requestId = failure.requestId ?? response.headers.get("X-Request-ID");
     const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
       ? { status: response.status, retryAfter }
@@ -168,8 +168,7 @@ function failureOf(
 }
 
 function failureMessage(failure: Failure, retryAfter: string | null): string {
-  const retry =
-    retryAfter ??
-    (failure.retryAfterSeconds === undefined ? null : String(failure.retryAfterSeconds));
-  return retry === null ? failure.message : `${failure.message} Retry after ${retry}s.`;
+  if (failure.retryAfterSeconds !== undefined)
+    return `${failure.message} Retry after ${failure.retryAfterSeconds}s.`;
+  return retryAfter === null ? failure.message : `${failure.message} Retry after ${retryAfter}.`;
 }
