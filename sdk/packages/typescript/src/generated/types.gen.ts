@@ -343,7 +343,10 @@ export type ExtractResultResponses = {
    * The extracted data.
    */
   200: {
-    success: true;
+    /**
+     * False when status is failed.
+     */
+    success: boolean;
     status: "completed" | "failed";
     data: {
       [key: string]: ExtractResultSchema0;
@@ -966,7 +969,7 @@ export type SearchData = {
            */
           country?: string;
           /**
-           * Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.
+           * Two-letter language for web results, like de. A web source that does not support this language for the selected country can return results in another language with a warning.
            */
           lang?: string;
         }
@@ -1008,7 +1011,7 @@ export type SearchData = {
      */
     country?: string;
     /**
-     * Two-letter language for web results, like de. It steers which pages come back; some results can still be in other languages.
+     * Two-letter language preference, like de. Applies to web results when web is selected, otherwise to news where supported. Results from a source that cannot honor it may be in another language and come with a warning.
      */
     lang?: string;
     includeDomains?: Array<string>;
@@ -1393,7 +1396,7 @@ export type SearchData = {
         saveChanges?: boolean;
       };
       /**
-       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
     };
@@ -1951,9 +1954,6 @@ export type SearchResponses = {
       }>;
     };
     warning?: string;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -2325,7 +2325,7 @@ export type ScrapeData = {
       saveChanges?: boolean;
     };
     /**
-     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.
      */
     zeroDataRetention?: boolean;
     /**
@@ -2436,7 +2436,6 @@ export type ScrapeResponses = {
         cacheState?: "hit" | "miss" | "stale";
         cachedAt?: string;
         scrapeId?: string;
-        creditsUsed?: number;
         costUsd?: number;
         [key: string]:
           | unknown
@@ -2447,9 +2446,6 @@ export type ScrapeResponses = {
           | undefined;
       };
     };
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -2751,7 +2747,7 @@ export type ExtractData = {
         saveChanges?: boolean;
       };
       /**
-       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
     };
@@ -2801,9 +2797,6 @@ export type ExtractResponses = {
     success: true;
     id?: string;
     invalidURLs: Array<string>;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -3254,7 +3247,7 @@ export type ParseResponses = {
    */
   200: {
     success: true;
-    data?: {
+    data: {
       markdown?: string;
       html?: string;
       rawHtml?: string;
@@ -3271,16 +3264,14 @@ export type ParseResponses = {
         [key: string]: ParseSchema0;
       }>;
       warning?: string;
-      metadata?: {
+      metadata: {
         title?: string;
         contentType?: string;
         numPages?: number;
         ocrPages?: number;
+        costUsd: number;
       };
     };
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -3374,9 +3365,6 @@ export type MapResponses = {
       title?: string;
       description?: string;
     }>;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -3808,7 +3796,7 @@ export type CrawlData = {
         saveChanges?: boolean;
       };
       /**
-       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+       * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.
        */
       zeroDataRetention?: boolean;
     };
@@ -3873,9 +3861,6 @@ export type CrawlResponses = {
     url?: string;
     status?: "scraping";
     queuePosition?: number;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -3915,9 +3900,6 @@ export type CrawlCancelResponses = {
   200: {
     status: "cancelled";
     success: true;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -4051,7 +4033,6 @@ export type CrawlStatusResponses = {
           | undefined;
       };
     }>;
-    requestId?: string;
   };
 };
 
@@ -4453,7 +4434,7 @@ export type BatchScrapeData = {
       saveChanges?: boolean;
     };
     /**
-     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 pages. Not with a screenshot.
+     * Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.
      */
     zeroDataRetention?: boolean;
     /**
@@ -4509,9 +4490,6 @@ export type BatchScrapeResponses = {
     status?: "scraping";
     queuePosition?: number;
     invalidURLs: Array<string>;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -4553,9 +4531,6 @@ export type BatchScrapeCancelResponses = {
   200: {
     status: "cancelled";
     success: true;
-    creditsUsed: number;
-    costUsd: number;
-    requestId?: string;
   };
 };
 
@@ -4690,7 +4665,6 @@ export type BatchScrapeStatusResponses = {
           | undefined;
       };
     }>;
-    requestId?: string;
   };
 };
 

@@ -3,7 +3,12 @@ from __future__ import annotations
 import asyncio
 
 from stophy import AsyncStophy, Stophy
-from stophy.generated.models import CrawlCancelResponse, MapResponse, ScrapeResponse
+from stophy.generated.models import (
+    CrawlCancelResponse,
+    MapResponse,
+    ScrapeResponse,
+    ScrapeResponseData,
+)
 
 
 def sync_scrape() -> ScrapeResponse:
@@ -26,6 +31,17 @@ def sync_map() -> MapResponse:
 async def async_cancel() -> CrawlCancelResponse:
     async with AsyncStophy() as stophy:
         return await stophy.crawl.cancel(id="job_1")
+
+
+def request_options(stophy: Stophy) -> None:
+    stophy.batch.scrape(urls=["https://example.com"], append_to_id="job_1")
+    stophy.parse(upload_ref="upload_1")
+    stophy.search(query="Bäckerei", lang="de")
+    stophy.scrape(url="https://example.com", fast_mode=True, proxy="enhanced")
+
+
+def scrape_response(data: ScrapeResponseData) -> ScrapeResponse:
+    return {"success": True, "data": data}
 
 
 def main() -> None:

@@ -339,7 +339,7 @@ export const search = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape any public web page as markdown, HTML, links, a screenshot or JSON
- * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. creditsUsed shows what the call cost. Works without an API key, within free limits.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. metadata.costUsd shows what the call cost in dollars. Works without an API key, within free limits.
  */
 export const scrape = <ThrowOnError extends boolean = false>(
   options: Options<ScrapeData, ThrowOnError>
@@ -447,7 +447,7 @@ export const browserTaskStatus = <ThrowOnError extends boolean = false>(
 
 /**
  * Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into markdown
- * Costs $0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. costUsd shows what the call cost. Works without an API key, within free limits.
+ * Costs $0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to maxPages; summary and json with a schema or a prompt add $3 per 1,000 each; zero data retention adds $2 per 1,000 calls. metadata.costUsd shows what the call cost in dollars. Works without an API key, within free limits.
  */
 export const parse = <ThrowOnError extends boolean = false>(
   options: Options<ParseData, ThrowOnError>
