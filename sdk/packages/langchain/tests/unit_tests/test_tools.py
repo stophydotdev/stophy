@@ -50,7 +50,8 @@ class TestHomeSearch(ToolsUnitTests):
 
 
 def test_toolkit_shares_the_key_across_every_tool() -> None:
-    tools = StophyToolkit(api_key=SecretStr("st_test")).get_tools()
+    with StophyToolkit(api_key=SecretStr("st_test")) as toolkit:
+        tools = toolkit.get_tools()
 
     assert len({tool.name for tool in tools}) == 7
     assert {

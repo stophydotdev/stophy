@@ -5,7 +5,7 @@ from urllib.parse import quote, urlencode
 
 from langchain_core.tools import ArgsSchema, BaseTool, BaseToolkit, ToolException
 from langchain_core.tools.base import ToolExceptionHandlerOutput
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, PrivateAttr, SecretStr
 from stophy import ParserName, Stophy, StophyError
 
 Response = TypeVar("Response")
@@ -58,6 +58,15 @@ def _number(value: Optional[float]) -> Optional[str]:
     return None if value is None else f"{value:g}"
 
 
+class _ToolkitClient:
+    def __init__(self, api_key: SecretStr | None) -> None:
+        self.api_key = api_key
+        self.client = Stophy(api_key.get_secret_value() if api_key else None)
+
+    def __deepcopy__(self, _memo: dict[int, object]) -> _ToolkitClient:
+        return self
+
+
 class StophyTool(BaseTool):
     """Base for Stophy tools. Reads STOPHY_API_KEY when api_key is not set."""
 
@@ -66,13 +75,21 @@ class StophyTool(BaseTool):
         True
     )
 
+    _toolkit_client: _ToolkitClient | None = PrivateAttr(default=None)
+
+    def __init__(self, *, _toolkit_client: _ToolkitClient | None = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._toolkit_client = _toolkit_client
+
     def _call(self, endpoint: Callable[[Stophy], Response]) -> Response:
-        key = self.api_key.get_secret_value() if self.api_key else None
-        with Stophy(key) as stophy:
-            try:
+        try:
+            if self._toolkit_client is not None and self.api_key == self._toolkit_client.api_key:
+                return endpoint(self._toolkit_client.client)
+            key = self.api_key.get_secret_value() if self.api_key else None
+            with Stophy(key) as stophy:
                 return endpoint(stophy)
-            except StophyError as error:
-                raise ToolException(str(error)) from error
+        except StophyError as error:
+            raise ToolException(str(error)) from error
 
     def _parsed(self, parser: ParserName, url: str, **options: Any) -> Any:
         return self._call(lambda stophy: stophy.parsed(parser, url, **options))["data"].get("json")
@@ -288,13 +305,29 @@ class StophyHomeSearch(StophyTool):
 
 
 class StophyToolkit(BaseToolkit):
-    """Every Stophy tool, sharing one API key."""
+    """Tools sharing a client. Use a with block or call close() when finished."""
 
     api_key: Optional[SecretStr] = None
+    _connection: _ToolkitClient = PrivateAttr()
+
+    def model_post_init(self, __context: object) -> None:
+        self._connection = _ToolkitClient(self.api_key)
+
+    def close(self) -> None:
+        self._connection.client.close()
+
+    def __enter__(self) -> StophyToolkit:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
 
     def get_tools(self) -> list[BaseTool]:
+        def bind(tool: type[StophyTool]) -> BaseTool:
+            return tool(api_key=self.api_key, _toolkit_client=self._connection)
+
         return [
-            tool(api_key=self.api_key)
+            bind(tool)
             for tool in (
                 StophyWebSearch,
                 StophyReadPage,

@@ -1,6 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 import { Stophy, StophyError, type StophyOptions } from "../../packages/typescript/src/index";
 import type { JsonObject } from "../../packages/typescript/src/json";
+import { createCaller } from "../../packages/typescript/src/transport";
 import { acceptJobs, fakeApi } from "./fake-api";
 
 const closers: (() => void)[] = [];
@@ -43,7 +44,7 @@ test("a batch whose answer was lost runs once, even when it keeps no data", asyn
   expect(jobs.charges.length).toBe(1);
 });
 
-test("every POST carries a fresh key, and the same key on each retry of one call", async () => {
+test("supported writes use a fresh key for each call and hold it across retries", async () => {
   const jobs = acceptJobs(["drop"]);
   const fake = await api(jobs.answer);
   const client = clientFor(fake.baseUrl);
@@ -86,6 +87,164 @@ test("a charged call that keeps no data is not sent again after a lost answer", 
   expect(error).toBeInstanceOf(TypeError);
   expect(error.outcomeUnknown).toBe(true);
   expect(fake.received.length).toBe(1);
+});
+
+test.each([
+  ["/v1/signup", undefined],
+  ["/v1/signup/poll", "caller-key"],
+  ["/v1/browser", "caller-key"],
+  ["/v1/interact", undefined],
+  ["/v1/search/developer", undefined],
+])("%s does not replay a lost answer even if the caller sends a key", async (path, key) => {
+  const jobs = acceptJobs();
+  const fake = await api((request, count) => jobs.answer({ ...request, key: undefined }, count));
+  const call = createCaller({
+    apiKey: "k",
+    baseUrl: fake.baseUrl,
+    retryInitialDelayMs: 0,
+  });
+  await expect(
+    call({ method: "POST", path, body: {}, options: { idempotencyKey: key } }),
+  ).rejects.toMatchObject({ outcomeUnknown: true });
+  expect(fake.received.map((request) => request.key)).toEqual([key]);
+  expect(jobs.charges).toEqual(["job_1"]);
+});
+
+test.each(["/v1/agent", "/v1/browser/task"])(
+  "%s replays a lost answer with a stable key",
+  async (path) => {
+    const jobs = acceptJobs();
+    const fake = await api(jobs.answer);
+    const call = createCaller({ apiKey: "k", baseUrl: fake.baseUrl, retryInitialDelayMs: 0 });
+    await expect(call({ method: "POST", path, body: {} })).resolves.toMatchObject({ id: "job_1" });
+    expect(fake.received).toHaveLength(2);
+    expect(fake.received[0]?.key).toBeString();
+    expect(fake.received[1]?.key).toBe(fake.received[0]?.key);
+    expect(jobs.charges).toEqual(["job_1"]);
+  },
+);
+
+test("a safe rejection can retry an unguarded write", async () => {
+  const fake = await api((_, count) =>
+    count === 1
+      ? { status: 429, body: flat("rateLimited", true, { retryAfterSeconds: 0 }) }
+      : { status: 201, body: { success: true, data: { code: "signup-1" } } },
+  );
+  await expect(clientFor(fake.baseUrl).signup()).resolves.toMatchObject({
+    data: { code: "signup-1" },
+  });
+  expect(fake.received.map((request) => request.key)).toEqual([undefined, undefined]);
+});
+
+test("a retry sends the original body even if the input changes", async () => {
+  const urls = ["https://a.test"];
+  const jobs = acceptJobs();
+  const fake = await api((request, count) => {
+    urls[0] = "https://b.test";
+    return jobs.answer(request, count);
+  });
+  const result = await clientFor(fake.baseUrl).batch.scrape({ urls });
+  expect(result.id).toBe("job_1");
+  expect(fake.received.map((request) => request.body)).toEqual([
+    '{"urls":["https://a.test"]}',
+    '{"urls":["https://a.test"]}',
+  ]);
+});
+
+test.each(["/v1/scrape", "/v1/search", "/v1/map", "/v1/parse"])(
+  "keyless %s retries a 5xx and a lost reply",
+  async (path) => {
+    const result = { success: true, data: { answer: "found" } };
+    const fake = await api((_, count) => {
+      if (count === 1) return { status: 503, body: flat("internalError", true) };
+      if (count === 2) return "drop";
+      return { status: 200, body: result };
+    });
+    const call = createCaller({ baseUrl: fake.baseUrl, retryInitialDelayMs: 0 });
+    await expect(call({ method: "POST", path, body: {} })).resolves.toEqual(result);
+    expect(fake.received.map((request) => request.key)).toEqual([undefined, undefined, undefined]);
+  },
+);
+
+test("a keyless signup poll does not replay a possibly collected key", async () => {
+  const fake = await api(() => "drop");
+  const client = clientFor(fake.baseUrl, { apiKey: undefined });
+  await expect(client.signup.poll({ code: "claim" })).rejects.toMatchObject({
+    outcomeUnknown: true,
+  });
+  expect(fake.received).toHaveLength(1);
+});
+
+test("a scrape that keeps no data retries a definite source failure", async () => {
+  const result = { success: true, data: { markdown: "found" } };
+  const fake = await api((_, count) => {
+    if (count === 1) return { status: 504, body: flat("sourceTimeout", true) };
+    if (count === 2) return { status: 503, body: flat("sourceUnavailable", true) };
+    return { status: 200, body: result };
+  });
+  const page = await clientFor(fake.baseUrl).scrape({
+    url: "https://a.test",
+    zeroDataRetention: true,
+  });
+  expect(page.data.markdown).toBe("found");
+  expect(fake.received).toHaveLength(3);
+});
+
+test("an ambiguous HTTP error on an unprotected write keeps its API error fields", async () => {
+  const fake = await api(() => ({
+    status: 504,
+    body: flat("sourceTimeout", true, { retryAfterSeconds: 0 }),
+    headers: { "x-request-id": "header-request-id", "retry-after": "120" },
+  }));
+  await expect(
+    clientFor(fake.baseUrl).extract({
+      urls: ["https://a.test"],
+      prompt: "price",
+      zeroDataRetention: true,
+    }),
+  ).rejects.toMatchObject({
+    outcomeUnknown: true,
+    status: 504,
+    code: "sourceTimeout",
+    retryable: true,
+    requestId: "body-request-id",
+    retryAfterSeconds: 0,
+  });
+  expect(fake.received).toHaveLength(1);
+});
+
+test("a write whose response body is lost still follows its replay policy", async () => {
+  const received: (string | null)[] = [];
+  const client = clientFor("https://fake.test", {
+    fetch: async (_, init) => {
+      received.push(new Headers(init?.headers).get("idempotency-key"));
+      if (received.length === 2) return Response.json({ success: true, id: "job_1" });
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.error(new TypeError("response disconnected"));
+          },
+        }),
+      );
+    },
+  });
+  await expect(client.crawl({ url: "https://a.test" })).resolves.toMatchObject({ id: "job_1" });
+  expect(received[0]).toBeString();
+  expect(received[1]).toBe(received[0]);
+  await expect(client.signup()).rejects.toMatchObject({ outcomeUnknown: true });
+  expect(received).toHaveLength(3);
+  expect(received[2]).toBeNull();
+});
+
+test("a browser task lookup uses its key and retries after a lost answer", async () => {
+  const fake = await api((_, count) =>
+    count === 1 ? "drop" : { status: 200, body: { success: true, data: { status: "done" } } },
+  );
+  await expect(clientFor(fake.baseUrl).browser.task.status({ id: "job_1" })).resolves.toMatchObject(
+    { data: { status: "done" } },
+  );
+  expect(fake.received[0]?.key).toBeString();
+  expect(fake.received[1]?.key).toBe(fake.received[0]?.key);
 });
 
 test("a crawl that times out is sent again with the same key and runs once", async () => {

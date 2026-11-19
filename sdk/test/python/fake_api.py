@@ -12,11 +12,14 @@ Answer = Union[Tuple[int, Any], str]
 class FakeApi:
     def __init__(self, answer: Callable[[Optional[str], int], Answer]) -> None:
         self.keys: List[Optional[str]] = []
+        self.bodies: list[bytes] = []
         outer = self
 
         class Handler(BaseHTTPRequestHandler):
             def do_POST(self) -> None:
-                self.rfile.read(int(self.headers.get("content-length", 0)))
+                outer.bodies.append(
+                    self.rfile.read(int(self.headers.get("content-length", 0)))
+                )
                 key = self.headers.get("idempotency-key")
                 outer.keys.append(key)
                 reply = answer(key, len(outer.keys))

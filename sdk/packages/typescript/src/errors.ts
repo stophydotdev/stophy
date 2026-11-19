@@ -10,6 +10,7 @@ export class StophyError extends Error {
   readonly status: number;
   readonly requestId?: string;
   readonly details: Record<string, JsonValue>;
+  declare readonly outcomeUnknown?: true;
 
   constructor(
     message: string,

@@ -24,7 +24,17 @@ result = agent.invoke(
 print(result["messages"][-1].content)
 ```
 
-The agent searches, picks a page, reads it and answers. `StophyToolkit(api_key="...").get_tools()` returns every tool below with one key, for when you want to hand the agent all of them.
+The agent searches, picks a page, reads it and answers. To give an agent every tool below, get them from a `StophyToolkit`. Keep the toolkit open while its tools are in use.
+
+```python
+from langchain_stophy import StophyToolkit
+
+with StophyToolkit() as toolkit:
+    search = next(tool for tool in toolkit.get_tools() if tool.name == "stophy_web_search")
+    print(search.invoke({"query": "bun runtime"}))
+```
+
+If you don't use a `with` block, call `toolkit.close()` after the last tool call. A toolkit reads `STOPHY_API_KEY` and `STOPHY_BASE_URL` when you create it. If either changes, close the old toolkit and create a new one.
 
 ## Tools
 
