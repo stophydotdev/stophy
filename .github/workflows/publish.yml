@@ -194,7 +194,7 @@ jobs:
           path: cli/artifacts
       - run: |
           mkdir -p release binaries
-          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release/ \;
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.exe" \) -exec cp {} release/ \;
           for dir in artifacts/stophy-linux-*/; do
             find "$dir" -type f ! -name "*.tar.gz" ! -name "*.zip" -exec cp {} binaries/ \;
           done

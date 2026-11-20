@@ -147,6 +147,11 @@ jobs:
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.binary }}
+      - name: Windows installer platform checks
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: .
+        run: ./sdk/test/typescript/windows-installer.ps1
       - if: runner.os != 'Windows'
         run: |
           chmod +x ${{ matrix.binary }}
