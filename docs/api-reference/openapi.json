@@ -3,7 +3,7 @@
   "info": {
     "title": "Stophy API",
     "version": "1",
-    "description": "Each operation shows its method and its input: a JSON object body, path and query parameters, or a file upload.\n\nResponses leave out empty values: null, empty strings, empty objects and empty nested lists are not sent.\n\nText comes back whole. To get shorter responses, add ?maxTextLength=<characters> to the URL. Every text value longer than that is cut and ends with …. A screenshot is never cut, and a page whose text was cut has isTruncated set to true.\n\nx-cost-usd is what one call costs, in dollars. Every call costs the same, whatever it returns, unless an operation's description says it costs per 10 results, or per hour of audio. Then x-cost-usd is the lowest price and x-cost-usd-max the most one call can cost. Where an operation takes limit, send it to return fewer results and pay for fewer.\n\nWhen a response has a cursor, send it back unchanged with the same input to get the next page. When it has a page, send the next page number."
+    "description": "Each operation shows its method and its input: a JSON object body, path and query parameters, or a file upload.\n\nResponses leave out empty values: null, empty strings, empty objects and empty nested lists are not sent.\n\nText comes back whole. To get shorter responses, add ?maxTextLength=<characters> to the URL. Every text value longer than that is cut and ends with …. A screenshot is never cut, and a page whose text was cut has isTruncated set to true.\n\nThe x-cost-usd response header is what the request cost in dollars. An operation's description gives its pricing units and add-ons. The OpenAPI fields x-cost-usd and x-cost-usd-max are list-price estimates, not receipts or spending limits. When a call starts a job, check the job result for its total cost.\n\nWhen a response has a cursor, send it back unchanged with the same input to get the next page. When it has a page, send the next page number."
   },
   "servers": [
     {
@@ -1062,7 +1062,7 @@
         }
       },
       "IdempotentReplayed": {
-        "description": "true when this answer was kept from an earlier call with the same Idempotency-Key.",
+        "description": "true when this call reuses the result of an earlier call with the same Idempotency-Key.",
         "schema": {
           "type": "string"
         }
@@ -5296,7 +5296,13 @@
       "post": {
         "operationId": "browserCreate",
         "summary": "Open a cloud browser session.",
-        "description": "$0.06 per hour open, $0.84 per hour once a prompt has run, billed when it closes, one minute at least. Traffic adds $5 per GB on the default network, and $0.20 per GB direct or through your own proxy. ttl is the most it can live, activityTtl how long it waits with no call before it closes.",
+        "description": "$0.06 per hour open, or $0.84 per hour for the whole session once a prompt has run. You pay when the session closes. Code-only time rounds up to 2-minute blocks. Prompted time has a one-minute minimum and the charge rounds up in $0.002 increments. Traffic adds $5 per GB on the default network, rounded up in 400 kB blocks, or $0.20 per GB direct or through your own proxy, rounded up in 10 MB blocks. ttl is the most it can live, activityTtl how long it waits with no call before it closes.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey",
+            "description": "Use the same key and create options on the same account to recover a running session without another hold. The key also works on POST /v1/interact and lasts 24 hours after the session opens. A different body or an ended session returns 409. Use a new key to open another session. If you get 503 with Retry-After, retry with the same key."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5462,6 +5468,9 @@
               },
               "X-RateLimit-Reset": {
                 "$ref": "#/components/headers/RateLimitReset"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
               }
             },
             "content": {
@@ -6245,6 +6254,10 @@
                     "creditsBilled": {
                       "type": "integer"
                     },
+                    "sessionCostUsd": {
+                      "type": "number",
+                      "description": "Present when the session was billed before this call. costUsd is then zero and this is the earlier charge in dollars."
+                    },
                     "creditsUsed": {
                       "type": "integer"
                     },
@@ -6536,7 +6549,7 @@
       "get": {
         "operationId": "browserDownloads",
         "summary": "List the files an open browser session downloaded.",
-        "description": "Free. Sorted by name. Send nextCursor as cursor for the next page. includeUrls true adds a url for each file up to 10 MB that works for 15 minutes with no key. The files are removed when the session closes, so fetch them first. Answers 409 when the session is not running.",
+        "description": "Free. Sorted by name. Send nextCursor as cursor for the next page. includeUrls true adds a url for each file up to 100 MB that works for 15 minutes with no key. The files are removed when the session closes, so fetch them first. Answers 409 when the session is not running.",
         "parameters": [
           {
             "name": "session_id",
@@ -6765,7 +6778,8 @@
                       "description": "true when the code ran out of time."
                     },
                     "truncated": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "True when standard output contains a notice that it was cut. A large returned result can be dropped without setting this flag."
                     },
                     "error": {
                       "type": "string"
@@ -7700,7 +7714,8 @@
                       "description": "true when the code ran out of time."
                     },
                     "truncated": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "True when standard output contains a notice that it was cut. A large returned result can be dropped without setting this flag."
                     },
                     "error": {
                       "type": "string"
@@ -7866,7 +7881,7 @@
     "/v1/search/research/papers": {
       "get": {
         "summary": "Search research papers by title and abstract.",
-        "description": "Costs $0.001 for each 10 results; no results cost nothing.",
+        "description": "Costs $0.001 per block of up to 10 returned results; no results cost nothing.",
         "responses": {
           "200": {
             "description": "The results.",
@@ -8031,7 +8046,7 @@
       },
       "post": {
         "summary": "Search research papers by title and abstract.",
-        "description": "Costs $0.001 for each 10 results; no results cost nothing.",
+        "description": "Costs $0.001 per block of up to 10 returned results; no results cost nothing.",
         "responses": {
           "200": {
             "description": "The results.",
@@ -8182,7 +8197,7 @@
       "get": {
         "operationId": "researchPaper",
         "summary": "Read one paper by its paperId, doi:<DOI> or arxiv:<id>.",
-        "description": "Costs $1 per 1,000 pages. With query, also returns the passages that match it.",
+        "description": "Costs $0.001 per paper. With query, also returns the passages that match it.",
         "parameters": [
           {
             "name": "id",
@@ -8289,7 +8304,7 @@
       "get": {
         "operationId": "researchPaperSimilar",
         "summary": "Find papers like this one.",
-        "description": "Costs $0.001 for each 10 results; no results cost nothing.",
+        "description": "Costs $0.001 per block of up to 10 returned results; no results cost nothing.",
         "parameters": [
           {
             "name": "id",
@@ -8455,7 +8470,7 @@
     "/v1/search/developer": {
       "get": {
         "summary": "Search code docs, READMEs, issues, pull requests and releases.",
-        "description": "Costs $0.001 for each 10 results; no results cost nothing.",
+        "description": "Costs $0.001 per block of up to 10 returned results; no results cost nothing.",
         "responses": {
           "200": {
             "description": "The results.",
@@ -8684,7 +8699,7 @@
       },
       "post": {
         "summary": "Search code docs, READMEs, issues, pull requests and releases.",
-        "description": "Costs $0.001 for each 10 results; no results cost nothing.",
+        "description": "Costs $0.001 per block of up to 10 returned results; no results cost nothing.",
         "responses": {
           "200": {
             "description": "The results.",
@@ -8889,7 +8904,7 @@
     "/v1/monitor": {
       "post": {
         "operationId": "monitorCreate",
-        "summary": "Watch pages on a schedule. Each check reads every page and records what changed. Costs what a scrape costs per page, every check.",
+        "summary": "Watch pages and search results on a schedule and record what changed. A check costs $1 per 1,000 pages for page targets. For each search target, the charge is $0.001 per block of up to 10 results after merging and deduplicating results from its queries. Watched JSON adds $3 per 1,000 pages when it comes back. Each judgement adds $0.001.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9426,11 +9441,11 @@
                         },
                         "estimatedCreditsPerMonth": {
                           "type": "integer",
-                          "description": "Older field: pages watched times checks in 30 days, in $0.002 steps."
+                          "description": "Older field: the estimated cost over 30 days, in $0.002 steps."
                         },
                         "estimatedCostUsdPerMonth": {
                           "type": "number",
-                          "description": "Pages watched times checks in 30 days, at $1 per 1,000 pages, in dollars."
+                          "description": "Estimated cost of scheduled checks over 30 days, including search, watched JSON and judging, in dollars."
                         },
                         "webhook": {
                           "type": [
@@ -9464,7 +9479,7 @@
                         },
                         "costUsd": {
                           "type": "number",
-                          "description": "What this call cost, in dollars."
+                          "description": "Cost recorded in this monitor's page history, in dollars. It excludes search targets. For each check's charge, see actualCostUsd on the check."
                         }
                       }
                     },
@@ -9618,11 +9633,11 @@
                           },
                           "estimatedCreditsPerMonth": {
                             "type": "integer",
-                            "description": "Older field: pages watched times checks in 30 days, in $0.002 steps."
+                            "description": "Older field: the estimated cost over 30 days, in $0.002 steps."
                           },
                           "estimatedCostUsdPerMonth": {
                             "type": "number",
-                            "description": "Pages watched times checks in 30 days, at $1 per 1,000 pages, in dollars."
+                            "description": "Estimated cost of scheduled checks over 30 days, including search, watched JSON and judging, in dollars."
                           },
                           "webhook": {
                             "type": [
@@ -9656,7 +9671,7 @@
                           },
                           "costUsd": {
                             "type": "number",
-                            "description": "What this call cost, in dollars."
+                            "description": "Cost recorded in this monitor's page history, in dollars. It excludes search targets. For each check's charge, see actualCostUsd on the check."
                           }
                         }
                       }
@@ -9801,11 +9816,11 @@
                         },
                         "estimatedCreditsPerMonth": {
                           "type": "integer",
-                          "description": "Older field: pages watched times checks in 30 days, in $0.002 steps."
+                          "description": "Older field: the estimated cost over 30 days, in $0.002 steps."
                         },
                         "estimatedCostUsdPerMonth": {
                           "type": "number",
-                          "description": "Pages watched times checks in 30 days, at $1 per 1,000 pages, in dollars."
+                          "description": "Estimated cost of scheduled checks over 30 days, including search, watched JSON and judging, in dollars."
                         },
                         "webhook": {
                           "type": [
@@ -9839,7 +9854,7 @@
                         },
                         "costUsd": {
                           "type": "number",
-                          "description": "What this call cost, in dollars."
+                          "description": "Cost recorded in this monitor's page history, in dollars. It excludes search targets. For each check's charge, see actualCostUsd on the check."
                         }
                       }
                     },
@@ -10369,11 +10384,11 @@
                         },
                         "estimatedCreditsPerMonth": {
                           "type": "integer",
-                          "description": "Older field: pages watched times checks in 30 days, in $0.002 steps."
+                          "description": "Older field: the estimated cost over 30 days, in $0.002 steps."
                         },
                         "estimatedCostUsdPerMonth": {
                           "type": "number",
-                          "description": "Pages watched times checks in 30 days, at $1 per 1,000 pages, in dollars."
+                          "description": "Estimated cost of scheduled checks over 30 days, including search, watched JSON and judging, in dollars."
                         },
                         "webhook": {
                           "type": [
@@ -10407,7 +10422,7 @@
                         },
                         "costUsd": {
                           "type": "number",
-                          "description": "What this call cost, in dollars."
+                          "description": "Cost recorded in this monitor's page history, in dollars. It excludes search targets. For each check's charge, see actualCostUsd on the check."
                         }
                       }
                     },
@@ -10515,7 +10530,7 @@
     "/v1/monitor/{id}/run": {
       "post": {
         "operationId": "monitorRun",
-        "summary": "Check the monitor now, outside its schedule. Answers 409 while a check is running or the monitor is paused. Costs what the pages cost.",
+        "summary": "Check the monitor now, outside its schedule. Answers 409 while a check is running or the monitor is paused. A check costs $1 per 1,000 pages for page targets. For each search target, the charge is $0.001 per block of up to 10 results after merging and deduplicating results from its queries. Watched JSON adds $3 per 1,000 pages when it comes back. Each judgement adds $0.001.",
         "parameters": [
           {
             "name": "id",
@@ -10603,11 +10618,11 @@
                         },
                         "estimatedCredits": {
                           "type": "integer",
-                          "description": "Older field: the most the check costs before extras, in $0.002 steps."
+                          "description": "Older field: the estimated cost of this check, in $0.002 steps."
                         },
                         "estimatedCostUsd": {
                           "type": "number",
-                          "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
+                          "description": "Estimated cost of this check, including search, watched JSON and judging, in dollars."
                         },
                         "reservedCredits": {
                           "type": [
@@ -10836,11 +10851,11 @@
                           },
                           "estimatedCredits": {
                             "type": "integer",
-                            "description": "Older field: the most the check costs before extras, in $0.002 steps."
+                            "description": "Older field: the estimated cost of this check, in $0.002 steps."
                           },
                           "estimatedCostUsd": {
                             "type": "number",
-                            "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
+                            "description": "Estimated cost of this check, including search, watched JSON and judging, in dollars."
                           },
                           "reservedCredits": {
                             "type": [
@@ -11076,11 +11091,11 @@
                             },
                             "estimatedCredits": {
                               "type": "integer",
-                              "description": "Older field: the most the check costs before extras, in $0.002 steps."
+                              "description": "Older field: the estimated cost of this check, in $0.002 steps."
                             },
                             "estimatedCostUsd": {
                               "type": "number",
-                              "description": "Pages watched at $1 per 1,000 pages, plus the search and judge the monitor uses: the most the check costs before extras, in dollars."
+                              "description": "Estimated cost of this check, including search, watched JSON and judging, in dollars."
                             },
                             "reservedCredits": {
                               "type": [
@@ -11369,7 +11384,7 @@
       "post": {
         "operationId": "search",
         "summary": "Search the web, news, images, scholarly papers and YouTube videos in one call",
-        "description": "Costs $0.001 for each 10 results from each source and each research or videos list ($1 per 1,000 searches of up to 10 results), plus $1 per 1,000 web or news results that come back with their page text when scrapeOptions has formats, and $3 per 1,000 more for each summary or json with a schema or prompt that returns something.",
+        "description": "Costs $0.001 per block of up to 10 returned results, counted separately for each source and each research or videos list ($1 per 1,000 single-source searches returning 1 to 10 results). With scrapeOptions.formats, page reads and their add-ons use scrape pricing, starting at $1 per 1,000 pages for a standard read.",
         "security": [
           {
             "apiKey": []
@@ -11569,11 +11584,11 @@
                     "type": "boolean"
                   },
                   "scrapeOptions": {
-                    "description": "With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. Costs what scrape costs for each page read: $1 per 1,000 pages, plus $3 per 1,000 pages for each summary or json with a schema or prompt that returns something.",
+                    "description": "With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. redactPII uses patterns on web descriptions, news snippets, research snippets and video snippets, even without formats, when sources has web or news. Titles and URLs are unchanged. Snippets can still contain names and places that patterns miss. With formats, page reads and their add-ons use scrape pricing, starting at $1 per 1,000 pages for a standard read.",
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "default": [
                           "markdown"
                         ],
@@ -14050,7 +14065,7 @@
       "post": {
         "operationId": "scrape",
         "summary": "Scrape any public web page as markdown, HTML, links, a screenshot or JSON",
-        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. metadata.costUsd shows what the call cost in dollars.",
+        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. A page that comes back with an error status does not incur the zeroDataRetention surcharge. metadata.costUsd shows what the call cost in dollars.",
         "security": [
           {
             "apiKey": []
@@ -14080,7 +14095,7 @@
                     "type": "string"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -15275,7 +15290,7 @@
       "post": {
         "operationId": "extract",
         "summary": "Pull the fields you name from any public page as JSON, each checked against the page",
-        "description": "Costs $5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free.",
+        "description": "Costs $5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free. The catalog estimate is for ordinary pages, not a spending limit for PDF reads or other add-ons.",
         "x-credits": 3,
         "x-credits-max": 48,
         "x-cost-usd": 0.005,
@@ -15893,7 +15908,7 @@
                       },
                       "storeInCache": {
                         "default": true,
-                        "description": "Send false to neither read nor keep a stored copy of this page.",
+                        "description": "Send false to skip reading and saving stored copies. Use zeroDataRetention to read live without saving a copy.",
                         "type": "boolean"
                       },
                       "lockdown": {
@@ -16372,6 +16387,10 @@
                             "title": {
                               "type": "string"
                             },
+                            "pageText": {
+                              "description": "The page the task ended on, as the browser showed it, so you can check the answer against it.",
+                              "type": "string"
+                            },
                             "seconds": {
                               "type": "number"
                             },
@@ -16411,6 +16430,130 @@
                         "status",
                         "creditsUsed",
                         "costUsd"
+                      ]
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "costUsd": {
+                      "type": "number",
+                      "description": "What this call cost, in dollars."
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/browser/task/cancel": {
+      "post": {
+        "operationId": "browserTaskCancel",
+        "summary": "Stop a browser task you started",
+        "description": "Costs $0 per 1,000 calls.",
+        "x-credits": 0,
+        "x-cost-usd": 0,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MaxTextLength"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "description": "The id browser.task returned."
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The data, and what this call cost in dollars.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "x-credits-used": {
+                "$ref": "#/components/headers/CreditsUsed"
+              },
+              "x-cost-usd": {
+                "$ref": "#/components/headers/CostUsd"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              },
+              "x-cache": {
+                "$ref": "#/components/headers/Cache"
+              },
+              "x-cache-age": {
+                "$ref": "#/components/headers/CacheAge"
+              },
+              "idempotent-replayed": {
+                "$ref": "#/components/headers/IdempotentReplayed"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "costUsd",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "cancelling",
+                            "done"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "status"
                       ]
                     },
                     "creditsUsed": {
@@ -17089,6 +17232,10 @@
                     "description": "List each page once, without its ?query part.",
                     "type": "boolean"
                   },
+                  "deduplicateSimilarURLs": {
+                    "description": "Send false to list distinct addresses such as /docs/a, /docs/a/ and /docs/a.md.",
+                    "type": "boolean"
+                  },
                   "ignoreCache": {
                     "default": false,
                     "description": "Send true to build the list again instead of reusing one made in the last 6 hours.",
@@ -17224,7 +17371,7 @@
       "post": {
         "operationId": "crawl",
         "summary": "Crawl a website in the background",
-        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.",
+        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. Each page is charged when it finishes. Starting the job is free.",
         "x-credits": 0,
         "x-credits-max": 582500,
         "x-cost-usd": 0,
@@ -17346,7 +17493,7 @@
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "default": [
                           "markdown"
                         ],
@@ -18569,6 +18716,16 @@
             }
           },
           {
+            "name": "checkpoint",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "description": "Send ck_start to start reading with checkpoints. Send the returned checkpoint here to resume, even when no more pages are ready.",
+              "type": "string",
+              "pattern": "^(?:ck_(?:start|[A-Za-z0-9_-]{20,32}))$"
+            }
+          },
+          {
             "name": "cursor",
             "in": "query",
             "required": false,
@@ -18707,6 +18864,12 @@
                       "type": "string"
                     },
                     "next": {
+                      "type": "string"
+                    },
+                    "checkpoint": {
+                      "type": "string"
+                    },
+                    "message": {
                       "type": "string"
                     },
                     "data": {
@@ -19355,7 +19518,7 @@
       "post": {
         "operationId": "batchScrape",
         "summary": "Scrape many pages in the background",
-        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.",
+        "description": "Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. Each page is charged when it finishes. The catalog estimate is per page, not for the whole batch. Starting the job is free.",
         "x-credits": 0,
         "x-credits-max": 59,
         "x-cost-usd": 0,
@@ -19456,7 +19619,7 @@
                     "type": "boolean"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. json with rules or a parser, and attributes, cost nothing more. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -20649,6 +20812,16 @@
             }
           },
           {
+            "name": "checkpoint",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "description": "Send ck_start to start reading with checkpoints. Send the returned checkpoint here to resume, even when no more pages are ready.",
+              "type": "string",
+              "pattern": "^(?:ck_(?:start|[A-Za-z0-9_-]{20,32}))$"
+            }
+          },
+          {
             "name": "cursor",
             "in": "query",
             "required": false,
@@ -20787,6 +20960,9 @@
                       "type": "string"
                     },
                     "next": {
+                      "type": "string"
+                    },
+                    "checkpoint": {
                       "type": "string"
                     },
                     "data": {
@@ -21270,7 +21446,7 @@
       "post": {
         "operationId": "agent",
         "summary": "Give it a task and it searches, reads pages and fills your fields, with a quote for each",
-        "description": "Costs each search and page at its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, never more than maxCredits. Each step is charged when it finishes. Starting the run is free.",
+        "description": "Costs each search and page at its normal price, plus $0.003 for each planning or answering step that returns something, never more than maxCredits. Each step is charged when it finishes. Starting the run is free.",
         "x-credits": 0,
         "x-credits-max": 2500,
         "x-cost-usd": 0,
@@ -21335,7 +21511,7 @@
                     "maxLength": 100
                   },
                   "mode": {
-                    "description": "extract (the default) fills your fields on every turn. chat lets a follow-up that asks for no new data get a short reply in message, for $3 per 1,000 pages, instead of a new run. Needs threadId. A follow-up that omits mode keeps the thread's mode.",
+                    "description": "extract (the default) fills your fields on every turn. chat lets a follow-up that asks for no new data get a short reply in message, for $0.003 per reply, instead of a new run. Needs threadId. A follow-up that omits mode keeps the thread's mode.",
                     "type": "string",
                     "enum": [
                       "extract",
@@ -21594,6 +21770,7 @@
             "in": "query",
             "required": false,
             "schema": {
+              "description": "Accepted for compatibility. Does not filter runs.",
               "type": "string",
               "maxLength": 200
             }

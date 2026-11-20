@@ -60,6 +60,7 @@ export interface HttpResponse {
   readonly text: string;
   readonly json: JsonValue | undefined;
   readonly retryAfter: string | null;
+  readonly requestId: string | null;
   readonly costUsd: string | null;
   readonly rateLimit: {
     readonly limit: string | null;
@@ -122,6 +123,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
     text,
     json,
     retryAfter,
+    requestId: response.headers.get("X-Request-ID"),
     costUsd: response.headers.get("x-cost-usd"),
     rateLimit: {
       limit: response.headers.get("X-RateLimit-Limit"),

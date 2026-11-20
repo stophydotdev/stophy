@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Mapping
+from typing import Any, Iterator, Mapping
 
 import httpx
 
 from .generated.models import ParserName, ScrapeResponse
 from .generated.namespaces import SyncSurface
+from .results import OnCheckpoint, checkpoint_results
 from .transport import DEFAULT_BASE_URL, SyncTransport, camel_keys, default_headers, request_args
 
 
@@ -56,6 +57,50 @@ class Stophy(SyncSurface):
             formats=[{"type": "json", "parser": parser, "options": camel_keys(options)}]
             if options
             else [{"type": "json", "parser": parser}],
+        )
+
+    def crawl_results(
+        self,
+        id: str,
+        *,
+        checkpoint: str | None = None,
+        poll_interval: float = 2.0,
+        timeout: float = 900.0,
+        on_checkpoint: OnCheckpoint | None = None,
+    ) -> Iterator[Any]:
+        """Yields every finished page of a crawl as it arrives, until the job ends.
+
+        Pass the checkpoint you kept to resume. It reads one status page per pull and
+        raises StophyError with code resultsTimeout, and the checkpoint in details, at timeout.
+        """
+        return checkpoint_results(
+            lambda checkpoint: self.crawl.status(id=id, checkpoint=checkpoint),
+            checkpoint=checkpoint,
+            poll_interval=poll_interval,
+            timeout=timeout,
+            on_checkpoint=on_checkpoint,
+        )
+
+    def batch_scrape_results(
+        self,
+        id: str,
+        *,
+        checkpoint: str | None = None,
+        poll_interval: float = 2.0,
+        timeout: float = 900.0,
+        on_checkpoint: OnCheckpoint | None = None,
+    ) -> Iterator[Any]:
+        """Yields every finished page of a batch as it arrives, until the job ends.
+
+        Pass the checkpoint you kept to resume. It reads one status page per pull and
+        raises StophyError with code resultsTimeout, and the checkpoint in details, at timeout.
+        """
+        return checkpoint_results(
+            lambda checkpoint: self.batch.scrape.status(id=id, checkpoint=checkpoint),
+            checkpoint=checkpoint,
+            poll_interval=poll_interval,
+            timeout=timeout,
+            on_checkpoint=on_checkpoint,
         )
 
     def close(self) -> None:

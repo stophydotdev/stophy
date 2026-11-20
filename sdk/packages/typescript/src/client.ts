@@ -1,7 +1,13 @@
 import type { RequestOptions } from "./bind";
 import type { ParserName } from "./generated/parsers.gen";
 import { Surface } from "./generated/surface.gen";
-import type { ScrapeData, ScrapeResponse } from "./generated/types.gen";
+import type {
+  BatchScrapeStatusResponse,
+  CrawlStatusResponse,
+  ScrapeData,
+  ScrapeResponse,
+} from "./generated/types.gen";
+import { checkpointResults, type ResultsEnd, type ResultsOptions } from "./results";
 import { type CallOptions, createCaller, type FetchLike } from "./transport";
 
 export interface StophyOptions {
@@ -36,6 +42,26 @@ export class Stophy extends Surface {
       baseUrl: options.baseUrl ?? env("STOPHY_BASE_URL"),
     });
     super(call);
+  }
+
+  crawlResults(
+    id: string,
+    options?: ResultsOptions,
+  ): AsyncGenerator<NonNullable<CrawlStatusResponse["data"]>[number], ResultsEnd> {
+    return checkpointResults(
+      (checkpoint, call) => this.crawl.status({ id, checkpoint }, call),
+      options,
+    );
+  }
+
+  batchScrapeResults(
+    id: string,
+    options?: ResultsOptions,
+  ): AsyncGenerator<NonNullable<BatchScrapeStatusResponse["data"]>[number], ResultsEnd> {
+    return checkpointResults(
+      (checkpoint, call) => this.batch.scrape.status({ id, checkpoint }, call),
+      options,
+    );
   }
 
   parsed(

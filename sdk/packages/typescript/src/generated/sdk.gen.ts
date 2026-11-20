@@ -285,7 +285,7 @@ export const listEndpoints = <ThrowOnError extends boolean = false>(
 
 /**
  * Search code docs, READMEs, issues, pull requests and releases.
- * Costs $0.001 for each 10 results; no results cost nothing.
+ * Costs $0.001 per block of up to 10 returned results; no results cost nothing.
  */
 export const searchDeveloper = <ThrowOnError extends boolean = false>(
   options: Options<SearchDeveloperData, ThrowOnError>
@@ -312,7 +312,7 @@ export const searchDeveloper = <ThrowOnError extends boolean = false>(
 
 /**
  * Search the web, news, images, scholarly papers and YouTube videos in one call
- * Costs $0.001 for each 10 results from each source and each research or videos list ($1 per 1,000 searches of up to 10 results), plus $1 per 1,000 web or news results that come back with their page text when scrapeOptions has formats, and $3 per 1,000 more for each summary or json with a schema or prompt that returns something. Works without an API key, within free limits.
+ * Costs $0.001 per block of up to 10 returned results, counted separately for each source and each research or videos list ($1 per 1,000 single-source searches returning 1 to 10 results). With scrapeOptions.formats, page reads and their add-ons use scrape pricing, starting at $1 per 1,000 pages for a standard read. Works without an API key, within free limits.
  */
 export const search = <ThrowOnError extends boolean = false>(
   options: Options<SearchData, ThrowOnError>
@@ -339,7 +339,7 @@ export const search = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape any public web page as markdown, HTML, links, a screenshot or JSON
- * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. metadata.costUsd shows what the call cost in dollars. Works without an API key, within free limits.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. zeroDataRetention adds $2 per 1,000 scraped URLs, not per PDF page. A page that comes back with an error status does not incur the zeroDataRetention surcharge. metadata.costUsd shows what the call cost in dollars. Works without an API key, within free limits.
  */
 export const scrape = <ThrowOnError extends boolean = false>(
   options: Options<ScrapeData, ThrowOnError>
@@ -366,7 +366,7 @@ export const scrape = <ThrowOnError extends boolean = false>(
 
 /**
  * Pull the fields you name from any public page as JSON, each checked against the page
- * Costs $5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free.
+ * Costs $5 per 1,000 pages for most pages: the page's own price plus $4 per 1,000 pages. Each page after the first costs $1 per 1,000 pages more, and a long answer costs $1 per 1,000 pages more for every 64 values after the first 64, for each 40000 characters of page text read. A call that finds none of the fields is free. The catalog estimate is for ordinary pages, not a spending limit for PDF reads or other add-ons.
  */
 export const extract = <ThrowOnError extends boolean = false>(
   options: Options<ExtractData, ThrowOnError>
@@ -501,7 +501,7 @@ export const map = <ThrowOnError extends boolean = false>(
 
 /**
  * Crawl a website in the background
- * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. Each page is charged when it finishes. Starting the job is free.
  */
 export const crawl = <ThrowOnError extends boolean = false>(
   options: Options<CrawlData, ThrowOnError>
@@ -574,7 +574,7 @@ export const crawlStatus = <ThrowOnError extends boolean = false>(
 
 /**
  * Scrape many pages in the background
- * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. Each page is charged when it finishes. Starting the job is free.
+ * Costs $1 per 1,000 pages, however they are reached. checkPromptInjection adds $2.50 per 1,000 pages when the scan runs, json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A PDF adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that come back, so a PDF read with maxChars, offset or query is charged for the share of its pages that it returns, at least 1 page. Browser actions add nothing. An answer from a stored copy within maxAge costs $1 per 1,000 pages like any page. An unreadable page costs nothing. The base page price is waived for a readable 404 or 410. Each page is charged when it finishes. The catalog estimate is per page, not for the whole batch. Starting the job is free.
  */
 export const batchScrape = <ThrowOnError extends boolean = false>(
   options: Options<BatchScrapeData, ThrowOnError>
