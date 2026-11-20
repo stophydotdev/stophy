@@ -1178,6 +1178,7 @@ class BrowserTaskStatusResponseDataResult(TypedDict):
     steps: NotRequired[list[str]]
     url: NotRequired[str]
     title: NotRequired[str]
+    pageText: NotRequired[str]
     seconds: NotRequired[float]
     fields: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     confidence: NotRequired[dict[str, float]]
@@ -1447,6 +1448,8 @@ class CrawlStatusResponse(TypedDict):
     duration: NotRequired[float]
     expiresAt: NotRequired[str]
     next: NotRequired[str]
+    checkpoint: NotRequired[str]
+    message: NotRequired[str]
     data: list[CrawlStatusResponseDataItem]
 
 
@@ -1539,4 +1542,5 @@ class BatchScrapeStatusResponse(TypedDict):
     duration: NotRequired[float]
     expiresAt: NotRequired[str]
     next: NotRequired[str]
+    checkpoint: NotRequired[str]
     data: list[BatchScrapeStatusResponseDataItem]

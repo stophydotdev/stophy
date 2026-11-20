@@ -31,7 +31,7 @@ Some rules hold for every command:
 - Give options that take JSON, like `--formats '["markdown","links"]'`, as one quoted argument.
 - A value the command doesn't take stops the CLI before it calls Stophy, and it prints the values that work.
 
-`--json` prints the data as JSON and the cost to stderr. `--raw` prints the full response. `-o <path>` writes the output to a file. A failed call ends with `Request id: <id>`, which support will ask for.
+`--json` prints the data as JSON, then the cost and `request id: <id>` to stderr. `--raw` prints the full response with its `requestId`. `-o <path>` writes the output to a file. A failed call prints its message and `Request id: <id>` to stderr in every mode, and an agent also gets the error as JSON on stdout. Support will ask for the request id.
 
 ## Read a site with a parser
 

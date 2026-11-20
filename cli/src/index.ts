@@ -19,7 +19,7 @@ import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
 import { parseEndpointCall } from "./invoke.js";
 import { isAgentCommand, withJobEndpoints } from "./jobs.js";
-import { writeFailure } from "./output.js";
+import { writeFailure, writeFailureMessage } from "./output.js";
 import { withParserFlags } from "./parsers.js";
 import { ensureKey } from "./signup.js";
 import { maybeShowUpdateNotice } from "./update-notice.js";
@@ -138,7 +138,7 @@ async function main() {
 
 main().catch((error) => {
   const cliError = toCliError(error);
+  writeFailureMessage(cliError);
   if (isAgentMode()) writeFailure(cliError);
-  else console.error(cliError.message);
   process.exit(cliError.exitCode);
 });

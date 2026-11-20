@@ -2,7 +2,7 @@ import { formatUsd } from "./account.js";
 import { isAgentMode } from "./agent.js";
 import { currentArgs, flagTokens } from "./argv.js";
 import type { CatalogEndpoint } from "./catalog.js";
-import { request } from "./client.js";
+import { type HttpResponse, RequestError, request, withRequestId } from "./client.js";
 import { CliError } from "./errors.js";
 import { type ParsedCall, parseCall } from "./flags.js";
 import { isAgentCommand, requestFor, reserveAgentPrompt } from "./jobs.js";
@@ -35,18 +35,16 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
     isAgentMode() ? send() : withSpinner(`Calling ${endpoint.id.split(".").join(" ")}…`, send),
   );
 
-  const body = jsonRecord.safeParse(response.json);
-  if (!body.success) throw new CliError("Server returned an unexpected response shape.");
+  const parsed = jsonRecord.safeParse(response.json);
+  if (!parsed.success) throw unexpectedResponse(response);
+  const body = withReceiptId(parsed.data, response);
   const { format } = call;
   if (format === "text" && isAgentMode() && call.outputFile === undefined) {
-    handleOutput(agentLineOf(body.data));
+    handleOutput(agentLineOf(body));
     return;
   }
-  if (format === "json" && response.costUsd !== null) {
-    process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
-  }
   if (format === "text") {
-    const shown = shownOf(payloadOf(body.data));
+    const shown = shownOf(payloadOf(parsed.data));
     const text = renderData(shown);
     const emptyAgentList =
       endpoint.id === "agent.list" &&
@@ -54,11 +52,36 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
       Array.isArray(shown.agents) &&
       shown.agents.length === 0;
     writeOutput(text || (emptyAgentList ? "No agent runs found." : ""), call.outputFile);
+    writeReceipt(response, { cost: false, requestId: call.outputFile !== undefined });
     return;
   }
-  handleOutput(format === "raw" ? body.data : payloadOf(body.data), {
-    output: call.outputFile,
-  });
+  handleOutput(format === "raw" ? body : payloadOf(parsed.data), { output: call.outputFile });
+  writeReceipt(response, { cost: format === "json", requestId: format === "json" });
+}
+
+function unexpectedResponse({ status, requestId }: HttpResponse): RequestError {
+  const message = `Server returned an unexpected response shape (status ${status}).`;
+  return new RequestError(
+    withRequestId(message, requestId),
+    { code: "unexpectedResponse", message, retryable: false, requestId: requestId ?? undefined },
+    { status },
+  );
+}
+
+function withReceiptId(body: JsonRecord, { requestId }: HttpResponse): JsonRecord {
+  return requestId === null || body.requestId !== undefined ? body : { ...body, requestId };
+}
+
+function writeReceipt(
+  response: HttpResponse,
+  show: { readonly cost: boolean; readonly requestId: boolean },
+) {
+  if (show.cost && response.costUsd !== null) {
+    process.stderr.write(`cost: ${formatUsd(Number(response.costUsd))}\n`);
+  }
+  if (show.requestId && response.requestId !== null) {
+    process.stderr.write(`request id: ${response.requestId}\n`);
+  }
 }
 
 function without(body: JsonRecord, dropped: readonly string[]): JsonRecord {

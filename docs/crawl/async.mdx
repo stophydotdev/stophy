@@ -115,6 +115,32 @@ Check `status` before reading the pages. While a crawl runs, `status` is `scrapi
 | `createdAt`, `completedAt`, `duration`, `expiresAt` | Times, and the seconds the crawl ran. The pages are removed at `expiresAt`. |
 | `next` | The URL of the next answer, when more finished pages are waiting. |
 
+## Read pages as they finish
+
+The SDKs read a crawl or a batch through its checkpoint. Send `checkpoint=ck_start` to `GET /v1/crawl/{id}` to start. Each answer returns a `checkpoint` and only the pages you have not seen. Send it back to read on, even when no new page is ready.
+
+<CodeGroup>
+```typescript TypeScript
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+for await (const page of stophy.crawlResults("<the id your crawl returned>")) {
+  console.log(page.metadata?.sourceURL);
+}
+```
+```python Python
+from stophy import Stophy
+
+stophy = Stophy()
+
+for page in stophy.crawl_results("<the id your crawl returned>"):
+    print(page["metadata"]["sourceURL"])
+```
+</CodeGroup>
+
+The iterator reads one answer at a time, waits while the job runs, and ends once the job is over and every page was delivered. Two pages that share a final URL both come back. It stops with `resultsTimeout` after 15 minutes without finishing: pass `timeoutMs` (`timeout` in Python) to change that. Keep the checkpoint from `onCheckpoint` (`on_checkpoint` in Python) and pass it as `checkpoint` to resume after a restart. Use `batchScrapeResults` (`batch_scrape_results`) for a batch.
+
 ## Read page by page
 
 If you need the URL and depth of each page, use `GET /v1/crawl/{id}/results`. It returns the finished pages with more detail on each, 20 at a time. Send `limit` up to 100, and send `cursor` from the answer to read the next part. Keep going until `cursor` is missing.

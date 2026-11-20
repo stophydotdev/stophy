@@ -46,7 +46,7 @@ Each computer gets its own key, and logging in again replaces it. `stophy logout
 
 Pick the command based on what you have. Run `stophy search "bun runtime" --limit 5` for five search results. Use `stophy scrape` with a page URL, or `stophy map` with a site URL and `--limit 50` to list up to 50 URLs. Give `stophy crawl` a starting URL and `--limit 20` to read up to 20 pages. For a specific field, pass `--urls` and `--prompt` to `stophy extract`.
 
-Every command takes `--json` for the data as JSON, `--raw` for the full response and `-o <path>` to write the output to a file. With `--json`, the CLI also prints `cost: $<amount>` to stderr.
+Every command takes `--json` for the data as JSON, `--raw` for the full response and `-o <path>` to write the output to a file. With `--json`, the CLI also prints `cost: $<amount>` and `request id: <id>` to stderr. `--raw` includes the `requestId`. A failed call prints its message and request id to stderr.
 
 * Give a list as `--urls a,b` or `--urls a --urls b`.
 * Turn a yes-or-no option on with `--flag` and off with `--no-flag`.

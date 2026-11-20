@@ -609,6 +609,7 @@ class SyncMap:
         sitemap: MapSitemap | None = None,
         include_subdomains: bool | None = None,
         ignore_query_parameters: bool | None = None,
+        deduplicate_similar_urls: bool | None = None,
         ignore_cache: bool | None = None,
         limit: int | None = None,
         timeout: int | None = None,
@@ -622,6 +623,7 @@ class SyncMap:
                 "sitemap": sitemap,
                 "includeSubdomains": include_subdomains,
                 "ignoreQueryParameters": ignore_query_parameters,
+                "deduplicateSimilarURLs": deduplicate_similar_urls,
                 "ignoreCache": ignore_cache,
                 "limit": limit,
                 "timeout": timeout,
@@ -641,12 +643,14 @@ class SyncCrawlStatus:
         *,
         max_text_length: int | None = None,
         id: str,
+        checkpoint: str | None = None,
         cursor: str | None = None,
     ) -> CrawlStatusResponse:
         values = _omit_none(
             {
                 "maxTextLength": max_text_length,
                 "id": id,
+                "checkpoint": checkpoint,
                 "cursor": cursor,
             }
         )
@@ -739,12 +743,14 @@ class SyncBatchScrapeStatus:
         *,
         max_text_length: int | None = None,
         id: str,
+        checkpoint: str | None = None,
         cursor: str | None = None,
     ) -> BatchScrapeStatusResponse:
         values = _omit_none(
             {
                 "maxTextLength": max_text_length,
                 "id": id,
+                "checkpoint": checkpoint,
                 "cursor": cursor,
             }
         )
@@ -1435,6 +1441,7 @@ class AsyncMap:
         sitemap: MapSitemap | None = None,
         include_subdomains: bool | None = None,
         ignore_query_parameters: bool | None = None,
+        deduplicate_similar_urls: bool | None = None,
         ignore_cache: bool | None = None,
         limit: int | None = None,
         timeout: int | None = None,
@@ -1448,6 +1455,7 @@ class AsyncMap:
                 "sitemap": sitemap,
                 "includeSubdomains": include_subdomains,
                 "ignoreQueryParameters": ignore_query_parameters,
+                "deduplicateSimilarURLs": deduplicate_similar_urls,
                 "ignoreCache": ignore_cache,
                 "limit": limit,
                 "timeout": timeout,
@@ -1467,12 +1475,14 @@ class AsyncCrawlStatus:
         *,
         max_text_length: int | None = None,
         id: str,
+        checkpoint: str | None = None,
         cursor: str | None = None,
     ) -> CrawlStatusResponse:
         values = _omit_none(
             {
                 "maxTextLength": max_text_length,
                 "id": id,
+                "checkpoint": checkpoint,
                 "cursor": cursor,
             }
         )
@@ -1565,12 +1575,14 @@ class AsyncBatchScrapeStatus:
         *,
         max_text_length: int | None = None,
         id: str,
+        checkpoint: str | None = None,
         cursor: str | None = None,
     ) -> BatchScrapeStatusResponse:
         values = _omit_none(
             {
                 "maxTextLength": max_text_length,
                 "id": id,
+                "checkpoint": checkpoint,
                 "cursor": cursor,
             }
         )
