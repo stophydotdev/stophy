@@ -38,7 +38,7 @@ That call needs no key. Every method and result is typed, and each method sends 
 
 ## Read a site with a parser
 
-`stophy.parsed("google-maps", url)` calls `scrape` with the format `{"type": "json", "parser": ...}` and puts the result in `data.json`. The parser name is typed as `ParserName`, and `stophy.parsers()` returns each parser with the page it reads and what it returns. Extra keyword arguments are the parser's options, such as `page=2` for the next page. Paging needs an API key.
+`stophy.parsed("google-maps", url)` calls `scrape` with the format `{"type": "json", "parser": ...}` and puts the result in `data.json`. The parser name is typed as `ParserName`, and `stophy.parsers()` returns each parser with the page it reads and what it returns. Extra keyword arguments are the parser's options, such as `page=2` for the next page. The `idempotency_key` keyword sets the request's `Idempotency-Key` header. Paging needs an API key.
 
 ## Run a job in the background
 
@@ -59,9 +59,11 @@ Get a key at [stophy.dev/signup](https://stophy.dev/signup). The client reads `S
 
 ## Errors and retries
 
-A failed call raises a `StophyError`, which you import from `stophy`. It has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id` and `details`. The message is `str(error)`, and it says what went wrong and what to do next.
+API failures and malformed JSON responses raise a `StophyError`, which you import from `stophy`. It has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id`, `details` and `outcome_unknown`. The message is `str(error)`, and it says what went wrong and what to do next. Network and transport failures keep their original `httpx.TransportError` type, such as `httpx.ReadTimeout` or `httpx.ConnectError`. Invalid response compression keeps its `httpx.DecodingError` type. These exceptions are not wrapped in `StophyError`.
 
-The client retries network errors and the HTTP statuses 429, 500, 502, 503 and 504, and it waits as long as the API asks. If the API asks for a wait longer than 60 seconds, it raises right away with `retry_after_seconds` set.
+The SDK retries eligible reads and writes. If a write may have run and the SDK cannot safely replay it, the SDK stops and sets `outcome_unknown` to `True` on the exception, even if the API marked it `retryable`. This also applies to a malformed successful response. Check whether the work finished before sending a new request. On an `httpx` exception, use `getattr(error, "outcome_unknown", False)` because the attribute is only added when needed. If an HTTP retry would require waiting more than 60 seconds, the SDK raises `StophyError` with `retry_after_seconds` set.
+
+If a keyed request remains unresolved after a lost reply, an ambiguous HTTP failure such as a gateway 502/504, invalid response compression, or a malformed successful response, its original key is available in `StophyError.details["idempotencyKey"]` or the `httpx` exception's `idempotency_key` attribute. A later failure, including a rate limit, keeps that recovery key. To recover, send the same body with that `idempotency_key`; a new call without it generates a fresh key and may duplicate the work. This also works with `parsed(..., idempotency_key=key)` and `AsyncStophy`. Invalid `Retry-After` headers are ignored in favor of the normal retry delay.
 
 ## Docs
 

@@ -1,5 +1,14 @@
-import { type Tool, tool } from "ai";
-import { type ParserName, type ParserOptions, Stophy, type StophyClientInput } from "stophy";
+import type { Tool } from "ai" with { "resolution-mode": "import" };
+import { tool } from "ai";
+import type {
+  ParserName,
+  ParserOptions,
+  Stophy as StophyClient,
+  StophyClientInput,
+} from "stophy" with {
+  "resolution-mode": "import",
+};
+import { Stophy } from "stophy";
 import { z } from "zod";
 
 export type { StophyClientInput };
@@ -8,7 +17,7 @@ type DataOf<Endpoint extends (...args: never[]) => Promise<{ data?: object }>> =
   ReturnType<Endpoint>
 >["data"];
 
-type SiteData = DataOf<Stophy["parsed"]>["json"];
+type SiteData = DataOf<StophyClient["parsed"]>["json"];
 
 interface SitePage {
   url: string;
@@ -70,7 +79,7 @@ const PERIODS = { pastWeek: "qdr:w", pastMonth: "qdr:m", pastYear: "qdr:y" } as 
 
 export function webSearch(
   options?: StophyClientInput,
-): Tool<z.infer<typeof webSearchInput>, DataOf<Stophy["search"]>> {
+): Tool<z.infer<typeof webSearchInput>, DataOf<StophyClient["search"]>> {
   const stophy = new Stophy(options);
   return tool({
     description:
@@ -92,7 +101,7 @@ const readPageInput = z.object({
 
 export function readPage(
   options?: StophyClientInput,
-): Tool<z.infer<typeof readPageInput>, DataOf<Stophy["scrape"]>> {
+): Tool<z.infer<typeof readPageInput>, DataOf<StophyClient["scrape"]>> {
   const stophy = new Stophy(options);
   return tool({
     description: "Read a web page or PDF and return its text as markdown.",

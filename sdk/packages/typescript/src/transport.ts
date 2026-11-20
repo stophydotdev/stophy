@@ -151,14 +151,27 @@ const SEND_AGAIN =
   "Check before you send it again as a new call, or send it again with the same Idempotency-Key in details.idempotencyKey.";
 
 function mayStillComplete(error: StophyError, key: string): StophyError {
-  return new StophyError(`${error.message} An earlier send may still complete. ${SEND_AGAIN}`, {
-    status: error.status,
-    code: error.code,
-    retryable: error.retryable,
-    retryAfterSeconds: error.retryAfterSeconds,
-    requestId: error.requestId,
-    details: { ...error.details, idempotencyKey: key },
+  return Object.assign(
+    new StophyError(`${error.message} An earlier send may still complete. ${SEND_AGAIN}`, {
+      status: error.status,
+      code: error.code,
+      retryable: error.retryable,
+      retryAfterSeconds: error.retryAfterSeconds,
+      requestId: error.requestId,
+      details: { ...error.details, idempotencyKey: key },
+    }),
+    { outcomeUnknown: true },
+  );
+}
+
+function abortReason(signal: AbortSignal, key: string | undefined) {
+  const reason: unknown = signal.reason;
+  if (key === undefined) return reason;
+  const error = new Error(reason instanceof Error ? reason.message : "Stophy request cancelled", {
+    cause: reason,
   });
+  if (reason instanceof Error) error.name = reason.name;
+  return Object.assign(error, { idempotencyKey: key, outcomeUnknown: true });
 }
 
 async function send<Result>(
@@ -171,23 +184,25 @@ async function send<Result>(
 ): Promise<Result> {
   let earlierSendLost = false;
   const failWith = (error: StophyError) =>
-    plan.key !== undefined && earlierSendLost && mayHaveRun(error)
-      ? mayStillComplete(error, plan.key)
-      : error;
+    plan.key !== undefined && earlierSendLost ? mayStillComplete(error, plan.key) : error;
   for (let n = 0; ; n += 1) {
+    if (signal?.aborted) throw abortReason(signal, earlierSendLost ? plan.key : undefined);
     const deadline = withDeadline(signal, retry.timeoutMs);
     let waitMs: number;
     try {
       const answer = await baseFetch(url, init(deadline.signal))
         .then(async (response) => ({ response, text: await response.text() }))
         .catch((error: NetworkError) => {
-          if (signal?.aborted) throw error;
+          if (signal?.aborted) {
+            earlierSendLost ||= !(error instanceof Error) || requestMayHaveLeft(error);
+            throw abortReason(signal, earlierSendLost ? plan.key : undefined);
+          }
           const mayHaveLeft = requestMayHaveLeft(error);
           if (mayHaveLeft && !plan.replayable) throw Object.assign(error, { outcomeUnknown: true });
           if (error.name === "TimeoutError" && !plan.hasApiKey) throw error;
           if (n >= retry.maxRetries) {
             throw (mayHaveLeft || earlierSendLost) && plan.key !== undefined
-              ? Object.assign(error, { idempotencyKey: plan.key })
+              ? Object.assign(error, { idempotencyKey: plan.key, outcomeUnknown: true })
               : error;
           }
           earlierSendLost ||= mayHaveLeft;
@@ -197,8 +212,19 @@ async function send<Result>(
         waitMs = backoffMs(n, retry.initialDelayMs);
       } else {
         const { response, text } = answer;
-        if (response.ok) return readBody<Result>(response, text);
+        if (response.ok) {
+          try {
+            return readBody<Result>(response, text);
+          } catch (error) {
+            if (!(error instanceof StophyError)) throw error;
+            earlierSendLost = true;
+            throw !plan.replayable
+              ? Object.assign(error, { outcomeUnknown: true })
+              : failWith(error);
+          }
+        }
         const error = errorFrom(response, text);
+        earlierSendLost ||= error.code === undefined && mayHaveRun(error);
         const definiteScrapeFailure =
           plan.path === "/v1/scrape" &&
           ((error.status === 504 && error.code === "sourceTimeout") ||
@@ -214,7 +240,11 @@ async function send<Result>(
     } finally {
       deadline.clear();
     }
-    await sleep(waitMs, signal);
+    try {
+      await sleep(waitMs, signal);
+    } catch (error) {
+      throw signal?.aborted ? abortReason(signal, earlierSendLost ? plan.key : undefined) : error;
+    }
   }
 }
 

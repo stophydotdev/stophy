@@ -30,7 +30,7 @@ function Get-Platform {
     $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
     switch ($arch) {
         "X64"   { return "x64" }
-        "Arm64" { return "arm64" }
+        "Arm64" { throw "The standalone installer does not support Windows ARM64. Install Node.js and run: npm install -g @stophy/cli" }
         default { throw "Unsupported architecture: $arch" }
     }
 }

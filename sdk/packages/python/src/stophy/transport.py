@@ -76,11 +76,12 @@ def _header_retry_after(response: httpx.Response) -> int | None:
     if not header:
         return None
     try:
-        return int(float(header))
-    except ValueError:
+        seconds = float(header)
+        return int(seconds) if seconds >= 0 else None
+    except (ValueError, OverflowError):
         try:
             return max(0, int(parsedate_to_datetime(header).timestamp() - time.time()))
-        except (TypeError, ValueError, OSError):
+        except (TypeError, ValueError, OSError, OverflowError):
             return None
 
 
@@ -93,7 +94,7 @@ def _payload(response: httpx.Response) -> Any:
 
 def _retry_after(response: httpx.Response, error: dict[str, Any]) -> int | None:
     seconds = error.get("retryAfterSeconds")
-    if isinstance(seconds, bool) or not isinstance(seconds, int):
+    if isinstance(seconds, bool) or not isinstance(seconds, int) or seconds < 0:
         return _header_retry_after(response)
     return seconds
 
@@ -145,7 +146,8 @@ class _RetryConfig:
         if response.status_code < 400 or attempt >= max_retries:
             return None
         error = _error_from(response, _payload(response))
-        if not error.retryable or call.outcome_is_unknown(error):
+        call.unresolved = call.unresolved or call.may_have_run(error)
+        if not error.retryable or (not call.replayable and call.may_have_run(error)):
             return None
         seconds = error.retry_after_seconds
         if seconds is not None and seconds > MAX_RETRY_WAIT_SECONDS:
@@ -154,7 +156,11 @@ class _RetryConfig:
 
 
 def _may_have_run(error: StophyError) -> bool:
-    return error.status == 408 or (error.status >= 500 and error.code != "busy")
+    return (
+        200 <= error.status < 300
+        or error.status == 408
+        or (error.status >= 500 and error.code != "busy")
+    )
 
 
 def _answer_is_kept(path: str, body: Any) -> bool:
@@ -199,36 +205,39 @@ class _Call:
             or (not has_api_key and path in KEYLESS_READS)
             or self.key is not None
         )
-        self.earlier_send_lost = False
+        self.unresolved = False
 
-    def outcome_is_unknown(self, error: StophyError) -> bool:
+    def may_have_run(self, error: StophyError) -> bool:
         definite_scrape_failure = self.path == "/v1/scrape" and (error.status, error.code) in {
             (504, "sourceTimeout"),
             (503, "sourceUnavailable"),
         }
-        return not self.replayable and _may_have_run(error) and not definite_scrape_failure
+        return _may_have_run(error) and not definite_scrape_failure
 
-    def lost(self, error: httpx.TransportError, attempt: int, max_retries: int) -> None:
+    def lost(
+        self, error: httpx.TransportError | httpx.DecodingError, attempt: int, max_retries: int
+    ) -> None:
         may_have_left = not isinstance(error, NEVER_SENT)
         if may_have_left and not self.replayable:
             vars(error).update(outcome_unknown=True)
             raise error
         if attempt >= max_retries:
-            if (may_have_left or self.earlier_send_lost) and self.key is not None:
+            if (may_have_left or self.unresolved) and self.key is not None:
                 vars(error).update(idempotency_key=self.key)
             raise error
-        self.earlier_send_lost = self.earlier_send_lost or may_have_left
+        self.unresolved = self.unresolved or may_have_left
 
     def finish(self, response: httpx.Response) -> Any:
         try:
             return handle_response(response)
         except StophyError as error:
-            if self.outcome_is_unknown(error):
+            self.unresolved = self.unresolved or self.may_have_run(error)
+            if not self.replayable and self.may_have_run(error):
                 error.outcome_unknown = True
-            if self.key is None or not self.earlier_send_lost or not _may_have_run(error):
+            if self.key is None or not self.unresolved:
                 raise
             raise StophyError(
-                f"{error} An earlier send may still complete. {SEND_AGAIN}",
+                f"{error} The request may have completed or may still complete. {SEND_AGAIN}",
                 status=error.status,
                 code=error.code,
                 retryable=error.retryable,
@@ -256,7 +265,7 @@ class SyncTransport(_RetryConfig):
         while True:
             try:
                 response = self.client.send(call.request)
-            except httpx.TransportError as error:
+            except (httpx.TransportError, httpx.DecodingError) as error:
                 call.lost(error, attempt, max_retries)
                 time.sleep(self.backoff(attempt))
                 attempt += 1
@@ -286,7 +295,7 @@ class AsyncTransport(_RetryConfig):
         while True:
             try:
                 response = await self.client.send(call.request)
-            except httpx.TransportError as error:
+            except (httpx.TransportError, httpx.DecodingError) as error:
                 call.lost(error, attempt, max_retries)
                 await asyncio.sleep(self.backoff(attempt))
                 attempt += 1

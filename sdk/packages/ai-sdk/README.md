@@ -11,14 +11,14 @@ npm install @stophy/ai-sdk ai zod
 ## Example
 
 ```ts
-import { generateText, isStepCount } from "ai";
+import { generateText, stepCountIs } from "ai";
 import { readPage, webSearch } from "@stophy/ai-sdk";
 
 const { text } = await generateText({
   model: "openai/gpt-5-mini",
   prompt: "What changed in the latest Bun release?",
   tools: { webSearch: webSearch(), readPage: readPage() },
-  stopWhen: isStepCount(5),
+  stopWhen: stepCountIs(5),
 });
 ```
 

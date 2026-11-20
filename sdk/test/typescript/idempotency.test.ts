@@ -284,14 +284,19 @@ test("an ordinary 5xx the server finished keeps its retryable and carries no key
   expect(fake.received.length).toBe(3);
 });
 
-test("a busy 503 after a lost send is not marked as possibly running", async () => {
+test("a busy 503 after a lost send retains the earlier send's recovery key", async () => {
   const fake = await api((_, count) =>
     count === 1 ? "drop" : { status: 503, body: flat("busy", true, { retryAfterSeconds: 0 }) },
   );
   const error = await clientFor(fake.baseUrl)
     .crawl({ url: "https://a.test" })
     .catch((e) => e);
-  expect(error).toMatchObject({ code: "busy", retryable: true, details: {} });
+  expect(error).toMatchObject({
+    code: "busy",
+    retryable: true,
+    outcomeUnknown: true,
+    details: { idempotencyKey: fake.received[0]?.key },
+  });
 });
 
 test("a crawl whose every attempt times out throws the same TimeoutError, with its key on it", async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { Stophy } from "../../packages/typescript/src/index";
 import { makeClient, queryOf, specOperations } from "./helpers";
 
 const ok = { success: true, data: {}, costUsd: 0.001, requestId: "req_1" };
@@ -60,11 +61,21 @@ describe("v1 operations", () => {
   });
 
   test("forwards the abort signal", async () => {
-    const { client, calls } = makeClient({ json: ok });
     const controller = new AbortController();
-    controller.abort();
-    await client.search({ query: "bun" }, { signal: controller.signal }).catch(() => undefined);
-    expect(calls[0]?.signal?.aborted).toBe(true);
+    const client = new Stophy({
+      apiKey: "k",
+      fetch: async (_, init) => {
+        controller.abort();
+        expect(init?.signal?.aborted).toBe(true);
+        throw init?.signal?.reason;
+      },
+    });
+    await expect(
+      client.search({ query: "bun" }, { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      name: "AbortError",
+      cause: controller.signal.reason,
+    });
   });
 
   test("exposes every operation in the spec", async () => {

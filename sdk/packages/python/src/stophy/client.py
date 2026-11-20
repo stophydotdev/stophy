@@ -43,13 +43,16 @@ class Stophy(SyncSurface):
         url, kwargs = request_args(method, path, values)
         return self._transport.request(method, url, **kwargs)
 
-    def parsed(self, parser: ParserName, url: str, **options: Any) -> ScrapeResponse:
+    def parsed(
+        self, parser: ParserName, url: str, *, idempotency_key: str | None = None, **options: Any
+    ) -> ScrapeResponse:
         """Reads url with a parser from GET /v1/parsers. The data is in data.json.
 
         Options can be snake_case or camelCase: min_rating=4.5 or minRating=4.5.
         """
         return self.scrape(
             url=url,
+            idempotency_key=idempotency_key,
             formats=[{"type": "json", "parser": parser, "options": camel_keys(options)}]
             if options
             else [{"type": "json", "parser": parser}],
