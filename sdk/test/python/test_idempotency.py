@@ -250,7 +250,7 @@ def test_a_call_still_running_on_the_server_ends_with_an_error_that_carries_its_
     assert len(api.keys) == 3
 
 
-def test_an_ordinary_5xx_the_server_finished_keeps_its_retryable_and_carries_no_key(
+def test_a_definite_scrape_source_failure_keeps_its_retryable_and_carries_no_key(
     serve,
 ):
     api = serve(
@@ -258,7 +258,7 @@ def test_an_ordinary_5xx_the_server_finished_keeps_its_retryable_and_carries_no_
     )
     with sync_client(api) as client:
         with pytest.raises(StophyError) as info:
-            client.search(query="x")
+            client.scrape(url="https://a.test")
     assert (info.value.status, info.value.code, info.value.retryable) == (
         504,
         "sourceTimeout",
@@ -268,7 +268,7 @@ def test_an_ordinary_5xx_the_server_finished_keeps_its_retryable_and_carries_no_
     assert len(api.keys) == 3
 
 
-def test_a_busy_503_after_a_lost_send_is_not_marked_as_possibly_running(serve):
+def test_a_busy_503_after_a_lost_send_keeps_the_original_recovery_key(serve):
     api = serve(
         lambda key, count: (
             "drop" if count == 1 else (503, flat("busy", True, retryAfterSeconds=0))
@@ -277,7 +277,8 @@ def test_a_busy_503_after_a_lost_send_is_not_marked_as_possibly_running(serve):
     with sync_client(api) as client:
         with pytest.raises(StophyError) as info:
             client.crawl(url="https://a.test")
-    assert info.value.details == {} and info.value.retryable
+    assert info.value.details == {"idempotencyKey": api.keys[0]}
+    assert info.value.retryable
 
 
 def test_a_crawl_whose_every_attempt_times_out_raises_the_same_httpx_error_with_its_key(
