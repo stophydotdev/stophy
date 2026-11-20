@@ -2,88 +2,51 @@
 
 [![skills.sh](https://skills.sh/b/stophydotdev/stophy)](https://skills.sh/stophydotdev/stophy)
 
-Search, read, and act on the web. This repo is a plugin for coding agents with two parts: the hosted Stophy MCP server at `https://mcp.stophy.dev/mcp`, which signs you in with your browser, and agent skills for each task and kind of data that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli).
+Search, read, and act on the web. Agent skills that run on [the Stophy CLI](https://www.npmjs.com/package/@stophy/cli), plus the hosted MCP server at `https://mcp.stophy.dev/mcp`.
 
 ## Install
 
-In Claude Code, add the marketplace and install the plugin:
-
-```
-/plugin marketplace add stophydotdev/stophy
-/plugin install stophy@stophy
+```bash
+npm install -g @stophy/cli
+stophy init --all
 ```
 
-For other agents:
+`init` installs the skills and the MCP server for your agents, then signs you in. To install one part:
 
-- **Cursor.** Stophy isn't in the Cursor Marketplace yet. Click **Add to Cursor** on [cursor.directory](https://cursor.directory/plugins/stophy), or add the server `https://mcp.stophy.dev/mcp` under `mcpServers` in `~/.cursor/mcp.json` yourself. Sign in when Cursor opens the browser.
-- **Gemini CLI.** Run `gemini extensions install https://github.com/stophydotdev/stophy`.
-- **Skills only.** Any agent that supports the Agent Skills format can run `npx skills add stophydotdev/stophy`. Add `--skill stophy-web --skill stophy-video` to install only those.
-- **MCP server only.** Run `claude mcp add --transport http stophy https://mcp.stophy.dev/mcp`. Or use `https://api.stophy.dev/mcp` with an `Authorization: Bearer <key>` header. Without a key, the endpoints marked `keyless: true` in the [endpoint list](https://api.stophy.dev/v1/endpoints) work, within a free allowance.
+- **Claude Code plugin:** `/plugin marketplace add stophydotdev/stophy`, then `/plugin install stophy@stophy`.
+- **Skills only:** `npx skills add stophydotdev/stophy`. Add `--skill stophy-video` to install one skill.
+- **Gemini CLI:** `gemini extensions install https://github.com/stophydotdev/stophy`.
+- **Cursor:** click **Add to Cursor** on [cursor.directory](https://cursor.directory/plugins/stophy).
+- **MCP only:** `claude mcp add --transport http stophy https://mcp.stophy.dev/mcp`.
 
-## Requirements
-
-The skills run the CLI, 1.3.0 or later, so you need Node.js 20 or later and `npm install -g @stophy/cli`, or `npx @stophy/cli@latest`. An API key from [stophy.dev](https://stophy.dev/signup) is needed for everything except `search`, `scrape`, `map`, `parse` and the parsers each skill marks "no key", which work up to 10 calls a minute and 50 a day.
-
-## API key
-
-Run `stophy login --browser` to sign in with your browser, or `stophy login --api-key` to paste a key, which keeps it out of your shell history. In CI, set `STOPHY_API_KEY` from your secret store. Treat the key as a secret: do not commit it, print it, or paste it into a shared log.
+The skills need CLI 2.1.2 or later and Node.js 20 or later. Run `stophy login` to sign in, or set `STOPHY_API_KEY` in CI. Search, scrape, map, parse and the parsers marked "no key" work without a key for 10 calls a minute and 50 a day.
 
 ## Skills
 
-| Skill | Covers |
-|-------|--------|
-| [`stophy`](./stophy/SKILL.md) | Start here: picks the skill and command for the task, setup, login, prices and errors |
-| [`stophy-scrape`](./stophy-scrape/SKILL.md) | One page you have a URL for: markdown, fields, a screenshot, or a site's data through a parser |
-| [`stophy-search`](./stophy-search/SKILL.md) | Web, news and image search, with the page text if you ask |
-| [`stophy-crawl`](./stophy-crawl/SKILL.md) | List a site's pages, crawl a site, batch scrape a list of URLs |
-| [`stophy-extract`](./stophy-extract/SKILL.md) | Named fields from up to 25 pages, from a prompt or a schema |
-| [`stophy-parse`](./stophy-parse/SKILL.md) | PDF, Word, Excel and PowerPoint files to markdown |
-| [`stophy-monitor`](./stophy-monitor/SKILL.md) | What changed on a page since the last read |
-| [`stophy-download`](./stophy-download/SKILL.md) | A site or a docs section saved as markdown files |
-| [`stophy-docs`](./stophy-docs/SKILL.md) | Developer questions answered from a library's current docs |
-| [`stophy-browser`](./stophy-browser/SKILL.md) | A browser that clicks through a site's search or form |
+| Skill | Use it for |
+|-------|------------|
+| [`stophy`](./stophy/SKILL.md) | Start here: setup, which skill and command fits, prices and errors |
+| [`stophy-search`](./stophy-search/SKILL.md) | Web, news, images, papers and docs questions |
+| [`stophy-scrape`](./stophy-scrape/SKILL.md) | A URL or a file as markdown or fields, fields from 25 pages, page changes |
+| [`stophy-crawl`](./stophy-crawl/SKILL.md) | A site's pages: map, crawl, batch scrape, save as files |
+| [`stophy-deep-research`](./stophy-deep-research/SKILL.md) | Sourced reports, Google Patents and Google Trends |
+| [`stophy-browser`](./stophy-browser/SKILL.md) | Data behind a site's search box or form |
+| [`stophy-build`](./stophy-build/SKILL.md) | Stophy in your code: SDKs, REST, paging, errors |
+| [`stophy-video`](./stophy-video/SKILL.md) | YouTube, TikTok, Instagram and Twitch videos and transcripts |
+| [`stophy-social`](./stophy-social/SKILL.md) | Reddit, X, Instagram, LinkedIn, Facebook, Threads, Bluesky, Pinterest |
+| [`stophy-places`](./stophy-places/SKILL.md) | Maps, reviews, hotels, flights, events and local leads |
+| [`stophy-shopping`](./stophy-shopping/SKILL.md) | Amazon, eBay, TikTok Shop, Marketplace, Craigslist, Trustpilot |
+| [`stophy-jobs`](./stophy-jobs/SKILL.md) | LinkedIn, Indeed, Upwork, careers pages, Glassdoor |
+| [`stophy-real-estate`](./stophy-real-estate/SKILL.md) | Zillow and Realtor.com |
+| [`stophy-competitive-intel`](./stophy-competitive-intel/SKILL.md) | Ad libraries, app stores, pricing, Crunchbase, G2 |
 
-Build with Stophy:
-
-| Skill | Covers |
-|-------|--------|
-| [`stophy-build`](./stophy-build/SKILL.md) | Add Stophy to an app: SDK, REST, key and errors |
-| [`stophy-build-scrape`](./stophy-build-scrape/SKILL.md) | Code that scrapes pages and site data |
-| [`stophy-build-search`](./stophy-build-search/SKILL.md) | Code that searches the web |
-
-Workflows:
-
-| Skill | Covers |
-|-------|--------|
-| [`stophy-lead-gen`](./stophy-lead-gen/SKILL.md) | Local businesses with phone, website, public emails and LinkedIn details |
-| [`stophy-job-postings`](./stophy-job-postings/SKILL.md) | Open roles across job boards, in full, with pay |
-| [`stophy-shop`](./stophy-shop/SKILL.md) | Prices, products and reviews compared across stores |
-| [`stophy-competitive-intel`](./stophy-competitive-intel/SKILL.md) | A competitor's ads, pricing, app reviews, posts and changes |
-| [`stophy-deep-research`](./stophy-deep-research/SKILL.md) | A sourced answer from the web, papers and discussions |
-
-Site data:
-
-| Skill | Covers |
-|-------|--------|
-| [`stophy-video`](./stophy-video/SKILL.md) | YouTube, TikTok and Instagram: videos, transcripts, comments, channels |
-| [`stophy-social`](./stophy-social/SKILL.md) | Reddit, Instagram, LinkedIn, Pinterest, Facebook, X, Threads |
-| [`stophy-places`](./stophy-places/SKILL.md) | Google Maps, Tripadvisor, Yelp, Google Hotels, Airbnb, Booking.com, Expedia, Google Flights, Luma events |
-| [`stophy-jobs`](./stophy-jobs/SKILL.md) | LinkedIn, Indeed, Upwork, company careers pages and Glassdoor |
-| [`stophy-shopping`](./stophy-shopping/SKILL.md) | Amazon, TikTok Shop, eBay, Facebook Marketplace and Craigslist products and prices, and Trustpilot reviews |
-| [`stophy-apps`](./stophy-apps/SKILL.md) | App Store and Google Play apps, reviews and charts |
-| [`stophy-real-estate`](./stophy-real-estate/SKILL.md) | Zillow and Realtor.com homes for sale, for rent and sold |
-| [`stophy-ads`](./stophy-ads/SKILL.md) | Meta, Google, TikTok, and LinkedIn ad libraries |
-| [`stophy-web`](./stophy-web/SKILL.md) | Google Patents and Trends |
-
-## For agents
-
-Start with `stophy`, which names the skill for the task. Run the command, read the output, then summarize. Never invent data. Site data comes from scraping the site's own page with a parser: `stophy scrape "<page URL>" --parser <name>`. `stophy parsers` lists them. Each call returns one page. When the output has a `cursor`, run the same command with `--parserOptions '{"cursor":"<cursor>"}'` for the next page. Most calls cost $0.001, a search costs $0.001 per 10 results from each source, and each skill names the few that cost more.
+These names now point to the skill that replaced them: `stophy-shop`, `stophy-job-postings`, `stophy-download`, `stophy-parse`, `stophy-monitor`, `stophy-extract`, `stophy-docs`, `stophy-web`, `stophy-ads`, `stophy-apps`, `stophy-lead-gen`, `stophy-build-scrape` and `stophy-build-search`.
 
 ## Docs
 
-- [Install the skills](https://docs.stophy.dev/install-skill) covers each agent.
-- [Install the CLI](https://docs.stophy.dev/install-cli) lists every command.
-- [Pricing](https://docs.stophy.dev/account/pricing) lists what each call costs.
+- [Install the skills](https://docs.stophy.dev/install-skill)
+- [Install the CLI](https://docs.stophy.dev/install-cli)
+- [Pricing](https://docs.stophy.dev/account/pricing)
 
 ## License
 

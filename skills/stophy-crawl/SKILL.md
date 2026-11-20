@@ -1,51 +1,50 @@
 ---
 name: stophy-crawl
-description: |
-  List every page on a site, read many pages of a site, or scrape a list of URLs in one job. Use for "find every page on this site about", "what pages does this site have", "read the whole docs section", "scrape these 50 links". Map answers at once; crawl and batch scrape run in the background and return an id. For one page, use stophy-scrape. To save a site as markdown files, use stophy-download.
-metadata:
-  author: stophy
-  version: "5.0.0"
+description: Use to list a site's pages, read many pages of a site, scrape a list of URLs in one job, or save a site or docs section as markdown files.
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx @stophy/cli *)
   - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy crawl
 
-Find a site's pages and read many of them at once.
-
-**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `map` works without a key, 10 calls a minute and 50 a day. `crawl` and `batch scrape` need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
-
-## Quick start
+Setup, keys and errors: [stophy](../stophy/SKILL.md). For one page, use [stophy-scrape](../stophy-scrape/SKILL.md).
 
 ```bash
-# list a site's pages, best matches first
 stophy map "https://bun.com" --search sqlite --limit 5 --no-includeSubdomains
-
-# read up to 3 pages under /docs, then read the result
-stophy crawl "https://bun.com/docs" --limit 3
+stophy crawl "https://bun.com/docs/bundler" --limit 10
 stophy crawl status <id>
-
-# scrape a list of URLs in one job
 stophy batch scrape --urls "https://example.com,https://bun.com"
 stophy batch scrape status <id>
-
-# stop a crawl and keep the pages already read
-stophy crawl cancel <id>
 ```
 
-**Done when:** the job's status is `completed`, and you read every page you report on.
-
-## Tips
-
-- Map first when you only need addresses: it costs $0.0005 for the whole list. Then scrape or batch scrape the pages that matter.
-- `crawl` stays under the start page's path. `--includePaths` and `--excludePaths` narrow it, `--maxDiscoveryDepth` caps how far it follows links, and `--limit` caps the pages read.
-- `status` is `scraping` until the job is `completed`. Pages come 10 at a time: when the status has a `next` link, run `status <id> --cursor <c>`, where `<c>` is the `cursor=` value in that link.
+- `map` answers at once with the site's URLs. Map first when you need only addresses, then scrape the pages that matter.
+- `crawl` and `batch scrape` print an `id` and run in the background. `status` is `scraping` until it is `completed`. Run `stophy crawl cancel <id>` to stop and keep the pages read so far.
+- A crawl stays under the start URL's path. `--includePaths`, `--excludePaths`, `--maxDiscoveryDepth` and `--limit` narrow it.
+- When a status answer has `next`, run `status <id> --cursor <c>`, with `<c>` the `cursor=` value in that link.
 - A job and its pages are kept for 24 hours.
-- A crawl or batch scrape costs $0.001 a page. Starting a job and a page that cannot be read cost nothing.
 
-## See also
+## Save a site as files
 
-- [stophy-download](../stophy-download/SKILL.md): save a crawl as markdown files
-- [stophy-extract](../stophy-extract/SKILL.md): pull the same fields from many pages
+Needs `jq`. This writes one markdown file per page:
+
+```bash
+id=$(stophy crawl "https://bun.com/docs/bundler" --limit 10 --raw | jq -r .id)
+until [ "$(stophy crawl status "$id" --raw | jq -r .status)" != scraping ]; do sleep 5; done
+mkdir -p docs-copy && cursor=""
+while :; do
+  stophy crawl status "$id" ${cursor:+--cursor "$cursor"} --raw > page.json
+  jq -c '.data[]' page.json | while read -r p; do
+    name=$(jq -r .metadata.sourceURL <<<"$p" | sed -E 's#^https?://##; s#[^A-Za-z0-9._-]+#_#g')
+    jq -r .markdown <<<"$p" > "docs-copy/$name.md"
+  done
+  next=$(jq -r '.next // empty' page.json); [ -z "$next" ] && break
+  cursor=${next##*cursor=}
+done
+```
+
+**Done when:** the job is `completed` and you read, or saved, every page you report on.
+
+## Price and keys
+
+`map` costs $0.0005 and works without a key. `crawl` and `batch scrape` cost $0.001 a page and need a key. Starting a job and a page that can't be read cost nothing.

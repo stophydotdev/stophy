@@ -1,51 +1,50 @@
 ---
 name: stophy-competitive-intel
-description: |
-  Size up a competitor: the ads they run, their pricing, what their app users complain about, what they post, and what changed since last time. Use for "what is this competitor doing", "what ads is this brand running", "what are their plans and prices", "what do users hate about their app", "tell me when their pricing changes". For one ad library, use stophy-ads; for one app store, stophy-apps.
-metadata:
-  author: stophy
-  version: "5.0.0"
+description: Use to size up a company or app, like "what ads is this brand running", "what are their plans and prices", "what do users say about this app", "top free apps", "how big is this company", "tell me when their pricing changes". Covers ad libraries, the App Store, Google Play, Crunchbase and G2.
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx @stophy/cli *)
   - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy competitive intel
 
-Build a picture of a rival from public sources.
+Setup, keys and errors: [stophy](../stophy/SKILL.md). Find their pages first with `stophy map "<their site>" --search pricing`.
 
-**Prerequisite:** the Stophy CLI 1.4.0 or later (`stophy --version`). `google-ads`, `appstore-reviews`, `google-play-reviews` and `map` work without a key, 10 calls a minute and 50 a day. The rest need `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
-
-## Quick start
+| Question | Read |
+|---|---|
+| What ads they run | `google-ads` (no key), `meta-ads`, `tiktok-ads`, `linkedin-ads` |
+| Their plans and prices | their pricing page with a json format, see [stophy-scrape](../stophy-scrape/SKILL.md) |
+| What app users say | `appstore-reviews` and `google-play-reviews` (no key) |
+| How big they are | `linkedin-company`, `crunchbase-company` |
+| What buyers say | `g2-reviews`, `trustpilot-reviews` |
+| What they post | [stophy-social](../stophy-social/SKILL.md) |
+| What changed | `changeTracking`, see [stophy-scrape](../stophy-scrape/SKILL.md) |
 
 ```bash
-# ads they run on Google and Meta
 stophy scrape "https://adstransparency.google.com/?region=US&domain=nike.com" --parser google-ads
 stophy scrape "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&q=nike&search_type=keyword_exact_phrase" --parser meta-ads
-
-# their plans and prices, as fields
-stophy scrape "https://www.notion.com/pricing" --formats '[{"type":"json","schema":{"type":"object","properties":{"plans":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"monthlyPrice":{"type":"string"}}}}}}}]'
-
-# what their users say, and what they post
-stophy scrape "https://apps.apple.com/us/app/notes/id1110145109" --parser appstore-reviews
 stophy scrape "https://play.google.com/store/apps/details?id=com.spotify.music" --parser google-play-reviews --parserOptions '{"rating":1}'
-stophy scrape "https://www.linkedin.com/company/microsoft" --parser linkedin-posts
-
-# what changed on their pricing page since your last check
-stophy scrape "https://www.notion.com/pricing" --formats '["markdown","changeTracking"]'
+stophy scrape "https://www.g2.com/products/slack/reviews" --parser g2-reviews
 ```
 
-**Done when:** each finding links to its ad, page, review or post, and you say when you read it.
+| Parser | Page |
+|---|---|
+| `google-ads` | adstransparency.google.com with a domain, an advertiser page or an ad page |
+| `meta-ads` | facebook.com/ads/library with `q`, a `view_all_page_id`, or an ad `id` |
+| `tiktok-ads` | library.tiktok.com/ads with `adv_name`, or an ad page |
+| `linkedin-ads` | linkedin.com/ad-library/search with `keyword` or `accountOwner`, or an ad page |
+| `appstore-search`, `appstore-top` | apps.apple.com/us/iphone/search?term=..., apps.apple.com/us/iphone/charts |
+| `appstore-app`, `appstore-reviews` | apps.apple.com/us/app/name/id... |
+| `google-play-search` | play.google.com/store/search?q=...&c=apps |
+| `google-play-app`, `google-play-reviews` | play.google.com/store/apps/details?id=... |
+| `crunchbase-company` | crunchbase.com/organization/name |
+| `g2-reviews` | g2.com/products/name/reviews |
 
-## Tips
+- Put the country in the ad library URL: `region` on Google and TikTok, `country` on Meta, `countries` on LinkedIn.
+- For complaints, read 1-star reviews: `--parserOptions '{"rating":1}'` on Google Play.
 
-- Find their pages first with `stophy map "<their site>" --search pricing`.
-- Read 1-star reviews for complaints: `google-play-reviews` takes `--parserOptions '{"rating":1}'`.
-- Run the change-tracking scrape on a schedule to hear when their pricing or terms change. See [stophy-monitor](../stophy-monitor/SKILL.md).
-- A parser call or scrape costs $0.001. Fields from a schema add $0.003 when they return something.
+**Done when:** each finding links to its ad, page, review or post, and says when you read it.
 
-## See also
+## Price
 
-- [stophy-ads](../stophy-ads/SKILL.md), [stophy-apps](../stophy-apps/SKILL.md), [stophy-social](../stophy-social/SKILL.md)
-- [stophy-monitor](../stophy-monitor/SKILL.md): watch a page for changes
+$0.001 a call, except `appstore-search`, `appstore-top` and `google-play-search`: $0.001 per 10 apps.
