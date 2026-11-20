@@ -80,7 +80,7 @@ Use `stophy.extract()` with `urls` and a `prompt` when you need fields rather th
 
 ## Handle errors
 
-Catch `StophyError` when your code needs to act on a failed call. For example, passing `url="not a url"` to `scrape` raises `invalidRequest` with `retryable` set to `False`. `StophyError` has `code`, `retryable`, `retry_after_seconds`, `status` and `request_id`. The message is `str(error)`. It says what went wrong and what to do next.
+Catch `StophyError` when your code needs to act on a failed call. For example, passing `url="not a url"` to `scrape` raises `invalidRequest` with `retryable` set to `False`. `StophyError` has `code`, `retryable`, `retry_after_seconds`, `status`, `request_id` and `details`. The message is `str(error)`. It says what went wrong and what to do next.
 
 A call your balance cannot cover raises `insufficientCredits` with status `402` and charges nothing. Add money at [stophy.dev/billing](https://stophy.dev/billing), then send the call again.
 

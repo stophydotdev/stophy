@@ -85,7 +85,7 @@ A site that does not answer can return `503 sourceUnavailable` with `retryable: 
 
 ## Retry with the SDK
 
-Use the [SDKs](/sdks) to handle retryable errors. They honor `retryable` when it is present. If it is missing, the retryable statuses are `429`, `500`, `502`, `503` and `504`. They also retry network errors. They wait as long as the answer asks and stop after `maxRetries` retries, 2 by default. A call that still fails throws a `StophyError` with `code`, `retryable`, `retryAfterSeconds` and `requestId` in TypeScript or `request_id` in Python.
+Use the [SDKs](/sdks) to handle retryable errors. They honor `retryable` when it is present. If it is missing, the retryable statuses are `429`, `500`, `502`, `503` and `504`. They retry eligible network errors and stop after `maxRetries` retries, 2 by default. If the requested wait exceeds 60 seconds, they stop instead. A write that may have run is retried only when it can be replayed safely. API errors carry fields such as `code`, `retryable` and the request ID. Network errors keep their original type.
 
 <CodeGroup>
 
