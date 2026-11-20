@@ -1,5 +1,13 @@
 # @stophy/cli
 
+## 2.1.2
+
+### Patch Changes
+
+- b701aa5: Use `stophy agent list`, `stophy agent status <id>`, and `stophy agent cancel <id>` to manage Agent runs. To use a command name as a prompt, pass it explicitly, for example `stophy agent --prompt list`.
+- 85d8504: The CLI shows the request ID and retry delay from the API error body when the response headers disagree. When only a `Retry-After` date is available, the CLI prints it without a seconds suffix.
+- 355e937: Keep the SDK recovery key and unknown outcome when a lost write is followed by a rejection or an unreadable success response. Publish the Windows CLI executable alongside its ZIP so the PowerShell installer can download and verify it.
+
 ## 2.1.1
 
 ### Patch Changes

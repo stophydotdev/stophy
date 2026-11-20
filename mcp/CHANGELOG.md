@@ -1,5 +1,11 @@
 # @stophy/mcp
 
+## 1.3.4
+
+### Patch Changes
+
+- d5bceec: Canceling a local MCP tool call now cancels its upstream request without interrupting other calls. Long-running tools get time to finish within their documented limits, up to 299 seconds per call.
+
 ## 1.3.3
 
 ### Patch Changes

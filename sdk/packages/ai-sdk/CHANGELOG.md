@@ -1,5 +1,16 @@
 # @stophy/ai-sdk
 
+## 1.3.3
+
+### Patch Changes
+
+- 355e937: Fix TypeScript declarations for CommonJS consumers.
+- Updated dependencies [355e937]
+- Updated dependencies [85d8504]
+- Updated dependencies [7b52ac4]
+- Updated dependencies [2133fe0]
+  - stophy@1.4.2
+
 ## 1.3.2
 
 ### Patch Changes
