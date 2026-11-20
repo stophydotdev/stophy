@@ -1,5 +1,14 @@
 # stophy
 
+## 1.4.2
+
+### Patch Changes
+
+- 355e937: Keep the SDK recovery key and unknown outcome when a lost write is followed by a rejection or an unreadable success response. Publish the Windows CLI executable alongside its ZIP so the PowerShell installer can download and verify it.
+- 85d8504: The TypeScript and Python SDKs keep the request ID from the API error body when a response header disagrees.
+- 7b52ac4: The response types now match the API. Scrape, search, map, parse, and the starts and cancels of crawl, batch and extract jobs no longer have top-level `costUsd`, `creditsUsed` or `requestId`; the cost is the `x-cost-usd` header, and scrape and parse also keep it in `data.metadata.costUsd`. Extract results can report `success: false` when the job fails.
+- 2133fe0: Stop replaying writes when the API cannot recover a lost response. Keep one key across retries when the API supports it.
+
 ## 1.4.1
 
 ### Patch Changes
