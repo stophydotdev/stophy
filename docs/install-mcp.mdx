@@ -1,23 +1,24 @@
 ---
-title: "Install MCP"
+title: "MCP server"
+sidebarTitle: "MCP"
 description: "Connect Claude Code, Codex, Cursor, Windsurf, Gemini CLI, VS Code, Claude or Grok to the Stophy MCP server with one command or URL, with or without an API key."
 ---
 
-The hosted MCP server gives an agent Stophy tools for search, scrape, map, parse, crawl, extract, agent, browsers and monitors. Enter the URL in your client's MCP settings. Do not open it as a web page.
+The hosted MCP server gives your agent Stophy tools to search, scrape, map, parse, crawl, extract, run agent tasks, drive browsers and watch pages. Add its URL to your client's MCP settings. It is not a web page.
 
 To have your agent do this, paste: `Use curl to read https://docs.stophy.dev/agent-quickstart.md and connect the Stophy MCP server to this agent.`
 
 ## Choose how to connect
 
-| Connect | URL | Tools |
+| Connect with | URL | You get |
 | - | - | - |
-| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every tool. You approve the app in your browser and calls use your balance. |
-| API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer <key>` | Every tool |
-| No key | `https://api.stophy.dev/mcp` | Search, scrape, map, parse and signup, within the [free limits](/production/rate-limits) |
+| Browser sign-in | `https://mcp.stophy.dev/mcp` | Every tool. You approve the app in your browser, and calls spend your balance. |
+| An API key | `https://api.stophy.dev/mcp` with `Authorization: Bearer $STOPHY_API_KEY` | Every tool |
+| No key | `https://api.stophy.dev/mcp` | Search, scrape, map, parse and signup, within the [keyless limits](/production/rate-limits#without-a-key) |
 
-Clients that support MCP OAuth start the sign-in on their own. Signing out of stophy.dev disconnects the app. Paging, crawl, batches, extract, agent, browsers and monitors need sign-in or a key.
+Clients that support MCP OAuth start the sign-in on their own. Signing out of stophy.dev disconnects the app. Clients and registries can read the server's URL and sign-in from [mcp.json](https://stophy.dev/.well-known/mcp.json).
 
-## Connect your client
+## Add it to your client
 
 These commands use browser sign-in. For no key or a key, use the `api.stophy.dev` URL.
 
@@ -63,7 +64,7 @@ Restart Cursor after you edit its file. In Windsurf, open the file with **Open M
 
 ## Use an API key
 
-Keep the key in `STOPHY_API_KEY`, never in a file you commit. [Get a key](https://stophy.dev/signup).
+Keep the key in `STOPHY_API_KEY`, never in a file you commit. [Get credentials](/get-credentials) has every way to get one.
 
 | Client | Add to the `https://api.stophy.dev/mcp` setup |
 | - | - |
@@ -73,11 +74,11 @@ Keep the key in `STOPHY_API_KEY`, never in a file you commit. [Get a key](https:
 | Cursor | `"headers": { "Authorization": "Bearer ${env:STOPHY_API_KEY}" }` under `stophy` |
 | VS Code | In `.vscode/mcp.json`, add an input `{ "type": "promptString", "id": "stophy-key", "description": "Stophy API key", "password": true }`. Under `servers.stophy` set `"type": "http"`, the `url` and `"headers": { "Authorization": "Bearer ${input:stophy-key}" }`. |
 
-The server refuses a wrong key. Remove the header to go back to the free tools. An agent with no key can call `stophy_signup`, which returns a link for you to approve and a code, then the key when called again with the code. See [Agent quickstart](/agent-quickstart).
+The server refuses a wrong key. An agent with no key can call `stophy_signup`, which returns a link for you to approve and a code, then the key when called again with the code. See [Sign up from an agent](/get-credentials#sign-up-from-an-agent).
 
-## What your agent sees
+## Tools
 
-Without a key the server lists `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. With sign-in or a key it adds a tool for each product. A call costs what it does over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
+With sign-in or a key, the server lists a tool for each product. Without a key it lists only `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. A call costs what it does over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
 
 | Tools | What they do |
 | - | - |
@@ -87,13 +88,11 @@ Without a key the server lists `stophy_search`, `stophy_scrape`, `stophy_map`, `
 | `stophy_developer_search` | Search code docs, issues, pull requests and releases |
 | `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, find similar ones |
 | `stophy_monitor_create`, `_list`, `_get`, `_update`, `_delete`, `_run`, `_checks`, `_check` | Watch pages on a schedule and read what changed |
-| `browserOpen`, `browserRun`, `browserClose` and six more | Drive a cloud browser |
+| `browserOpen`, `browserRun`, `browserClose` and seven more | Drive a cloud browser |
 
 Ask *"What are people saying about Bun on Reddit?"* and the agent calls `stophy_scrape` with a Reddit search URL and `"formats": [{ "type": "json", "parser": "reddit-search" }]`. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
 ## Drive a browser
-
-Not listed without sign-in or a key.
 
 | Tool | What it does |
 | - | - |
@@ -101,7 +100,7 @@ Not listed without sign-in or a key.
 | `browserRun` | Does one thing. Send the `id` and exactly one of `steps`, `code` or `prompt`. Returns the elements and open tabs. |
 | `browserClose` | Closes the browser, saves its profile, and bills the session. Returns the time, traffic and cost. |
 
-`browserUpload`, `browserDownloads`, `browserRecording`, `browserProxy`, `browserExtensions` and `browserNetworkPolicy` work on an open browser.
+`browserUpload`, `browserDownloads`, `browserRecording`, `browserProxy`, `browserExtensions` and `browserNetworkPolicy` work on an open browser. `browserTask` gives a goal to an agent that clicks through a public site and answers, as in [Browser tasks](/browser/tasks).
 
 `steps` is up to 50 actions that run in order and stop at the first failure. The actions are `open`, `back`, `reload`, `click`, `dblclick`, `hover`, `check`, `uncheck`, `fill`, `type`, `press`, `select`, `scroll`, `drag`, `find`, `wait`, `get`, `is`, `read`, `screenshot`, `pdf`, `tab`, `dialog`, `upload`, `network` and `console`. A step names an element by its ref from the latest answer, and `find` picks one by role and name. `read` returns Markdown, `network` lists requests since the session opened, and `console` needs `captureConsole`. `code` is a script, and `prompt` is plain words. A call may take 30 seconds, and `timeout` raises that to 300.
 
@@ -109,7 +108,7 @@ A session is billed from `browserOpen` to `browserClose`, so tell your agent to 
 
 ## More tools and a local server
 
-`?toolsets=web` on `https://api.stophy.dev/mcp` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTask` and `browserTaskStatus`. `toolsets=webhook` adds the webhook delivery tools.
+`?toolsets=web` on `https://api.stophy.dev/mcp` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTaskStatus` and `browserTaskCancel`. `toolsets=webhook` adds the webhook delivery tools.
 
 For an app that can only start a local server, `npx -y @stophy/mcp` (Node.js 18 or later) passes every request to the hosted server. Set `STOPHY_API_KEY` for every tool, and `STOPHY_MCP_URL` to change the server. Claude Desktop uses the connector above, not this package.
 

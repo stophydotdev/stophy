@@ -7,7 +7,7 @@ sidebarTitle: "Checklist"
 ## Keys
 
 * Keep the key in a secret manager or an environment variable, never in committed or browser code.
-* Use one key per app or computer so you can revoke one with `DELETE /v1/key`. See [API keys](/account/api-keys).
+* Use one key per app or computer so you can revoke one with `DELETE /v1/key`. See [Get credentials](/get-credentials).
 
 ## Results
 
@@ -65,6 +65,6 @@ How the API stays stable:
 * Many endpoints reject unknown fields with `400 invalidRequest` and list the fields you can send.
 * Responses can omit `null` and empty values. Handle both missing and empty.
 * When a field is replaced, the older one stays next to the new one, marked as older in the OpenAPI document. `costUsd` replaced `creditsUsed`.
-* The OpenAPI document and `GET /v1/endpoints` are generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
+* The OpenAPI document and `GET /v1/endpoints` are generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](https://stophy.dev/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
 
 Send `X-Request-ID` with [feedback](/production/agent-feedback) or to support@stophy.dev when an answer is wrong.

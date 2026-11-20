@@ -1,9 +1,9 @@
 ---
 title: "Map"
-description: "List the URLs of a website without reading the pages, optionally filtered by topic, in one request. Works without an API key."
+description: "List the URLs of a website without reading its pages, ranked by a topic when you send one, so you can choose which pages to read next."
 ---
 
-Use Map to list a site's URLs before you choose which to read with [Scrape](/scrape/overview) or a [batch](/batches/overview). To read pages without choosing, use [Crawl](/crawl/overview).
+Map lists a site's URLs without reading the pages, so you can choose which to read.
 
 <CodeGroup>
 ```bash cURL
@@ -13,7 +13,6 @@ curl -X POST https://api.stophy.dev/v1/map \
   -d '{
     "url": "https://bun.com",
     "search": "sqlite",
-    "includeSubdomains": false,
     "limit": 5
   }'
 ```
@@ -25,7 +24,6 @@ const stophy = new Stophy();
 const { links } = await stophy.map({
   url: "https://bun.com",
   search: "sqlite",
-  includeSubdomains: false,
   limit: 5,
 });
 console.log(links.map((link) => link.url));
@@ -35,17 +33,12 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.map(
-    url="https://bun.com",
-    search="sqlite",
-    include_subdomains=False,
-    limit=5,
-)
+result = stophy.map(url="https://bun.com", search="sqlite", limit=5)
 print([link["url"] for link in result["links"]])
 ```
 </CodeGroup>
 
-Map works without a key within the keyless limits in [Rate limits](/production/rate-limits). Get a key in the [Quickstart](/quickstart).
+You get at most 5,000 URLs, subdomains included. Set `limit` from 1 to 100,000. Calls without a key list one host and have lower limits, see [Without a key](/production/rate-limits#without-a-key).
 
 ```json
 {
@@ -57,23 +50,33 @@ Map works without a key within the keyless limits in [Rate limits](/production/r
 }
 ```
 
-`links` holds the URLs, best `search` matches first. An entry may also have `title` and `description`. The call is priced per call, not per URL. See [Pricing](/account/pricing).
+The URLs are in `links`, best `search` match first. A row can also have `title` and `description`. A map lists what it finds in the time allowed, so it can miss pages.
 
-| Field | Default | Effect |
+## Fields
+
+| Field | Default | What it does |
 | - | - | - |
-| `url` | required | Any page of the site. |
-| `search` | none | Keep URLs that match these words in the address, not the page text. Partial matches rank lower. |
-| `limit` | 5000 | Most URLs, 1 to 100,000. |
+| `search` | none | Keep only URLs whose address, title or description has these words. |
 | `sitemap` | `include` | `include` uses sitemaps and links, `only` lists what the sitemaps name, `skip` ignores them. |
-| `includeSubdomains` | `true` | Also list subdomains such as `docs.bun.com`. `true` needs an API key, so keyless calls list one host. |
-| `ignoreQueryParameters` | `true` | List each page once, without its `?query`. `false` keeps it. |
+| `includeSubdomains` | `true` | `false` lists only the host you sent. |
+| `ignoreQueryParameters` | `true` | `false` keeps the `?query` part of each URL. |
 | `timeout` | none | Stop after this many milliseconds, at least 1,000, and return what was found. |
-| `location` | United States | `country` and `languages` to read the site from. See [Location and headers](/scrape/location-and-headers). |
-| `ignoreCache` | `false` | Build the list again instead of reusing one made in the last 6 hours. |
+| `location` | United States | `country` and `languages` to read the site from. |
+| `ignoreCache` | `false` | `true` builds the list again instead of reusing one from the last 6 hours. |
 
-A map lists what it found in the time allowed, so it can miss pages, and a site that exposes few pages returns a short list. Fixes for these errors are in [Errors](/api-reference/errors):
+## Errors
 
-- `503 sourceUnavailable`: the site cannot be reached.
-- `403 siteNotRead`: the site is not read.
-- `404 notFound`: `sitemap: "only"` on a site with no sitemap. Use `include`.
-- `400 invalidRequest`: a private network URL, or `limit` above 100,000.
+| Code | Cause | Fix |
+| - | - | - |
+| `503 sourceUnavailable` | The site, or its sitemap with `sitemap: "only"`, cannot be reached | Wait `retryAfterSeconds`, then retry |
+| `404 notFound` | `sitemap: "only"` on a site with no sitemap | Send `sitemap: "include"` |
+| `403 siteNotRead` | Stophy does not read this site | Use a [parser](/scrape/prebuilt-parsers) |
+| `400 invalidRequest` | A private network URL | Send a public URL |
+
+Every other code is in [Errors](/api-reference/errors).
+
+## Next
+
+- [Scrape](/scrape/overview): read one of the URLs.
+- [Batches](/batches/overview): read a list of them.
+- [Crawl](/crawl/overview): read pages as links are found.

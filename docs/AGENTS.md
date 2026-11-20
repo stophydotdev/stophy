@@ -6,18 +6,18 @@ Goal: short, exact, cheap to read. Same facts, fewer words. `bun scripts/tokens.
 
 ## Layout
 
-Five tabs, in `docs.json`:
+Four tabs, in `docs.json`:
 
 - Documentation: Get started, Web data (`scrape`, `map`, `crawl`, `search`, `extract`, `agent`, `parse`), Browser, Automation (`batches`, `monitors`, `webhooks`), Account and billing, Production. A product's overview is its group's root page. Merge a page into its overview before adding a new one.
 - API Reference: `api-reference/{introduction,errors}` (hand-written) and `api-reference/endpoint/*` (generated), one page per operation in the live OpenAPI document.
 - Recipes: `recipes/*`, one goal per page, numbered steps with code.
 - Integrations: `integrations/llm-sdks`.
-- Changelog: `changelog`, one `<Update>` per week, newest first. Up to six bullets a week, one or two sentences each, with the page that describes the change. Breaking changes first.
 
 One home per fact. Link, never restate:
 
 | Fact | Home |
 | --- | --- |
+| Signup and API keys | `get-credentials` |
 | Prices | `account/pricing` |
 | Rate limits, concurrency, daily caps | `production/rate-limits` |
 | Error codes and fixes | `api-reference/errors` |
@@ -40,13 +40,4 @@ A removed page gets a redirect in `docs.json`, so no old link 404s.
 
 ## Writing
 
-- Plain words, short sentences, second person, present tense. Say what the reader gets.
-- A page opens with one sentence on what it does for the reader, then one request that works, the fields that matter, the options and limits in a table or short list, and links.
-- A product overview or quickstart shows one `<CodeGroup>` with cURL, TypeScript and Python tabs, using only methods the published SDK has. A feature page shows a request only when its shape is not obvious, in cURL alone. Never show the same call twice on a page. Show at most one response, cut to the fields the text uses. Show other options as inline fragments, such as `"onlyMainContent": true`.
-- Say the trap, the limit and the fix. Cut marketing words and restated titles.
-- State only what the live API or the server code does. If you cannot confirm a sentence, leave it out. Every example must be a call you ran or checked against the request schema.
-- The word credits appears only in field names such as `creditsUsed`.
-- Don't describe how Stophy gets its data or what runs it. Name no competitor.
-- No em dashes, en dashes or dash-like hyphens. Straight quotes.
-- Frontmatter: `title`, a 120 to 160 character `description` with no price, and `sidebarTitle` when the title is longer than the sidebar label. Mintlify derives `og:title` and `og:description` from them, so don't write them.
-- One h1 (the `title`). Sentence case headings, no skipped levels.
+Follow `STYLE.md`: page anatomy, voice, examples and the truth rules.

@@ -4,60 +4,70 @@ sidebarTitle: "Introduction"
 description: "Stophy is one API to search the web, read any page as Markdown or JSON, crawl a site, pull fields from pages and drive a cloud browser."
 ---
 
-Search, read, and act on the web. Send a URL or a question and get Markdown, JSON or a finished task back. A failed call is free.
+Search, read, and act on the web. Send a URL or a query to one API and get Markdown, JSON or a finished task back. A failed call costs nothing.
 
-## Make a request
+## Make your first request
 
-This call reads `example.com` as Markdown. It needs no API key. The TypeScript and Python tabs use the [SDK](/sdks).
+[Get an API key](/get-credentials) and set it as `STOPHY_API_KEY`. This call reads `example.com` as Markdown. The TypeScript and Python tabs use the [SDKs](/sdks).
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "url": "https://example.com", "formats": ["markdown"], "onlyMainContent": true }'
+  -d '{ "url": "https://example.com", "formats": ["markdown"] }'
 ```
 ```typescript TypeScript
 import { Stophy } from "stophy";
 
 const stophy = new Stophy();
-const { data } = await stophy.scrape({ url: "https://example.com", formats: ["markdown"], onlyMainContent: true });
+const { data } = await stophy.scrape({ url: "https://example.com", formats: ["markdown"] });
 console.log(data.markdown);
 ```
 ```python Python
 from stophy import Stophy
 
 stophy = Stophy()
-result = stophy.scrape(url="https://example.com", formats=["markdown"], only_main_content=True)
+result = stophy.scrape(url="https://example.com", formats=["markdown"])
 print(result["data"]["markdown"])
 ```
 </CodeGroup>
 
-The page text is in `data.markdown`. `data.metadata` has the title, the site's status code and `costUsd`.
+The page text is in `data.markdown`. `data.metadata` has the title, the site's status code and `costUsd`, what the call cost.
 
 ```json
 {
   "success": true,
   "data": {
     "markdown": "This domain is for use in documentation examples without needing permission. …",
-    "metadata": { "title": "Example Domain", "statusCode": 200, "costUsd": 0 }
+    "metadata": { "title": "Example Domain", "statusCode": 200, "costUsd": 0.001 }
   }
 }
 ```
 
-Other endpoints and more calls a minute need an API key. See the [Quickstart](/quickstart), or let your coding agent do the setup with the [Agent quickstart](/agent-quickstart).
+## Other ways to start
+
+| You want | Start here |
+| - | - |
+| Your coding agent to sign up and set it up | [Agent quickstart](/agent-quickstart) |
+| Stophy tools in Claude, Codex, Cursor or another MCP client | [MCP server](/install-mcp) |
+| Commands in a terminal or CI | [CLI](/install-cli) |
+| Your coding agent to pick the right call | [Skills](/install-skill) |
+
+Agents can read [llms.txt](https://docs.stophy.dev/llms.txt) for the page index or [llms-full.txt](https://docs.stophy.dev/llms-full.txt) for every page. Any page is Markdown at its URL plus `.md`.
 
 ## Choose an API
 
-Crawl follows links from one URL to find pages. A batch reads a list of URLs you already have. Extract reads the pages you name. Agent searches for the pages itself.
+Crawl follows links from one URL to find pages. A batch reads a list of URLs you already have. Extract reads the pages you name. Agent finds the pages itself.
 
 | You have | You want | Use |
 | - | - | - |
 | A URL | The page as Markdown, links, a screenshot or JSON | [Scrape](/scrape/overview) |
 | A URL on a site with its own data | A video, listing or profile as JSON | [Scrape with a parser](/scrape/prebuilt-parsers) |
 | A site | Every URL on it | [Map](/map/overview) |
-| A site | The content of many of its pages | [Crawl](/crawl/overview) |
+| A site | The content of its pages | [Crawl](/crawl/overview) |
 | A list of URLs | Their content, as a background job | [Batches](/batches/overview) |
-| A question | Ranked web, news, image, video or research results | [Search](/search/overview) |
+| A query | Ranked web, news, image, video or research results | [Search](/search/overview) |
 | Pages and the fields you want | The values, each checked against the page | [Extract](/extract/overview) |
 | A task in plain words | An answer with a quote for each field | [Agent](/agent/overview) |
 | A PDF, Word, Excel or PowerPoint file | Its text as Markdown | [Parse](/parse/overview) |
@@ -68,5 +78,5 @@ Crawl follows links from one URL to find pages. A batch reads a list of URLs you
 ## Next
 
 - [Pricing](/account/pricing) and [Rate limits](/production/rate-limits) before you ship.
-- [Install MCP](/install-mcp), [skills](/install-skill) or the [CLI](/install-cli) to use Stophy from an agent.
+- [Errors](/api-reference/errors): every code and its fix.
 - [API reference](/api-reference/introduction) for every field.

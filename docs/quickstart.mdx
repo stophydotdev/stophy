@@ -3,61 +3,74 @@ title: "Quickstart"
 description: "Get an API key, install the SDK and run your first Stophy search from cURL, TypeScript or Python. To have a coding agent do it, use the Agent quickstart."
 ---
 
-Make a first request and read the result. To have a coding agent set everything up, use the [Agent quickstart](/agent-quickstart).
+Get a key, install a client and run your first search. To have your coding agent do it, use the [Agent quickstart](/agent-quickstart).
 
 ## 1. Get an API key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup) with GitHub or Google. Create a key and set it as `STOPHY_API_KEY` in your server's environment. Never commit it or put it in browser code. See [API keys](/account/api-keys) and [Pricing](/account/pricing).
+Sign up at [stophy.dev/signup](https://stophy.dev/signup), create a key and set it in your server's environment. [Get credentials](/get-credentials) has every way to get one, including from an agent.
 
-Search, scrape, map and parse also work with no key, within the [free limits](/production/rate-limits). Leave out the `Authorization` header.
+```bash
+export STOPHY_API_KEY="<your key>"
+```
 
 ## 2. Install a client
 
-cURL needs nothing. For TypeScript run `npm install stophy`. For Python run `pip install stophy`. Both [SDKs](/sdks) read `STOPHY_API_KEY`.
+<CodeGroup>
+```bash TypeScript
+npm install stophy
+```
+```bash Python
+pip install stophy
+```
+</CodeGroup>
 
-## 3. Search
+Both [SDKs](/sdks) read `STOPHY_API_KEY`. cURL needs nothing.
 
-This request returns three web results for `bun runtime`.
+## 3. Search the web
+
+This request returns the top three web results for `bun runtime`.
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/search \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "query": "bun runtime", "sources": ["web"], "limit": 3 }'
+  -d '{ "query": "bun runtime", "limit": 3 }'
 ```
 ```typescript TypeScript
 import { Stophy } from "stophy";
 
 const stophy = new Stophy();
-const { data } = await stophy.search({ query: "bun runtime", sources: ["web"], limit: 3 });
+const { data } = await stophy.search({ query: "bun runtime", limit: 3 });
 console.log(data?.web?.map((result) => result.url));
 ```
 ```python Python
 from stophy import Stophy
 
 stophy = Stophy()
-body = stophy.search(query="bun runtime", sources=["web"], limit=3)
+body = stophy.search(query="bun runtime", limit=3)
 print([result["url"] for result in body["data"]["web"]])
 ```
 </CodeGroup>
 
-`data.web` holds the ranked results, each with a `url`, `title`, `description` and `position`. Empty fields are left out. The `x-cost-usd` header is what the call cost.
+`data.web` holds the ranked results, each with `url`, `title`, `description` and `position`. Empty fields are left out. The `x-cost-usd` header is what the call cost.
 
 ```json
 {
   "success": true,
   "data": {
     "web": [
-      { "url": "https://bun.sh/", "title": "Bun — A fast all-in-one JavaScript runtime", "position": 1 }
+      { "url": "https://en.wikipedia.org/wiki/Bun_(software)", "title": "Bun (software) - Wikipedia", "position": 1 },
+      { "url": "https://github.com/oven-sh/bun", "position": 2, "category": "github" }
     ]
   }
 }
 ```
 
-A failed call returns `success: false`, an `error` that says what to do and a `code`, and costs nothing. See [Errors](/api-reference/errors).
+A failed call returns `success: false`, an `error` that says what to do next and a `code`, and costs nothing. See [Errors](/api-reference/errors).
 
 ## Next
 
-- [Choose an API](/introduction#choose-an-api) for crawl, extract, browsers and the rest.
+- [Choose an API](/introduction#choose-an-api) for scrape, crawl, extract, browsers and the rest.
+- [Search](/search/overview) for sources, filters and reading result pages.
 - [Production checklist](/production/checklist) before you ship.

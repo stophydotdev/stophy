@@ -3,7 +3,7 @@ title: "Errors"
 description: "Every Stophy error code with its HTTP status, whether to retry and the fix. All errors share one flat JSON body, and a failed call costs nothing."
 ---
 
-Read `code` to decide whether to change the request or retry it. This is a real answer to `{"colour": "red"}` sent to scrape, with the field list cut.
+Every failed call returns one flat JSON body and costs nothing. Read `code` to decide whether to fix the request or retry it. This is the answer to `{"colour": "red"}` sent to scrape, with the field list cut.
 
 ```json
 {
@@ -23,9 +23,9 @@ Read `code` to decide whether to change the request or retry it. This is a real 
 | `retryAfterSeconds` | Seconds to wait, also the `Retry-After` header. When absent, back off as in [Troubleshooting](/production/troubleshooting#retry). |
 | `requestId` | Also the `X-Request-ID` header. Send it to support. |
 | `requiredUsd`, `availableUsd`, `billingUrl` | On `insufficientCredits`: the most the call can cost, your balance, and where to add money. `requiredCredits` and `availableCredits` are older fields for the same numbers. |
-| `signupUrl`, `signup` | On `apiKeyRequired`, `freeLimit` and an invalid key: where a person gets a key, and the `POST https://api.stophy.dev/v1/signup` call for an agent. See [API keys](/account/api-keys). |
+| `signupUrl`, `signup` | On `apiKeyRequired`, `freeLimit` and an invalid key: where a person gets a key, and the `POST https://api.stophy.dev/v1/signup` call for an agent. See [Get credentials](/get-credentials). |
 
-## Codes
+## Request, key and account
 
 | Code | Status | Retry | Fix |
 | - | - | - | - |
@@ -35,8 +35,6 @@ Read `code` to decide whether to change the request or retry it. This is a real 
 | `unauthorized` | 401 | No | The key is wrong, revoked or expired. |
 | `insufficientCredits` | 402 | No | The balance cannot cover the most the call can cost. Nothing was charged. Add money at `billingUrl`. See [Pricing](/account/pricing#balance). |
 | `forbidden` | 403 | No | This needs the dashboard. Sign in at stophy.dev. |
-| `siteNotRead` | 403 | No | Stophy does not read this site as a page. Use a [parser](/scrape/prebuilt-parsers). |
-| `promptInjectionDetected` | 403 | No | `checkPromptInjection` found text that instructs an AI model. Nothing was returned or charged. Send `checkPromptInjection: false` to read the page anyway. See [Safety](/scrape/safety). |
 | `notFound` | 404, 410 | No | The path, page, ID or job does not exist, or a job result is older than 24 hours. A 410 means the browser session ended. |
 | `methodNotAllowed` | 405 | No | The `Allow` header names the method. |
 | `jobFinished` | 409 | No | The crawl, batch or agent run already ended: you cannot cancel it or add URLs. |
@@ -48,15 +46,31 @@ Read `code` to decide whether to change the request or retry it. This is a real 
 | `freeLimit` | 429 | Yes | Keyless limit used. Get a key at `signupUrl` or wait `retryAfterSeconds`. A daily wait can be hours. |
 | `rateLimited` | 429 | Yes | A limit in [Rate limits](/production/rate-limits#when-you-go-over). Wait `retryAfterSeconds`. |
 | `internalError` | 500, 503 | Yes | Stophy failed and the call cost nothing. Retry in a second. If it fails again, send support the `requestId`. |
-| `sourceChanged` | 502 | No | The site answered in a shape Stophy could not read. Retrying will not help yet. |
 | `busy` | 503, 409 | Yes | Stophy or every browser is busy. Wait `retryAfterSeconds`: 5 when Stophy is busy, 30 when every browser is. A 409 means a network policy or proxy change on a session is still being applied. |
+
+## The site you read
+
+These come from the site a call reads, not from your request.
+
+| Code | Status | Retry | Fix |
+| - | - | - | - |
+| `siteNotRead` | 403 | No | Stophy does not read this site as a page. Use a [parser](/scrape/prebuilt-parsers). |
+| `promptInjectionDetected` | 403 | No | `checkPromptInjection` found text that instructs an AI model. Nothing was returned or charged. Send `checkPromptInjection: false` to read the page anyway. See [Safety](/scrape/safety). |
+| `sourceChanged` | 502 | No | The site answered in a shape Stophy could not read. Retrying will not help yet. |
 | `sourceUnavailable` | 503 | Yes | The site is not answering. Wait `retryAfterSeconds`. |
 | `sourceRefused` | 503 | Yes | The site is refusing requests. Wait `retryAfterSeconds`. |
 | `sourceTimeout` | 504 | Yes | The site took too long. Wait `retryAfterSeconds` (5), or raise `timeout`, see [Timeouts](/production/timeouts). |
+
+## CLI sign-in and invites
+
+Only the CLI login and invite links return these, never a data endpoint.
+
+| Code | Status | Retry | Fix |
+| - | - | - | - |
 | `invalidCliSession`, `invalidCliVerifier` | 400 | No | The CLI sign-in session or verifier is not valid. Run `stophy login` again. |
 | `cliSessionNotFound` | 404 | No | The CLI sign-in session was not found or has expired. |
 | `cliSessionExists`, `cliSessionCompleted` | 409 | No | The CLI sign-in session already exists or is no longer pending. |
 | `inviteClaimed` | 409 | No | You already claimed this invite. Its balance is in your account. |
 | `inviteDisabled`, `inviteExpired`, `inviteUsedUp` | 410 | No | The invite link was turned off, has expired or is used up. Ask the sender for a new one. |
 
-The last four rows come from CLI sign-in and invites, not from data endpoints. `insufficientCredits` keeps its name, and its message and fields are in dollars.
+`insufficientCredits` keeps its name, and its message and fields are in dollars.

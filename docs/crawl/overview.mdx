@@ -3,7 +3,7 @@ title: "Crawl"
 description: "Start from one URL, follow its links in the background, and collect each page as Markdown or any scrape format. Set the scope by path, depth and topic."
 ---
 
-Use Crawl to read many pages of a site from one URL. The call answers at once with an `id`, and you [read the pages](/crawl/async) as they finish. If you already have the URLs, use [Batches](/batches/overview). To preview the options from a sentence, see [Describe a crawl](/crawl/describe). Crawl needs an API key. Get one in the [Quickstart](/quickstart).
+Crawl reads a site's pages in the background, starting from one URL and following its links.
 
 <CodeGroup>
 ```bash cURL
@@ -12,9 +12,7 @@ curl -X POST https://api.stophy.dev/v1/crawl \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://bun.com/docs/runtime",
-    "includePaths": ["/docs/runtime/s.*"],
-    "excludePaths": ["/docs/runtime/sql"],
-    "maxDiscoveryDepth": 1,
+    "includePaths": ["^/docs/runtime/s"],
     "limit": 3
   }'
 ```
@@ -25,9 +23,7 @@ const stophy = new Stophy();
 
 const { id } = await stophy.crawl({
   url: "https://bun.com/docs/runtime",
-  includePaths: ["/docs/runtime/s.*"],
-  excludePaths: ["/docs/runtime/sql"],
-  maxDiscoveryDepth: 1,
+  includePaths: ["^/docs/runtime/s"],
   limit: 3,
 });
 console.log(id);
@@ -39,61 +35,68 @@ stophy = Stophy()
 
 result = stophy.crawl(
     url="https://bun.com/docs/runtime",
-    include_paths=["/docs/runtime/s.*"],
-    exclude_paths=["/docs/runtime/sql"],
-    max_discovery_depth=1,
+    include_paths=["^/docs/runtime/s"],
     limit=3,
 )
 print(result["id"])
 ```
 </CodeGroup>
 
+A crawl stays under the start page's path on its host and reads at most 10,000 pages. Set `limit` from 1 to 10,000. Crawl needs an API key, see [Get credentials](/get-credentials).
+
 ```json
 {
   "success": true,
-  "id": "job_9FAn-0pRXhHk7olrXk0sVg",
-  "url": "https://api.stophy.dev/v1/crawl/job_9FAn-0pRXhHk7olrXk0sVg"
+  "id": "job_MUETS-T9eC87YeCL49pTOA",
+  "url": "https://api.stophy.dev/v1/crawl/job_MUETS-T9eC87YeCL49pTOA"
 }
 ```
 
-Save the `id`. A crawl can wait before it starts, and the status then has a `queuePosition`. By default a crawl stays under the start page's path on its host. The start page must match `includePaths` like any other page, so this example does not return `/docs/runtime` itself.
+The call answers at once. Read the pages from `url` as they finish, see [Read a crawl](/crawl/async). A crawl that waits for a free place also has `status` and `queuePosition`. This one read `/docs/runtime/s3`, `/docs/runtime/secrets` and `/docs/runtime/semver`, but not `/docs/runtime`: the start page must match `includePaths` too. If you already have the URLs, use [Batches](/batches/overview).
 
 ## Scope
 
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
-| `url` | required | The page to start from. |
-| `limit` | 10,000 | Stop after reading this many pages, 1 to 10,000. |
-| `includePaths`, `excludePaths` | `[]` | Regular expressions on the path, up to 100 each. `excludePaths` wins over `includePaths`. |
-| `regexOnFullURL` | `false` | Match the patterns against the whole URL instead of the path. |
-| `maxDiscoveryDepth` | none | How many links from the start page to follow. With none, `limit` bounds the crawl. |
+| `includePaths`, `excludePaths` | `[]` | Regular expressions on the path, at most 100 each. `excludePaths` wins. |
+| `regexOnFullURL` | `false` | Match the patterns against the whole URL. |
+| `maxDiscoveryDepth` | none | How many links from the start page to follow. |
 | `crawlEntireDomain` | `false` | Read the whole site, not only the start page's path. |
 | `allowSubdomains` | `false` | Also read subdomains such as `docs.bun.com`. |
 | `allowExternalLinks` | `false` | Also follow links to other sites. They count toward `limit` and depth. |
 | `sitemap` | `include` | `include` also uses sitemaps, `only` reads what they name, `skip` ignores them. |
 | `ignoreQueryParameters` | `false` | Treat URLs that differ only in `?query` as one page. |
 | `deduplicateSimilarURLs` | `true` | Read one page for URLs that differ only by `www`, a trailing slash, a `#fragment`, tracking parameters such as `utm_source`, or `?query` order. |
-| `prompt` | none | A topic such as `sqlite performance`, up to 1,000 characters. Pages about it are read first, and the crawl stops once new pages stop mentioning it. |
+| `prompt` | none | A topic, at most 1,000 characters. Pages about it are read first, and the crawl stops once new pages stop mentioning it. |
 
-Patterns are JavaScript regular expressions, up to 200 characters, not anchored: `blog` matches `/company/blog/post`, so start with `^` to anchor. A pattern that is not valid, or repeats a group with `*`, `+` or `{}` such as `(a|b)+`, returns `400 invalidRequest`. Pages are read in order of fit: first those a `prompt` points to, then those closest to the start page. A crawl can read fewer than `limit` pages when the site has fewer in scope.
+Patterns are JavaScript regular expressions of at most 200 characters, and match anywhere in the path: `blog` matches `/company/blog/post`. Start with `^` to anchor, as the example does.
 
 ## Page content
 
-`scrapeOptions` takes the fields of [Scrape](/scrape/overview) for each page, such as `"scrapeOptions": { "formats": ["markdown", "links"], "onlyMainContent": true }`. Without it each page returns `markdown`. `url`, `linkStyle`, `maxChars`, `offset` and `query` are not allowed. Each page also has a `depth`, the links from the start page. Pages get 20 seconds plus `waitFor`, or the `scrapeOptions.timeout` you set (1,000 to 300,000 milliseconds), and never more than the time left in the crawl. A profile that saves changes makes the crawl read one page at a time. Send `"saveChanges": false` in `profile` to avoid that.
+`scrapeOptions` takes the [Scrape](/scrape/overview) fields for each page, such as `"scrapeOptions": { "formats": ["markdown", "links"] }`. Without it each page returns `markdown`. `linkStyle`, `maxChars`, `offset` and `query` are not allowed. A page gets 20 seconds plus `waitFor`, or `scrapeOptions.timeout` when you set it, and never more than the time left in the crawl.
 
-## Pacing and retention
+## Pacing
 
-| Field | Effect |
+| Field | What it does |
 | - | - |
-| `webhook` | Be told as the crawl runs. See [Read a crawl](/crawl/async#webhooks). |
-| `delay` | Seconds between pages, up to 60. With `delay` a crawl reads one page at a time. |
-| `maxConcurrency` | Pages read at once, 1 to 100. A crawl reads at most 4 at once, so more gives the same speed. |
+| `maxConcurrency` | Pages read at once, 1 to 100. A crawl reads at most 4 at once. |
+| `delay` | Seconds between pages, at most 60. The crawl then reads one page at a time. |
+| `webhook` | Be told as the crawl runs. See [Webhooks](/webhooks). |
 | `zeroDataRetention` | Keep nothing from the crawl. See [Zero data retention](/production/zero-data-retention). |
 
-## Limits
+A `profile` in `scrapeOptions` also makes the crawl read one page at a time. Send `"saveChanges": false` in it to avoid that.
 
-- A crawl and its pages are kept for 24 hours.
-- A start page that cannot be read, or that robots rules disallow, ends the crawl with `status` `failed` and the reason in `error`. Later pages that robots rules disallow are skipped, not failed.
-- A 404 or 410 page is a finished page with `metadata.statusCode`, not an error.
+## Errors
 
-Starting a crawl is free and each page is charged when it finishes. See [Pricing](/account/pricing).
+| Code | Cause | Fix |
+| - | - | - |
+| `400 invalidRequest` | A pattern that is not valid, or that repeats a group with `*`, `+` or `{}`, such as `(ab)+` | Fix the pattern that `error` names |
+| `429 rateLimited` | More jobs running or waiting than your tier allows | Wait `retryAfterSeconds`. See [Rate limits](/production/rate-limits). |
+
+A start page that cannot be read ends the crawl with `status: "failed"`. Check the URL, or start from another page. Every code is in [Errors](/api-reference/errors).
+
+## Next
+
+- [Read a crawl](/crawl/async): status, results and webhooks.
+- [Describe a crawl](/crawl/describe): get these fields from a sentence.
+- [Map](/map/overview): list the URLs first.

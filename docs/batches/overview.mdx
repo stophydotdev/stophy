@@ -3,7 +3,7 @@ title: "Batches"
 description: "Read a list of up to 10,000 URLs in the background with scrape options shared by every page. Submit once, get an id, then read pages as they finish."
 ---
 
-Use a batch when you already have the URLs. To have them found for you, use [Crawl](/crawl/overview). `POST /v1/batch/scrape` answers at once with an `id`. Batches need an API key. Get one in the [Quickstart](/quickstart).
+A batch reads a list of URLs in the background, with the same scrape options for every page.
 
 <CodeGroup>
 ```bash cURL
@@ -11,13 +11,7 @@ curl -X POST https://api.stophy.dev/v1/batch/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "urls": [
-      "https://example.com",
-      "https://bun.com/docs/this-page-does-not-exist",
-      "ftp://example.com/file.txt"
-    ],
-    "formats": ["markdown"],
-    "maxAge": 0
+    "urls": ["https://example.com", "ftp://example.com/file.txt"]
   }'
 ```
 ```typescript TypeScript
@@ -26,13 +20,7 @@ import { Stophy } from "stophy";
 const stophy = new Stophy();
 
 const batch = await stophy.batch.scrape({
-  urls: [
-    "https://example.com",
-    "https://bun.com/docs/this-page-does-not-exist",
-    "ftp://example.com/file.txt",
-  ],
-  formats: ["markdown"],
-  maxAge: 0,
+  urls: ["https://example.com", "ftp://example.com/file.txt"],
 });
 console.log(batch.id, batch.invalidURLs);
 ```
@@ -41,46 +29,56 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-batch = stophy.batch.scrape(
-    urls=[
-        "https://example.com",
-        "https://bun.com/docs/this-page-does-not-exist",
-        "ftp://example.com/file.txt",
-    ],
-    formats=["markdown"],
-    max_age=0,
-)
+batch = stophy.batch.scrape(urls=["https://example.com", "ftp://example.com/file.txt"])
 print(batch["id"], batch["invalidURLs"])
 ```
 </CodeGroup>
 
-The answer has `id`, `url` and `invalidURLs`: addresses that are not public website URLs. They are skipped and the rest runs. A batch that waits for a free place also has `status: "scraping"` and a `queuePosition`. Starting a batch is free and each page is charged when it finishes. See [Pricing](/account/pricing).
+Send 1 to 10,000 URLs of at most 2,048 characters each. Each page comes back as Markdown, and an address sent twice is read once. Batches need an API key, see [Get credentials](/get-credentials).
+
+```json
+{
+  "success": true,
+  "id": "job_wfE0hfue0Xn7yNS-9kq-Ng",
+  "url": "https://api.stophy.dev/v1/batch/scrape/job_wfE0hfue0Xn7yNS-9kq-Ng",
+  "invalidURLs": ["ftp://example.com/file.txt"]
+}
+```
+
+The call answers at once. `invalidURLs` lists the addresses that are not public website URLs: they are skipped and the rest runs. A batch that waits for a free place also has `status` and `queuePosition`. Read the pages from `url` as they finish, see [Batch results](/batches/results). If you want the URLs found for you, use [Crawl](/crawl/overview).
 
 ## Fields
 
-Every [Scrape](/scrape/overview) option goes at the top level next to `urls` and applies to every page, except `url` and `offset`.
-
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
-| `urls` | required | 1 to 10,000 pages or PDFs, each up to 2,048 characters. An address sent twice is read once. |
-| `formats` | `markdown` | What to return for every page. |
-| `ignoreInvalidURLs` | `true` | Skip invalid addresses and list them in `invalidURLs`. `false` refuses the whole batch. |
-| `maxConcurrency` | none | Pages read at once, 1 to 100. At most 4 are read at once, so more gives the same speed. |
-| `webhook` | none | Be told per page and at the end. See [Webhooks](/crawl/async#webhooks). |
-| `appendToId` | none | The id of a running batch: add `urls` to it instead of starting a new one. |
+| Any [Scrape](/scrape/overview) field but `url` and `offset` | | Applies to every page, such as `"formats": ["markdown", "links"]`. |
+| `ignoreInvalidURLs` | `true` | `false` refuses the whole batch when one address is invalid. |
+| `maxConcurrency` | none | Pages read at once, 1 to 100. A batch reads at most 4 at once. |
+| `webhook` | none | Be told as each page finishes and at the end. See [Webhooks](/webhooks). |
+| `appendToId` | none | Add `urls` to a running batch, see below. |
 
-The full list is in the [API reference](/api-reference/endpoint/batch-scrape).
+The [API reference](/api-reference/endpoint/batch-scrape) has every field.
 
 ## Add URLs to a running batch
 
-Send the batch id in `appendToId` and the new addresses in `urls`. The batch keeps its own options and webhook, and URLs it already has are skipped. The answer has the same `id`, and `total` in the status shows the new count. A finished batch returns `409 jobFinished`, so start a new one. The 10,000 URL cap includes added URLs. Without enough balance, `appendToId` returns `402 insufficientCredits`.
+Send the batch `id` in `appendToId` and the new addresses in `urls`. The batch keeps its own options and webhook, skips URLs it already has, and counts the new ones in `total`. Added URLs count toward the 10,000 cap.
 
 ## Retry a submit safely
 
-Add an `Idempotency-Key` header, any text you choose. The same key and body within 24 hours return the first answer with the header `idempotent-replayed: true`. A different body with the same key starts a new batch.
+Send an `Idempotency-Key` header with any text. The same key and body within 24 hours return the first answer with `idempotent-replayed: true`. The same key with a different body starts a new batch.
 
-## Read the batch
+## Errors
 
-Read, cancel, delete and list batches as in [Results](/batches/results). `status` is `scraping`, `completed`, `cancelled` or `failed`, and the last three are final. `completed` means every page was tried, so check `errors`. A batch fails when your balance runs out or no page could be read, and `error` says which.
+| Code | Cause | Fix |
+| - | - | - |
+| `400 invalidRequest` | No public URL in `urls`, more than 10,000, a bad `webhook`, or an invalid address with `ignoreInvalidURLs: false` | Fix the field that `error` names |
+| `409 jobFinished` | `appendToId` names a batch that ended | Start a new batch |
+| `429 rateLimited` | More jobs running or waiting than your tier allows | Wait `retryAfterSeconds`. See [Rate limits](/production/rate-limits). |
 
-Submit errors are `400 invalidRequest` for an empty `urls`, more than 10,000, a list with no public URL, a bad `webhook`, or an invalid address with `ignoreInvalidURLs: false`. A balance that runs out ends the batch as `failed`. Too many jobs returns `429 rateLimited`. Limits are in [Rate limits](/production/rate-limits) and codes in [Errors](/api-reference/errors).
+A batch ends with `status: "failed"` when your balance runs out or no page could be read. `completed` means every page was tried, so check `errors`. Every code is in [Errors](/api-reference/errors).
+
+## Next
+
+- [Batch results](/batches/results): read, retry, cancel and list batches.
+- [Scrape](/scrape/overview): the options every page takes.
+- [Map](/map/overview): list a site's URLs to send.
