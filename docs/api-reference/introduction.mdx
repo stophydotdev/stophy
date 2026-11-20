@@ -4,7 +4,9 @@ description: "Send JSON to one base URL with a bearer key. Every operation in on
 mode: "wide"
 ---
 
-The API takes JSON over HTTPS at `https://api.stophy.dev` and answers in JSON. Use the body or query string shown on each operation's page. A field the operation does not take can return `400`. Send your key as `Authorization: Bearer $STOPHY_API_KEY`. Which calls work without one is in [API keys](/account/api-keys).
+The API takes JSON over HTTPS at `https://api.stophy.dev` and answers in JSON. Send your key as `Authorization: Bearer $STOPHY_API_KEY`, from [Get credentials](/get-credentials). Use the body or query string shown on each operation's page. A field the operation does not take can return `400`.
+
+The [OpenAPI document](https://api.stophy.dev/openapi.json) describes every operation and field. Generate a client from it, or give it to a model.
 
 ## Operations
 

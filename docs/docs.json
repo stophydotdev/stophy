@@ -61,6 +61,7 @@
             "pages": [
               "introduction",
               "quickstart",
+              "get-credentials",
               "agent-quickstart",
               "sdks",
               "install-mcp",
@@ -189,7 +190,6 @@
             "group": "Account and billing",
             "pages": [
               "account/pricing",
-              "account/api-keys",
               "account/usage"
             ]
           },
@@ -455,18 +455,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Changelog",
-        "icon": "clock-rotate-left",
-        "groups": [
-          {
-            "group": "Changelog",
-            "pages": [
-              "changelog"
-            ]
-          }
-        ]
       }
     ],
     "global": {
@@ -480,11 +468,6 @@
           "anchor": "Blog",
           "href": "https://stophy.dev/blog",
           "icon": "newspaper"
-        },
-        {
-          "anchor": "Changelog",
-          "href": "https://stophy.dev/changelog",
-          "icon": "list"
         }
       ]
     }
@@ -503,20 +486,28 @@
         "header": "For AI agents",
         "items": [
           {
-            "label": "Agent guide (agents.md)",
-            "href": "https://stophy.dev/agents.md"
+            "label": "Get credentials",
+            "href": "https://docs.stophy.dev/get-credentials"
           },
           {
-            "label": "Site index (llms.txt)",
+            "label": "Agent onboarding (SKILL.md)",
+            "href": "https://stophy.dev/agents/SKILL.md"
+          },
+          {
+            "label": "Agent auth (auth.md)",
+            "href": "https://stophy.dev/auth.md"
+          },
+          {
+            "label": "Agent docs (llms.txt)",
             "href": "https://stophy.dev/llms.txt"
           },
           {
-            "label": "MCP discovery (mcp.json)",
-            "href": "https://stophy.dev/.well-known/mcp.json"
+            "label": "Full docs (llms-full.txt)",
+            "href": "https://docs.stophy.dev/llms-full.txt"
           },
           {
-            "label": "OpenAPI",
-            "href": "https://api.stophy.dev/openapi.json"
+            "label": "MCP server",
+            "href": "https://docs.stophy.dev/install-mcp"
           }
         ]
       }
@@ -2397,6 +2388,14 @@
     {
       "source": "/scrape/prebuilt-parsers/video/twitch-clips",
       "destination": "/scrape/prebuilt-parsers/video#twitch-clips"
+    },
+    {
+      "source": "/account/api-keys",
+      "destination": "/get-credentials"
+    },
+    {
+      "source": "/changelog",
+      "destination": "https://stophy.dev/changelog"
     }
   ],
   "integrations": {

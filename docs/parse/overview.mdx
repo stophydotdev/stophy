@@ -1,9 +1,9 @@
 ---
 title: "Parse"
-description: "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Send the file as base64. Works without an API key for small files."
+description: "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Send the file as base64, up to 36 MB, and get its text."
 ---
 
-Use Parse for a file you have. For a file at a public URL, use [Scrape](/scrape/pdfs-and-documents). Files over the JSON size limit go through [Large files](/parse/large-files).
+Parse turns a file you have into Markdown. For a file at a public URL, use [Scrape](/scrape/pdfs-and-documents).
 
 <CodeGroup>
 ```bash cURL
@@ -37,73 +37,81 @@ print(data["markdown"])
 ```
 </CodeGroup>
 
-Files up to 2 MB work without a key, within the keyless limits in [Rate limits](/production/rate-limits). Get a key in the [Quickstart](/quickstart). Encode a file from disk with `base64 -w0 report.pdf`.
+Send the bytes as base64 in `file`, up to 36 MB. Encode a file from disk with `base64 -w0 report.pdf`, or send raw bytes with [Large files](/parse/large-files). Small files also parse without a key, within the [keyless limits](/production/rate-limits#without-a-key).
 
 ```json
 {
   "success": true,
   "data": {
     "markdown": "# How tides work",
-    "metadata": { "contentType": "text/html", "costUsd": 0 }
+    "metadata": { "contentType": "text/html" }
   }
 }
 ```
 
-`metadata.contentType` is the type found in the bytes, whatever the name says. For a PDF, `numPages` is the page count and `ocrPages` counts pages read from their picture. `data.warning` says `The file text was cut short.` when the file had more pages than `maxPages`. See [Pricing](/account/pricing).
+The text is in `data.markdown`. `metadata.contentType` is the type read from the bytes, whatever the name says. For a PDF, `numPages` is the page count and `ocrPages` counts pages read from their picture. `data.warning` is `The file text was cut short.` when the file had more pages than `maxPages`.
 
 ## Fields
 
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
-| `file` | none | The bytes as base64, up to 36 MB with a key, 2 MB without. A `data:` prefix is accepted. Send `file` or `uploadRef`. |
-| `uploadRef` | none | The `uploadId` from [Large files](/parse/large-files), instead of `file`. |
-| `filename` | none | A hint such as `report.docx`. |
-| `formats` | `[]` | Up to 8 formats besides `markdown`: `summary` ([Summary](/scrape/summary)), `links` and `images` ([Links](/scrape/links)), `html` and `rawHtml` (HTML files only, [HTML](/scrape/html)), `json` with `schema` or `prompt` ([JSON](/scrape/json)). |
-| `maxPages` | 100 | Most PDF pages, sheets or slides to read, 1 to 100. |
-| `parsers` | none | One PDF entry, below. Other files ignore it. |
-| `onlyMainContent`, `includeTags`, `excludeTags`, `removeBase64Images` | | HTML options, below. |
+| `file` | none | The bytes as base64. A `data:` prefix is accepted. Send `file` or `uploadRef`. |
+| `uploadRef` | none | The `uploadId` from [Large files](/parse/large-files). |
+| `filename` | none | A name such as `report.docx`. |
+| `formats` | none | Up to 8 besides `markdown`: `summary`, `links`, `images`, `html` and `rawHtml` (HTML files only), and `json` with `schema` or `prompt`. See [Formats](/scrape/formats) and [JSON](/scrape/json). |
+| `maxPages` | `100` | Most PDF pages, sheets or slides to read, 1 to 100. |
+| `parsers` | none | One PDF entry. See [Read a PDF](#read-a-pdf). |
 | `zeroDataRetention` | `false` | Keep nothing from the call. See [Zero data retention](/production/zero-data-retention). |
 
-The same fields can sit inside an `options` object. The full list is in the [API reference](/api-reference/endpoint/parse).
+These fields can also sit inside an `options` object. The full list is in the [API reference](/api-reference/endpoint/parse).
 
 ## File types
 
-`GET /v1/parse/formats` lists them, with `extensions`, `mimeTypes`, `kind` (`document` or `image`), `available` and the `options` that apply. It is free. The type comes from the bytes of the file.
+`GET /v1/parse/formats` is free and lists each type with the `options` that apply.
 
-| Format | Extensions | You get |
-| - | - | - |
-| `pdf` | `.pdf` | Text of up to 100 pages. A page with no text layer is read from its picture, up to 20 pages. |
-| `docx` | `.docx` | The document text. |
-| `odt` | `.odt` | The text of the file. |
-| `xlsx` | `.xlsx` | Each sheet. |
-| `pptx` | `.pptx` | Each slide. |
-| `html` | `.html`, `.htm` | The page as Markdown. |
-| `image` | `.png`, `.jpg`, `.jpeg`, `.webp` | The text in the picture. |
+| You have | You get |
+| - | - |
+| `.pdf` | Text of up to 100 pages. A page with no text layer is read from its picture, up to 20 pages. |
+| `.docx`, `.odt` | The document text. |
+| `.xlsx` | Each sheet. |
+| `.pptx` | Each slide. |
+| `.html`, `.htm` | The page as Markdown. |
+| `.png`, `.jpg`, `.jpeg`, `.webp` | The text in the picture. |
 
-`.doc`, `.xls`, `.ppt`, `.ods` and `.odp` are not read: save them in a listed format.
+`.doc`, `.xls`, `.ppt`, `.ods` and `.odp` are not read. Save them in a listed format.
 
-## PDF options
+## Read a PDF
 
 `parsers` takes one entry: `[{ "type": "pdf", "pages": true }]`.
 
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
-| `mode` | `auto` | `fast` reads the text layer only. `auto` also reads the picture of pages with none. `ocr` reads every page's picture, up to 20 pages, and needs a key. `fast` on a picture returns `400`. |
-| `maxPages` | 100 | Pages to read, 1 to 100. |
+| `mode` | `auto` | `fast` reads the text layer only. `auto` also reads the picture of pages that have none. `ocr` reads every page's picture, up to 20 pages, and needs a key. |
+| `maxPages` | `100` | Pages to read, 1 to 100. |
 | `pages` | `false` | Also return `data.pages` as `{ pageNumber, markdown }`. |
-| `blocks` | `false` | Also return `data.blocks`: each title, section header or run of text with its page, reading order and `bbox` (left, top, right, bottom, from 0 to 1). Tables, figures and formulas are not told apart. A page read from its picture is one block. |
+| `blocks` | `false` | Also return `data.blocks`: each title, section header or run of text with its page, reading order and `bbox` (left, top, right, bottom, 0 to 1). Tables, figures and formulas are not told apart. A page read from its picture is one block. |
 | `pageMarkers` | `false` | Join pages with `---` and a `<!-- page N -->` line, where N is the page that follows. |
 
-## HTML options
+## Read an HTML file
 
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
 | `onlyMainContent` | `true` | `false` keeps navigation and footers. |
 | `includeTags`, `excludeTags` | none | Keep or drop what these CSS selectors match, up to 50. |
 | `removeBase64Images` | `true` | `false` keeps images that carry their data in the address. |
 
-`includeTags`, `excludeTags`, `html` and `rawHtml` on a file that is not HTML return `400 invalidRequest`.
+## Errors
 
-## Limits
+| Code | Cause | Fix |
+| - | - | - |
+| `400 invalidRequest` | Over 36 MB, not base64, password-protected, a type that cannot be read, no `file` or `uploadRef`, an HTML option on another file, or `mode: "fast"` on a picture. | Fix what `error` names. |
+| `400 invalidRequest` | `summary`, `json` or `mode: "ocr"` without a key. | Send your key. See [Get credentials](/get-credentials). |
+| `404 notFound` | No readable text. Without a key, scanned pages and pictures are not read. | Send your key, and don't use `mode: "fast"`. |
 
-A file over the size limit, one that is not base64, one that is password-protected, a type that cannot be read, or one with neither `file` nor `uploadRef` returns `400 invalidRequest`. A file with no readable text returns `notFound`. Without a key, scanned pages and pictures are not read, and `mode: "ocr"`, `summary` and `json` return `400`. Codes are in [Errors](/api-reference/errors).
+Other codes are on [Errors](/api-reference/errors).
+
+## Next
+
+- [Large files](/parse/large-files): upload raw bytes.
+- [PDFs and documents](/scrape/pdfs-and-documents): read a file at a URL.
+- [JSON](/scrape/json): get named fields from the text.

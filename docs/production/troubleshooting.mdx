@@ -11,7 +11,7 @@ A failed call costs nothing. Keep the HTTP status, `code` and `requestId` of a f
 | - | - |
 | `200` with less than you expected | A `warning`, `isTruncated`, a filter that matched nothing, or an empty page. See [Scrape](/scrape/overview#timeouts-warnings-and-errors). |
 | `400` | `error` names the field the endpoint does not take or the value it rejects. |
-| `401` | No key, a wrong or expired key, or a field that needs a key. See [API keys](/account/api-keys). |
+| `401` | No key, a wrong or expired key, or a field that needs a key. See [Get credentials](/get-credentials). |
 | `402` | Balance too low. See [Pricing](/account/pricing). |
 | `403`, `404`, `405`, `409` | Read `code` in [Errors](/api-reference/errors). |
 | `413`, `415` | Body too large, or not JSON. |

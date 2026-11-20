@@ -4,13 +4,14 @@ import { countTokens } from "gpt-tokenizer/encoding/o200k_base";
 
 const root = join(import.meta.dir, "..");
 const skip = new Set(["node_modules", "scripts", "images", "logo"]);
+const guides = new Set(["AGENTS.md", "README.md", "STYLE.md"]);
 
 function* pages(dir: string): Generator<string> {
 	for (const e of readdirSync(dir, { withFileTypes: true })) {
 		if (skip.has(e.name)) continue;
 		const p = join(dir, e.name);
 		if (e.isDirectory()) yield* pages(p);
-		else if (/\.mdx?$/.test(e.name) && e.name !== "AGENTS.md" && e.name !== "README.md") yield p;
+		else if (/\.mdx?$/.test(e.name) && !guides.has(e.name)) yield p;
 	}
 }
 

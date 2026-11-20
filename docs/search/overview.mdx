@@ -1,9 +1,9 @@
 ---
 title: "Search"
-description: "Find web pages, news, images, papers and videos from a query in one request, and optionally read the page text of each result. Works without an API key."
+description: "Find web pages, news, images, research papers and videos for a query in one request, and read the text of each result page when you need it."
 ---
 
-Use Search when you have a query instead of a URL. You get one ranked list per source, and web results by default.
+Search returns ranked results for a query, one list per source.
 
 <CodeGroup>
 ```bash cURL
@@ -12,7 +12,6 @@ curl -X POST https://api.stophy.dev/v1/search \
   -H "Content-Type: application/json" \
   -d '{
     "query": "bun runtime",
-    "sources": ["web", "news"],
     "limit": 3
   }'
 ```
@@ -21,13 +20,9 @@ import { Stophy } from "stophy";
 
 const stophy = new Stophy();
 
-const { data } = await stophy.search({
-  query: "bun runtime",
-  sources: ["web", "news"],
-  limit: 3,
-});
+const { data } = await stophy.search({ query: "bun runtime", limit: 3 });
 for (const result of data?.web ?? []) {
-  console.log(result.position, result.title, result.url);
+  console.log(result.position, result.url);
 }
 ```
 ```python Python
@@ -35,47 +30,46 @@ from stophy import Stophy
 
 stophy = Stophy()
 
-data = stophy.search(
-    query="bun runtime",
-    sources=["web", "news"],
-    limit=3,
-)["data"]
+data = stophy.search(query="bun runtime", limit=3)["data"]
 for result in data["web"]:
-    print(result["position"], result["title"], result["url"])
+    print(result["position"], result["url"])
 ```
 </CodeGroup>
 
-Search works without a key, within the keyless limits in [Rate limits](/production/rate-limits). Reading result pages needs a key. Get one in the [Quickstart](/quickstart).
-
-## Response
-
-`data` holds one list per source, each row ranked by `position`.
+You get 10 web results. Set `limit` from 1 to 100 results per source, and add `news` or `images` to `sources`. Calls without a key have lower limits and cannot read result pages, see [Without a key](/production/rate-limits#without-a-key).
 
 ```json
 {
   "success": true,
   "data": {
-    "news": [{ "url": "https://bun.com/blog/bun-v1.4.4", "position": 2 }],
-    "web": [{ "url": "https://github.com/oven-sh/bun", "position": 1, "category": "github" }]
+    "web": [
+      { "url": "https://bun.com/", "title": "Bun …", "description": "Bundle, install, and run JavaScript & TypeScript …", "position": 1 },
+      { "url": "https://en.wikipedia.org/wiki/Bun_(software)", "title": "Bun (software) - Wikipedia", "position": 2, "date": "2026-11-06T00:00:00.000Z" }
+    ]
   }
 }
 ```
 
-A web row has `url`, `title` and `description`, plus `date` when known and `category` (`github`, `research` or `pdf`) when the page is one of those. A news row has `snippet` instead of `description`, and may have `imageUrl`.
-
-If a source fails or returns fewer rows than you asked for, the call still succeeds and `warning` names the source. If every source fails, the call fails. The `x-cost-usd` header is what the call cost. See [Pricing](/account/pricing).
+Each source's list is in `data`, such as `data.web`, ranked by `position`. A web row has `url`, `title` and `description`, plus `date` when known and `category` (`github`, `research` or `pdf`) when the page is one of those. A news row has `snippet` instead of `description`.
 
 ## Fields
 
-| Field | Default | Effect |
+| Field | Default | What it does |
 | - | - | - |
 | `query` | required | 1 to 500 characters. Web results take `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Images take `imagesize:WIDTHxHEIGHT` and `larger:WIDTHxHEIGHT`. |
-| `sources`, `categories` | `["web"]` | What to return. See [Options](/search/options#sources). |
-| `includeDomains`, `excludeDomains`, `tbs`, `location`, `country`, `lang`, `safe` | none | Narrow by site, time, place or language. See [Options](/search/options#filters). |
-| `scrapeOptions`, `scrapeLimit`, `highlights` | none | Read each result page, or only matching passages. See [Options](/search/options#page-content). |
-| `limit` | 10, or 5 with `scrapeOptions.formats` | Most results per source, 1 to 100. News returns at most 50. |
-| `maxAge` | 1 hour, 15 minutes for news | Accept a stored answer up to this many milliseconds old, at most 30 days. `0` searches live. A stored answer has `cachedAt`. |
-| `timeout` | 3,000 ms, 60,000 ms with `scrapeOptions.formats` | Milliseconds to wait for sources, 1,000 to 120,000. A source that has not answered is left out with a `warning`. |
+| `sources`, `categories` | `["web"]` | `web`, `news` and `images`, or `pdf`, `research` and `videos`. See [Sources](/search/options#sources). |
+| `limit` | 10, or 5 with `scrapeOptions.formats` | Results per source, 1 to 100. News returns at most 50. |
+| `includeDomains`, `excludeDomains`, `tbs`, `location`, `country`, `lang`, `safe` | none | Narrow by site, time, place or language. See [Filters](/search/options#filters). |
+| `scrapeOptions`, `scrapeLimit`, `highlights` | none | Read each result page, or only its matching passages. See [Page content](/search/options#page-content). |
+| `maxAge` | 1 hour, 15 minutes for news | Accept a stored answer this many milliseconds old, at most 30 days. `0` searches live. |
 | `ignoreInvalidURLs` | `false` | Leave out results whose address is not a readable page. |
 
-Two more endpoints search one kind of content: [Papers](/search/papers) and [Developer search](/search/developer). The full field list is in the [API reference](/api-reference/endpoint/search).
+## Errors
+
+A source that fails, or has not answered within `timeout`, is left out and named in `warning`, and the call still succeeds. Raise `timeout` as in [Timeouts](/production/timeouts). If every source fails, the call fails and costs nothing. Every code is in [Errors](/api-reference/errors).
+
+## Next
+
+- [Search options](/search/options): sources, filters and page text.
+- [Papers](/search/papers) and [Developer search](/search/developer): search one kind of content.
+- [Scrape](/scrape/overview): read one result in full.
