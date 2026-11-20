@@ -19,7 +19,7 @@ stophy batch scrape status <id>
 ```
 
 - `map` answers at once with the site's URLs. Map first when you need only addresses, then scrape the pages that matter.
-- `crawl` and `batch scrape` print an `id` and run in the background. `status` is `scraping` until it is `completed`. Run `stophy crawl cancel <id>` to stop and keep the pages read so far.
+- `crawl` and `batch scrape` print an `id` and run in the background. `status` is `scraping` until it is `completed`, and `data` holds one entry per page with its `markdown` and `metadata.sourceURL`. Run `stophy crawl cancel <id>` to stop and keep the pages read so far.
 - A crawl stays under the start URL's path. `--includePaths`, `--excludePaths`, `--maxDiscoveryDepth` and `--limit` narrow it.
 - When a status answer has `next`, run `status <id> --cursor <c>`, with `<c>` the `cursor=` value in that link.
 - A job and its pages are kept for 24 hours.

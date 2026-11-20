@@ -15,7 +15,7 @@ stophy browser task --url "https://www.python.org" --goal "Search the site for a
 stophy browser task status <id>
 ```
 
-The task answers at once with an `id`. `status` returns `result: null` while it runs. When it ends, `result.done` says whether it met the goal, `result.answer` holds what it found, `result.steps` lists what it did, and `reason` says why it stopped short.
+The task answers at once with an `id`. Check `status` every 15 seconds. It returns `result: null` while the task runs. When it ends, `result.done` says whether it met the goal, `result.answer` holds what it found, `result.steps` lists what it did, and `reason` says why it stopped short.
 
 - Write the goal as one or two sentences a person could follow. Put inputs in `--values`, like `--values "from London, to Istanbul, date 2026-12-01"`.
 - `--schema '<json schema>'` returns the answer as those fields.
