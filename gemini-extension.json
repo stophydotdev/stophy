@@ -1,7 +1,7 @@
 {
   "name": "stophy",
-  "version": "2.0.5",
-  "description": "Search, read, and act on the web. Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents.",
+  "version": "3.0.0",
+  "description": "Search, read, and act on the web. One API that gives AI agents web search, page reads, crawls, extraction, site data and a browser.",
   "mcpServers": {
     "stophy": { "httpUrl": "https://mcp.stophy.dev/mcp" }
   }

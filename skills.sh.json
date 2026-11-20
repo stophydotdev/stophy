@@ -3,35 +3,22 @@
   "groupings": [
     {
       "title": "Stophy | Search, read, and act on the web",
-      "description": "Search, read, and act on the web. Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents.",
+      "description": "Search, read, and act on the web. One API that gives AI agents web search, page reads, crawls, extraction, site data and a browser.",
       "skills": [
         "stophy",
-        "stophy-scrape",
         "stophy-search",
+        "stophy-scrape",
         "stophy-crawl",
-        "stophy-extract",
-        "stophy-parse",
-        "stophy-monitor",
-        "stophy-download",
-        "stophy-docs",
+        "stophy-deep-research",
         "stophy-browser",
         "stophy-build",
-        "stophy-build-scrape",
-        "stophy-build-search",
-        "stophy-lead-gen",
-        "stophy-job-postings",
-        "stophy-shop",
-        "stophy-competitive-intel",
-        "stophy-deep-research",
         "stophy-video",
         "stophy-social",
         "stophy-places",
-        "stophy-jobs",
         "stophy-shopping",
-        "stophy-apps",
+        "stophy-jobs",
         "stophy-real-estate",
-        "stophy-ads",
-        "stophy-web"
+        "stophy-competitive-intel"
       ]
     }
   ]

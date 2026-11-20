@@ -1,58 +1,46 @@
 ---
 name: stophy-jobs
-description: |
-  Get job postings from LinkedIn, Indeed, Upwork and company careers pages, and Glassdoor company reviews and salaries: search by keyword, location or rate, and read one posting in full. Use for "find jobs for", "who is hiring for this role", "find freelance work for", "what does this job pay", "remote jobs in this field", "what roles is this company hiring for". For a company's LinkedIn profile or posts, not its job listings, use stophy-social.
-metadata:
-  author: stophy
-  version: "5.0.0"
+description: Use to find job postings and pay on LinkedIn, Indeed, Upwork, company careers pages and Glassdoor, like "find remote React jobs posted this week", "who is hiring for this role", "what does this company pay", "find freelance work for".
 allowed-tools:
   - Bash(stophy *)
-  - Bash(npx @stophy/cli *)
   - Bash(npx @stophy/cli@latest *)
 ---
 
 # stophy jobs
 
-Find open roles and what they pay.
+Setup, keys and errors: [stophy](../stophy/SKILL.md). Every parser here needs a key. Put the search in the board's own URL: keywords, place and date filters.
 
-**Prerequisite:** the Stophy CLI 1.3.0 or later (`stophy --version`). Every parser here needs `stophy login --browser` or `STOPHY_API_KEY`. See [stophy](../stophy/SKILL.md).
+## Steps
 
-## Quick start
+1. Search the boards. `f_TPR=r604800` keeps LinkedIn jobs from the past week.
 
-```bash
-# job searches by keyword and place
-stophy scrape "https://www.linkedin.com/jobs/search?keywords=software%20engineer&location=United%20States&f_TPR=r604800" --parser linkedin-jobs --json -o .stophy/jobs.json
-stophy scrape "https://www.indeed.com/jobs?q=nurse&l=Austin%2C+TX" --parser indeed-search
-stophy scrape "https://www.upwork.com/nx/search/jobs/?q=react&sort=recency" --parser upwork-search
+   ```bash
+   stophy scrape "https://www.linkedin.com/jobs/search?keywords=software%20engineer&location=United%20States&f_TPR=r604800" --parser linkedin-jobs -o .stophy/jobs.json --json
+   stophy scrape "https://www.indeed.com/jobs?q=nurse&l=Austin%2C+TX" --parser indeed-search
+   stophy scrape "https://www.upwork.com/nx/search/jobs/?q=react&sort=recency" --parser upwork-search
+   ```
 
-# one company's open roles, and what it pays
-stophy scrape "https://boards.greenhouse.io/figma" --parser careers-jobs
-stophy scrape "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm" --parser glassdoor-salaries
-```
+2. Read the roles that fit in full, from the company's own board when it has one:
 
-**Done when:** you list each role with its title, company, place and link, and quote pay only where the output gives it.
+   ```bash
+   stophy scrape "https://boards.greenhouse.io/figma" --parser careers-jobs
+   stophy scrape "https://boards.greenhouse.io/figma/jobs/5426468004" --parser careers-job
+   ```
 
-## Parsers
+3. Add what the company pays: `stophy scrape "https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.11,17.htm" --parser glassdoor-salaries`.
 
-| Parser | Page to scrape | Options |
-|---|---|---|
-| `linkedin-jobs` | linkedin.com/jobs/search with keywords, a location or a company | company, easyApply, fewApplicants, page |
-| `linkedin-job` | a LinkedIn job page or lnkd.in link | |
-| `indeed-search` | indeed.com/jobs with `q` or `l` | remote, jobType, datePosted, sort, cursor |
-| `indeed-job` | indeed.com/viewjob?jk=... | country |
-| `upwork-search` | upwork.com/nx/search/jobs/?q=... | jobType, experienceLevel, minHourlyRate, page |
-| `upwork-job` | an Upwork job page | |
-| `careers-jobs` | a job board on Greenhouse, Lever, Ashby, Workday, Workable or SmartRecruiters | cursor |
-| `careers-job` | one job on such a board | |
-| `glassdoor-company`, `glassdoor-reviews`, `glassdoor-salaries` | a Glassdoor company page: overview, reviews or salaries | page |
+**Done when:** each role has its title, company, place and link, and pay appears only where a posting or Glassdoor gives it.
 
-## Tips
+| Parser | Page |
+|---|---|
+| `linkedin-jobs`, `linkedin-job` | linkedin.com/jobs/search with keywords, a location or a company; a job page |
+| `indeed-search`, `indeed-job` | indeed.com/jobs with `q` or `l`; indeed.com/viewjob?jk=... |
+| `upwork-search`, `upwork-job` | upwork.com/nx/search/jobs/?q=...; a job page |
+| `careers-jobs`, `careers-job` | a Greenhouse, Lever, Ashby, Workday, Workable or SmartRecruiters board; one job on it |
+| `glassdoor-company`, `glassdoor-reviews`, `glassdoor-salaries` | a Glassdoor company page |
 
-- Search first, then scrape one job page for the full description.
-- In a LinkedIn search URL, `f_TPR=r604800` keeps jobs posted in the past week.
-- Every call here costs $0.001 ($1 per 1,000 calls).
+- The same role often shows on several boards. Match on title and company, and keep the company's own posting.
 
-## See also
+## Price
 
-- [stophy-social](../stophy-social/SKILL.md): a company's LinkedIn profile and posts
-- [stophy-web](../stophy-web/SKILL.md): search the web for anything else about a company
+$0.001 a call.
