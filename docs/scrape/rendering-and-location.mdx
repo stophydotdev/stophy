@@ -1,0 +1,48 @@
+---
+title: "Rendering and location"
+description: "Wait for late content, read a page as a phone, pick a country and language, send headers and keep a login between calls with rendering and location options."
+---
+
+Use these fields when the default read misses content that loads late, or shows the wrong version of a page. This request reads a page that echoes the headers it receives, from Germany, with German first and one custom header:
+
+```bash
+curl -X POST https://api.stophy.dev/v1/scrape \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://httpbin.org/headers",
+    "location": { "country": "DE", "languages": ["de", "en"] },
+    "headers": { "x-plan": "pro" }
+  }'
+```
+
+The echoed `Accept-Language` is `de,en;q=0.9` and `X-Plan` is `pro`.
+
+| Field | Default | Effect |
+| - | - | - |
+| `waitFor` | none | Needs a key. Extra milliseconds to wait after the page loads and before any [actions](/scrape/browser-actions), 0 to 60,000. Loads the page in a browser. For an element instead of a time, use a `wait` action with a `selector`. |
+| `mobile` | `false` | Read the page as a phone would, with a phone sized screen and the mobile site. Loads the page in a browser. |
+| `fastMode` | `false` | Read without opening a browser, for faster answers on plain HTML. A page that needs a browser, or refuses a plain request, comes back as an error. Ignored when the call needs a browser: with `actions`, `screenshot`, `waitFor`, `mobile`, `profile`, `network` or `branding`. |
+| `blockAds` | `true` | Ads and trackers are not loaded in a browser read. `false` loads them. |
+| `proxy` | none | `auto`, `basic`, `enhanced` or `stealth`. `auto` tries a plain read, then a stronger one once if the site refuses. `basic` makes one plain attempt. `enhanced` starts with the stronger read, and `stealth` is the same. |
+| `profile` | none | Needs a key. `{ "name": "shop-login", "saveChanges": true }` reads with the cookies and local storage earlier calls saved under that name, kept 30 days after the last use. Always a browser read. `saveChanges: false` reads without changing it. Only one call at a time can save to a profile, and another returns `409 profileBusy`. |
+| `location.country` | `US` | Two letter country code such as `DE` or `JP`, in any case. `UK` is read as `GB`. Anything else returns `400 invalidRequest`. |
+| `location.languages` | none | 1 to 5 languages, best first, such as `["de", "en"]` or `["pt-BR"]`. Sent as `Accept-Language`. |
+| `headers` | none | Extra headers for the site, such as `{ "x-plan": "pro" }`. |
+| `skipTlsVerification` | `false` | Read a page whose certificate is expired, self signed or for another name. The read is not private against someone between Stophy and the site. |
+
+Start with `"waitFor": 2000` and raise it only if the page still comes back thin. The country is a request: a site can still show the same page to everyone.
+
+## Headers
+
+`headers` is for the destination site, not for authenticating to Stophy. Your API key goes in `Authorization` on the request to Stophy.
+
+- Send at most 30 headers. A name uses letters, digits and `-`, up to 64 characters. A value is up to 2,000 printable characters with no line breaks.
+- `Host`, `Content-Length`, `Connection`, `Transfer-Encoding`, `Upgrade`, `TE` and `Proxy-Authorization` return `400 invalidRequest` with `Stophy sets this header itself.`
+- Send `Cookie` or `Authorization` only for a site you are allowed to read as that user.
+
+## Limits
+
+- A read with `headers`, `location.languages`, `skipTlsVerification` or `profile` is never answered from, or saved as, a stored copy. See [Freshness and caching](/scrape/freshness-and-caching).
+- `waitFor` above 60,000 returns `400 invalidRequest`. Without a key it returns `401 apiKeyRequired`.
+- Waits count toward `timeout`, and a page that needs a browser needs at least 5 seconds. See [Scrape](/scrape/overview#timeouts-warnings-and-errors).
+- None of these fields adds a fee. See [Pricing](/account/pricing).

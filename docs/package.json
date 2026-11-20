@@ -3,5 +3,8 @@
   "private": true,
   "dependencies": {
     "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "gpt-tokenizer": "^4.1.2"
   }
 }

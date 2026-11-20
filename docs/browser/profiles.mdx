@@ -1,127 +1,64 @@
 ---
-title: "Profiles"
-description: "Save a browser session's cookies and logins under a name, then open later sessions with them so you stay signed in. Create, list, rename and delete profiles."
-og:title: "Profiles | Stophy"
-og:description: "Save a browser session's cookies and logins under a name, then open later sessions with them so you stay signed in. Create, list, rename and delete profiles."
+title: "Profiles and extensions"
+sidebarTitle: "Profiles"
+description: "Save a browser session's cookies and logins under a name to reuse them later, and load your own Chrome extensions into sessions."
 ---
 
-Save a browser profile to reuse a login in another session. A profile keeps cookies and local storage under a name. A profile is saved when the session closes.
+A profile keeps cookies and local storage under a name, so a later session starts signed in. It saves when the session closes. A scrape and a batch take the same `profile` field, so a login saved here also works there.
 
-## Save a login
-
-Pick a profile name before you sign in. Get an API key in the [Quickstart](/quickstart). Open a session with `profile.name`. If no profile has that name, one is created.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/browser \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "ttl": 300,
-    "activityTtl": 60,
-    "profile": { "name": "shop-login" }
-  }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/browser", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    ttl: 300,
-    activityTtl: 60,
-    profile: { name: "shop-login" },
-  }),
-});
-const session = await response.json();
-console.log(session.id);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/browser",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "ttl": 300,
-        "activityTtl": 60,
-        "profile": {"name": "shop-login"},
-    },
-)
-session = response.json()
-print(session["id"])
-```
-</CodeGroup>
-
-Sign in using [Execute](/browser/execute) or your own CDP client. Then [close the session](/browser/overview#close-a-session) to save its cookies. Close it before you open another session that needs the updated login.
-
-## Read the profile
-
-Use `GET /v1/browser/profiles/{name}` to check whether a profile saved cookies or local storage. It is free.
-
-```json
-{
-  "success": true,
-  "name": "shop-login",
-  "cookies": 1,
-  "origins": 0
-}
+  -d '{"ttl": 300, "profile": {"name": "shop-login"}}'
 ```
 
-`cookies` counts the saved cookies. `origins` counts the sites with saved local storage.
+A name that does not exist is created. Sign in with [Execute](/browser/execute) or your own CDP client, then [close the session](/browser/overview#close-read-and-list) to save. Open the next session with the same name to load it. A profile also keeps the country it first used. A different `location.country` opens in the profile's country and returns a `warning`.
 
-## Reuse the profile
-
-Open a session with the same name. Send `saveChanges: false` to use the profile without changing it, for a read-only visit.
-
-The new session loads the saved cookies and local storage. A profile also keeps the country it first used. If you send a different `location.country`, the session opens in the profile's country and returns a `warning`.
-
-See [Network location](/browser/network-location). A scrape and a batch take the same `profile` field with the same names, so a login you save in a session also works there. See [Scrape](/scrape/overview).
+| Field | Default | Meaning |
+| - | - | - |
+| `profile.name` | none | The profile to load and save, 1 to 200 characters |
+| `profile.saveChanges` | `true` | `false` loads the profile and saves nothing. Chosen per session, not stored on the profile. |
 
 ## Manage profiles
 
-List profiles to find a saved name, or create an empty profile before you need it.
+All profile calls are free.
 
-| Action | Call | Notes |
-| - | - | - |
-| Create an empty profile | `POST /v1/browser/profiles` with `{ "name": "shop-login" }` | Free. A session opened with a new name creates one too. |
-| List | `GET /v1/browser/profiles` | Free. Most recently used first. |
-| Read | `GET /v1/browser/profiles/{name}` | Free. |
-| Rename | `PATCH /v1/browser/profiles/{name}` with `{ "name": "shop-login-2026" }` | Free. Keeps cookies and logins. |
-| Delete | `DELETE /v1/browser/profiles/{name}` | Free. |
+| Action | Call |
+| - | - |
+| Create empty | `POST /v1/browser/profiles` with `{"name": "shop-login"}` |
+| List | `GET /v1/browser/profiles`, most recently used first. `data.profiles` has each `name` and `lastUsedAt`. |
+| Read | `GET /v1/browser/profiles/{name}` returns `cookies` and `origins`, the count of sites with saved local storage |
+| Rename | `PATCH /v1/browser/profiles/{name}` with `{"name": "shop-login-2026"}`. Cookies stay. |
+| Delete | `DELETE /v1/browser/profiles/{name}`. The cookies go with it. |
 
-A new profile has `cookies: 0` and `origins: 0`. The list returns a `data.profiles` array with each `name` and `lastUsedAt`; it is empty if you have no profiles.
+## Extensions
 
-A rename answers with the profile under its new name. A delete answers `{ "success": true }` and the profile is gone, with its cookies. A profile is also removed 30 days after it was last used.
+Upload a Chrome extension once, then load it into any session. Uploads, lists, reads and deletes are free. Send a Manifest V3 zip of up to 50 MiB, with `manifest.json` at its root, in a multipart field named `file`.
 
-## Options
+```bash
+curl -X POST https://api.stophy.dev/v1/browser/extensions \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -F "file=@mark-page.zip;type=application/zip"
+```
 
-Choose whether each session can write to the profile.
+The answer is `201` with `id`, `name` and `version`, read from `manifest.json`. Keep `id`. There is no update: upload again for a new `id`.
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `profile.name` | `string` | none | The profile to load and save, 1 to 200 characters. Required inside `profile`. |
-| `profile.saveChanges` | `boolean` | `true` | `false` loads the profile and does not save the session's changes. Chosen per session, not stored on the profile. |
+Open a session with `"extensionIds": ["<id>"]`, up to 3, each once. They load before the first page opens and cannot change while the session runs. The answer lists each `id`, `runtimeId` and `version` in the order you sent them. Use `runtimeId` in `chrome-extension://{runtimeId}/` addresses. An extension runs only in sessions that load it, and changes what sites can see.
 
-## Limits and errors
+| Action | Call |
+| - | - |
+| List | `GET /v1/browser/extensions`, newest first. `pageSize` 1 to 100, default 10. `pageNumber` from 1. `items` is empty with none. |
+| Read | `GET /v1/browser/extensions/{extension_id}` |
+| Delete | `DELETE /v1/browser/extensions/{extension_id}`. Open sessions keep it until they close. |
 
-Avoid saving to the same profile from two open sessions.
+You can keep 100 extensions.
 
-- Only one session at a time can save to a profile. A second one returns `409 profileBusy`, which is retryable. Wait for the first to close, or send `saveChanges: false`.
-- A profile too large to save returns `413 profileTooLarge`.
-- Creating a name that exists returns `409 invalidRequest` with `A browser profile with that name already exists.` Renaming to a taken name, or while a session saves to the profile, returns `409 invalidRequest` too.
-- A name that does not exist returns `404 notFound` with `No browser profile with that name.`
-- `profile` with `zeroDataRetention` returns `400 invalidRequest`: `zeroDataRetention keeps nothing from the session, and a profile keeps its cookies. Send one of them.`
+## Errors
 
-## Related
-
-Use the browser guide to open a session with a profile.
-
-- [Browser sessions](/browser/overview) opens and closes the session that saves the profile.
-- [Network location](/browser/network-location) explains the country a profile keeps.
-- [Extensions](/browser/extensions) adds a Chrome extension to a session.
-- [Profile reference](/api-reference/endpoint/browser-profile-create) lists every field.
+* A second session saving to the same profile: `409 profileBusy`, retryable. Wait for the first to close, or send `saveChanges: false`.
+* A profile too large to save: `413 profileTooLarge`.
+* A taken name on create or rename, or a rename while a session saves: `409 invalidRequest`. An unknown name: `404 notFound`.
+* `profile` with `zeroDataRetention`: `400 invalidRequest`.
+* A manifest with a `key` field, or the `debugger`, `proxy`, `processes`, `dns`, `experimental` or `enterprise.*` permission: `400 prohibitedPermission`.
+* An unknown or deleted extension id: `404 notFound`. More than 3 ids, or the same id twice: `400 invalidRequest`.

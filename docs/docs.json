@@ -60,29 +60,10 @@
             "group": "Get started",
             "pages": [
               "introduction",
-              {
-                "group": "Quickstart",
-                "root": "quickstart",
-                "pages": [
-                  "agent-quickstart"
-                ]
-              },
-              {
-                "group": "SDKs",
-                "root": "sdks",
-                "pages": [
-                  "sdks/typescript",
-                  "sdks/python"
-                ]
-              },
-              {
-                "group": "MCP",
-                "root": "install-mcp",
-                "pages": [
-                  "mcp/keyless",
-                  "mcp/oauth"
-                ]
-              },
+              "quickstart",
+              "agent-quickstart",
+              "sdks",
+              "install-mcp",
               "install-skill",
               "install-cli"
             ]
@@ -94,226 +75,49 @@
                 "group": "Scrape",
                 "root": "scrape/overview",
                 "pages": [
+                  "scrape/formats",
                   {
-                    "group": "Formats",
+                    "group": "Pre-built parsers",
+                    "root": "scrape/prebuilt-parsers",
                     "pages": [
-                      "scrape/markdown",
-                      "scrape/html",
-                      "scrape/screenshot",
-                      "scrape/links",
-                      "scrape/images",
-                      "scrape/bytes",
-                      {
-                        "group": "Parse",
-                        "root": "scrape/prebuilt-parsers",
-                        "pages": [
-                          {
-                            "group": "Search and the web",
-                            "pages": [
-                              "scrape/prebuilt-parsers/web/google-patents",
-                              "scrape/prebuilt-parsers/web/google-trends",
-                              "scrape/prebuilt-parsers/web/emails",
-                              "scrape/prebuilt-parsers/web/phone-numbers"
-                            ]
-                          },
-                          {
-                            "group": "Video",
-                            "pages": [
-                              "scrape/prebuilt-parsers/video/youtube-search",
-                              "scrape/prebuilt-parsers/video/youtube-video",
-                              "scrape/prebuilt-parsers/video/youtube-transcript",
-                              "scrape/prebuilt-parsers/video/youtube-comments",
-                              "scrape/prebuilt-parsers/video/youtube-channel",
-                              "scrape/prebuilt-parsers/video/youtube-post",
-                              "scrape/prebuilt-parsers/video/youtube-playlist",
-                              "scrape/prebuilt-parsers/video/tiktok-video",
-                              "scrape/prebuilt-parsers/video/tiktok-comments",
-                              "scrape/prebuilt-parsers/video/tiktok-transcript",
-                              "scrape/prebuilt-parsers/video/tiktok-profile",
-                              "scrape/prebuilt-parsers/video/tiktok-hashtag",
-                              "scrape/prebuilt-parsers/video/tiktok-sound",
-                              "scrape/prebuilt-parsers/video/tiktok-search",
-                              "scrape/prebuilt-parsers/video/tiktok-followers",
-                              "scrape/prebuilt-parsers/video/tiktok-following",
-                              "scrape/prebuilt-parsers/video/tiktok-trending",
-                              "scrape/prebuilt-parsers/video/tiktok-live",
-                              "scrape/prebuilt-parsers/video/twitch-profile",
-                              "scrape/prebuilt-parsers/video/twitch-clips",
-                              "scrape/prebuilt-parsers/video/instagram-transcript"
-                            ]
-                          },
-                          {
-                            "group": "Social",
-                            "pages": [
-                              "scrape/prebuilt-parsers/social/reddit-search",
-                              "scrape/prebuilt-parsers/social/reddit-post",
-                              "scrape/prebuilt-parsers/social/reddit-subreddit",
-                              "scrape/prebuilt-parsers/social/reddit-user",
-                              "scrape/prebuilt-parsers/social/reddit-subreddits",
-                              "scrape/prebuilt-parsers/social/instagram-post",
-                              "scrape/prebuilt-parsers/social/instagram-profile",
-                              "scrape/prebuilt-parsers/social/instagram-comments",
-                              "scrape/prebuilt-parsers/social/instagram-feed",
-                              "scrape/prebuilt-parsers/social/x-profile",
-                              "scrape/prebuilt-parsers/social/x-post",
-                              "scrape/prebuilt-parsers/social/x-community",
-                              "scrape/prebuilt-parsers/social/threads-profile",
-                              "scrape/prebuilt-parsers/social/threads-post",
-                              "scrape/prebuilt-parsers/social/pinterest-search",
-                              "scrape/prebuilt-parsers/social/pinterest-pin",
-                              "scrape/prebuilt-parsers/social/pinterest-board",
-                              "scrape/prebuilt-parsers/social/pinterest-profile",
-                              "scrape/prebuilt-parsers/social/facebook-page",
-                              "scrape/prebuilt-parsers/social/facebook-group",
-                              "scrape/prebuilt-parsers/social/facebook-post",
-                              "scrape/prebuilt-parsers/social/facebook-comments",
-                              "scrape/prebuilt-parsers/social/linkedin-company",
-                              "scrape/prebuilt-parsers/social/linkedin-profile",
-                              "scrape/prebuilt-parsers/social/linkedin-posts",
-                              "scrape/prebuilt-parsers/social/bsky-profile",
-                              "scrape/prebuilt-parsers/social/bsky-post",
-                              "scrape/prebuilt-parsers/social/link-in-bio"
-                            ]
-                          },
-                          {
-                            "group": "Places and travel",
-                            "pages": [
-                              "scrape/prebuilt-parsers/places-and-travel/google-maps",
-                              "scrape/prebuilt-parsers/places-and-travel/google-maps-place",
-                              "scrape/prebuilt-parsers/places-and-travel/google-maps-reviews",
-                              "scrape/prebuilt-parsers/places-and-travel/google-flights",
-                              "scrape/prebuilt-parsers/places-and-travel/google-hotels",
-                              "scrape/prebuilt-parsers/places-and-travel/tripadvisor-search",
-                              "scrape/prebuilt-parsers/places-and-travel/tripadvisor-place",
-                              "scrape/prebuilt-parsers/places-and-travel/tripadvisor-reviews",
-                              "scrape/prebuilt-parsers/places-and-travel/yelp-search",
-                              "scrape/prebuilt-parsers/places-and-travel/yelp-business",
-                              "scrape/prebuilt-parsers/places-and-travel/yelp-reviews",
-                              "scrape/prebuilt-parsers/places-and-travel/booking-search",
-                              "scrape/prebuilt-parsers/places-and-travel/booking-hotel",
-                              "scrape/prebuilt-parsers/places-and-travel/booking-reviews",
-                              "scrape/prebuilt-parsers/places-and-travel/expedia-hotels",
-                              "scrape/prebuilt-parsers/places-and-travel/airbnb-search",
-                              "scrape/prebuilt-parsers/places-and-travel/airbnb-listing",
-                              "scrape/prebuilt-parsers/places-and-travel/airbnb-reviews",
-                              "scrape/prebuilt-parsers/places-and-travel/luma-events",
-                              "scrape/prebuilt-parsers/places-and-travel/luma-event"
-                            ]
-                          },
-                          {
-                            "group": "Jobs",
-                            "pages": [
-                              "scrape/prebuilt-parsers/jobs/linkedin-jobs",
-                              "scrape/prebuilt-parsers/jobs/linkedin-job",
-                              "scrape/prebuilt-parsers/jobs/indeed-search",
-                              "scrape/prebuilt-parsers/jobs/indeed-job",
-                              "scrape/prebuilt-parsers/jobs/upwork-search",
-                              "scrape/prebuilt-parsers/jobs/upwork-job",
-                              "scrape/prebuilt-parsers/jobs/careers-jobs",
-                              "scrape/prebuilt-parsers/jobs/careers-job",
-                              "scrape/prebuilt-parsers/jobs/glassdoor-company",
-                              "scrape/prebuilt-parsers/jobs/glassdoor-reviews",
-                              "scrape/prebuilt-parsers/jobs/glassdoor-salaries"
-                            ]
-                          },
-                          {
-                            "group": "Shopping",
-                            "pages": [
-                              "scrape/prebuilt-parsers/shopping/amazon-search",
-                              "scrape/prebuilt-parsers/shopping/amazon-product",
-                              "scrape/prebuilt-parsers/shopping/amazon-reviews",
-                              "scrape/prebuilt-parsers/shopping/amazon-bestsellers",
-                              "scrape/prebuilt-parsers/shopping/tiktok-shop",
-                              "scrape/prebuilt-parsers/shopping/ebay-search",
-                              "scrape/prebuilt-parsers/shopping/ebay-item",
-                              "scrape/prebuilt-parsers/shopping/facebook-marketplace",
-                              "scrape/prebuilt-parsers/shopping/craigslist-search",
-                              "scrape/prebuilt-parsers/shopping/trustpilot-search",
-                              "scrape/prebuilt-parsers/shopping/trustpilot-company",
-                              "scrape/prebuilt-parsers/shopping/trustpilot-reviews",
-                              "scrape/prebuilt-parsers/shopping/craigslist-listing"
-                            ]
-                          },
-                          {
-                            "group": "Apps",
-                            "pages": [
-                              "scrape/prebuilt-parsers/apps/appstore-search",
-                              "scrape/prebuilt-parsers/apps/appstore-app",
-                              "scrape/prebuilt-parsers/apps/appstore-reviews",
-                              "scrape/prebuilt-parsers/apps/appstore-top",
-                              "scrape/prebuilt-parsers/apps/google-play-search",
-                              "scrape/prebuilt-parsers/apps/google-play-app",
-                              "scrape/prebuilt-parsers/apps/google-play-reviews"
-                            ]
-                          },
-                          {
-                            "group": "Real estate",
-                            "pages": [
-                              "scrape/prebuilt-parsers/real-estate/zillow-search",
-                              "scrape/prebuilt-parsers/real-estate/zillow-property",
-                              "scrape/prebuilt-parsers/real-estate/realtor-search",
-                              "scrape/prebuilt-parsers/real-estate/realtor-property"
-                            ]
-                          },
-                          {
-                            "group": "Ads",
-                            "pages": [
-                              "scrape/prebuilt-parsers/ads/meta-ads",
-                              "scrape/prebuilt-parsers/ads/google-ads",
-                              "scrape/prebuilt-parsers/ads/tiktok-ads",
-                              "scrape/prebuilt-parsers/ads/linkedin-ads"
-                            ]
-                          },
-                          {
-                            "group": "Companies and reviews",
-                            "pages": [
-                              "scrape/prebuilt-parsers/business/crunchbase-company",
-                              "scrape/prebuilt-parsers/business/g2-reviews"
-                            ]
-                          }
-                        ]
-                      },
-                      "scrape/summary",
-                      "scrape/highlights",
-                      "scrape/question",
-                      "scrape/json",
-                      "scrape/product",
-                      "scrape/branding",
-                      "scrape/change-tracking",
-                      "scrape/network"
+                      "scrape/prebuilt-parsers/web",
+                      "scrape/prebuilt-parsers/video",
+                      "scrape/prebuilt-parsers/social",
+                      "scrape/prebuilt-parsers/places-and-travel",
+                      "scrape/prebuilt-parsers/jobs",
+                      "scrape/prebuilt-parsers/shopping",
+                      "scrape/prebuilt-parsers/apps",
+                      "scrape/prebuilt-parsers/real-estate",
+                      "scrape/prebuilt-parsers/ads",
+                      "scrape/prebuilt-parsers/business"
                     ]
                   },
+                  "scrape/summary",
+                  "scrape/json",
+                  "scrape/change-tracking",
                   "scrape/page-metadata",
                   {
                     "group": "Options",
                     "pages": [
                       "scrape/browser-actions",
                       "scrape/interact",
-                      "scrape/waiting-and-rendering",
+                      "scrape/rendering-and-location",
                       "scrape/content-filtering",
-                      "scrape/location-and-headers",
                       "scrape/pdfs-and-documents",
                       "scrape/freshness-and-caching",
-                      "scrape/safety",
-                      "scrape/timeouts-and-errors"
+                      "scrape/safety"
                     ]
-                  },
-                  "scrape/youtube"
+                  }
                 ]
               },
               {
                 "group": "Map",
-                "root": "map/overview",
-                "pages": [
-                  "map/filter-and-search"
-                ]
+                "root": "map/overview"
               },
               {
                 "group": "Crawl",
                 "root": "crawl/overview",
                 "pages": [
-                  "crawl/scope",
-                  "crawl/page-content",
                   "crawl/async",
                   "crawl/describe"
                 ]
@@ -322,33 +126,23 @@
                 "group": "Search",
                 "root": "search/overview",
                 "pages": [
-                  "search/filters",
-                  "search/page-content",
-                  "search/sources",
+                  "search/options",
                   "search/developer",
                   "search/papers"
                 ]
               },
               {
                 "group": "Extract",
-                "root": "extract/overview",
-                "pages": [
-                  "extract/schema",
-                  "extract/results"
-                ]
+                "root": "extract/overview"
               },
               {
                 "group": "Agent",
-                "root": "agent/overview",
-                "pages": [
-                  "agent/runs"
-                ]
+                "root": "agent/overview"
               },
               {
                 "group": "Parse documents",
                 "root": "parse/overview",
                 "pages": [
-                  "parse/formats",
                   "parse/large-files"
                 ]
               }
@@ -364,10 +158,7 @@
                   "browser/execute",
                   "browser/files",
                   "browser/profiles",
-                  "browser/extensions",
-                  "browser/network-policies",
-                  "browser/network-location",
-                  "browser/recordings-and-replay"
+                  "browser/network-location"
                 ]
               },
               "browser/tasks"
@@ -380,9 +171,7 @@
                 "group": "Batches",
                 "root": "batches/overview",
                 "pages": [
-                  "batches/submit",
-                  "batches/results",
-                  "batches/limits-and-errors"
+                  "batches/results"
                 ]
               },
               {
@@ -390,10 +179,7 @@
                 "root": "monitors/overview",
                 "pages": [
                   "monitors/targets",
-                  "monitors/schedules",
-                  "monitors/checks-and-changes",
-                  "monitors/webhooks",
-                  "monitors/limits-and-errors"
+                  "monitors/checks-and-changes"
                 ]
               },
               "webhooks"
@@ -414,11 +200,9 @@
               "production/timeouts",
               "production/rate-limits",
               "production/troubleshooting",
-              "production/usage-and-logs",
               "production/zero-data-retention",
               "production/agent-feedback",
-              "production/responsible-use",
-              "production/status"
+              "production/responsible-use"
             ]
           }
         ]
@@ -550,7 +334,8 @@
             "group": "Browser tasks",
             "pages": [
               "api-reference/endpoint/browser-task",
-              "api-reference/endpoint/browser-task-status"
+              "api-reference/endpoint/browser-task-status",
+              "api-reference/endpoint/browser-task-cancel"
             ]
           },
           {
@@ -664,20 +449,9 @@
         "icon": "puzzle-piece",
         "groups": [
           {
-            "group": "Coding agents",
-            "pages": [
-              "integrations/claude-code",
-              "integrations/cursor",
-              "integrations/codex",
-              "integrations/claude-desktop"
-            ]
-          },
-          {
             "group": "LLM SDKs",
             "pages": [
-              "integrations/openai",
-              "integrations/anthropic",
-              "integrations/vercel-ai-sdk"
+              "integrations/llm-sdks"
             ]
           }
         ]
@@ -842,7 +616,7 @@
     },
     {
       "source": "/sdks/node",
-      "destination": "/sdks/typescript"
+      "destination": "/sdks"
     },
     {
       "source": "/api-reference/endpoint/domain-dns",
@@ -906,11 +680,11 @@
     },
     {
       "source": "/api-reference/endpoint/realtor-property",
-      "destination": "/scrape/prebuilt-parsers/real-estate/realtor-property"
+      "destination": "/scrape/prebuilt-parsers/real-estate#realtor-property"
     },
     {
       "source": "/api-reference/endpoint/realtor-search",
-      "destination": "/scrape/prebuilt-parsers/real-estate/realtor-search"
+      "destination": "/scrape/prebuilt-parsers/real-estate#realtor-search"
     },
     {
       "source": "/api-reference/endpoint/reddit-comments-more",
@@ -986,7 +760,7 @@
     },
     {
       "source": "/sdk-typescript",
-      "destination": "/sdks/typescript"
+      "destination": "/sdks"
     },
     {
       "source": "/credits",
@@ -1042,15 +816,15 @@
     },
     {
       "source": "/api-reference/endpoint/airbnb-listing",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/airbnb-listing"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-listing"
     },
     {
       "source": "/api-reference/endpoint/airbnb-reviews",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/airbnb-reviews"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-reviews"
     },
     {
       "source": "/api-reference/endpoint/airbnb-search",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/airbnb-search"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-search"
     },
     {
       "source": "/api-reference/endpoint/googleplay-app",
@@ -1242,7 +1016,7 @@
     },
     {
       "source": "/api-reference/endpoint/google-trends",
-      "destination": "/scrape/prebuilt-parsers/web/google-trends"
+      "destination": "/scrape/prebuilt-parsers/web#google-trends"
     },
     {
       "source": "/api-reference/endpoint/shopify-collections",
@@ -1278,7 +1052,7 @@
     },
     {
       "source": "/api-reference/endpoint/threads-post",
-      "destination": "/scrape/prebuilt-parsers/social/threads-post"
+      "destination": "/scrape/prebuilt-parsers/social#threads-post"
     },
     {
       "source": "/api-reference/endpoint/threads-posts",
@@ -1286,7 +1060,7 @@
     },
     {
       "source": "/api-reference/endpoint/threads-profile",
-      "destination": "/scrape/prebuilt-parsers/social/threads-profile"
+      "destination": "/scrape/prebuilt-parsers/social#threads-profile"
     },
     {
       "source": "/api-reference/endpoint/threads-search",
@@ -1302,7 +1076,7 @@
     },
     {
       "source": "/api-reference/endpoint/x-post",
-      "destination": "/scrape/prebuilt-parsers/social/x-post"
+      "destination": "/scrape/prebuilt-parsers/social#x-post"
     },
     {
       "source": "/api-reference/endpoint/x-tweet",
@@ -1318,7 +1092,7 @@
     },
     {
       "source": "/sdk-python",
-      "destination": "/sdks/python"
+      "destination": "/sdks"
     },
     {
       "source": "/api-reference/getUsage",
@@ -1346,19 +1120,19 @@
     },
     {
       "source": "/api-reference/endpoint/amazon-bestsellers",
-      "destination": "/scrape/prebuilt-parsers/shopping/amazon-bestsellers"
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-bestsellers"
     },
     {
       "source": "/api-reference/endpoint/amazon-product",
-      "destination": "/scrape/prebuilt-parsers/shopping/amazon-product"
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-product"
     },
     {
       "source": "/api-reference/endpoint/amazon-reviews",
-      "destination": "/scrape/prebuilt-parsers/shopping/amazon-reviews"
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-reviews"
     },
     {
       "source": "/api-reference/endpoint/amazon-search",
-      "destination": "/scrape/prebuilt-parsers/shopping/amazon-search"
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-search"
     },
     {
       "source": "/api-reference/endpoint/amazon-suggest",
@@ -1366,19 +1140,19 @@
     },
     {
       "source": "/api-reference/endpoint/appstore-app",
-      "destination": "/scrape/prebuilt-parsers/apps/appstore-app"
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-app"
     },
     {
       "source": "/api-reference/endpoint/appstore-reviews",
-      "destination": "/scrape/prebuilt-parsers/apps/appstore-reviews"
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-reviews"
     },
     {
       "source": "/api-reference/endpoint/appstore-search",
-      "destination": "/scrape/prebuilt-parsers/apps/appstore-search"
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-search"
     },
     {
       "source": "/api-reference/endpoint/appstore-top",
-      "destination": "/scrape/prebuilt-parsers/apps/appstore-top"
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-top"
     },
     {
       "source": "/api-reference/endpoint/booking-hotel-reviews",
@@ -1386,19 +1160,19 @@
     },
     {
       "source": "/api-reference/endpoint/booking-hotel",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/booking-hotel"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#booking-hotel"
     },
     {
       "source": "/api-reference/endpoint/booking-search",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/booking-search"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#booking-search"
     },
     {
       "source": "/api-reference/endpoint/careers-job",
-      "destination": "/scrape/prebuilt-parsers/jobs/careers-job"
+      "destination": "/scrape/prebuilt-parsers/jobs#careers-job"
     },
     {
       "source": "/api-reference/endpoint/careers-jobs",
-      "destination": "/scrape/prebuilt-parsers/jobs/careers-jobs"
+      "destination": "/scrape/prebuilt-parsers/jobs#careers-jobs"
     },
     {
       "source": "/api-reference/endpoint/chatgpt-search",
@@ -1406,15 +1180,15 @@
     },
     {
       "source": "/api-reference/endpoint/craigslist-search",
-      "destination": "/scrape/prebuilt-parsers/shopping/craigslist-search"
+      "destination": "/scrape/prebuilt-parsers/shopping#craigslist-search"
     },
     {
       "source": "/api-reference/endpoint/ebay-item",
-      "destination": "/scrape/prebuilt-parsers/shopping/ebay-item"
+      "destination": "/scrape/prebuilt-parsers/shopping#ebay-item"
     },
     {
       "source": "/api-reference/endpoint/ebay-search",
-      "destination": "/scrape/prebuilt-parsers/shopping/ebay-search"
+      "destination": "/scrape/prebuilt-parsers/shopping#ebay-search"
     },
     {
       "source": "/api-reference/endpoint/endpoints",
@@ -1422,7 +1196,7 @@
     },
     {
       "source": "/api-reference/endpoint/expedia-hotels",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/expedia-hotels"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#expedia-hotels"
     },
     {
       "source": "/api-reference/endpoint/facebook-marketplace-search",
@@ -1434,7 +1208,7 @@
     },
     {
       "source": "/api-reference/endpoint/facebook-page",
-      "destination": "/scrape/prebuilt-parsers/social/facebook-page"
+      "destination": "/scrape/prebuilt-parsers/social#facebook-page"
     },
     {
       "source": "/api-reference/endpoint/facebook-post-comments",
@@ -1442,7 +1216,7 @@
     },
     {
       "source": "/api-reference/endpoint/facebook-post",
-      "destination": "/scrape/prebuilt-parsers/social/facebook-post"
+      "destination": "/scrape/prebuilt-parsers/social#facebook-post"
     },
     {
       "source": "/api-reference/endpoint/gemini-search",
@@ -1458,7 +1232,7 @@
     },
     {
       "source": "/api-reference/endpoint/glassdoor-company",
-      "destination": "/scrape/prebuilt-parsers/jobs/glassdoor-company"
+      "destination": "/scrape/prebuilt-parsers/jobs#glassdoor-company"
     },
     {
       "source": "/api-reference/endpoint/google-ads-ad",
@@ -1474,11 +1248,11 @@
     },
     {
       "source": "/api-reference/endpoint/google-flights",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/google-flights"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-flights"
     },
     {
       "source": "/api-reference/endpoint/google-hotels",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/google-hotels"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-hotels"
     },
     {
       "source": "/api-reference/endpoint/google-images",
@@ -1486,11 +1260,11 @@
     },
     {
       "source": "/api-reference/endpoint/google-maps-place",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/google-maps-place"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps-place"
     },
     {
       "source": "/api-reference/endpoint/google-maps-reviews",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/google-maps-reviews"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps-reviews"
     },
     {
       "source": "/api-reference/endpoint/google-maps-search",
@@ -1502,19 +1276,19 @@
     },
     {
       "source": "/api-reference/endpoint/google-patents",
-      "destination": "/scrape/prebuilt-parsers/web/google-patents"
+      "destination": "/scrape/prebuilt-parsers/web#google-patents"
     },
     {
       "source": "/api-reference/endpoint/google-play-app",
-      "destination": "/scrape/prebuilt-parsers/apps/google-play-app"
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-app"
     },
     {
       "source": "/api-reference/endpoint/google-play-reviews",
-      "destination": "/scrape/prebuilt-parsers/apps/google-play-reviews"
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-reviews"
     },
     {
       "source": "/api-reference/endpoint/google-play-search",
-      "destination": "/scrape/prebuilt-parsers/apps/google-play-search"
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-search"
     },
     {
       "source": "/api-reference/endpoint/google-scholar",
@@ -1546,19 +1320,19 @@
     },
     {
       "source": "/api-reference/endpoint/indeed-job",
-      "destination": "/scrape/prebuilt-parsers/jobs/indeed-job"
+      "destination": "/scrape/prebuilt-parsers/jobs#indeed-job"
     },
     {
       "source": "/api-reference/endpoint/indeed-search",
-      "destination": "/scrape/prebuilt-parsers/jobs/indeed-search"
+      "destination": "/scrape/prebuilt-parsers/jobs#indeed-search"
     },
     {
       "source": "/api-reference/endpoint/instagram-comments",
-      "destination": "/scrape/prebuilt-parsers/social/instagram-comments"
+      "destination": "/scrape/prebuilt-parsers/social#instagram-comments"
     },
     {
       "source": "/api-reference/endpoint/instagram-post",
-      "destination": "/scrape/prebuilt-parsers/social/instagram-post"
+      "destination": "/scrape/prebuilt-parsers/social#instagram-post"
     },
     {
       "source": "/api-reference/endpoint/instagram-profile-reels",
@@ -1566,11 +1340,11 @@
     },
     {
       "source": "/api-reference/endpoint/instagram-profile",
-      "destination": "/scrape/prebuilt-parsers/social/instagram-profile"
+      "destination": "/scrape/prebuilt-parsers/social#instagram-profile"
     },
     {
       "source": "/api-reference/endpoint/instagram-transcript",
-      "destination": "/scrape/prebuilt-parsers/video/instagram-transcript"
+      "destination": "/scrape/prebuilt-parsers/video#instagram-transcript"
     },
     {
       "source": "/api-reference/endpoint/linkedin-ads-ad",
@@ -1582,7 +1356,7 @@
     },
     {
       "source": "/api-reference/endpoint/linkedin-company",
-      "destination": "/scrape/prebuilt-parsers/social/linkedin-company"
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-company"
     },
     {
       "source": "/api-reference/endpoint/linkedin-jobs-job",
@@ -1594,19 +1368,19 @@
     },
     {
       "source": "/api-reference/endpoint/linkedin-posts",
-      "destination": "/scrape/prebuilt-parsers/social/linkedin-posts"
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-posts"
     },
     {
       "source": "/api-reference/endpoint/linkedin-profile",
-      "destination": "/scrape/prebuilt-parsers/social/linkedin-profile"
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-profile"
     },
     {
       "source": "/api-reference/endpoint/luma-event",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/luma-event"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#luma-event"
     },
     {
       "source": "/api-reference/endpoint/luma-events",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/luma-events"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#luma-events"
     },
     {
       "source": "/api-reference/endpoint/meta-ads-ad",
@@ -1622,19 +1396,19 @@
     },
     {
       "source": "/api-reference/endpoint/pinterest-board",
-      "destination": "/scrape/prebuilt-parsers/social/pinterest-board"
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-board"
     },
     {
       "source": "/api-reference/endpoint/pinterest-pin",
-      "destination": "/scrape/prebuilt-parsers/social/pinterest-pin"
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-pin"
     },
     {
       "source": "/api-reference/endpoint/pinterest-profile",
-      "destination": "/scrape/prebuilt-parsers/social/pinterest-profile"
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-profile"
     },
     {
       "source": "/api-reference/endpoint/pinterest-search",
-      "destination": "/scrape/prebuilt-parsers/social/pinterest-search"
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-search"
     },
     {
       "source": "/api-reference/endpoint/reddit-discussions",
@@ -1642,23 +1416,23 @@
     },
     {
       "source": "/api-reference/endpoint/reddit-post",
-      "destination": "/scrape/prebuilt-parsers/social/reddit-post"
+      "destination": "/scrape/prebuilt-parsers/social#reddit-post"
     },
     {
       "source": "/api-reference/endpoint/reddit-search",
-      "destination": "/scrape/prebuilt-parsers/social/reddit-search"
+      "destination": "/scrape/prebuilt-parsers/social#reddit-search"
     },
     {
       "source": "/api-reference/endpoint/reddit-subreddit",
-      "destination": "/scrape/prebuilt-parsers/social/reddit-subreddit"
+      "destination": "/scrape/prebuilt-parsers/social#reddit-subreddit"
     },
     {
       "source": "/api-reference/endpoint/reddit-subreddits",
-      "destination": "/scrape/prebuilt-parsers/social/reddit-subreddits"
+      "destination": "/scrape/prebuilt-parsers/social#reddit-subreddits"
     },
     {
       "source": "/api-reference/endpoint/reddit-user",
-      "destination": "/scrape/prebuilt-parsers/social/reddit-user"
+      "destination": "/scrape/prebuilt-parsers/social#reddit-user"
     },
     {
       "source": "/api-reference/endpoint/threads-profile-posts",
@@ -1674,19 +1448,19 @@
     },
     {
       "source": "/api-reference/endpoint/tiktok-comments",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-comments"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-comments"
     },
     {
       "source": "/api-reference/endpoint/tiktok-hashtag",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-hashtag"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-hashtag"
     },
     {
       "source": "/api-reference/endpoint/tiktok-profile",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-profile"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-profile"
     },
     {
       "source": "/api-reference/endpoint/tiktok-search",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-search"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-search"
     },
     {
       "source": "/api-reference/endpoint/tiktok-shop-product",
@@ -1706,27 +1480,27 @@
     },
     {
       "source": "/api-reference/endpoint/tiktok-sound",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-sound"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-sound"
     },
     {
       "source": "/api-reference/endpoint/tiktok-transcript",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-transcript"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-transcript"
     },
     {
       "source": "/api-reference/endpoint/tiktok-video",
-      "destination": "/scrape/prebuilt-parsers/video/tiktok-video"
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-video"
     },
     {
       "source": "/api-reference/endpoint/tripadvisor-place",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-place"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-place"
     },
     {
       "source": "/api-reference/endpoint/tripadvisor-reviews",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-reviews"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-reviews"
     },
     {
       "source": "/api-reference/endpoint/tripadvisor-search",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-search"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-search"
     },
     {
       "source": "/api-reference/endpoint/trustpilot-company-reviews",
@@ -1734,19 +1508,19 @@
     },
     {
       "source": "/api-reference/endpoint/trustpilot-company",
-      "destination": "/scrape/prebuilt-parsers/shopping/trustpilot-company"
+      "destination": "/scrape/prebuilt-parsers/shopping#trustpilot-company"
     },
     {
       "source": "/api-reference/endpoint/trustpilot-search",
-      "destination": "/scrape/prebuilt-parsers/shopping/trustpilot-search"
+      "destination": "/scrape/prebuilt-parsers/shopping#trustpilot-search"
     },
     {
       "source": "/api-reference/endpoint/upwork-job",
-      "destination": "/scrape/prebuilt-parsers/jobs/upwork-job"
+      "destination": "/scrape/prebuilt-parsers/jobs#upwork-job"
     },
     {
       "source": "/api-reference/endpoint/upwork-search",
-      "destination": "/scrape/prebuilt-parsers/jobs/upwork-search"
+      "destination": "/scrape/prebuilt-parsers/jobs#upwork-search"
     },
     {
       "source": "/api-reference/endpoint/web-batch-cancel",
@@ -1798,7 +1572,7 @@
     },
     {
       "source": "/api-reference/endpoint/x-profile",
-      "destination": "/scrape/prebuilt-parsers/social/x-profile"
+      "destination": "/scrape/prebuilt-parsers/social#x-profile"
     },
     {
       "source": "/api-reference/endpoint/yelp-business-reviews",
@@ -1806,31 +1580,31 @@
     },
     {
       "source": "/api-reference/endpoint/yelp-business",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/yelp-business"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#yelp-business"
     },
     {
       "source": "/api-reference/endpoint/yelp-search",
-      "destination": "/scrape/prebuilt-parsers/places-and-travel/yelp-search"
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#yelp-search"
     },
     {
       "source": "/api-reference/endpoint/youtube-channel",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-channel"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-channel"
     },
     {
       "source": "/api-reference/endpoint/youtube-comments",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-comments"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-comments"
     },
     {
       "source": "/api-reference/endpoint/youtube-playlist",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-playlist"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-playlist"
     },
     {
       "source": "/api-reference/endpoint/youtube-post",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-post"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-post"
     },
     {
       "source": "/api-reference/endpoint/youtube-search",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-search"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-search"
     },
     {
       "source": "/api-reference/endpoint/youtube-suggest",
@@ -1838,19 +1612,19 @@
     },
     {
       "source": "/api-reference/endpoint/youtube-transcript",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-transcript"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-transcript"
     },
     {
       "source": "/api-reference/endpoint/youtube-video",
-      "destination": "/scrape/prebuilt-parsers/video/youtube-video"
+      "destination": "/scrape/prebuilt-parsers/video#youtube-video"
     },
     {
       "source": "/api-reference/endpoint/zillow-property",
-      "destination": "/scrape/prebuilt-parsers/real-estate/zillow-property"
+      "destination": "/scrape/prebuilt-parsers/real-estate#zillow-property"
     },
     {
       "source": "/api-reference/endpoint/zillow-search",
-      "destination": "/scrape/prebuilt-parsers/real-estate/zillow-search"
+      "destination": "/scrape/prebuilt-parsers/real-estate#zillow-search"
     },
     {
       "source": "/ai-onboarding",
@@ -1878,7 +1652,7 @@
     },
     {
       "source": "/guides/extract-with-a-schema",
-      "destination": "/extract/schema"
+      "destination": "/extract/overview#schema"
     },
     {
       "source": "/guides/errors-and-retries",
@@ -1898,39 +1672,39 @@
     },
     {
       "source": "/mcp-server/keyless",
-      "destination": "/mcp/keyless"
+      "destination": "/install-mcp"
     },
     {
       "source": "/mcp-server/oauth",
-      "destination": "/mcp/oauth"
+      "destination": "/install-mcp"
     },
     {
       "source": "/quickstarts/claude-code",
-      "destination": "/integrations/claude-code"
+      "destination": "/install-mcp"
     },
     {
       "source": "/quickstarts/cursor",
-      "destination": "/integrations/cursor"
+      "destination": "/install-mcp"
     },
     {
       "source": "/quickstarts/codex",
-      "destination": "/integrations/codex"
+      "destination": "/install-mcp"
     },
     {
       "source": "/quickstarts/claude-desktop",
-      "destination": "/integrations/claude-desktop"
+      "destination": "/install-mcp"
     },
     {
       "source": "/developer-guides/llm-sdks/openai",
-      "destination": "/integrations/openai"
+      "destination": "/integrations/llm-sdks"
     },
     {
       "source": "/developer-guides/llm-sdks/anthropic",
-      "destination": "/integrations/anthropic"
+      "destination": "/integrations/llm-sdks"
     },
     {
       "source": "/developer-guides/llm-sdks/vercel-ai-sdk",
-      "destination": "/integrations/vercel-ai-sdk"
+      "destination": "/integrations/llm-sdks"
     },
     {
       "source": "/sources/web",
@@ -1983,6 +1757,646 @@
     {
       "source": "/api-reference/endpoint/search-research-papers-get",
       "destination": "/api-reference/endpoint/search-research-papers"
+    },
+    {
+      "source": "/extract/schema",
+      "destination": "/extract/overview#schema"
+    },
+    {
+      "source": "/extract/results",
+      "destination": "/extract/overview"
+    },
+    {
+      "source": "/agent/runs",
+      "destination": "/agent/overview"
+    },
+    {
+      "source": "/monitors/schedules",
+      "destination": "/monitors/overview#schedule"
+    },
+    {
+      "source": "/monitors/limits-and-errors",
+      "destination": "/monitors/overview#limits"
+    },
+    {
+      "source": "/monitors/webhooks",
+      "destination": "/monitors/checks-and-changes#webhooks"
+    },
+    {
+      "source": "/search/sources",
+      "destination": "/search/options#sources"
+    },
+    {
+      "source": "/search/filters",
+      "destination": "/search/options#filters"
+    },
+    {
+      "source": "/search/page-content",
+      "destination": "/search/options#page-content"
+    },
+    {
+      "source": "/map/filter-and-search",
+      "destination": "/map/overview"
+    },
+    {
+      "source": "/crawl/scope",
+      "destination": "/crawl/overview#scope"
+    },
+    {
+      "source": "/crawl/page-content",
+      "destination": "/crawl/overview#page-content"
+    },
+    {
+      "source": "/batches/submit",
+      "destination": "/batches/overview"
+    },
+    {
+      "source": "/batches/limits-and-errors",
+      "destination": "/batches/results"
+    },
+    {
+      "source": "/parse/formats",
+      "destination": "/parse/overview"
+    },
+    {
+      "source": "/scrape/markdown",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/html",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/links",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/images",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/bytes",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/screenshot",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/network",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/branding",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/youtube",
+      "destination": "/scrape/formats"
+    },
+    {
+      "source": "/scrape/highlights",
+      "destination": "/scrape/summary"
+    },
+    {
+      "source": "/scrape/question",
+      "destination": "/scrape/summary"
+    },
+    {
+      "source": "/scrape/product",
+      "destination": "/scrape/json"
+    },
+    {
+      "source": "/scrape/waiting-and-rendering",
+      "destination": "/scrape/rendering-and-location"
+    },
+    {
+      "source": "/scrape/location-and-headers",
+      "destination": "/scrape/rendering-and-location"
+    },
+    {
+      "source": "/scrape/timeouts-and-errors",
+      "destination": "/scrape/overview#timeouts-warnings-and-errors"
+    },
+    {
+      "source": "/sdks/typescript",
+      "destination": "/sdks"
+    },
+    {
+      "source": "/sdks/python",
+      "destination": "/sdks"
+    },
+    {
+      "source": "/mcp/keyless",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/mcp/oauth",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/integrations/claude-code",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/integrations/claude-desktop",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/integrations/codex",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/integrations/cursor",
+      "destination": "/install-mcp"
+    },
+    {
+      "source": "/integrations/anthropic",
+      "destination": "/integrations/llm-sdks"
+    },
+    {
+      "source": "/integrations/openai",
+      "destination": "/integrations/llm-sdks"
+    },
+    {
+      "source": "/integrations/vercel-ai-sdk",
+      "destination": "/integrations/llm-sdks"
+    },
+    {
+      "source": "/browser/network-policies",
+      "destination": "/browser/network-location#network-policies"
+    },
+    {
+      "source": "/browser/extensions",
+      "destination": "/browser/profiles#extensions"
+    },
+    {
+      "source": "/browser/recordings-and-replay",
+      "destination": "/browser/overview#recordings-and-replay"
+    },
+    {
+      "source": "/production/status",
+      "destination": "/production/checklist"
+    },
+    {
+      "source": "/production/usage-and-logs",
+      "destination": "/account/usage"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/google-maps",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/google-maps-place",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps-place"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/google-maps-reviews",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/web/google-trends",
+      "destination": "/scrape/prebuilt-parsers/web#google-trends"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/web/google-patents",
+      "destination": "/scrape/prebuilt-parsers/web#google-patents"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/ads/google-ads",
+      "destination": "/scrape/prebuilt-parsers/ads#google-ads"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/google-flights",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-flights"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/google-hotels",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#google-hotels"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/google-play-app",
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-app"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/google-play-search",
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/google-play-reviews",
+      "destination": "/scrape/prebuilt-parsers/apps#google-play-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/upwork-search",
+      "destination": "/scrape/prebuilt-parsers/jobs#upwork-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/upwork-job",
+      "destination": "/scrape/prebuilt-parsers/jobs#upwork-job"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/craigslist-search",
+      "destination": "/scrape/prebuilt-parsers/shopping#craigslist-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/craigslist-listing",
+      "destination": "/scrape/prebuilt-parsers/shopping#craigslist-listing"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/careers-jobs",
+      "destination": "/scrape/prebuilt-parsers/jobs#careers-jobs"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/careers-job",
+      "destination": "/scrape/prebuilt-parsers/jobs#careers-job"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/indeed-search",
+      "destination": "/scrape/prebuilt-parsers/jobs#indeed-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/indeed-job",
+      "destination": "/scrape/prebuilt-parsers/jobs#indeed-job"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/real-estate/realtor-search",
+      "destination": "/scrape/prebuilt-parsers/real-estate#realtor-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/real-estate/realtor-property",
+      "destination": "/scrape/prebuilt-parsers/real-estate#realtor-property"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/real-estate/zillow-search",
+      "destination": "/scrape/prebuilt-parsers/real-estate#zillow-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/real-estate/zillow-property",
+      "destination": "/scrape/prebuilt-parsers/real-estate#zillow-property"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/expedia-hotels",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#expedia-hotels"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/booking-search",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#booking-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/booking-hotel",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#booking-hotel"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/booking-reviews",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#booking-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/airbnb-search",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/airbnb-listing",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-listing"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/airbnb-reviews",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airbnb-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-search",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-video",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-video"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-transcript",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-transcript"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-comments",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-comments"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-channel",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-channel"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-post",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/youtube-playlist",
+      "destination": "/scrape/prebuilt-parsers/video#youtube-playlist"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/reddit-search",
+      "destination": "/scrape/prebuilt-parsers/social#reddit-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/reddit-post",
+      "destination": "/scrape/prebuilt-parsers/social#reddit-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/reddit-subreddit",
+      "destination": "/scrape/prebuilt-parsers/social#reddit-subreddit"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/reddit-user",
+      "destination": "/scrape/prebuilt-parsers/social#reddit-user"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/reddit-subreddits",
+      "destination": "/scrape/prebuilt-parsers/social#reddit-subreddits"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/instagram-post",
+      "destination": "/scrape/prebuilt-parsers/social#instagram-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/instagram-profile",
+      "destination": "/scrape/prebuilt-parsers/social#instagram-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/instagram-comments",
+      "destination": "/scrape/prebuilt-parsers/social#instagram-comments"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/instagram-transcript",
+      "destination": "/scrape/prebuilt-parsers/video#instagram-transcript"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/instagram-feed",
+      "destination": "/scrape/prebuilt-parsers/social#instagram-feed"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/x-profile",
+      "destination": "/scrape/prebuilt-parsers/social#x-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/x-community",
+      "destination": "/scrape/prebuilt-parsers/social#x-community"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/x-post",
+      "destination": "/scrape/prebuilt-parsers/social#x-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/threads-profile",
+      "destination": "/scrape/prebuilt-parsers/social#threads-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/threads-post",
+      "destination": "/scrape/prebuilt-parsers/social#threads-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/pinterest-search",
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/pinterest-pin",
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-pin"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/pinterest-board",
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-board"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/pinterest-profile",
+      "destination": "/scrape/prebuilt-parsers/social#pinterest-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/facebook-page",
+      "destination": "/scrape/prebuilt-parsers/social#facebook-page"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/facebook-group",
+      "destination": "/scrape/prebuilt-parsers/social#facebook-group"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/facebook-post",
+      "destination": "/scrape/prebuilt-parsers/social#facebook-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/facebook-comments",
+      "destination": "/scrape/prebuilt-parsers/social#facebook-comments"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/facebook-marketplace",
+      "destination": "/scrape/prebuilt-parsers/shopping#facebook-marketplace"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-video",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-video"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-comments",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-comments"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-transcript",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-transcript"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-profile",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-hashtag",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-hashtag"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-sound",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-sound"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-search",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/ads/tiktok-ads",
+      "destination": "/scrape/prebuilt-parsers/ads#tiktok-ads"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/tiktok-shop",
+      "destination": "/scrape/prebuilt-parsers/shopping#tiktok-shop"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-followers",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-followers"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-following",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-following"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-trending",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-trending"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/tiktok-live",
+      "destination": "/scrape/prebuilt-parsers/video#tiktok-live"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/linkedin-jobs",
+      "destination": "/scrape/prebuilt-parsers/jobs#linkedin-jobs"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/linkedin-job",
+      "destination": "/scrape/prebuilt-parsers/jobs#linkedin-job"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/linkedin-company",
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-company"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/linkedin-profile",
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/linkedin-posts",
+      "destination": "/scrape/prebuilt-parsers/social#linkedin-posts"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/ads/linkedin-ads",
+      "destination": "/scrape/prebuilt-parsers/ads#linkedin-ads"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/ads/meta-ads",
+      "destination": "/scrape/prebuilt-parsers/ads#meta-ads"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/amazon-product",
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-product"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/amazon-reviews",
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/amazon-search",
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/amazon-bestsellers",
+      "destination": "/scrape/prebuilt-parsers/shopping#amazon-bestsellers"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/ebay-search",
+      "destination": "/scrape/prebuilt-parsers/shopping#ebay-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/ebay-item",
+      "destination": "/scrape/prebuilt-parsers/shopping#ebay-item"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/appstore-app",
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-app"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/appstore-reviews",
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/appstore-search",
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/apps/appstore-top",
+      "destination": "/scrape/prebuilt-parsers/apps#appstore-top"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/trustpilot-company",
+      "destination": "/scrape/prebuilt-parsers/shopping#trustpilot-company"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/trustpilot-reviews",
+      "destination": "/scrape/prebuilt-parsers/shopping#trustpilot-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/shopping/trustpilot-search",
+      "destination": "/scrape/prebuilt-parsers/shopping#trustpilot-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/yelp-business",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#yelp-business"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/yelp-reviews",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#yelp-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/yelp-search",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#yelp-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-search",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-search"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-place",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-place"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/tripadvisor-reviews",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#tripadvisor-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/glassdoor-company",
+      "destination": "/scrape/prebuilt-parsers/jobs#glassdoor-company"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/glassdoor-reviews",
+      "destination": "/scrape/prebuilt-parsers/jobs#glassdoor-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/jobs/glassdoor-salaries",
+      "destination": "/scrape/prebuilt-parsers/jobs#glassdoor-salaries"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/business/crunchbase-company",
+      "destination": "/scrape/prebuilt-parsers/business#crunchbase-company"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/business/g2-reviews",
+      "destination": "/scrape/prebuilt-parsers/business#g2-reviews"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/luma-events",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#luma-events"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/luma-event",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#luma-event"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/web/emails",
+      "destination": "/scrape/prebuilt-parsers/web#emails"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/web/phone-numbers",
+      "destination": "/scrape/prebuilt-parsers/web#phone-numbers"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/bsky-profile",
+      "destination": "/scrape/prebuilt-parsers/social#bsky-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/bsky-post",
+      "destination": "/scrape/prebuilt-parsers/social#bsky-post"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/social/link-in-bio",
+      "destination": "/scrape/prebuilt-parsers/social#link-in-bio"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/twitch-profile",
+      "destination": "/scrape/prebuilt-parsers/video#twitch-profile"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/video/twitch-clips",
+      "destination": "/scrape/prebuilt-parsers/video#twitch-clips"
     }
   ],
   "integrations": {

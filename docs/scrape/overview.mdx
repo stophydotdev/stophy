@@ -1,15 +1,9 @@
 ---
 title: "Scrape"
-description: "Read any public web page as Markdown, HTML, links, a screenshot or JSON in one request. Pick formats, shape the visit, and pay $1 per 1,000 pages."
-og:title: "Scrape | Stophy"
-og:description: "Read any public web page as Markdown, HTML, links, a screenshot or JSON in one request. Pick formats, shape the visit, and pay $1 per 1,000 pages."
+description: "Read one public web page or document as Markdown, HTML, links, a screenshot, a summary or JSON. Pick formats, shape the visit and try it without a key."
 ---
 
-Use Scrape when you know the URL of the page you want to read. You can ask for more than one output in `formats`. Without `formats`, you get Markdown.
-
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. This request returns the main content of a docs page as Markdown, plus every link on it.
+Scrape reads one URL and returns the formats you ask for. Without `formats` you get Markdown.
 
 <CodeGroup>
 ```bash cURL
@@ -50,73 +44,76 @@ print(data["markdown"])
 ```
 </CodeGroup>
 
-You can try Scrape without an API key, up to 10 calls a minute and 50 calls a day per IP address. See [Rate limits](/production/rate-limits).
-
-## Read the response
-
-Look in `data` for the formats you asked for. Here, `markdown` holds the page text and `links` lists addresses from the whole page.
+Scrape also works without a key, within the keyless limits in [Rate limits](/production/rate-limits). Fields marked "key" below need one.
 
 ```json
 {
   "success": true,
   "data": {
     "markdown": "# bunfig.toml\n\nConfigure Bun's behavior using its configuration file bunfig.toml\n\n…",
-    "links": [
-      "https://bun.com/docs/runtime/bunfig",
-      "https://bun.com/",
-      "https://bun.com/docs"
-    ],
-    "metadata": {
-      "title": "bunfig.toml | Bun Docs",
-      "costUsd": 0.001
-    }
+    "links": ["https://bun.com/docs/runtime/bunfig", "https://bun.com/"],
+    "metadata": { "title": "bunfig.toml | Bun Docs", "costUsd": 0.001 }
   }
 }
 ```
 
-`metadata` describes the page whatever formats you ask for: its title, description, language, status code and social tags. See [Page metadata](/scrape/page-metadata). `metadata.costUsd` is what the call cost, and `metadata.scrapeId` names this read. To read the same result again within 24 hours, send `GET /v1/scrape/{id}` with the `scrapeId`. The `X-Request-ID` header holds the request id to give support. See [Freshness and caching](/scrape/freshness-and-caching).
+`data` holds one field per format. `data.metadata` comes with every format: see [Page metadata](/scrape/page-metadata). Send `GET /v1/scrape/{id}` with `metadata.scrapeId` to read a result again for 24 hours. See [Freshness and caching](/scrape/freshness-and-caching).
 
 ## Formats
 
-Pick a format based on what you will do with the page. Use Markdown for text, or a schema if your code needs named fields.
+Send `formats` as 1 to 20 entries. Each is a string, or an object when the format has fields, such as `{ "type": "highlights", "query": "refund policy" }`.
 
-| Format | What you get | Guide |
+| Format | What you get | Page |
 | - | - | - |
-| `markdown` | The page text as markdown | [Markdown](/scrape/markdown) |
-| `html`, `rawHtml` | The cleaned page, or the page as sent | [HTML](/scrape/html) |
-| `screenshot` | A link to a JPEG of the page, kept for 7 days | [Screenshot](/scrape/screenshot) |
-| `links` | Every link on the page | [Links](/scrape/links) |
-| `images` | Every image URL on the page | [Images](/scrape/images) |
-| `rawBase64` | The bytes the site sent, Base64 encoded | [Bytes](/scrape/bytes) |
-| `json` with `parser` | A site's own data, like a video, a listing or a profile | [Pre-built parsers](/scrape/prebuilt-parsers) |
-| `summary` | A short summary of the page | [Summary](/scrape/summary) |
-| `highlights` | The passages that best match a query | [Highlights](/scrape/highlights) |
-| `question` | The answer to one question. Left out, with a warning, when the page does not state one | [Question](/scrape/question) |
-| `json` with `schema` or `prompt` | An object in the shape you describe | [JSON](/scrape/json) |
-| `product`, `menu` | A product with its variants, or a menu with prices | [Product](/scrape/product) |
-| `branding` | The page's colors, fonts, logo and styles | [Branding](/scrape/branding) |
-| `changeTracking` | What changed since you last read the page | [Change tracking](/scrape/change-tracking) |
-| `network` | The JSON the page loaded while it rendered | [Network](/scrape/network) |
+| `markdown` (default) | The page text | [Formats](/scrape/formats) |
+| `html`, `rawHtml` | The cleaned page, or the page as sent | [Formats](/scrape/formats) |
+| `links`, `images` | Every link or image URL on the page | [Formats](/scrape/formats) |
+| `rawBase64` | The bytes the site sent, Base64 encoded | [Formats](/scrape/formats) |
+| `screenshot` | A link to a JPEG of the page | [Formats](/scrape/formats) |
+| `network` | The JSON the page loaded while it rendered | [Formats](/scrape/formats) |
+| `branding` | Colors, fonts, logo and styles | [Formats](/scrape/formats) |
+| `audio`, `video` (key) | A YouTube video's audio or video file | [Formats](/scrape/formats) |
+| `summary` (model) | A short summary | [Summary, highlights and question](/scrape/summary) |
+| `highlights` | The passages that best match a query | [Summary, highlights and question](/scrape/summary) |
+| `question` (model) | One answer from the page | [Summary, highlights and question](/scrape/summary) |
+| `json` with `schema` or `prompt` (key, model) | An object in the shape you describe | [JSON](/scrape/json) |
+| `json` with `rules`, `attributes` | CSS rules or attribute values, no model | [JSON](/scrape/json) |
+| `product`, `menu` (model) | A product with variants, or a menu with prices | [JSON](/scrape/json) |
+| `json` with `parser` | A site's own data | [Pre-built parsers](/scrape/prebuilt-parsers) |
+| `changeTracking` (key) | What changed since your last read | [Change tracking](/scrape/change-tracking) |
 
-## Shape the page visit
+Formats marked "model" can add a fee. See [Pricing](/account/pricing).
 
-Change how we read the page when the default response leaves out what you need. Use [browser actions](/scrape/browser-actions) for a click before the read, or [Interact](/scrape/interact) if you want to decide the next step after seeing the result. Use [waiting and rendering](/scrape/waiting-and-rendering) for a page that loads late.
+## Options
 
-Use [content filtering](/scrape/content-filtering) to keep only part of a page. Set [location and headers](/scrape/location-and-headers) when the site shows different content by country or language. Send a [PDF or document URL](/scrape/pdfs-and-documents) to read its text.
+All fields sit next to `url`, except the ones inside a format.
 
-Set [freshness and caching](/scrape/freshness-and-caching) if a stored copy is too old. Use [safety options](/scrape/safety) to scan for prompt injection or hide personal data. See [timeouts and errors](/scrape/timeouts-and-errors) when a read fails, and the [API reference](/api-reference/endpoint/scrape) for every field.
+| Field | What it does | Page |
+| - | - | - |
+| `onlyMainContent`, `onlyCleanContent` (key), `includeTags`, `excludeTags`, `removeBase64Images` | Choose which part of the page is read | [Content filtering](/scrape/content-filtering) |
+| `linkStyle`, `maxChars`, `offset`, `query` | Shape and page through the Markdown | [Content filtering](/scrape/content-filtering) |
+| `waitFor` (key), `mobile`, `fastMode`, `blockAds`, `proxy`, `profile` (key) | Choose how the page loads | [Rendering and location](/scrape/rendering-and-location) |
+| `location`, `headers`, `skipTlsVerification` | Choose what the site shows you | [Rendering and location](/scrape/rendering-and-location) |
+| `actions` (key) | Click, scroll, type or capture before the read | [Browser actions](/scrape/browser-actions) |
+| `parsers` | PDF modes and layout | [PDFs and documents](/scrape/pdfs-and-documents) |
+| `maxAge`, `minAge`, `lockdown`, `storeInCache` | Accept or refuse stored copies | [Freshness and caching](/scrape/freshness-and-caching) |
+| `checkPromptInjection` (key), `redactPII` (key) | Scan or clean text before a model reads it | [Safety](/scrape/safety) |
+| `zeroDataRetention` | Keep nothing from the call | [Zero data retention](/production/zero-data-retention) |
+| `timeout` | Milliseconds to keep trying. Default `60000`, 1,000 to 300,000 | Below |
 
-## Price
+To keep working on a scraped page, see [Interact](/scrape/interact). The [API reference](/api-reference/endpoint/scrape) has every field.
 
-$1 per 1,000 pages. A page that comes back with a 404 or 410 status, or cannot be read, costs nothing. `json` with a schema or a prompt, `summary`, `highlights`, `question`, `product`, `menu` and `changeTracking` in `json` mode each add $3 per 1,000 pages when they return something. Browser actions and CSS rules add nothing. See [Pricing](/account/pricing).
+## Timeouts, warnings and errors
+
+- A read that runs out of time fails with `504 sourceTimeout` and costs nothing. A page that needs a browser needs at least 5 seconds. Waits and actions use the same time, so set your client timeout a few seconds above `timeout`. See [Timeouts](/production/timeouts).
+- A page that answers 404 or 410 comes back as a page with that `metadata.statusCode` and an `error`. It costs nothing.
+- `403 siteNotRead` means Stophy does not read that site as a page. Use a [parser](/scrape/prebuilt-parsers) or [Search](/search/overview).
+- A body with `urls` returns `400 invalidRequest`. Read many pages with [Batches](/batches/overview).
+- A problem that does not fail the call adds a `warning`. It says that a browser action failed, that `maxChars` cut the text (with the `offset` to read on from), or that `onlyCleanContent` or `checkPromptInjection` did not finish.
+- A page over 8 MB of text, or a file over 20 MB, returns `400 invalidRequest`.
+
+Every error has the shape in [Errors](/api-reference/errors). Retries are in [Troubleshooting](/production/troubleshooting).
 
 ## Choose another API
 
-Use a different call when you do not have a single page URL or need to read pages in bulk.
-
-- [Map](/map/overview) lists the pages of a site without reading them.
-- [Crawl](/crawl/overview) reads every page of a site in the background.
-- [Batches](/batches/overview) read a list of URLs in the background.
-- [Search](/search/overview) finds pages from a query and can read each result.
-- [Extract](/extract/overview) pulls the fields you name from one or more pages, each checked against the page.
-- [Parse documents](/parse/overview) turns a file you upload into Markdown.
+[Map](/map/overview) lists a site's pages, [Crawl](/crawl/overview) reads a whole site, and [Batches](/batches/overview) read a list of URLs.

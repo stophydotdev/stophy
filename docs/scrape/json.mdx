@@ -1,98 +1,30 @@
 ---
-title: "JSON"
-description: "Fill an object from a page with a JSON Schema or a plain prompt. Each field is checked against the page. $3 per 1,000 pages on top of the $1 page price."
-og:title: "JSON | Stophy"
-og:description: "Fill an object from a page with a JSON Schema or a plain prompt. Each field is checked against the page. $3 per 1,000 pages on top of the $1 page price."
+title: "JSON, product and menu"
+sidebarTitle: "JSON"
+description: "Get named fields from a page with a JSON Schema, a prompt, CSS rules or attribute selectors, or read a product page or a menu in a fixed shape."
 ---
 
-Use `json` when your code needs fields rather than the whole page. Send a JSON Schema for fixed names and types, or a plain-words prompt when the names can vary.
+Use `json` when your code reads fields rather than text. A `schema` fixes the names and types. A `prompt` lets the model choose names, so they can differ between calls. `schema` and `prompt` need an API key.
 
-## Fill a schema
-
-Get an API key in the [Quickstart](/quickstart). Send `json` as an object with a `schema`. This request reads three facts from a documentation page.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://bun.com/docs/runtime/bunfig",
-    "formats": [
-      {
-        "type": "json",
-        "schema": {
-          "type": "object",
-          "properties": {
-            "configFile": { "type": "string" },
-            "globalPaths": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "hasTelemetryOption": { "type": "boolean" }
-          }
+    "formats": [{
+      "type": "json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "configFile": { "type": "string" },
+          "globalPaths": { "type": "array", "items": { "type": "string" } },
+          "hasTelemetryOption": { "type": "boolean" }
         }
       }
-    ]
+    }]
   }'
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://bun.com/docs/runtime/bunfig",
-  formats: [
-    {
-      type: "json",
-      schema: {
-        type: "object",
-        properties: {
-          configFile: { type: "string" },
-          globalPaths: {
-            type: "array",
-            items: { type: "string" },
-          },
-          hasTelemetryOption: { type: "boolean" },
-        },
-      },
-    },
-  ],
-});
-console.log(data.json);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-data = stophy.scrape(
-    url="https://bun.com/docs/runtime/bunfig",
-    formats=[
-        {
-            "type": "json",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "configFile": {"type": "string"},
-                    "globalPaths": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                    },
-                    "hasTelemetryOption": {"type": "boolean"},
-                },
-            },
-        },
-    ],
-)["data"]
-print(data["json"])
-```
-</CodeGroup>
-
-## Read the response
-
-Read `data.json` for the values under the keys in your schema.
 
 ```json
 {
@@ -100,68 +32,49 @@ Read `data.json` for the values under the keys in your schema.
   "data": {
     "json": {
       "configFile": "bunfig.toml",
-      "globalPaths": [
-        "$HOME/.bunfig.toml",
-        "$XDG_CONFIG_HOME/.bunfig.toml"
-      ],
+      "globalPaths": ["$HOME/.bunfig.toml", "$XDG_CONFIG_HOME/.bunfig.toml"],
       "hasTelemetryOption": true
-    },
-    "metadata": {
-      "costUsd": 0.004
     }
   }
 }
 ```
 
-A field the page does not state comes back as `null`. Each value is checked against the page text before it is returned.
+A field the page does not state comes back `null`, and each value is checked against the page text.
 
-## Fill a prompt
+## Fields of the json format
 
-When you do not want to write a schema, send a `prompt`. The model picks the field names and returns up to 20 fields.
+| Field | Effect |
+| - | - |
+| `type` | `"json"`. Required. |
+| `schema` | A JSON Schema (draft-07 or 2020-12) with `properties`. Up to 100 top-level fields and 32 KB. Pydantic's `model_json_schema()` and zod's `toJSONSchema()` output work as they are. `enum`, `const`, `anyOf`, `oneOf`, nullable types, `$ref` with `$defs`, `required` and `description` are read. |
+| `prompt` | What to pull, in plain words, 1 to 10,000 characters. The model returns up to 20 fields. |
+| `rules` | CSS rules, no model. Each field is a selector such as `"h1"` or `"a@href"`. Up to 100 fields, 5 levels deep. Not with `schema`, `prompt` or `parser`. |
+| `parser`, `options` | A site's own data, and extra inputs such as `{ "page": 2 }`. See [Pre-built parsers](/scrape/prebuilt-parsers). |
 
-In the `json` format object, replace `schema` with `"prompt": "the name of the config file and where a global one goes"`. Read the resulting fields in `data.json`.
+- The model reads the first 50,000 characters of the Markdown.
+- A `json` format with none of `schema`, `prompt`, `rules` or `parser` returns `400 invalidRequest`. So does `rules` with `schema`, `prompt` or `parser`.
+- When the page states none of your fields, the model fee is not charged.
 
-Use a `schema` when your code reads the fields by name, because a prompt can name fields differently from one call to the next.
+## Rules and attributes
 
-## Read attributes
+`"formats": [{ "type": "json", "rules": { "title": "h1", "links": { "selector": "a", "type": "list", "output": "@href" } } }]` reads the page with CSS and no model. A missing item is `null`, an unmatched list is `[]`, and relative links become absolute. It works without a key.
 
-To read attribute values such as link URLs, send the `attributes` format. It uses no model and adds no charge. Each entry in `selectors` names the elements to match with a CSS `selector` and the `attribute` to read. Send 1 to 50 entries. For the `href` of each link, use `{ "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] }` in `formats`.
+`{ "type": "attributes", "selectors": [{ "selector": "a", "attribute": "href" }] }` reads attribute values. Send 1 to 50 entries. `data.attributes` has one entry per selector with its `selector`, `attribute` and the `values` it found.
 
-`data.attributes` has one entry for each selector you sent, with its `selector`, its `attribute` and the `values` it found. The read costs $1 per 1,000 pages. `attributes` adds nothing.
+## Product and menu
 
-## Options
+`"formats": ["product"]` reads a product page. `data.product` has `title`, `brand`, `category`, `url`, `description` and `variants`. Price, sale, stock and images belong to a variant, and a product with no options has one.
 
-Choose CSS rules when you know the selectors, or a parser when the site already has one. Use a schema or prompt when you need fields from the page text.
+| `variants[]` field | Holds |
+| - | - |
+| `id`, `sku`, `title`, `values` | Identifiers, the name, and option values such as `color: Black`. |
+| `price` | `amount`, `currency` (ISO 4217) and `formatted`. |
+| `sale` | `originalPrice`, only when discounted. |
+| `availability` | `inStock` and `text`. |
+| `images` | Each with `url` and `alt` when the page has it. |
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `type` | `string` | none | `"json"`. Required. |
-| `schema` | `object` | none | The fields to fill, as a JSON Schema (draft-07 or 2020-12) with `properties`. Up to 100 top-level fields and 32 KB. |
-| `prompt` | `string` | none | What to pull from the page, in plain words. 1 to 10,000 characters. |
-| `rules` | `object` | none | Read the page with CSS rules and no model, for no extra charge. Each field is a selector such as `"h1"` or `"a@href"`. Up to 100 fields, 5 levels deep. Not with `schema`, `prompt` or `parser`. |
-| `parser` | `string` | none | Read a site with its own parser. See [Pre-built parsers](/scrape/prebuilt-parsers). |
-| `options` | `object` | none | Extra inputs for a `parser`, such as `{ "page": 2 }`. |
+`"formats": ["menu"]` reads a restaurant menu. `data.menu` has `isMenu`, `confidence` (0 to 1), `merchant` (`name`, `type`), `currency` and `sections`. Each section has `name`, `description` and `items`. An item has `name`, `description`, `price`, `availability`, `dietary`, `calories`, `images`, `url` and `optionGroups`, each group a `name` with `options` that have a `name` and a `price`.
 
-Pydantic's `model_json_schema()` and zod's `toJSONSchema()` output work as they are. `enum`, `const`, `anyOf`, `oneOf`, nullable types, `$ref` with `$defs`, `required` and `description` are all read.
+A field the page does not state is left out. When the page is not a product page, `product` is left out and `data.warning` says why. The same holds for `menu`. The model reads the first 50,000 characters of the Markdown.
 
-## Limits and errors
-
-Check the format object if a request fails. If fields come back null, check that the page states them in the text we read.
-
-- The model reads the first 50,000 characters of the page's Markdown.
-- A `json` format with no `schema`, `prompt`, `rules` or `parser` returns `400 invalidRequest` with the message `formats: json needs a schema or a prompt for this page.`
-- `rules` together with `schema`, `prompt` or `parser` returns `400 invalidRequest` with the message `rules cannot be combined with schema, prompt or parser`.
-- If the page states none of your fields, the model fee is not charged.
-
-## Price
-
-$4 per 1,000 pages: $1 for the page and $3 for `json` with a `schema` or a `prompt`. `rules`, `parser` and `attributes` add nothing.
-
-## Related
-
-Use a fixed format for a known kind of page or Extract to pull fields from more than one page.
-
-- [Pre-built parsers](/scrape/prebuilt-parsers) return a site's own data as JSON.
-- [Product](/scrape/product) returns a product page in a fixed shape.
-- [Extract](/extract/overview) pulls fields from one or more pages and checks each against the page.
-- [Question](/scrape/question) answers one question in a sentence.
+`schema`, `prompt`, `product` and `menu` add a fee when they return something. `rules`, `parser` and `attributes` add none. See [Pricing](/account/pricing).

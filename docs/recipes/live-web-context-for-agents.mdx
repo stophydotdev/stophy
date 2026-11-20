@@ -1,17 +1,11 @@
 ---
 title: "Live web context for agents"
-description: "Give an AI agent two tools, search the web and read a page, so it answers from live pages and cites a source URL for each claim. About $0.003 a question."
-og:title: "Live web context for agents | Stophy"
-og:description: "Give an AI agent two tools, search the web and read a page, so it answers from live pages and cites a source URL for each claim. About $0.003 a question."
+description: "Give an AI agent two tools, search the web and read a page, so it answers from live pages and cites the source URL of each claim."
 ---
 
-Give your agent a search tool and a page reader so it can cite what it read instead of answering from memory.
-
-You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). A question that takes one search and two page reads costs about $0.003.
+Give your agent a search tool and a page reader so it cites what it read instead of answering from memory. You need `STOPHY_API_KEY`. See the [Quickstart](/quickstart).
 
 ## 1. Find pages
-
-Search first to find pages worth reading. This request asks for 3 results.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/search \
@@ -20,13 +14,11 @@ curl -X POST https://api.stophy.dev/v1/search \
   -d '{ "query": "bun release notes", "limit": 3 }'
 ```
 
-`data.web` holds the results. Each has a `url`, a `title` and usually a `description`. `position` is the rank in the results. If no web results match, the tool below returns `No results.`
-
-The search cost $0.001. The tool gives the agent titles, URLs and snippets only, so a result is a lead, not evidence. See [Search](/search/overview) for sources and filters.
+`data.web` holds results with a `url`, `title`, `description` and `position`. These are leads, not evidence. See [Search](/search/overview) for sources and filters.
 
 ## 2. Read one page
 
-Read the page before quoting a search result. `maxChars` keeps each answer short, so a long page does not fill the agent's context.
+`maxChars` keeps a long page from filling the agent's context.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
@@ -35,163 +27,52 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{ "url": "https://bun.com/blog", "maxChars": 1500 }'
 ```
 
-Read `data.markdown`. If the text was cut, the response includes `nextOffset` and a `warning`.
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "# Blog\n\n[RSS](https://bun.com/rss.xml)\n\nLatestOct 22, 2026\n\n## [Bun v1.4.4](https://bun.com/blog/bun-v1.4.4)\n\nFixes 271 issues, addressing 544 👍. bun fmt, a Prettier-compatible formatter built into Bun … 180 posts\n\n",
-    "nextOffset": 1493,
-    "warning": "The page text was cut short. Send offset 1493 to read on.",
-    "metadata": {
-      "title": "Blog | Bun",
-      "sourceURL": "https://bun.com/blog",
-      "statusCode": 200,
-      "contentType": "text/html",
-      "costUsd": 0.001
-    }
-  }
-}
-```
-
-`nextOffset` says where the next part starts. Send the same request with `"offset": 1493` to read on. The read cost $0.001. See [Content filtering](/scrape/content-filtering).
+The text is in `data.markdown`. When it was cut, `data.nextOffset` says where the next part starts, and `data.warning` says so. Send the same request with `"offset": <nextOffset>` to read on. See [Content filtering](/scrape/content-filtering).
 
 ## 3. Wrap both as tools
 
-Wrap each call so the model gets text it can read. The search tool takes a query, and the page tool takes a URL and optional offset. Both turn an API error into text so the model can try another input.
+Return text the model can read, and turn an error into text so it can try another input. `Source: <url>` at the top of each page is what lets the agent cite.
 
-<CodeGroup>
-```typescript TypeScript
-interface SearchAnswer {
-  data: { web?: { url: string; title: string; description?: string }[] };
-}
+```typescript
+import { Stophy, StophyError } from "stophy";
 
-interface ScrapeAnswer {
-  data: { markdown?: string; nextOffset?: number };
-}
+const stophy = new Stophy();
 
-async function post<Answer>(path: string, body: object): Promise<Answer> {
-  const response = await fetch(`https://api.stophy.dev${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const answer = await response.json();
-  if (!response.ok) throw new Error(answer.error);
-  return answer;
-}
+const failure = (action: string, error: unknown) =>
+  `${action} failed: ${error instanceof StophyError ? error.message : "unknown error"}`;
 
 export async function searchWeb(query: string): Promise<string> {
   try {
-    const { data } = await post<SearchAnswer>("/v1/search", { query, limit: 3 });
-    const rows = (data.web ?? []).map(
-      (row) => `${row.title}\n${row.url}\n${row.description ?? ""}`,
-    );
+    const { data } = await stophy.search({ query, limit: 3 });
+    const rows = (data?.web ?? []).map((row) => `${row.title}\n${row.url}\n${row.description ?? ""}`);
     return rows.length > 0 ? rows.join("\n\n") : "No results.";
   } catch (error) {
-    return `Search failed: ${error instanceof Error ? error.message : "unknown error"}`;
+    return failure("Search", error);
   }
 }
 
 export async function readPage(url: string, offset?: number): Promise<string> {
   try {
-    const { data } = await post<ScrapeAnswer>("/v1/scrape", { url, maxChars: 1500, offset });
-    const more = data.nextOffset === undefined ? "" : `\n\n[Cut here. Call again with offset ${data.nextOffset} to read on.]`;
+    const { data } = await stophy.scrape({ url, maxChars: 1500, offset });
+    const more = data.nextOffset === undefined ? "" : `\n\n[Cut here. Call again with offset ${data.nextOffset}.]`;
     return `Source: ${url}\n\n${data.markdown ?? ""}${more}`;
   } catch (error) {
-    return `Read failed: ${error instanceof Error ? error.message : "unknown error"}`;
+    return failure("Read", error);
   }
 }
 ```
-```python Python
-import os
-
-import requests
-
-
-def post(path: str, body: dict) -> dict:
-    response = requests.post(
-        f"https://api.stophy.dev{path}",
-        headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-        json=body,
-    )
-    answer = response.json()
-    if not response.ok:
-        raise RuntimeError(answer["error"])
-    return answer
-
-
-def search_web(query: str) -> str:
-    try:
-        data = post("/v1/search", {"query": query, "limit": 3})["data"]
-    except RuntimeError as error:
-        return f"Search failed: {error}"
-    rows = [
-        f"{row['title']}\n{row['url']}\n{row.get('description', '')}"
-        for row in data.get("web", [])
-    ]
-    return "\n\n".join(rows) or "No results."
-
-
-def read_page(url: str, offset: int | None = None) -> str:
-    body = {"url": url, "maxChars": 1500}
-    if offset is not None:
-        body["offset"] = offset
-    try:
-        data = post("/v1/scrape", body)["data"]
-    except RuntimeError as error:
-        return f"Read failed: {error}"
-    more = ""
-    if "nextOffset" in data:
-        more = f"\n\n[Cut here. Call again with offset {data['nextOffset']} to read on.]"
-    return f"Source: {url}\n\n{data.get('markdown', '')}{more}"
-```
-</CodeGroup>
-
-`readPage` puts `Source: <url>` at the top of everything it returns. That line is what lets the agent cite.
 
 ## 4. Describe the tools to the model
 
-Register `search_web` with a required string `query`. Explain that it returns up to 3 titles, URLs and snippets, but does not read the pages. Register `read_page` with a required string `url` and an optional integer `offset`. Tell the model to call again with the returned offset when the Markdown is cut at 1,500 characters.
-
-Use your provider's schema field, as shown in the [Anthropic](/integrations/anthropic), [OpenAI](/integrations/openai) and [Vercel AI SDK](/integrations/vercel-ai-sdk) guides.
+Register `search_web` with a required string `query`, and say it returns titles, URLs and snippets without reading pages. Register `read_page` with a required string `url` and an optional integer `offset`. Use your provider's schema, as in [LLM SDKs](/integrations/llm-sdks).
 
 Add one rule to the system prompt: answer only from text the tools returned, and end each claim with the `Source:` URL it came from.
 
-## 5. Try the failures first
+## Check it
 
-Test how your tool handles a rejected request before connecting a model. A non-public URL returns `400 invalidRequest`. For example, `readPage("http://localhost/admin")` returned `Read failed: url: Expected a public website URL`. A failed call costs nothing.
-
-## What to check
-
-Use a real question to check the tool order and the citations.
-
-- The agent calls `search_web` first and `read_page` on one or two of the URLs it got back.
-- Every URL in the answer appeared in a tool result. Open two of them and check the claim.
+- A non-public URL such as `http://localhost/admin` fails with `invalidRequest`, and the loop keeps running.
+- The agent calls `search_web` first, then `read_page` on one or two results.
+- Every URL in the answer appeared in a tool result. Open two and check the claim.
 - A long page is read in parts with `offset`, not guessed from the first 1,500 characters.
-- A failing tool leaves the loop running.
 
-## What it costs
-
-Budget for the search and each page you read.
-
-| Step | Price |
-| - | - |
-| Search of up to 10 results | $0.001 |
-| One page read | $0.001 |
-| A question with one search and two reads | $0.003 |
-
-A search with no results, and a page that cannot be read, cost nothing. See [Pricing](/account/pricing).
-
-## Related
-
-Use the search or scrape guides if the agent needs different sources or less page text.
-
-- [Search](/search/overview) for sources, filters and page text in the same call.
-- [Scrape](/scrape/overview) for formats such as `highlights`, which returns only the passages that match a query.
-- [Rate limits](/production/rate-limits) to keep a busy agent under its limits.
-- [Research papers](/recipes/research-papers) for an agent that reads scholarly papers.
+See [Pricing](/account/pricing) and [Rate limits](/production/rate-limits) for a busy agent. For scholarly sources, see [Research papers](/recipes/research-papers).

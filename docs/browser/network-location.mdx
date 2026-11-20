@@ -1,147 +1,89 @@
 ---
-title: "Network location"
-description: "Choose how a browser session reaches the web: appear in a country, use your own proxy, or use none. Read or change it while the session runs. Traffic is per GB."
-og:title: "Network location | Stophy"
-og:description: "Choose how a browser session reaches the web: appear in a country, use your own proxy, or use none. Read or change it while the session runs. Traffic is per GB."
+title: "Network and domain rules"
+sidebarTitle: "Network"
+description: "Choose the country a browser session appears in, use your own proxy or none, and allow or block domains with a saved network policy."
 ---
 
-Choose a country if a site should see a local visitor. Use your own proxy if you need to route the session through it, or go direct to use no proxy. You can change the network without losing tabs or logins.
+Set the route when you open a session, or change it while the session runs. Tabs and logins stay. Traffic is billed by the network that carried it. See [Pricing](/account/pricing).
 
-## Choose a country
-
-Set the country before you open a page that changes by location. Get an API key in the [Quickstart](/quickstart). Send `location.country`, a two-letter code such as `DE` or `JP`. Sites see a visitor from that country. With no choice, the country is the United States.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/browser \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "ttl": 300,
-    "activityTtl": 60,
-    "location": { "country": "DE" }
-  }'
+  -d '{"ttl": 300, "location": {"country": "DE"}}'
 ```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/browser", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    ttl: 300,
-    activityTtl: 60,
-    location: { country: "DE" },
-  }),
-});
-const session = await response.json();
-console.log(session.id);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/browser",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={"ttl": 300, "activityTtl": 60, "location": {"country": "DE"}},
-)
-session = response.json()
-print(session["id"])
-```
-</CodeGroup>
-
-A country only works with the default network. A session that sends `location.country` with `proxy` set to `direct` or to your own proxy returns `400 invalidRequest`.
-
-## Read where a session appears
-
-Use `GET /v1/browser/{session_id}/proxy` to check how a running session reaches the web. It is free.
-
-```json
-{
-  "success": true,
-  "mode": "managed",
-  "country": "de",
-  "exitIp": "203.0.113.37"
-}
-```
-
-`exitIp` is the address sites see, shown here as an example address. Loading `https://api.country.is` in that session answered with the same address and `"country":"DE"`.
-
-| `mode` | What it means | `country` | `exitIp` |
-| - | - | - | - |
-| `managed` | The default: a country you pick, or the United States | The country, lower case | The address sites see |
-| `direct` | No proxy | `null` | The address sites see |
-| `custom` | Your own proxy | `null` | `null` |
-
-When the address cannot be read, `exitIp` is `null` and `exitIpError` says so. Send the request again.
-
-## Change it while the session runs
-
-`PATCH /v1/browser/{session_id}/proxy` changes the network of a running session. Open tabs and logins stay. Connections open now end, and new ones use the new network. Send one of these bodies:
-
-| Body | You get |
-| - | - |
-| `{ "mode": "managed", "country": "JP" }` | A visitor from that country |
-| `{ "rotate": true }` | A new address in the current country |
-| `{ "mode": "direct" }` | No proxy |
-| `{ "mode": "custom", "customProxy": { "host": "proxy.example.net", "port": 8080 } }` | Your own proxy |
-
-After you change the country, read `country` and `exitIp` to check the new route. Rotating keeps the country and changes the IP. Direct returns `country: null`. A body with nothing to change answers as `GET` does.
-
-## Use your own proxy
-
-Send your proxy's address as `proxy` when you open the session. It must be an `http`, `https`, `socks5` or `socks5h` URL on a public host.
-
-To use your proxy in a running session, set `"mode": "custom"` and send `customProxy` with its connection details.
-
-`host` and `port` are required. `protocol` is `http`, `https`, `socks5` or `socks5h`. A host that is not public, such as `localhost`, returns `400 invalidRequest` with `customProxy: host must be a public address.`
 
 ## Options
 
-Set the route when you open the session, or send a change to the running session.
+| Field | Default | Meaning |
+| - | - | - |
+| `location.country` | `US` | Two-letter country code. Only with the default network. |
+| `proxy` | `residential` | `residential` is the default network. `direct` uses no proxy. A `http`, `https`, `socks5` or `socks5h` URL on a public host uses your own. |
 
-| Field | Where | Type | Default | Effect |
-| - | - | - | - | - |
-| `location.country` | open | `string` | `US` | Two-letter country code. Only with the default network. |
-| `proxy` | open | `string` | `residential` | `residential` is the default network, where `location.country` applies. `direct` uses no proxy. A URL uses your own proxy. |
-| `mode` | change | string | none | `managed`, `direct` or `custom`. |
-| `country` | change | `string` | none | With `managed`: the country to appear in, such as `DE`. |
-| `rotate` | change | `boolean` | none | `true` gets a new address in the current country. |
-| `customProxy` | change | `object` | none | With `custom`: `host`, `port`, and optional `username`, `password` and `protocol`. |
+A profile keeps the country it first used. See [Profiles](/browser/profiles). The closing answer's `exitBytes` splits traffic by network: `managed`, `direct` and `custom`.
 
-A profile keeps the country it first used. See [Profiles](/browser/profiles).
+## Read and change the route
 
-## Price
+`GET /v1/browser/{session_id}/proxy` is free and returns `mode`, `country` and `exitIp`, the address sites see. When it cannot be read, `exitIp` is `null` and `exitIpError` says so. Send the request again.
 
-Compare traffic rates before you pick a network. We bill traffic when the session closes, using the rate for the network that carried it.
+| `mode` | Meaning | `country` | `exitIp` |
+| - | - | - | - |
+| `managed` | The default network, in a country you pick | Lower case code | Address sites see |
+| `direct` | No proxy | `null` | Address sites see |
+| `custom` | Your own proxy | `null` | `null` |
 
-| Network | Traffic |
+`PATCH` the same path to change a running session. Open connections end and new ones use the new route. Send one body:
+
+| Body | You get |
 | - | - |
-| A country, the default | $5 per GB |
-| No proxy | $0.20 per GB |
-| Your own proxy | $0.20 per GB |
+| `{"mode": "managed", "country": "JP"}` | A visitor from that country |
+| `{"rotate": true}` | A new address in the same country |
+| `{"mode": "direct"}` | No proxy |
+| `{"mode": "custom", "customProxy": {"host": "proxy.example.net", "port": 8080}}` | Your own proxy. `host` and `port` are required. `username`, `password` and `protocol` are optional. |
 
-Traffic before and after a change is billed at the rate of its own network. The closing answer's `exitBytes` splits the bytes: `managed` for the default network, `direct` and `custom`. This real session spent 38,137 bytes in Japan and 13,328 bytes with no proxy, and its traffic and time cost $0.006 together.
+A body with nothing to change answers as `GET` does.
 
-The network choice does not change the hourly browser price. It is $0.06 without a prompt and $0.84 once you run a prompt. See [Browser sessions](/browser/overview#price).
+## Network policies
 
-## Limits and errors
+A policy is a saved list of domains that several sessions share. Policies are free. A domain such as `example.com` covers itself and every subdomain, and the most specific entry wins. Domains are trimmed, lower-cased and de-duplicated, and a leading `*.` is dropped.
 
-If a network change fails, check the route, country and whether the session is still running.
+```bash
+curl -X POST https://api.stophy.dev/v1/browser/network-policies \
+  -H "Authorization: Bearer $STOPHY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "docs-only", "defaultAction": "block", "allow": {"domains": ["example.com", "bun.com"]}}'
+```
 
-- `location.country` with `proxy` of `direct` or your own URL returns `400 invalidRequest`: `location.country picks a residential exit. Leave it out with your own proxy or direct.`
-- A country that is not two letters returns `400 invalidRequest`: `location.country: Expected a two-letter country code such as DE`.
-- A `proxy` that is not `residential`, `direct` or a public URL returns `400 invalidRequest`: `proxy: Expected residential, direct, or your own proxy as an http://, https:// or socks5:// URL on a public host`.
-- Reading or changing a session that is not running returns `409 invalidRequest` with `This browser session is not running.`
+This allowlist blocks everything except those two sites. To block a few sites instead, leave `defaultAction` out, which means `allow`, and list them in `block.domains`. The answer has `id` and `version`.
 
-## Related
+| Field | Default | Meaning |
+| - | - | - |
+| `name` | none | 1 to 100 characters. Required to create. |
+| `defaultAction` | `allow` | `allow` or `block`, for a domain no entry matches |
+| `allow.domains`, `block.domains` | none | Domains the session may or may not reach |
 
-Use a network policy if you need to control which domains the browser can reach.
+Open a session with `"networkPolicyId": "<id>"`. It returns `networkPolicyVersion`, the version it enforces. The policy checks every request, not only the page address. For a short list that belongs to one session, send `"allowedDomains": ["example.com"]` instead, up to 100 domains, and not with `networkPolicyId`.
 
-- [Browser sessions](/browser/overview) opens and closes the session.
-- [Network policies](/browser/network-policies) allow or block domains.
-- [Location and headers](/scrape/location-and-headers) picks a country for a scrape.
-- [Proxy reference](/api-reference/endpoint/browser-proxy-update) lists every field.
+| Action | Call |
+| - | - |
+| Create | `POST /v1/browser/network-policies` |
+| List | `GET /v1/browser/network-policies`, newest first. `pageSize` 1 to 100, default 10. `pageNumber` from 1. |
+| Read | `GET /v1/browser/network-policies/{policy_id}` |
+| Change | `PATCH /v1/browser/network-policies/{policy_id}`. Each field you send replaces the old one, a list replaces the whole list, and `version` goes up by 1. |
+| Delete | `DELETE /v1/browser/network-policies/{policy_id}`, only when no running session uses it |
+
+A change reaches running sessions within seconds. The answer has `runningSessions`, `appliedSessions`, and `pendingSessionIds` for sessions not reached yet, which keep the old policy until their `networkPolicyVersion` catches up. A change that blocks a host closes its open connections, counted in `closedConnections`.
+
+A policy holds at most 10,000 domains in `allow` and `block` together. An account holds at most 100 policies.
+
+## Errors
+
+All return `400 invalidRequest` unless noted.
+
+* `location.country` with `proxy` set to `direct` or a URL. A country needs the default network.
+* A country that is not two letters, a `proxy` that is not `residential`, `direct` or a public URL, or a `customProxy.host` that is not public, such as `localhost`.
+* A URL, path, port, IP address, other wildcard, or a domain in both lists in a policy.
+* `allowedDomains` with `networkPolicyId`.
+* A session that is not running: `409 invalidRequest`.
+* Deleting a policy a running session uses: `409 invalidRequest`. Close the session first.
+* An unknown policy: `404 notFound`.

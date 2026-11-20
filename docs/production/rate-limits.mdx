@@ -1,15 +1,11 @@
 ---
 title: "Rate limits"
-description: "Stophy limits calls a minute, calls at once, jobs and browser sessions by tier. Without an API key, 10 calls a minute and 50 a day per IP address."
-og:title: "Rate limits | Stophy"
-og:description: "Stophy limits calls a minute, calls at once, jobs and browser sessions by tier. Without an API key, 10 calls a minute and 50 a day per IP address."
+description: "Every limit on calls a minute, calls at once, jobs and browser sessions by tier, the keyless limits, the headers, and what to do on a 429."
 ---
 
-Check your rate limits before you increase traffic or add workers. We limit calls per minute and calls running at once. The limits depend on your tier: `free` until your first top-up, then `paid`. `GET /v1/limits` returns yours. A call over a limit answers `429` and costs nothing.
+Limits depend on your tier: `free` until your first top-up, then `paid`. A call over a limit answers `429` and costs nothing. `GET /v1/limits` returns yours, see [Usage](/account/usage).
 
 ## Limits
-
-Use your tier to choose how many requests to send and how much work to queue.
 
 | | `free` | `paid` |
 | - | - | - |
@@ -18,88 +14,43 @@ Use your tier to choose how many requests to send and how much work to queue.
 | Browser session and interact starts a minute | 10 | 100 |
 | Status, results and list reads a minute | 1,500 | 1,500 |
 | Calls running at once | 2 | 10 |
-| Crawls, batches, extracts and agent runs running at once | 1 | 10 |
+| Jobs running at once | 1 | 10 |
 | Jobs waiting to start | 5 | 20 |
 | Browser sessions open at once | 3 | 10 |
+| [Browser tasks](/browser/tasks) open at once | 2 | 2 |
 
-A job start is `POST /v1/crawl`, `/v1/batch/scrape`, `/v1/extract` or `/v1/agent`. A browser start is `POST /v1/browser`, a [browser task](/browser/tasks) or an [interact](/scrape/interact) call. The calls limit counts each endpoint on its own, so a busy scrape does not use up your search limit. The three other limits are shared by every call of their kind.
+* A job is a crawl, batch, extract or agent run. A start is `POST /v1/crawl`, `/v1/batch/scrape`, `/v1/extract` or `/v1/agent`.
+* A browser start is `POST /v1/browser`, a browser task or an [interact](/scrape/interact) call.
+* The calls limit counts each endpoint on its own, so busy scrapes do not use up your search limit. The other limits are shared.
+* `GET /v1/concurrency-check` is free and returns `concurrency` (running now, counting the check) and `maxConcurrency`. Size your worker pool to `maxConcurrency`.
 
-Without an API key you can call [search](/search/overview), [scrape](/scrape/overview), [map](/map/overview) and [parse](/parse/overview), over HTTP and [MCP](/mcp/keyless), up to 10 calls a minute and 50 calls a day per IP address, with no paging. Scrape with a [parser](/scrape/prebuilt-parsers) works without an API key when the parser is marked `keyless: true`. Crawl, batches, extract, agent, browsers and monitors need an API key. See [API keys](/account/api-keys). A first top-up lifts you to the `paid` limits.
+## Without a key
 
-## Read your limits
+[Search](/search/overview), [scrape](/scrape/overview), [map](/map/overview) and [parse](/parse/overview) work with no key over HTTP and [MCP](/install-mcp).
 
-Use `GET /v1/limits` to see your tier and remaining calls this minute. It counts as one call. Read `data.rateLimit` for the limit and reset time, and `data.perMinute` for the limits by type. `data.concurrency` gives you the current and maximum calls at once. `jobsAtOnce`, `queuedJobs` and `sessionsAtOnce` show the other limits. On the `free` tier, `paidLimits` shows the limits after a top-up; on `paid`, it is `null`. See [Usage](/account/usage) for the full response.
+| Limit | Value |
+| - | - |
+| Calls a minute, per IP address | 10 |
+| Calls a day, per IP address | 50 |
+| Parse file size | 2 MB (36 MB with a key) |
+| Agent signups a day, per IP address | 5 |
 
-## Check calls running at once
-
-Use `GET /v1/concurrency-check` to size your worker pool. It is free and returns how many of your calls are running and how many can run at once.
-
-<CodeGroup>
-```bash cURL
-curl https://api.stophy.dev/v1/concurrency-check \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/concurrency-check", {
-  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
-});
-const { concurrency, maxConcurrency } = await response.json();
-console.log(`${concurrency} of ${maxConcurrency} calls running`);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.get(
-    "https://api.stophy.dev/v1/concurrency-check",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-body = response.json()
-print(body["concurrency"], "of", body["maxConcurrency"], "calls running")
-```
-</CodeGroup>
-
-```json
-{
-  "success": true,
-  "concurrency": 1,
-  "maxConcurrency": 10,
-  "costUsd": 0,
-  "creditsUsed": 0,
-  "requestId": "07ab5f1a-453f-4771-ae80-fc511883eb9f"
-}
-```
-
-`concurrency` counts the check itself. Size your worker pool to `maxConcurrency`. `GET /v1/team/queue-status` shows your running and waiting jobs. See [Usage and logs](/production/usage-and-logs).
-
-## Check calls without an API key
-
-Use `GET /v1/keyless/eligibility` to see whether your IP address can still make calls without a key. The check costs $0. Read `eligible`, `remainingThisMinute` and `remainingToday` before you try the next call.
+Which fields need a key is in [API keys](/account/api-keys#calls-without-a-key). `GET /v1/keyless/eligibility` returns `eligible`, `remainingToday` and `remainingThisMinute`.
 
 ## Headers
 
-Read `X-RateLimit-Limit` and `X-RateLimit-Remaining` to see how many calls fit in the window. `X-RateLimit-Reset` gives the reset as Unix seconds. On calls without a key, the headers describe the day's allowance.
+`X-RateLimit-Limit` and `X-RateLimit-Remaining` show the calls in the window. `X-RateLimit-Reset` is the reset in Unix seconds. Without a key they describe the day's allowance.
 
 ## When you go over
 
-Read the error message as well as the code. Different limits return the same `429` status.
+Read the message as well as the code. Every case is `429`.
 
-| Code | Status | Cause | What to do |
-| - | - | - | - |
-| `rateLimited` | `429` | Too many calls this minute | Wait `retryAfterSeconds`, which is also the `Retry-After` header, then retry |
-| `rateLimited` | `429` | Too many calls running at once | The answer says so and `retryAfterSeconds` is 1. Wait for a call to finish, or lower your concurrency. |
-| `rateLimited` | `429` | Too many browser sessions open | The answer says how many are open. Close one to open another. |
-| `freeLimit` | `429` | The 10 calls a minute or 50 a day without an API key are used | Get an API key at `signupUrl`, or wait `retryAfterSeconds`. A daily wait can be hours. |
-| `rateLimited` | `429` | Five signups from one IP address in a day | Wait `retryAfterSeconds`, or sign up at [stophy.dev/signup](https://stophy.dev/signup) |
+| Code | Cause | What to do |
+| - | - | - |
+| `rateLimited` | Too many calls this minute | Wait `retryAfterSeconds` (also the `Retry-After` header), then retry |
+| `rateLimited` | Too many calls at once | `retryAfterSeconds` is 1. Wait for a call to finish or lower concurrency. |
+| `rateLimited` | Too many browser sessions or tasks open | Close one, or wait for a task to end |
+| `rateLimited` | Over the signups a day | Wait `retryAfterSeconds`, or sign up at [stophy.dev/signup](https://stophy.dev/signup) |
+| `freeLimit` | Over the keyless minute or day limit | Get a key at `signupUrl`, or wait `retryAfterSeconds`. A daily wait can be hours. |
 
-Before you retry, wait as long as the answer says, and add random jitter to the wait. See [Troubleshooting](/production/troubleshooting) for retry limits.
-
-## Related
-
-Use the usage guide to see your current limits and balance.
-
-* [Usage](/account/usage)
-* [API keys](/account/api-keys)
-* [Timeouts](/production/timeouts)
-* [Troubleshooting](/production/troubleshooting)
+Wait as long as the answer says and add random jitter. Retry rules are in [Troubleshooting](/production/troubleshooting).

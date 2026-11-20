@@ -1,101 +1,74 @@
 ---
 title: "Install the CLI"
 sidebarTitle: "Install CLI"
-description: "Install the Stophy CLI, search and scrape without logging in, then log in to read sites with parsers, crawl, extract and set up your coding agents."
-og:title: "Install the CLI | Stophy"
-og:description: "Install the Stophy CLI, search and scrape without logging in, then log in to read sites with parsers, crawl, extract and set up your coding agents."
+description: "Install the stophy command, search and scrape without logging in, then log in to crawl, extract, read sites with parsers and set up your coding agents."
 ---
 
-The `stophy` command calls the Stophy API from your terminal. It reads the endpoint list from the API at run time, so a new endpoint shows up as a command without an update. `stophy <command> --help` lists the options your version takes.
+The `stophy` command calls the API from your terminal. It reads the endpoint list from the API at run time, so a new endpoint is a new command. `stophy <command> --help` lists the options.
 
 ## Install
-
-Install the CLI to get the `stophy` command on your PATH. On macOS or Linux, run:
 
 ```bash
 curl -fsSL https://stophy.dev/install | bash
 ```
 
-The installer puts the binary in `~/.local/bin`. On Windows, run `irm https://stophy.dev/install.ps1 | iex` in PowerShell. With Node.js 20 or later, you can use `npm install -g @stophy/cli` instead. Run `stophy version` to check the install.
+The binary goes to `~/.local/bin`. On Windows, run `irm https://stophy.dev/install.ps1 | iex`. With Node.js 20 or later, `npm install -g @stophy/cli` also works. Check with `stophy version`.
 
-## Try it without an API key
+Without logging in, commands that `stophy endpoints` marks `free` work within the [free limits](/production/rate-limits):
 
-Run `stophy search "bun runtime"` to try a search before you log in. Results print as rows, or as JSON with `--json`. You can run the commands that `stophy endpoints` marks `free` up to 10 times a minute and 50 times a day per IP address.
+```bash
+stophy search "bun runtime" --limit 5
+```
+
+## Log in
+
+`stophy login --browser` prints a code and opens stophy.dev. Check the page shows the same code, then click **Approve**. With no browser, open the printed link on another device.
+
+With a key from the [dashboard](https://stophy.dev/dashboard), run `stophy login --api-key` and paste it when prompted. Never pass a key as an argument. In CI, set `STOPHY_API_KEY` from your secret store.
+
+Each computer gets its own key, and logging in again replaces it. `stophy logout` revokes it. See [API keys](/account/api-keys).
 
 ## Set up your agent
 
-Run `stophy init --all` if you want the CLI to set up your agent without prompting at each step. `init` logs you in with your browser, installs the Stophy [skills](/install-skill) with `npx -y skills add stophydotdev/stophy`, and adds the [MCP server](/install-mcp). With Claude Code on your PATH it runs `claude mcp add`. For any other agent it prints the command or snippet to use, and leaves your config files alone.
+`stophy init --all` logs you in, installs the [skills](/install-skill) with `npx -y skills add stophydotdev/stophy` and adds the [MCP server](/install-mcp). With Claude Code on your PATH it runs `claude mcp add`. For other agents it prints the command and leaves your config files alone.
 
 | Option | What it does |
 | - | - |
 | `--all` | Run every step without asking |
 | `--agent <name>` | Set up one agent, such as `claude-code` or `codex` |
-| `--skip-auth` | Do not log in |
-| `--skip-skills` | Do not install the skills |
-| `--skip-mcp` | Do not add the MCP server |
-
-## Log in
-
-Run `stophy login --browser` to use endpoints that need a key. The CLI prints a code and opens stophy.dev. Check that the page shows the same code, then click **Approve**. On a server with no browser, open the printed link on another device.
-
-If you have a key from the [dashboard](https://stophy.dev/dashboard), run `stophy login --api-key` and paste it only when prompted. Never pass a key as a command argument. In CI, set `STOPHY_API_KEY` from your secret store.
-
-Each computer gets its own key, and logging in again replaces it. `stophy logout` logs out and revokes the key. See [API keys](/account/api-keys).
+| `--skip-auth`, `--skip-skills`, `--skip-mcp` | Skip that step |
 
 ## Make a request
 
-Pick the command based on what you have. Run `stophy search "bun runtime" --limit 5` for five search results. Use `stophy scrape` with a page URL, or `stophy map` with a site URL and `--limit 50` to list up to 50 URLs. Give `stophy crawl` a starting URL and `--limit 20` to read up to 20 pages. For a specific field, pass `--urls` and `--prompt` to `stophy extract`.
+```bash
+stophy scrape https://example.com
+stophy map https://example.com --limit 50
+stophy crawl https://example.com --limit 20
+stophy extract --urls https://example.com --prompt "the page title"
+stophy scrape --parser reddit-subreddit https://www.reddit.com/r/bun
+```
 
-Every command takes `--json` for the data as JSON, `--raw` for the full response and `-o <path>` to write the output to a file. With `--json`, the CLI also prints `cost: $<amount>` and `request id: <id>` to stderr. `--raw` includes the `requestId`. A failed call prints its message and request id to stderr.
+* `--json` prints the data as JSON, `--raw` the full response, `-o <path>` writes a file. With `--json` the cost and request id go to stderr.
+* Give lists as `--urls a,b`. Switch a yes-or-no option with `--flag` and `--no-flag`. Pass JSON options as one quoted argument, like `--formats '["markdown","links"]'`.
+* A value the command does not take stops the CLI before the call and prints the ones that work.
+* A failed call prints `Request id: <id>`, which support asks for.
 
-* Give a list as `--urls a,b` or `--urls a --urls b`.
-* Turn a yes-or-no option on with `--flag` and off with `--no-flag`.
-* Options that take JSON, like `--formats '["markdown","links"]'`, take it as one quoted argument.
-* A value the command does not take stops the CLI before it calls Stophy, and it prints the values that work.
-* A failed call ends with `Request id: <id>`, which support will ask for.
+`crawl` and `batch scrape` answer with an `id`. Run `status <id>` until it is `completed`, and `cancel <id>` to stop. When `status` returns a `next` link, rerun it with `--cursor`. `extract status <id>` rereads a result for 24 hours. See [Read a crawl](/crawl/async).
 
-`crawl` and `batch scrape` answer at once with an `id`. Read the pages with `status <id>` until the status is `completed`, and stop a running job with `cancel <id>`. A status answer holds up to 100 finished pages or 2 MB. When it has a `next` link, run `status` again with `--cursor` and the cursor from that link. `extract` answers when the fields are ready, and `extract status <id>` reads the result again for 24 hours. See [Read a crawl](/crawl/async).
+`stophy parsers [word]` lists the parsers `scrape --parser` takes. If the output ends with a `cursor`, pass `--parserOptions '{"cursor":"<cursor>"}'` for the next page. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
-## Read a site with a parser
-
-A parser returns a site's own data as JSON: posts, videos, places, products, jobs, listings and more. `stophy parsers [word]` lists them, with the kind of page each one takes.
-
-Run `stophy parsers reddit` to find Reddit parsers. Pass `--parser reddit-subreddit` to `stophy scrape` with a subreddit URL, or pass `--parser youtube-transcript` with a YouTube video URL.
-
-If the output ends with a `cursor`, get the next page with `--parserOptions '{"cursor":"<cursor>"}'`. See [Pre-built parsers](/scrape/prebuilt-parsers).
-
-## Find a command
-
-Run `stophy --help` to see the commands or `stophy scrape --help` to check scrape flags.
-
-`stophy endpoints [word]` lists every command with its price, and `stophy describe <id>` shows one command's options, cost and an example. Besides the data commands above, there are `parse`, `agent`, `browser task`, `batch scrape` and `webhook secret`. The CLI has no command for browser sessions or monitors. Call those over HTTP.
+The CLI has `parse`, `agent`, `browser task`, `batch scrape` and `webhook secret`, and no command for browser sessions or monitors. Call those over HTTP.
 
 ## Commands
-
-Use these commands to check your account or diagnose a CLI problem.
 
 | Command | What it does |
 | - | - |
 | `stophy init` | Set up Stophy in your coding agents |
-| `stophy login` | Log in with your browser or an API key |
-| `stophy logout` | Log out and revoke this computer's key |
-| `stophy <command>` | Get data, for example `stophy search` |
-| `stophy parsers [word]` | List the parsers `scrape --parser` takes |
-| `stophy endpoints [word]` | List every command and its price |
-| `stophy describe <id>` | Show one command's options, cost and an example |
-| `stophy status` | Show your login, balance and CLI version |
-| `stophy usage` | Show your balance and all-time usage |
+| `stophy login`, `stophy logout` | Log in with a browser or key, or revoke this computer's key |
+| `stophy endpoints [word]` | List every command with its price |
+| `stophy describe <id>` | Show one command's options and an example |
+| `stophy status`, `stophy usage` | Show your login, balance and usage |
 | `stophy logs --days 7` | Show your recent requests |
 | `stophy doctor` | Check your install, login and connection |
-| `stophy version` | Show the CLI version |
 
-The CLI tells you when a newer version is out. Set `STOPHY_NO_UPDATE_CHECK=1` to turn that off.
-
-## Related
-
-Use these guides if you are setting up another client or checking what a command costs.
-
-* [Install skills](/install-skill)
-* [Install MCP](/install-mcp)
-* [SDKs](/sdks)
-* [Pricing](/account/pricing)
+Set `STOPHY_NO_UPDATE_CHECK=1` to turn off the new-version notice.

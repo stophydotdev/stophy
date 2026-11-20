@@ -1,26 +1,17 @@
 ---
 title: "Browser sessions"
 sidebarTitle: "Browser"
-description: "Open a cloud browser, drive it over CDP with Playwright or Puppeteer or run code in it, then close it. $0.06 per hour open, plus traffic per GB."
-og:title: "Browser sessions | Stophy"
-og:description: "Open a cloud browser, drive it over CDP with Playwright or Puppeteer or run code in it, then close it. $0.06 per hour open, plus traffic per GB."
+description: "Open a cloud browser, drive it over CDP or run code in it, record it, then close it. Covers lifetime, options, recordings, replay and errors."
 ---
 
-Open a browser session when you need the same page, tabs or login across calls. For one page read without clicks, use [Scrape](/scrape/overview). You pay for the time it is open, so close every session you open.
-
-## Make a request
-
-Set the maximum lifetime and the idle time when you open the browser. Get an API key in the [Quickstart](/quickstart). Browser sessions need an API key. This request opens a session that lives for at most 5 minutes and closes itself after 60 seconds with no calls.
+Open a session when you need the same page, tabs or login across calls. For one page read without clicks, use [Scrape](/scrape/overview). You pay for open time, so close every session. See [Pricing](/account/pricing). Sessions need a key.
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/browser \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "ttl": 300,
-    "activityTtl": 60
-  }'
+  -d '{"ttl": 300, "activityTtl": 60}'
 ```
 ```typescript TypeScript
 const response = await fetch("https://api.stophy.dev/v1/browser", {
@@ -49,125 +40,97 @@ print(session["id"], session["cdpUrl"])
 ```
 </CodeGroup>
 
-## Read the response
+Keep `id`: every other call on the session uses it. Opening is free.
 
-Keep `id`: every other call on the session uses it. This real response is cut to the fields you need first. The tokens in the links are cut.
+| Field | Meaning |
+| - | - |
+| `cdpUrl` | Where Playwright or Puppeteer connects. It carries a token, so keep it private. |
+| `liveViewUrl`, `interactiveLiveViewUrl` | Watch the session, or watch and control it. Left out with `streamWebView: false`. |
+| `timeoutAt` | When the session closes by itself if nothing happens |
+| `expiresAt` | `ttl` after it opened |
 
-```json
-{
-  "success": true,
-  "id": "f7db13f1-398b-4f20-8c12-825715c2ffd1",
-  "status": "active",
-  "createdAt": "2026-11-17T18:14:38.043Z",
-  "timeoutAt": "2026-11-17T18:15:38.043Z",
-  "expiresAt": "2026-11-17T18:19:38.038Z",
-  "cdpUrl": "wss://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/cdp?token=…",
-  "liveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…",
-  "interactiveLiveViewUrl": "https://api.stophy.dev/v1/interact/f7db13f1-398b-4f20-8c12-825715c2ffd1/live#…"
-}
-```
+To recover a running session after a dropped answer, send the same `Idempotency-Key` header, key and body: it works for 24 hours after the session opens, and a different body or an ended session returns `409`. If you get `503` with `Retry-After`, retry with the same key.
 
-`cdpUrl` is where Playwright or Puppeteer connects. `liveViewUrl` lets you watch the session, and `interactiveLiveViewUrl` lets you watch and control it. `timeoutAt` is when the session closes by itself if nothing happens. Opening a session costs nothing. The time and traffic are billed when it closes.
+## Drive it
 
-## Connect over CDP
+* Over CDP: `chromium.connectOverCDP(cdpUrl)` in Playwright, or `puppeteer.connect({ browserWSEndpoint: cdpUrl })`. Use the page that is already open. CDP activity counts as a call for `activityTtl`. Disconnecting does not close the session.
+* Over HTTP: [run code or a prompt](/browser/execute) in it.
 
-Any client that speaks the Chrome DevTools Protocol can drive the session. Use CDP when you want to drive the session from your own client.
+## Lifetime
 
-In Playwright, call `chromium.connectOverCDP(cdpUrl)`. In Puppeteer, use `puppeteer.connect` with `browserWSEndpoint` set to `cdpUrl`. Use the page that is already open.
+| Field | Default | Meaning |
+| - | - | - |
+| `ttl` | `600` | Most seconds the session can live, 30 to 21,600 |
+| `activityTtl` | `300` | Seconds with no call before it closes, 10 to 21,600. Each call moves `timeoutAt` forward. |
 
-Disconnecting does not close the session: it keeps running, and billing, until you send `DELETE` or it times out. The link carries a token for this session, so keep it private. Activity on the CDP connection counts as a call for `activityTtl`.
+The session closes at the earlier of `expiresAt` and the idle limit. It bills for the time it was open either way.
 
-You do not need a CDP client to use a session. [Run code or a prompt](/browser/execute) in it with one HTTP call.
+## Close, read and list
 
-## Set how long it lives
+`DELETE /v1/browser/{session_id}` closes the session and bills it. Closing an already closed session returns the same bill and charges nothing more. The answer has:
 
-Set an idle limit to close an unused session and a lifetime limit to cap how long it can stay open.
+* `sessionDurationMs`, and `proxyBytes` split by network in `exitBytes`. See [Network](/browser/network-location).
+* `costUsd`, the bill. `creditsBilled` and `creditsUsed` are older fields for the same amount.
+* `recordingStatus`, if you asked for a recording.
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `ttl` | `number` | `600` | The most seconds the session can live, from 30 to 21,600. |
-| `activityTtl` | `number` | `300` | Seconds the session waits with no call before it closes, from 10 to 21,600. Each call on the session moves `timeoutAt` forward. |
+`GET /v1/browser/{session_id}` is free. A running session lists its `downloads` and `uploads`. A closed one has `status: "destroyed"`, `finishedAt`, and `browserCostUsd`, `proxyCostUsd` and `proxyUsedMb` to tell time from traffic.
 
-The session closes at the earlier of `expiresAt` (`ttl` after it opened) and the idle limit. You are billed for the time it was open either way.
+`GET /v1/browser` is free and lists sessions, newest first. Run `?status=active` before you stop work to confirm none is open.
 
-## Close a session
-
-Send `DELETE` as soon as you are done. This is when the time and traffic are billed.
-
-Send it to `/v1/browser/{session_id}` with your API key. Read `recordingStatus` if you asked the session to record.
-
-`sessionDurationMs` is how long the session was open. `proxyBytes` is all its traffic, and `exitBytes` splits it by how the session reached the web, because each kind has its own price. See [Network location](/browser/network-location). `costUsd` is the bill. `creditsBilled` and `creditsUsed` are the older fields for the same amount, in steps of $0.002. Closing a session that is already closed returns the same bill and charges nothing more.
-
-## Read and list sessions
-
-`GET /v1/browser/{session_id}` returns one session, and is free. A running session also lists its `downloads` and `uploads`. After it closes, the same call shows what it cost: `proxyUsedMb`, `browserCostUsd` and `proxyCostUsd`.
-
-A closed session has `status: "destroyed"` and `finishedAt`. Use the cost fields to tell the time charge from the traffic charge.
-
-`GET /v1/browser` lists your sessions, newest first, and is free.
-
-| Query field | Type | Default | Effect |
-| - | - | - | - |
-| `status` | `string` | all | `active` or `destroyed`. |
-| `metadata` | `string` | none | `key` matches any value, `key=value` matches one. Send it again to narrow the list. |
-| `limit` | `number` | `50` | Sessions per page, 1 to 100. |
-| `cursor` | `string` | none | `nextCursor` from the last page. |
-
-To check for open sessions, add `?status=active`. If none match, `sessions` is empty.
-
-Each session in `sessions` has the fields above. `hasMore` is `true` while `nextCursor` holds a cursor for the next page. Run this before you stop work, to confirm no session is still open.
+| Query | Default | Meaning |
+| - | - | - |
+| `status` | all | `active` or `destroyed` |
+| `metadata` | none | `key` matches any value, `key=value` one. Send it again to narrow. |
+| `limit` | `50` | Sessions per page, 1 to 100 |
+| `cursor` | none | `nextCursor` from the last page. `hasMore` is `true` while there is one. |
 
 ## Options
 
-These fields go in the body of `POST /v1/browser`. Every field is optional.
+All fields in the body of `POST /v1/browser` are optional.
 
-| Field | Type | Effect |
-| - | - | - |
-| `ttl`, `activityTtl` | `number` | How long the session lives. See above. |
-| `profile` | `object` | Start with the cookies and logins saved under a name, and keep what the session changes. See [Profiles](/browser/profiles). |
-| `extensionIds` | `array of string` | Up to 3 Chrome extensions you uploaded. See [Extensions](/browser/extensions). |
-| `networkPolicyId`, `allowedDomains` | `string`, `array of string` | Allow or block domains. See [Network policies](/browser/network-policies). |
-| `proxy`, `location` | `string`, `object` | Pick a country, your own proxy, or none. See [Network location](/browser/network-location). |
-| `recording` | `boolean` | Record the session as a video. Free. See [Recordings and replay](/browser/recordings-and-replay). |
-| `metadata` | `object` | Up to 10 pairs of text, keys up to 100 characters and values up to 1,000. They come back with the session, and the list can filter on them. |
-| `screen` | `object` | Window size in pixels: `width` 500 to 6,144 and `height` 320 to 3,456. Sites still see a 1920x1080 display. Leave it out unless you need it. |
-| `allowResizing` | `boolean` | `false` keeps the window at its size: resize commands are accepted and change nothing. |
-| `pdfRenderer` | `boolean` | `true` shows PDFs in the browser's own viewer. Left out or `false`, a PDF is saved as a download. |
-| `solveCaptchas` | `boolean` | Captchas the session meets are solved for you. Send `false` to leave them for you or your user to solve in the live view. |
-| `captureConsole` | `boolean` | Send `true` to keep the session's console messages and page errors, to read with the `console` step of `browserRun` in [Install MCP](/install-mcp#drive-a-browser). Off by default, because a few sites behave differently with it on. |
-| `blockAds` | `boolean` | Ads and trackers are not loaded in the session's pages. Send `false` to load them. |
-| `streamWebView` | `boolean` | The answer holds `liveViewUrl` and `interactiveLiveViewUrl` so you can watch and control the session. Send `false` to leave them out, and the answer holds only `cdpUrl`. |
-| `zeroDataRetention` | `boolean` | Keep nothing from the session, so it has no replay. Not with `profile` or `recording`. See [Zero data retention](/production/zero-data-retention). |
-
-## Price
-
-Budget for open time and traffic. Running a prompt raises the time rate for the whole session.
-
-| What | Price |
+| Field | Meaning |
 | - | - |
-| Browser time | $0.06 per hour open, $0.001 a minute |
-| Browser time once a [prompt](/browser/execute) has run | $0.84 per hour, for the whole session |
-| Traffic with the default network location | $5 per GB |
-| Traffic with no proxy, or with your own proxy | $0.20 per GB |
+| `ttl`, `activityTtl` | See [Lifetime](#lifetime) |
+| `profile` | Cookies and logins saved under a name. See [Profiles](/browser/profiles). |
+| `extensionIds` | Up to 3 uploaded extensions. See [Profiles and extensions](/browser/profiles#extensions). |
+| `networkPolicyId`, `allowedDomains` | Allow or block domains. See [Network](/browser/network-location#network-policies). |
+| `proxy`, `location` | Country, your own proxy, or none. See [Network](/browser/network-location). |
+| `recording` | `true` records every tab as an MP4. See [Recordings and replay](#recordings-and-replay). |
+| `metadata` | Up to 10 text pairs, keys up to 100 characters, values up to 1,000. They come back with the session and filter the list. |
+| `screen` | Window `width` 500 to 6,144 and `height` 320 to 3,456 pixels. Sites still see a 1920x1080 display. |
+| `allowResizing` | `false` keeps the window size: resize commands are accepted and change nothing |
+| `pdfRenderer` | `true` shows PDFs in the browser viewer. Otherwise a PDF is saved as a download. |
+| `solveCaptchas` | Captchas are solved for you. `false` leaves them for you or your user in the live view. |
+| `captureConsole` | `true` keeps console messages and page errors for the `console` step of `browserRun` in [Install MCP](/install-mcp#drive-a-browser). Off by default, because a few sites behave differently with it on. |
+| `blockAds` | `false` loads ads and trackers |
+| `streamWebView` | `false` leaves out the live view links |
+| `zeroDataRetention` | Keep nothing, so no replay. Not with `profile` or `recording`. See [Zero data retention](/production/zero-data-retention). |
 
-Time is billed when the session closes, with one minute at least. Amounts are rounded up to $0.002. Opening a session sets aside the most it can cost for its full `ttl`, and what it does not use comes back when it closes. Opening, listing, reading and closing cost nothing by themselves. Calls that fail cost nothing. See [Pricing](/account/pricing).
+## Recordings and replay
 
-## Limits and errors
+Both are free. A recording is a video of every tab. A replay lists the pages the session visited and the steps run on each, kept 24 hours after the session closes, and needs no `recording`.
 
-Check your open sessions and balance before starting another browser.
+Open the session with `"recording": true`. The answer has `recordingStatus: "recording"`. The video is made after the session closes.
 
-- You can have 3 sessions open at once on the `free` tier and 10 on the `paid` tier. Another `POST /v1/browser` returns `429 rateLimited` and says how many are open. Close one to open another. See [Rate limits](/production/rate-limits).
-- A balance too low to cover the `ttl` returns `402 insufficientCredits` and no session opens.
-- A call on a session that has ended returns `410 notFound` with `This browser session has ended.` Calls that need a running session, such as listing downloads, return `409 invalidRequest`.
-- An id that does not exist returns `404 notFound` with `No browser session with that id.`
-- `allowedDomains` and `networkPolicyId` together, `profile` with `zeroDataRetention`, and `recording` with `zeroDataRetention` each return `400 invalidRequest` that names the two fields.
+| `recordingStatus` | Meaning |
+| - | - |
+| `none` | Not recorded, or the video was deleted |
+| `recording` | The session is running |
+| `processing` | The video is being made, usually within a few minutes |
+| `ready` | `recordingUrl` works |
+| `failed` | The video was never made and cannot be |
 
-## Choose another API
+* `GET /v1/browser/{session_id}/recording` returns the status and, when `ready`, `recordingUrl`: an MP4, no key needed, for 15 minutes. Read it again for a new link. It is kept 7 days. `recordingTruncated: true` means the video ends early.
+* `DELETE /v1/browser/{session_id}/recording` removes the video at once. The replay stays.
+* `GET /v1/browser/{session_id}/replay` returns `pages`, each with `pageId`, `url`, `title`, `at` (milliseconds since 1970) and `steps` (the calls your code made). `GET /v1/browser/{session_id}/replay/{page_id}` adds `screenshot`, a Base64 JPEG. `maxTextLength` cuts text values.
 
-Use a managed task or a scrape if you do not need to keep a browser open yourself.
+## Errors
 
-- [Execute](/browser/execute) runs code or a prompt in a session you opened.
-- [Tasks](/browser/tasks) does a few steps on a public site without you opening a session.
-- [Interact](/scrape/interact) opens a session on a page you already scraped.
-- [Scrape](/scrape/overview) reads one page and returns it, with no session to close.
-- [Batches](/batches/overview) read a list of URLs in the background.
+* Over the open-session limit: `429 rateLimited` saying how many are open. See [Rate limits](/production/rate-limits).
+* A balance too low to cover `ttl`: `402 insufficientCredits`, and no session opens.
+* A session that has ended: `410 notFound` `This browser session has ended.` Calls that need a running session, such as listing downloads, return `409 invalidRequest`. An unknown ID: `404 notFound`.
+* `allowedDomains` with `networkPolicyId`, `profile` with `zeroDataRetention`, and `recording` with `zeroDataRetention` each return `400 invalidRequest` naming the two fields.
+* Deleting a video still being made: `409 invalidRequest`. Wait for `ready` or `failed`. With no video: `404 notFound`.
+* A replay page ID that does not exist: `404 notFound`.
+
+[Tasks](/browser/tasks) do a few steps on a public site with no session of yours. [Interact](/scrape/interact) opens a session on a page you scraped.

@@ -1,148 +1,49 @@
 ---
 title: "Agent feedback"
-description: "Rate the answer of an earlier Stophy call with its request id. A bad rating refunds what the call cost, up to $0.10 a day. Free for agents and developers."
-og:title: "Agent feedback | Stophy"
-og:description: "Rate the answer of an earlier Stophy call with its request id. A bad rating refunds what the call cost, up to $0.10 a day. Free for agents and developers."
+description: "Rate an earlier Stophy call by its request ID when the answer was wrong or incomplete. A bad rating refunds that call. Free for agents and developers."
+sidebarTitle: "Feedback"
 ---
 
-Rate a Stophy result when it helped, missed something or was wrong. The feedback call is free. A bad rating also refunds what that call cost, up to $0.10 a day. An agent or a developer can send it. It needs an API key.
+Rate a result when it helped, missed something or was wrong. It needs a key and costs nothing. A `bad` rating refunds what that call cost, up to the daily cap in [Pricing](/account/pricing#free). Send one rating per call. Do not report errors you can fix by changing the request.
 
-## When to report
-
-Report an answer that is wrong or incomplete, or a search that missed what you needed. Send one rating for each call, with the call's `X-Request-ID` header as `jobId`. Do not report errors you can fix by changing the request.
-
-## Make a request
-
-Use the general feedback call to rate a result by its request ID. This example rates a search as good. `jobId` is the `X-Request-ID` header of the search answer.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/feedback \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "jobId": "31fb1c5e-c206-443e-9274-c8d0bf75002c",
-    "endpoint": "search",
-    "rating": "good",
-    "note": "The first result is the project'"'"'s own repository, as expected.",
-    "tags": ["docs-example"]
-  }'
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/feedback", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    jobId: "31fb1c5e-c206-443e-9274-c8d0bf75002c",
-    endpoint: "search",
-    rating: "good",
-    note: "The first result is the project's own repository, as expected.",
-    tags: ["docs-example"],
-  }),
-});
-console.log(await response.json());
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/feedback",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "jobId": "31fb1c5e-c206-443e-9274-c8d0bf75002c",
-        "endpoint": "search",
-        "rating": "good",
-        "note": "The first result is the project's own repository, as expected.",
-        "tags": ["docs-example"],
-    },
-)
-print(response.json())
-```
-</CodeGroup>
-
-## Read the response
-
-Check whether we saved a new rating and how much it refunded.
-
-```json
-{
-  "success": true,
-  "feedbackId": "806ff505-bc18-457c-8e25-193e22d0d331",
-  "refundedUsd": 0,
-  "alreadySubmitted": false,
-  "dailyCapReached": false,
-  "refundedTodayUsd": 0,
-  "dailyRefundCapUsd": 0.1,
-  "costUsd": 0,
-  "requestId": "179d33be-cac3-4874-9734-784a75a69205"
-}
+  -d '{"jobId": "31fb1c5e-c206-443e-9274-c8d0bf75002c", "endpoint": "search", "rating": "bad", "note": "The first result is unrelated to the query."}'
 ```
 
-`feedbackId` names your report. `refundedUsd` is what this rating gave back, and `refundedTodayUsd` is what has been refunded today out of `dailyRefundCapUsd`. `dailyCapReached` is `true` once the cap is used.
+`jobId` is the `X-Request-ID` header of the call you rate. The answer has `feedbackId`, `refundedUsd`, `refundedTodayUsd`, `dailyRefundCapUsd`, `dailyCapReached` and `alreadySubmitted`. Rating the same `jobId` again returns the first `feedbackId` with `alreadySubmitted: true` and refunds nothing. A call that cost nothing or is not billed to your account has nothing to refund, and the rating is still saved.
 
-Rating the same `jobId` again returns the first `feedbackId` with `alreadySubmitted: true` and refunds nothing.
+To rate specific search results, call `POST /v1/search/{jobId}/feedback` with the same rating and result fields. For example, add `{"source": "web", "position": 2}` to `valuableResults`.
 
-## Rate a search
+## Fields
 
-Use `POST /v1/search/{jobId}/feedback` when you want to rate specific search results. Put the search's `X-Request-ID` in the path. For example, set `"rating": "partial"` and add `{"source": "web", "position": 2}` to `valuableResults` to mark the second web result as useful. Use `missingContent` to name a topic the search missed, or `querySuggestions` to suggest a better query. The response has the same fields as the general feedback call.
+`rating` and, on `POST /v1/feedback`, `jobId` are required.
 
-## Options
-
-Use the same rating and result fields on either call. `rating` is required.
-
-| Field | Type | What it does |
+| Field | Type | Meaning |
 | - | - | - |
-| `rating` | `string` | `good`, `partial` or `bad`. `bad` refunds the call. |
-| `valuableSources` | `array of object` | Up to 50 pages that helped, each a `url` and an optional `reason` of up to 1,000 characters |
-| `valuableResults` | `array of object` | Up to 50 search results that helped, each a `source` (`web`, `images` or `news`), a `position` from 1 to 100 and an optional `reason` |
-| `missingContent` | `array of object` | Up to 50 topics the answer lacked, each a `topic` of up to 200 characters |
+| `rating` | `string` | `good`, `partial` or `bad` |
+| `valuableSources` | `array` | Up to 50 pages that helped: `url` and an optional `reason` up to 1,000 characters |
+| `valuableResults` | `array` | Up to 50 search results that helped: `source` (`web`, `images` or `news`), `position` 1 to 100, optional `reason` |
+| `missingContent` | `array` | Up to 50 topics the answer lacked: `topic` up to 200 characters |
 | `querySuggestions` | `string` | A better query, up to 2,000 characters |
-| `origin` | `string` | Which client sent it, up to 80 characters. `api` by default. |
-| `integration` | `string` | Which integration sent it, up to 80 characters |
-
-`POST /v1/feedback` also takes these:
-
-| Field | Type | What it does |
-| - | - | - |
-| `jobId` | `string` | The `X-Request-ID` header of the call you rate. Required. |
-| `endpoint` | `string` | Which endpoint made the call: `search`, `scrape`, `parse` or `map` |
-| `issues` | `array of string` | Up to 20 things that went wrong, each a short lowercase label such as `missing_content` |
-| `tags` | `array of string` | Up to 20 labels of your own, in the same form as `issues` |
+| `origin`, `integration` | `string` | Which client or integration sent it, up to 80 characters. `origin` is `api` by default. |
+| `endpoint` | `string` | `search`, `scrape`, `parse` or `map`. Only on `POST /v1/feedback`, as are the rest of the table. |
+| `issues`, `tags` | `array of string` | Up to 20 short lowercase labels each, such as `missing_content` |
 | `note` | `string` | What went wrong and what you expected, up to 4,000 characters. Keep keys and personal data out. |
-| `url` | `string` | The URL of the page the report is about |
-| `pageNumbers` | `array of number` | Up to 100 page numbers the report is about |
-| `metadata` | `object` | Anything else you want kept with the report |
+| `url` | `string` | The page the report is about |
+| `pageNumbers` | `array of number` | Up to 100 page numbers |
+| `metadata` | `object` | Anything else to keep with the report |
 
-## Refunds
+## Errors
 
-Use `bad` when the result was wrong. A `bad` rating refunds what the rated call cost, back into your balance. The refunds add up to at most $0.10 a day. After that the rating is still saved and `dailyCapReached` is `true`. A call that cost nothing, or one that was not billed to your account, has nothing to refund. Each call can be rated once.
-
-## Limits and errors
-
-Check the request ID before reporting a result.
-
-| Case | Answer |
-| - | - |
-| No API key | `401 apiKeyRequired` |
-| A `jobId` with characters other than letters, digits, `_` and `-`, a `jobId` over 100 characters, or a value over a limit above | `400 invalidRequest` |
-| The same `jobId` rated again | `200` with `alreadySubmitted: true` |
-| A `jobId` that is not one of your billed calls | `200`, saved with nothing refunded |
+* No key: `401 apiKeyRequired`.
+* A `jobId` over 100 characters or with characters other than letters, digits, `_` and `-`, or a value over a limit above: `400 invalidRequest`.
+* A `jobId` that is not one of your billed calls: `200`, saved, nothing refunded.
 
 ## Tell your agent
 
-Add a line like this to your agent's instructions file, such as `AGENTS.md` or `CLAUDE.md`.
+Add a line like this to `AGENTS.md` or `CLAUDE.md`.
 
 > If a Stophy answer is wrong or differs from the docs, rate it once with POST https://api.stophy.dev/v1/feedback. Send the X-Request-ID header as jobId, and never include secrets.
-
-## Related
-
-Use the logs to find a request ID or check what a call cost.
-
-* [Troubleshooting](/production/troubleshooting)
-* [Usage and logs](/production/usage-and-logs)
-* [Pricing](/account/pricing)

@@ -1,15 +1,9 @@
 ---
 title: "Map"
-description: "List the pages of a website without reading them: URLs with a title and description where known, in one request. $0.50 per 1,000 calls."
-og:title: "Map | Stophy"
-og:description: "List the pages of a website without reading them: URLs with a title and description where known, in one request. $0.50 per 1,000 calls."
+description: "List the URLs of a website without reading the pages, optionally filtered by topic, in one request. Works without an API key."
 ---
 
-Use Map to list the URLs on a site before you choose which pages to read. If you need their content and do not want to choose URLs yourself, use [Crawl](/crawl/overview).
-
-## Make a request
-
-Send a site URL and a small `limit` to try Map. The example asks for up to five URLs. For the SDK tabs, run `npm install stophy` or `pip install stophy`. You can use an [API key](/quickstart) or omit the bearer header to try Map free, up to 10 calls a minute and 50 a day per IP address. See [Rate limits](/production/rate-limits).
+Use Map to list a site's URLs before you choose which to read with [Scrape](/scrape/overview) or a [batch](/batches/overview). To read pages without choosing, use [Crawl](/crawl/overview).
 
 <CodeGroup>
 ```bash cURL
@@ -18,6 +12,8 @@ curl -X POST https://api.stophy.dev/v1/map \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://bun.com",
+    "search": "sqlite",
+    "includeSubdomains": false,
     "limit": 5
   }'
 ```
@@ -28,80 +24,56 @@ const stophy = new Stophy();
 
 const { links } = await stophy.map({
   url: "https://bun.com",
+  search: "sqlite",
+  includeSubdomains: false,
   limit: 5,
 });
-for (const link of links) console.log(link.url, link.title);
+console.log(links.map((link) => link.url));
 ```
 ```python Python
 from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.map(url="https://bun.com", limit=5)
-for link in result["links"]:
-    print(link["url"], link.get("title"))
+result = stophy.map(
+    url="https://bun.com",
+    search="sqlite",
+    include_subdomains=False,
+    limit=5,
+)
+print([link["url"] for link in result["links"]])
 ```
 </CodeGroup>
 
-## Read the response
-
-Read `links` for the URLs we found. Each entry has a `url`, with `title` and `description` when we know them. Read the `x-cost-usd` header to check the price of the call.
+Map works without a key within the keyless limits in [Rate limits](/production/rate-limits). Get a key in the [Quickstart](/quickstart).
 
 ```json
 {
   "success": true,
   "links": [
-    {
-      "url": "https://bun.com/"
-    },
-    { "url": "https://bun.com/404" },
-    { "url": "https://bun.com/blog" }
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE" },
+    { "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ATTACH" }
   ]
 }
 ```
 
-## Options
+`links` holds the URLs, best `search` matches first. An entry may also have `title` and `description`. The call is priced per call, not per URL. See [Pricing](/account/pricing).
 
-Set a limit when you only need a sample. Set `ignoreCache` if you need a new list instead of one we made in the last six hours.
+| Field | Default | Effect |
+| - | - | - |
+| `url` | required | Any page of the site. |
+| `search` | none | Keep URLs that match these words in the address, not the page text. Partial matches rank lower. |
+| `limit` | 5000 | Most URLs, 1 to 100,000. |
+| `sitemap` | `include` | `include` uses sitemaps and links, `only` lists what the sitemaps name, `skip` ignores them. |
+| `includeSubdomains` | `true` | Also list subdomains such as `docs.bun.com`. `true` needs an API key, so keyless calls list one host. |
+| `ignoreQueryParameters` | `true` | List each page once, without its `?query`. `false` keeps it. |
+| `timeout` | none | Stop after this many milliseconds, at least 1,000, and return what was found. |
+| `location` | United States | `country` and `languages` to read the site from. See [Location and headers](/scrape/location-and-headers). |
+| `ignoreCache` | `false` | Build the list again instead of reusing one made in the last 6 hours. |
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `url` | `string` | none | Any page of the site to map, such as `https://bun.com`. Required. |
-| `limit` | `number` | `5000` | The most URLs to return, 1 to 100,000. |
-| `timeout` | `number` | none | Stop looking after this many milliseconds, at least 1,000, and return what was found. |
-| `location` | `object` | United States | `country` and `languages` to read the site from. See [Location and headers](/scrape/location-and-headers). |
-| `ignoreCache` | `boolean` | `false` | Send `true` to build the list again instead of reusing one made in the last 6 hours. |
+A map lists what it found in the time allowed, so it can miss pages, and a site that exposes few pages returns a short list. Fixes for these errors are in [Errors](/api-reference/errors):
 
-To narrow the list by topic, sitemap, subdomain or query string, see [Filter and search](/map/filter-and-search).
-
-## Use the results
-
-Pick the URLs you need and read them:
-
-- [Scrape](/scrape/overview) reads one URL.
-- [Batches](/batches/overview) read a list of URLs in the background.
-- [Crawl](/crawl/overview) follows links from one URL on its own, without a list.
-
-## Limits and errors
-
-Check the error code before you try the same URL again. A short list can still be a successful result.
-
-- A site that cannot be reached returns `503 sourceUnavailable`.
-- `sitemap: "only"` on a site with no sitemap returns `404 notFound`. Send `sitemap: "include"` to list its pages instead.
-- A site Stophy does not read returns `403 siteNotRead`.
-- A URL on a private network returns `400 invalidRequest`.
-- `includeSubdomains: true` without an API key returns `401 apiKeyRequired`. Without an API key, the list covers one host.
-- A map lists what was found in the time allowed. It may not find every page of the site. A site that exposes few pages returns a short list.
-
-## Price
-
-$0.50 per 1,000 calls, whatever the length of the list. A call that fails costs nothing. See [Pricing](/account/pricing).
-
-## Choose another API
-
-Choose another call if you need page content or have a query instead of a site URL.
-
-- [Scrape](/scrape/overview) reads one page.
-- [Crawl](/crawl/overview) reads every page of a site in the background.
-- [Batches](/batches/overview) read a list of URLs in the background.
-- [Search](/search/overview) finds pages from a query and can read each result.
+- `503 sourceUnavailable`: the site cannot be reached.
+- `403 siteNotRead`: the site is not read.
+- `404 notFound`: `sitemap: "only"` on a site with no sitemap. Use `include`.
+- `400 invalidRequest`: a private network URL, or `limit` above 100,000.

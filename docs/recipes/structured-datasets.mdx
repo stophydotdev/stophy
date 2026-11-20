@@ -1,26 +1,15 @@
 ---
 title: "Structured datasets"
-description: "Turn a list of URLs into rows with a JSON schema. Submit a batch, read one object per page, handle missing fields, and write a CSV. 3 pages cost $0.012."
-og:title: "Structured datasets | Stophy"
-og:description: "Turn a list of URLs into rows with a JSON schema. Submit a batch, read one object per page, handle missing fields, and write a CSV. 3 pages cost $0.012."
+description: "Turn a list of URLs into rows with a JSON schema. Submit a batch, read one object per page, handle missing fields and write a CSV."
 ---
 
-Turn a list of URLs into CSV rows with the same columns. Use a batch to read the pages in the background, then turn the fields it finds into rows.
+Use a batch to read many pages in the background with one schema, then turn each page's fields into a CSV row. You need `STOPHY_API_KEY`. See the [Quickstart](/quickstart).
 
-You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). Each page costs $0.004 with a schema. The run on this page read 3 pages and cost $0.012.
+## 1. Submit the batch
 
-## 1. Describe the row
+The `json` format takes a `schema`. Use `required` to ask for fields on every page, and `description` to fix a format. See [JSON](/scrape/json). The call answers at once with an `id` and a `url` to poll.
 
-Define the columns you want before you submit the batch. Use strings for `title`, `author` and `publishedOn`, and an array of strings for `topics`. Add `"required": ["title", "publishedOn"]` to request those two fields on every page. Still check for missing values. Use `description` on `publishedOn` to ask for `YYYY-MM-DD`.
-
-See [JSON](/scrape/json) for what a schema can hold.
-
-## 2. Submit the batch
-
-Submit the page list once when every page should use the same schema. It answers at once with an `id`. Send `formats` with the `json` format and your `schema`.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/batch/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
@@ -30,122 +19,43 @@ curl -X POST https://api.stophy.dev/v1/batch/scrape \
       "https://bun.com/blog/bun-in-rust",
       "https://bun.com/blog/behind-the-scenes-of-bun-install"
     ],
-    "formats": [
-      {
-        "type": "json",
-        "schema": {
-          "type": "object",
-          "properties": {
-            "title": { "type": "string" },
-            "author": { "type": "string" },
-            "publishedOn": { "type": "string", "description": "The publication date as YYYY-MM-DD." },
-            "topics": { "type": "array", "items": { "type": "string" } }
-          },
-          "required": ["title", "publishedOn"]
-        }
+    "formats": [{
+      "type": "json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "author": { "type": "string" },
+          "publishedOn": { "type": "string", "description": "The publication date as YYYY-MM-DD." },
+          "topics": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["title", "publishedOn"]
       }
-    ]
+    }]
   }'
 ```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/batch/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    urls: [
-      "https://bun.com/blog/bun-v1.4.4",
-      "https://bun.com/blog/bun-in-rust",
-      "https://bun.com/blog/behind-the-scenes-of-bun-install",
-    ],
-    formats: [
-      {
-        type: "json",
-        schema: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            author: { type: "string" },
-            publishedOn: { type: "string", description: "The publication date as YYYY-MM-DD." },
-            topics: { type: "array", items: { type: "string" } },
-          },
-          required: ["title", "publishedOn"],
-        },
-      },
-    ],
-  }),
-});
-const { url } = await response.json();
-console.log(url);
-```
-```python Python
-import os
 
-import requests
+`invalidURLs` lists addresses that are not public pages. They are left out.
 
-schema = {
-    "type": "object",
-    "properties": {
-        "title": {"type": "string"},
-        "author": {"type": "string"},
-        "publishedOn": {"type": "string", "description": "The publication date as YYYY-MM-DD."},
-        "topics": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["title", "publishedOn"],
-}
-response = requests.post(
-    "https://api.stophy.dev/v1/batch/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "urls": [
-            "https://bun.com/blog/bun-v1.4.4",
-            "https://bun.com/blog/bun-in-rust",
-            "https://bun.com/blog/behind-the-scenes-of-bun-install",
-        ],
-        "formats": [{"type": "json", "schema": schema}],
-    },
-)
-print(response.json()["url"])
-```
-</CodeGroup>
+## 2. Read the answers
 
-Save the batch `id` and its returned `url` so you can read the results.
-
-`invalidURLs` lists addresses that were not public pages. They are left out and cost nothing. Starting a batch is free, and each page is charged when it finishes.
-
-## 3. Read the answers
-
-Read `url` while `status` is `scraping`. Stop polling when it reaches a final state. This batch took 6 seconds. Each page in `data` holds its object in `json`, and its address in `metadata.url`. This response shows one row with no `topics` field.
+Read `url` until `status` is `completed`. Each page in `data` has its object in `json` and its address in `metadata.url`. This row has no `topics`: the field was optional and the page lists none.
 
 ```json
 {
-  "success": true,
   "status": "completed",
-  "costUsd": 0.012,
-  "data": [
-    {
-      "json": {
-        "title": "Behind The Scenes of Bun Install",
-        "author": "example_user",
-        "publishedOn": "2025-09-10"
-      },
-      "metadata": {
-        "url": "https://bun.com/blog/behind-the-scenes-of-bun-install"
-      }
-    }
-  ]
+  "data": [{
+    "json": { "title": "Behind The Scenes of Bun Install", "author": "example_user", "publishedOn": "2025-09-10" },
+    "metadata": { "url": "https://bun.com/blog/behind-the-scenes-of-bun-install" }
+  }]
 }
 ```
 
-The page in this example has no `topics`. The field was optional, and the page lists none. Your code has to expect that.
+A long batch comes back in parts. Follow `next` until it is missing, and read failed pages from `errors`. See [Batch results](/batches/results).
 
-An answer holds up to 100 pages or 2 MB, so a long batch comes back in parts. Follow `next` until it is missing. `errors` lists the pages that could not be read, and a failed page costs nothing. See [Batch results](/batches/results).
+## 3. Write the rows
 
-## 4. Write the rows
-
-Turn each page with a `json` object into a flat row. Get the URL from `metadata.url`. Fill a missing field with an empty string, or skip the row if your app needs that field. Join `topics` with `; ` before you pass the rows to the CSV writer.
+Flatten each `json` object into a row. Fill a missing field with an empty string, or skip the row if your app needs it. Join `topics` with `; `.
 
 ```typescript
 export function toCsv(rows: Record<string, string>[]): string {
@@ -158,36 +68,11 @@ export function toCsv(rows: Record<string, string>[]): string {
 }
 ```
 
-The sample batch produced three rows. The article without `topics` had an empty cell in that column. If none of the pages returned a row, `toCsv` returns an empty string.
+## Check it
 
-## What to check
+- `completed` plus `failed` equals `total`, and your row count equals the pages that returned `json`.
+- Open three pages and compare each cell. The model fills fields from page text, so a field the page does not state can come back wrong or empty, even when it is `required`.
+- Dates share one format. If not, tighten the `description`.
+- Store `url` and the read time with each row, so you can tell how old it is.
 
-Compare the batch counts with the rows before publishing the CSV.
-
-- `completed` plus `failed` equals `total`, after a completed run. Compare your row count with the number of pages that returned usable `json`.
-- Open three pages and compare each cell with the page. The model fills a field from the page text, so a field the page does not state can come back wrong or empty.
-- Check for missing values even in `required` fields. Count the empty cells in optional columns to decide whether to keep those columns.
-- Dates are in one format. If not, tighten the `description` and read a few pages again.
-- Store `url` and the time you read it with each row, so you can tell how old a row is.
-
-## What it costs
-
-Budget for every page read, plus the JSON charge when fields come back.
-
-| Item | Price |
-| - | - |
-| A page read | $0.001 |
-| `json` with a schema or a prompt, when it returns fields | $0.003 more |
-| One row | $0.004 |
-| A page that cannot be read | Free |
-
-1,000 rows cost $4. Test the schema on 3 to 5 pages before you send the list. See [Pricing](/account/pricing).
-
-## Related
-
-Use Extract if several pages should fill a single row rather than one row each.
-
-- [JSON](/scrape/json) describes schemas and prompts for one page.
-- [Batches](/batches/overview) covers submitting, reading and cancelling a batch.
-- [Extract](/extract/overview) fills a schema across several pages and checks each value against the page.
-- [Monitors](/monitors/targets) keep a dataset fresh by telling you which pages changed.
+Test the schema on 3 to 5 pages before you send the list. See [Pricing](/account/pricing). To fill one row from several pages, use [Extract](/extract/overview).

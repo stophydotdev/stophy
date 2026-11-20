@@ -19,10 +19,8 @@ export const referenceConfig = z.object({
   calls: z.record(z.string(), callPlan),
   notCalled: names,
   masks: z.record(z.string(), jsonObject),
-  prices: names,
   descriptions: names,
   parserCategories: z.array(z.object({ slug: z.string(), title: z.string(), parsers: z.array(z.string()) })),
-  parserBrands: names,
 });
 
 export type ReferenceConfig = z.infer<typeof referenceConfig>;
@@ -105,4 +103,3 @@ export const anonymize = (root: JsonObject): JsonObject => {
 export const mdxSafe = (text: string) =>
   text.replace(/\[?\{[^{}]*\}\]?|<[A-Za-z][^<>]*>/g, (code) => `\`${code}\``);
 
-export const money = (text: string) => text.replace(/\$(\d+\.\d)(?!\d)/g, (_, amount: string) => `$${amount}0`);

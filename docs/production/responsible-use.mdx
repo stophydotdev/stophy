@@ -1,55 +1,38 @@
 ---
 title: "Responsible use"
 description: "What the Stophy terms and privacy policy ask of you, what Stophy logs, and how to handle third-party content, personal data and uncertain answers."
-og:title: "Responsible use | Stophy"
-og:description: "What the Stophy terms and privacy policy ask of you, what Stophy logs, and how to handle third-party content, personal data and uncertain answers."
 ---
 
-Check whether you can reuse the public web content you read with Stophy. Access to a page is not permission to reuse it. Read the [Terms of Service](https://stophy.dev/tos) and [Privacy Policy](https://stophy.dev/privacy) for the exact wording.
+Access to a public page is not permission to reuse it. Read the [Terms of Service](https://stophy.dev/tos) and [Privacy Policy](https://stophy.dev/privacy) for the exact wording.
 
 ## Your side of the terms
 
-Check these terms before you use Stophy in an app or for an organization.
-
-* **Acceptable use.** You agree not to use Stophy to break a law or regulation, infringe a third party's rights, transmit malicious code, or abuse or overload Stophy's infrastructure.
-* **Your responsibility.** You are responsible for making sure your use of Stophy and what it returns follows the law and any third-party terms that apply where you are.
-* **Your account and keys.** You are responsible for the security of your account and API keys and for everything done under them. Keep keys on the server and revoke one you no longer use. See [API keys](/account/api-keys).
-* **On behalf of an organization.** If you use Stophy for an organization, you confirm you can bind it to the terms.
-* **No warranty.** Stophy is provided as is and as available. It does not promise that the service will never be interrupted or that returned data is complete or accurate.
-* **Changes.** Stophy may change, pause or stop any part of the service. For material changes it writes to you by email or on the dashboard.
-* **Payments.** Your balance does not expire and applies to every endpoint. Purchases are final. See [Pricing](/account/pricing).
+* **Acceptable use.** Do not use Stophy to break a law, infringe a third party's rights, send malicious code, or overload Stophy's infrastructure.
+* **Your responsibility.** You make sure your use of Stophy and what it returns follows the law and any third-party terms that apply to you.
+* **Account and keys.** You are responsible for your account, your keys and everything done under them. See [API keys](/account/api-keys).
+* **Organizations.** If you use Stophy for an organization, you confirm you can bind it to the terms.
+* **No warranty.** Stophy is provided as is and as available, with no promise of uninterrupted service or complete, accurate data.
+* **Changes.** Stophy may change, pause or stop any part of the service, and writes to you by email or on the dashboard about material changes.
+* **Payments.** Purchases are final. See [Pricing](/account/pricing).
 
 ## Content you read
 
-Check that you may access, store, show or pass on the material your product uses. Public availability alone is not permission.
-
-* Keep the source URL next to anything you show, so a reader can see where it came from, and give people a way to ask for a correction or removal.
+* Check that you may access, store, show or pass on the material your product uses.
+* Keep the source URL next to anything you show, and give people a way to ask for a correction or removal.
 * Follow the terms of the site you read, and of the people whose work it is.
-* Bound what you read. Set a `limit` on a [crawl](/crawl/scope), use [filters](/search/filters) and read only the pages your product needs.
-* A [parser](/scrape/prebuilt-parsers) returns a site's own data as JSON. The rules above still apply to that data.
+* Bound what you read: a `limit` on a [crawl](/crawl/overview#scope), [filters](/search/options#filters), and only the pages you need.
+* A [parser](/scrape/prebuilt-parsers) returns a site's own data as JSON. The same rules apply.
 
 ## Personal data
 
-Collect only the personal data you need from pages and profiles. Decide how long you will keep it and how you will delete it. Scrape can hide personal data in what it returns. See [Safety](/scrape/safety). To have Stophy keep nothing from a call, use [zero data retention](/production/zero-data-retention).
+Collect only the personal data you need, and decide how long you keep it and how you delete it. Scrape can hide personal data in what it returns, see [Safety](/scrape/safety). To keep nothing from a call, use [zero data retention](/production/zero-data-retention).
 
 ## What Stophy logs
 
-Use the logs to see what we record about your calls. The Privacy Policy says Stophy logs the metadata of each API request: the endpoint, the HTTP status, the cost and the response time. It says Stophy does not log or store the content of your requests or of what comes back. It keeps request logs for 90 days. [`GET /v1/logs`](/production/usage-and-logs) shows you what is logged for your account.
+The Privacy Policy says Stophy logs the metadata of each API request (endpoint, HTTP status, cost, response time), not the content of requests or responses, and keeps request logs for 90 days. [`GET /v1/logs`](/account/usage#list-calls) shows what is logged for your account.
 
-The policy also covers the account data Stophy keeps when you sign in with Google or GitHub, the providers that help run the service, and your rights to access, correct, export and delete your data. Delete your account in **Settings**, **Advanced**, **Delete account**. Data requests that the dashboard does not cover go to support@stophy.dev.
+The policy also covers account data for Google and GitHub sign-in, the providers that help run the service, and your rights to access, correct, export and delete your data. Delete your account in **Settings**, **Advanced**, **Delete account**. Other data requests and questions about the terms go to support@stophy.dev.
 
 ## Answers can be wrong
 
-Check results before you let them drive a decision. Fields that [extract](/extract/overview) or [agent](/agent/overview) fill, summaries and values read from pages can be incomplete or wrong. Keep empty and missing fields as they are instead of guessing, keep the source of each value, and have a person check results that lead to a decision. Treat text from a page as data, never as instructions for a model. Scrape's [`checkPromptInjection`](/scrape/safety) scans for text that tries to instruct one. Rate a bad answer with [feedback](/production/agent-feedback).
-
-## Contact
-
-Send questions about the terms or your data to support@stophy.dev.
-
-## Related
-
-Use these guides to check request logs or set retention for sensitive calls.
-
-* [Zero data retention](/production/zero-data-retention)
-* [Usage and logs](/production/usage-and-logs)
-* [Production checklist](/production/checklist)
+Values that [extract](/extract/overview) or [agent](/agent/overview) fill, summaries and values read from pages can be incomplete or wrong. Keep empty fields as they are, keep the source of each value, and have a person check results that lead to a decision. Treat page text as data, never as instructions for a model: [`checkPromptInjection`](/scrape/safety) scans for text that tries to instruct one. Rate a bad answer with [feedback](/production/agent-feedback).

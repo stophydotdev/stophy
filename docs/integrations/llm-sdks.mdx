@@ -1,0 +1,130 @@
+---
+title: "LLM SDKs"
+description: "Give an Anthropic, OpenAI or Vercel AI SDK model live web search. Save one Stophy search function, then register it as a tool in your SDK."
+---
+
+Your app gives the model a `web_search` tool. When the model asks to search, your code calls Stophy and returns the results. Install `stophy` with `npm install stophy` and set `STOPHY_API_KEY` to go past the free limits. See [Rate limits](/production/rate-limits).
+
+## The search function
+
+Save this as `stophy.ts`. It returns up to 5 web results as JSON, and a failed search throws a `StophyError`.
+
+```ts stophy.ts
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+export async function stophySearch(query: string): Promise<string> {
+  const { data } = await stophy.search({ query, limit: 5 });
+  return JSON.stringify(data?.web);
+}
+```
+
+## Register it as a tool
+
+<Tabs>
+<Tab title="Anthropic">
+Run `npm install @anthropic-ai/sdk zod` and set `ANTHROPIC_API_KEY`. The tool runner calls your function and returns the final message.
+
+```ts
+import Anthropic from "@anthropic-ai/sdk";
+import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
+import { z } from "zod";
+import { stophySearch } from "./stophy";
+
+const client = new Anthropic();
+
+const webSearch = betaZodTool({
+  name: "web_search",
+  description: "Search the web. Returns the top results as JSON.",
+  inputSchema: z.object({ query: z.string().describe("What to search for") }),
+  run: async ({ query }) => stophySearch(query),
+});
+
+const message = await client.beta.messages.toolRunner({
+  model: "claude-sonnet-5-5",
+  max_tokens: 16000,
+  tools: [webSearch],
+  messages: [{ role: "user", content: "What changed in the latest Bun release?" }],
+});
+
+for (const block of message.content) {
+  if (block.type === "text") console.log(block.text);
+}
+```
+</Tab>
+<Tab title="OpenAI">
+Run `npm install openai` and set `OPENAI_API_KEY`. For each `function_call`, run the search and send the JSON back as a `function_call_output` with the same `call_id`. Continue with `previous_response_id`. When the model sends no more calls, read `output_text`.
+
+```ts
+import OpenAI from "openai";
+import { stophySearch } from "./stophy";
+
+const openai = new OpenAI();
+
+const tools: OpenAI.Responses.Tool[] = [
+  {
+    type: "function",
+    name: "web_search",
+    description: "Search the web. Returns the top results as JSON.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+];
+
+let response = await openai.responses.create({
+  model: "gpt-6.1-terra",
+  input: "What changed in the latest Bun release?",
+  tools,
+});
+
+while (true) {
+  const calls = response.output.filter((item) => item.type === "function_call");
+  if (calls.length === 0) break;
+  const outputs: OpenAI.Responses.ResponseInputItem[] = [];
+  for (const call of calls) {
+    const { query } = JSON.parse(call.arguments) as { query: string };
+    outputs.push({ type: "function_call_output", call_id: call.call_id, output: await stophySearch(query) });
+  }
+  response = await openai.responses.create({
+    model: "gpt-6.1-terra",
+    previous_response_id: response.id,
+    input: outputs,
+    tools,
+  });
+}
+
+console.log(response.output_text);
+```
+</Tab>
+<Tab title="Vercel AI SDK">
+Run `npm install ai @ai-sdk/openai zod` and set `OPENAI_API_KEY`. `stopWhen` caps the tool and answer loop at five steps. For another provider, replace `openai(...)` and set its key.
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { generateText, isStepCount, tool } from "ai";
+import { z } from "zod";
+import { stophySearch } from "./stophy";
+
+const { text } = await generateText({
+  model: openai("gpt-6.1-terra"),
+  prompt: "What changed in the latest Bun release?",
+  tools: {
+    webSearch: tool({
+      description: "Search the web. Returns the top results as JSON.",
+      inputSchema: z.object({ query: z.string().describe("What to search for") }),
+      execute: async ({ query }) => stophySearch(query),
+    }),
+  },
+  stopWhen: isStepCount(5),
+});
+
+console.log(text);
+```
+</Tab>
+</Tabs>

@@ -1,19 +1,13 @@
 ---
 title: "Extract"
-description: "Pull the fields you name from one or more pages as JSON. Each value is checked against the page text and left out when it is not there. $5 per 1,000 pages."
-og:title: "Extract | Stophy"
-og:description: "Pull the fields you name from one or more pages as JSON. Each value is checked against the page text and left out when it is not there. $5 per 1,000 pages."
+description: "Pull the fields you name from up to 25 pages as JSON. Each value is checked against the page text and left out when the page does not state it."
 ---
 
-Use Extract when you know which pages to read and need named fields rather than the whole page. We leave out fields the pages do not support. The call answers with an `id`, and you read the fields from `GET /v1/extract/{id}`.
-
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart). Extract needs an API key. This request reads a documentation page and fills four fields, then reads the result with the `id` it gets back.
+Extract reads pages you name and fills the fields of a JSON Schema. It answers with an `id`, and you read the fields with `GET /v1/extract/{id}`. It needs an API key. See the [Quickstart](/quickstart).
 
 <CodeGroup>
 ```bash cURL
-EXTRACT_ID=$(curl -s -X POST https://api.stophy.dev/v1/extract \
+curl -X POST https://api.stophy.dev/v1/extract \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -22,7 +16,6 @@ EXTRACT_ID=$(curl -s -X POST https://api.stophy.dev/v1/extract \
       "type": "object",
       "properties": {
         "module": { "type": "string", "description": "The import path of the SQLite driver" },
-        "queryMethods": { "type": "array", "items": { "type": "string" } },
         "transactionModes": {
           "type": "array",
           "items": { "type": "string", "enum": ["deferred", "immediate", "exclusive"] }
@@ -30,77 +23,56 @@ EXTRACT_ID=$(curl -s -X POST https://api.stophy.dev/v1/extract \
         "pricePerMonth": { "type": ["number", "null"] }
       }
     }
-  }' | jq -r .id)
-
-curl https://api.stophy.dev/v1/extract/$EXTRACT_ID \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
+  }'
+# then: curl https://api.stophy.dev/v1/extract/$ID -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
 ```typescript TypeScript
-const headers = {
-  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-  "Content-Type": "application/json",
-};
-const started = await fetch("https://api.stophy.dev/v1/extract", {
-  method: "POST",
-  headers,
-  body: JSON.stringify({
-    urls: ["https://bun.com/docs/runtime/sqlite"],
-    schema: {
-      type: "object",
-      properties: {
-        module: { type: "string", description: "The import path of the SQLite driver" },
-        queryMethods: { type: "array", items: { type: "string" } },
-        transactionModes: {
-          type: "array",
-          items: { type: "string", enum: ["deferred", "immediate", "exclusive"] },
-        },
-        pricePerMonth: { type: ["number", "null"] },
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+
+const { id } = await stophy.extract({
+  urls: ["https://bun.com/docs/runtime/sqlite"],
+  schema: {
+    type: "object",
+    properties: {
+      module: { type: "string", description: "The import path of the SQLite driver" },
+      transactionModes: {
+        type: "array",
+        items: { type: "string", enum: ["deferred", "immediate", "exclusive"] },
       },
+      pricePerMonth: { type: ["number", "null"] },
     },
-  }),
-}).then((response) => response.json());
-const result = await fetch(`https://api.stophy.dev/v1/extract/${started.id}`, { headers }).then(
-  (response) => response.json(),
-);
-console.log(result.data);
+  },
+});
+const result = await stophy.extract.result({ id: id! });
+console.log(result.status, result.data);
 ```
 ```python Python
-import os
+from stophy import Stophy
 
-import requests
+stophy = Stophy()
 
-headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
-started = requests.post(
-    "https://api.stophy.dev/v1/extract",
-    headers=headers,
-    json={
-        "urls": ["https://bun.com/docs/runtime/sqlite"],
-        "schema": {
-            "type": "object",
-            "properties": {
-                "module": {"type": "string", "description": "The import path of the SQLite driver"},
-                "queryMethods": {"type": "array", "items": {"type": "string"}},
-                "transactionModes": {
-                    "type": "array",
-                    "items": {"type": "string", "enum": ["deferred", "immediate", "exclusive"]},
-                },
-                "pricePerMonth": {"type": ["number", "null"]},
+started = stophy.extract(
+    urls=["https://bun.com/docs/runtime/sqlite"],
+    schema={
+        "type": "object",
+        "properties": {
+            "module": {"type": "string", "description": "The import path of the SQLite driver"},
+            "transactionModes": {
+                "type": "array",
+                "items": {"type": "string", "enum": ["deferred", "immediate", "exclusive"]},
             },
+            "pricePerMonth": {"type": ["number", "null"]},
         },
     },
-).json()
-result = requests.get(f"https://api.stophy.dev/v1/extract/{started['id']}", headers=headers).json()
-print(result["data"])
+)
+result = stophy.extract.result(id=started["id"])
+print(result["status"], result["data"])
 ```
 </CodeGroup>
 
-## Read the response
-
-The call that starts the extract answers with the `id` of the result. `invalidURLs` lists addresses it skipped because they are not public pages.
-
-Save the `id` to read the fields. The `x-cost-usd` header of the start response has the cost. If no addresses were skipped, `invalidURLs` is empty.
-
-Call `GET /v1/extract/{id}` and read the fields in `data`.
+The start call returns `id` and `invalidURLs`, the addresses it skipped because they are not public pages. The result is:
 
 ```json
 {
@@ -108,50 +80,72 @@ Call `GET /v1/extract/{id}` and read the fields in `data`.
   "status": "completed",
   "data": {
     "module": "bun:sqlite",
-    "queryMethods": ["all", "get", "run", "values", "iterate"],
     "transactionModes": ["deferred", "immediate", "exclusive"]
   },
   "urls": ["https://bun.com/docs/runtime/sqlite"],
-  "costUsd": 0.005,
   "expiresAt": "2026-11-18T18:09:35.938Z"
 }
 ```
 
-`pricePerMonth` is not in `data`: the page does not state it, so the field is left out. We check each value against the page text. `confidence` says how sure we are that it is there, from 0 to 1. `urls` lists the pages read, and `expiresAt` tells you when the result expires. See [Results](/extract/results) for the rest of the fields.
+`pricePerMonth` is missing: the page does not state it, so the field is left out. Every returned value is checked against the page text.
+
+## Result fields
+
+| Field | Holds |
+| --- | --- |
+| `status` | `completed` or `failed`. The HTTP status is `200` for both. |
+| `success` | `false` when `status` is `failed`. A failed result has `error` and no `data`. |
+| `data` | The fields the pages state. |
+| `confidence` | For each field in `data`, 0 to 1. |
+| `sources` | With `showSources`, the URLs that state each field. |
+| `urls` | The pages read. |
+| `warning` | Pages that could not be read, or a note that a page was cut. The fields come from the rest. |
+| `costUsd`, `expiresAt` | The cost, and when the result is deleted. |
+
+Results are kept for 24 hours, or 1 hour with `zeroDataRetention`. After that `GET` returns `404 notFound`. You can read only your own results. Reading is free.
 
 ## Request fields
 
-Choose where to look and what to pull out. For known pages, start with `urls` and a `schema`. The `schema` is described in [Schema](/extract/schema). `showSources`, `timeout` and `webhook` are described in [Results](/extract/results). These fields belong to this page.
+Send a `schema`, a `prompt`, or both. With a `prompt` and no `schema`, the model names up to 20 fields in camelCase.
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `urls` | `array of string` | none | The pages to read, up to 25. An address ending in `/*`, such as `https://bun.com/blog/*`, reads pages under it, found through the site's sitemap. With several pages, the fields are filled from all of them together. Leave `urls` out and send a `prompt` to search the web instead. |
-| `prompt` | `string` | none | What to pull, in plain words, up to 10,000 characters. Send a `schema`, a `prompt`, or both. |
-| `systemPrompt` | `string` | none | Standing instructions, such as units or how to write dates, up to 10,000 characters. A value is still copied from the page. |
-| `enableWebSearch` | `boolean` | `false` | Also search the web for your `prompt` and read up to 3 more pages. With no `urls`, the search runs without this. |
-| `allowExternalLinks` | `boolean` | `false` | Also read up to 5 pages on other sites that the pages link to, picking the links whose address mentions your prompt. |
-| `ignoreSitemap` | `boolean` | `false` | For an address ending in `/*`, find pages by links instead of the sitemap. |
-| `includeSubdomains` | `boolean` | `true` | For an address ending in `/*`, also read subdomains. |
-| `limit` | `number` | none | For an address ending in `/*`, read at most this many pages. At most 25 are read in all. |
-| `scrapeOptions` | `object` | none | How each page is read, with the options of [Scrape](/scrape/overview). |
-| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the call. Adds $2 per 1,000 pages. See [Zero data retention](/production/zero-data-retention). |
-| `ignoreInvalidURLs` | `boolean` | `true` | Skip addresses that are not public pages. Send `false` to refuse the call instead. |
-| `agent` | `object` | none | Accepted so a client that always sends `{ "model": "..." }` works. It changes nothing, and `warning` says so. To navigate a site, use [Agent](/agent/overview). |
+| Field | Default | Effect |
+| --- | --- | --- |
+| `urls` | none | Up to 25 pages. An address ending in `/*` reads the pages under it, found through the sitemap. With several pages, one answer is filled from all of them. Leave it out and send a `prompt` to search the web. |
+| `schema` | none | A JSON Schema with `properties`. See below. |
+| `prompt` | none | What to pull, up to 10,000 characters. |
+| `systemPrompt` | none | Standing instructions such as units or date format, up to 10,000 characters. |
+| `showSources` | `false` | Add `sources` to the result. |
+| `timeout` | `30000` | Milliseconds to read the pages, 1,000 to 300,000. A page not read in time is skipped, named in `warning`, and not charged. |
+| `enableWebSearch` | `false` | Also search for your `prompt` and read up to 3 more pages. |
+| `allowExternalLinks` | `false` | Also read up to 5 linked pages on other sites. |
+| `ignoreSitemap`, `includeSubdomains`, `limit` | `false`, `true`, none | For a `/*` address: find pages by links, read subdomains, read at most `limit` pages. |
+| `scrapeOptions` | none | How each page is read, with the options of [Scrape](/scrape/overview). |
+| `ignoreInvalidURLs` | `true` | Send `false` to refuse the call when an address is not a public page. |
+| `zeroDataRetention` | `false` | Keep nothing from the call. See [Zero data retention](/production/zero-data-retention). |
+| `webhook` | none | A public address, or `{ "url": "...", "events": ["failed"] }` with `headers` and `metadata`. One call when the extract ends, with `completed` or `failed`. See [Webhooks](/webhooks). |
 
-With a `prompt` and no `schema`, the model names up to 20 fields in camelCase.
+`agent` is accepted and ignored, so a client that always sends it works. To navigate a site, use [Agent](/agent/overview).
 
-## Price
+## Schema
 
-Budget for the pages you read and any extra search or links you enable.
+Pydantic `model_json_schema()` and zod `toJSONSchema()` output work as they are. Draft-07 and 2020-12 both work.
 
-$5 per 1,000 pages for most calls: $1 for the page and $4 for the extraction. Each page after the first adds $1 per 1,000 pages, and a long answer adds $1 per 1,000 pages for every 64 values after the first 64, for each 40,000 characters of page text read. `enableWebSearch` adds $1 per 1,000 searches, and `allowExternalLinks` adds $1 per 1,000 pages read. A call that finds none of the fields is free. See [Pricing](/account/pricing).
+| Keyword | Use |
+| --- | --- |
+| `properties` | The fields. Up to 100 top-level fields, 32 KB, 32 levels of nesting. |
+| `type`, `items` | Strings, numbers, booleans, objects and lists. Nested values are checked one by one. |
+| `enum`, `const` | A value outside the set is left out. |
+| `anyOf`, `oneOf`, `["number", "null"]` | Several shapes, or a nullable value. |
+| `$ref` with `$defs` | A shared shape. The schema itself can be a `$ref` to an object. |
+| `description` | Tells the model what a field means. |
+| `required` | Read, but a field the page does not state is still left out. Parse `data` as partial: `Sqlite.partial().parse(data)` in zod, defaults on every Pydantic field. |
 
-## Choose another API
+## Limits and errors
 
-Pick a different call if you need page text or want an agent to choose its own sources.
+Codes are on [Errors](/api-reference/errors). These are specific to Extract.
 
-- [Scrape](/scrape/overview) returns the whole page, and `json` fills a schema from one page.
-- [Agent](/agent/overview) searches and reads several pages, then fills your fields with a quote for each.
-- [Search](/search/overview) finds pages from a query.
-- [Crawl](/crawl/overview) reads every page of a site in the background.
-- [Parse documents](/parse/overview) turns a file you hold into Markdown.
+- A page is read up to 50,000 characters, and all pages together up to 150,000. A cut page is named in `warning`.
+- The answer takes up to 45 seconds after the pages are read. Set your client timeout above `timeout` plus 45 seconds.
+- The call fails only when no page can be read, with the page's error such as `sourceTimeout` or `siteNotRead`. A failed call is free.
+- `400 invalidRequest`: more than 25 `urls`, no `schema` and no `prompt`, no public page in `urls`, no `properties` in the schema, or a schema over a limit above. The `error` text names the fix.
+- A call that finds none of your fields is free. For price, see [Pricing](/account/pricing).

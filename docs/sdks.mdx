@@ -1,53 +1,100 @@
 ---
 title: "SDKs"
-description: "Install the Stophy TypeScript or Python SDK, set your API key and learn the retry and timeout defaults they share. Both call the same API."
-og:title: "SDKs | Stophy"
-og:description: "Install the Stophy TypeScript or Python SDK, set your API key and learn the retry and timeout defaults they share. Both call the same API."
+description: "Install the Stophy TypeScript or Python SDK, set your API key, call each endpoint and handle errors and retries. Both call the same API."
 ---
 
-Use an SDK to call Stophy from your app. Pick TypeScript or Python for installation and a first request. For terminal commands, use the [CLI](/install-cli).
+Each SDK method sends one call to the [API](/api-reference/introduction) and returns its JSON. For terminal commands, use the [CLI](/install-cli).
 
-| Language | Package | Install | Runs on |
-| - | - | - | - |
-| [TypeScript](/sdks/typescript) | [`stophy`](https://www.npmjs.com/package/stophy) | `npm install stophy` | Node.js, Bun, Deno and the browser |
-| [Python](/sdks/python) | [`stophy`](https://pypi.org/project/stophy/) | `pip install stophy` | Python 3.9 or later |
+| Language | Install | Runs on |
+| - | - | - |
+| TypeScript | `npm install stophy` | Node.js, Bun, Deno and the browser |
+| Python | `pip install stophy` | Python 3.9 or later |
 
 ## Set your API key
 
-Set `STOPHY_API_KEY` to use endpoints that need a key or to go beyond the free limits. Both SDKs read it from the environment when you do not pass a key to the client. Keep it in your secret store or your project's `.env` file.
+Set `STOPHY_API_KEY`, or pass the key to the client: `new Stophy(key)` or `new Stophy({ apiKey })` in TypeScript, `Stophy(api_key=...)` in Python. Keep it in server code. Get one in the [Quickstart](/quickstart).
 
-Keep the key in server-side code. Never commit it or ship it to a browser. The [Quickstart](/quickstart) shows where to get one. Without an API key, `scrape`, `search`, `map` and `parse` work within the [free limits](/production/rate-limits). `parsers`, `endpoints`, `signup` and `signup.poll` need no API key. Every other method fails with the code `apiKeyRequired`.
+Without a key, `scrape`, `search`, `map` and `parse` work within the [free limits](/production/rate-limits), and so do `parsers`, `endpoints`, `signup` and `signup.poll`. Any other method fails with `apiKeyRequired`. See [Errors](/api-reference/errors).
+
+## Make a request
+
+<Tabs>
+<Tab title="TypeScript">
+```ts
+import { Stophy } from "stophy";
+
+const stophy = new Stophy();
+const page = await stophy.scrape({ url: "https://example.com", formats: ["markdown"] });
+console.log(page.data.metadata.title, page.data.markdown);
+```
+Pass the parser name and URL to `stophy.parsed()` to read a site's data at `data.json`. Parser options are the third argument, for example `{ page: 2 }`.
+</Tab>
+<Tab title="Python">
+```python
+from stophy import Stophy
+
+stophy = Stophy()
+page = stophy.scrape(url="https://example.com", formats=["markdown"])
+print(page["data"]["metadata"]["title"], page["data"]["markdown"])
+```
+Arguments are keyword-only and snake_case. Pass the parser name and URL to `stophy.parsed()` to read a site's data at `data["json"]`. Parser options are extra keywords, for example `page=2`. `AsyncStophy` has the same methods, and you `await` each call.
+</Tab>
+</Tabs>
+
+`parsed` calls `scrape` with `{ type: "json", parser }`, and `parsers()` lists every parser. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
 ## Methods
-
-Use this table to find the SDK method for an [API endpoint](/api-reference/introduction). The method returns the API response as JSON.
 
 | Method | Endpoint |
 | - | - |
 | `scrape`, `search`, `map`, `parse` | `POST /v1/scrape`, `/v1/search`, `/v1/map`, `/v1/parse` |
 | `parsed` | Scrape with a [parser](/scrape/prebuilt-parsers) |
-| `parsers`, `endpoints` | `GET /v1/parsers`, `GET /v1/endpoints` |
+| `parsers`, `endpoints` | `GET /v1/parsers`, `/v1/endpoints` |
 | `crawl`, `crawl.status`, `crawl.cancel` | `/v1/crawl` and `/v1/crawl/{id}` |
-| `batch.scrape`, `batch.scrape.status`, `batch.scrape.cancel` | `/v1/batch/scrape` and `/v1/batch/scrape/{id}` |
+| `batch.scrape`, `.status`, `.cancel` | `/v1/batch/scrape` and `/v1/batch/scrape/{id}` |
 | `extract`, `extract.result` | `POST /v1/extract`, `GET /v1/extract/{id}` |
 | `browser.task`, `browser.task.status` | `/v1/browser/task` and `/v1/browser/task/status` |
 | `signup`, `signup.poll`, `key.revoke` | `/v1/signup`, `/v1/signup/poll`, `DELETE /v1/key` |
 | `limits`, `usage`, `logs` | `GET /v1/limits`, `/v1/usage`, `/v1/logs` |
 
-The SDKs have no methods for [agent](/agent/overview), [browser sessions](/browser/overview), [monitors](/monitors/overview), [webhooks](/webhooks), [feedback](/production/agent-feedback), usage history or the team calls. Call those over HTTP with the same API key.
+There are no methods for [agent](/agent/overview), [browser sessions](/browser/overview), [monitors](/monitors/overview), [webhooks](/webhooks) or [feedback](/production/agent-feedback). Call those over HTTP with the same key.
 
-## Timeouts and retries
+`crawl`, `batch.scrape` and `extract` answer with an `id`. Pass it to `.status` or `.result`. See [Read a crawl](/crawl/async).
 
-Check these defaults before you add your own retries. Each attempt waits up to 70 seconds. Both SDKs retry eligible calls twice by default, using a backoff or the delay returned by the API. They stop if the requested delay exceeds 60 seconds. A `DELETE` is not retried.
+## Errors and retries
 
-Some writes cannot be safely replayed after a lost response. If a write may have run, the error can carry `outcomeUnknown` in TypeScript or `outcome_unknown` in Python. Check whether the work finished before making a new request. When a replayable write has an unresolved outcome, the error can carry its original idempotency key. Reuse that key and the same request body to recover the result; a new key can start new work.
+Catch `StophyError`. It has `code`, `message`, `retryable`, `status`, `details`, plus `retryAfterSeconds` and `requestId` in TypeScript or `retry_after_seconds` and `request_id` in Python. The message says what to do. The codes are the API's own. See [Errors](/api-reference/errors).
 
-For calls that accept a key, pass `idempotencyKey` in the TypeScript call options or `idempotency_key` in Python. For a `StophyError`, read the recovery key from `error.details.idempotencyKey` in TypeScript or `error.details["idempotencyKey"]` in Python. Network errors carry it as `idempotencyKey` in TypeScript or `idempotency_key` in Python. See [Timeouts](/production/timeouts).
+Each attempt waits up to 70 seconds, and eligible calls retry twice with a backoff or the delay the API returns. The SDK throws instead of waiting more than 60 seconds. A `DELETE` is not retried.
 
-## Handle errors
+If a write may have run and cannot be replayed safely, the error carries `outcomeUnknown` (`outcome_unknown` in Python). Check whether the work finished before you send it again. To recover a replayable write, reuse its idempotency key and the same body. Pass your own as `idempotencyKey` (`idempotency_key` in Python) and read it back from `error.details.idempotencyKey`. See [Timeouts](/production/timeouts).
 
-Catch `StophyError` to decide whether to retry or ask for a new key. Both SDKs include `code`, `retryable`, `retryAfterSeconds`, `status` and the `requestId`. The message says what went wrong and what to do next. The codes are the API's own. See [Troubleshooting](/production/troubleshooting).
+## Client options
 
-A call your balance cannot cover fails with `insufficientCredits` and status `402`, and charges nothing. The message names your balance and the most the call can cost. Add money at [stophy.dev/billing](https://stophy.dev/billing) and send the call again. See [Pricing](/account/pricing).
+<Tabs>
+<Tab title="TypeScript">
+| Option | Default | What it does |
+| - | - | - |
+| `apiKey` | `STOPHY_API_KEY` | Your API key |
+| `baseUrl` | `STOPHY_BASE_URL` | The server to call |
+| `maxRetries` | `2` | Retries per request. `0` turns them off. |
+| `retryInitialDelayMs` | `500` | First retry wait. It doubles each time. |
+| `timeoutMs` | `70000` | Limit for each attempt |
+| `headers` | none | Extra headers on every call |
+| `fetch` | global `fetch` | A replacement `fetch` |
 
-`401` with `apiKeyRequired` means the call needs an API key. `401` with `unauthorized` means the key is wrong or has been revoked.
+Pass `signal` as a method's second argument to cancel the request.
+</Tab>
+<Tab title="Python">
+| Option | Default | What it does |
+| - | - | - |
+| `api_key` | `STOPHY_API_KEY` | Your API key |
+| `base_url` | `STOPHY_BASE_URL` | The server to call |
+| `max_retries` | `2` | Retries per request. `0` turns them off. |
+| `retry_initial_delay` | `0.5` | First retry wait in seconds. It doubles each time. |
+| `timeout` | `70.0` | Limit in seconds for each attempt |
+| `headers` | none | Extra headers on every call |
+
+Use `with Stophy() as stophy:` or `async with AsyncStophy() as client:` to close the client.
+</Tab>
+</Tabs>

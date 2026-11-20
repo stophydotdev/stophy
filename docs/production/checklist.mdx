@@ -1,73 +1,70 @@
 ---
 title: "Production checklist"
-description: "Before you ship with Stophy: keep keys on the server, check each result, set freshness and timeouts, retry only what can help, cap cost and close what you open."
-og:title: "Production checklist | Stophy"
-og:description: "Before you ship with Stophy: keep keys on the server, check each result, set freshness and timeouts, retry only what can help, cap cost and close what you open."
+description: "Before you ship: keep keys on the server, check each result, bound work, retry only what helps, watch spend, close what you open, and check status."
+sidebarTitle: "Checklist"
 ---
 
-Before you raise traffic, test how your app handles a successful call and a failed page read. Test an empty result separately so your app does not treat it as a failure.
+## Keys
 
-## Keep your key on the server
+* Keep the key in a secret manager or an environment variable, never in committed or browser code.
+* Use one key per app or computer so you can revoke one with `DELETE /v1/key`. See [API keys](/account/api-keys).
 
-Keep the key out of your client so a user cannot read it from the app. Store it in a secret manager or an environment variable, never in code you commit or in browser code. Use one key for each app or computer so you can revoke one without breaking the others. Revoke a key you no longer use with `DELETE /v1/key`. See [API keys](/account/api-keys).
+## Results
 
-## Check every result
+* Check `success` before reading `data`. Handle missing optional fields and empty lists. An empty result is not a failure.
+* Keep any `warning` with the result. Do not store partial data as complete. If `isTruncated` is `true`, read on with `nextOffset` where available. See [Content filtering](/scrape/content-filtering).
+* Log `x-cost-usd` and `X-Request-ID` to trace a request and its charge.
+* A scrape can return a stored copy. Send `maxAge: 0` when a result must be a new read. `metadata.cacheState` says which you got. See [Freshness and caching](/scrape/freshness-and-caching).
+* Ask for only the formats you need. Add `?maxTextLength=<characters>` to cut every text value in an answer. Longer text ends with `…`.
 
-Check `success` before reading `data`. Handle both missing optional fields and empty lists. Keep any `warning` with the result, and do not store partial data as complete.
+## Bounds and retries
 
-Log the `x-cost-usd` and `X-Request-ID` headers so you can trace a request and its charge. If `isTruncated` is `true`, use `nextOffset` where available to read on. See [Content filtering](/scrape/content-filtering).
+* Set `timeout`, and a longer client timeout. See [Timeouts](/production/timeouts).
+* Set `limit` on a crawl and a search, and `maxCost` on a browser task.
+* Stay inside your [rate limits](/production/rate-limits). Size workers to `maxConcurrency` from `GET /v1/concurrency-check`.
+* Retry only when `retryable` is `true`, with jitter. See [Troubleshooting](/production/troubleshooting#retry).
+* Poll a crawl, batch or agent run about every 2 seconds. Stop when `status` is `completed`, `failed` or `cancelled`. Read results within 24 hours.
 
-## Set freshness
-
-Decide how old a scrape can be before you use it. A scrape can return a stored copy of a page. Without `maxAge` you get a copy up to 2 days old, or younger for a site whose pages change often. A copy up to twice that age, at most 7 days, comes back at once as stale while a fresh read runs. Send `maxAge: 0` when a result must reflect a new read, and a larger `maxAge`, up to 30 days, for pages that rarely change. `metadata.cacheState` says which one you got. A stored copy costs the same as a live read. See [Freshness and caching](/scrape/freshness-and-caching).
-
-## Bound work, time and retries
-
-Set bounds before you submit work, so one slow site does not keep your workers busy.
-
-* Set a `timeout` and a client timeout that is longer. See [Timeouts](/production/timeouts).
-* Set a `limit` on a crawl and on a search, and a `maxCost` on a browser task.
-* Stay inside your [rate limits](/production/rate-limits). Size your workers to `maxConcurrency` from `GET /v1/concurrency-check`.
-* Retry only when `retryable` is `true`. Wait `retryAfterSeconds`, add jitter, and stop after three tries. See [Troubleshooting](/production/troubleshooting).
-* Poll a crawl, a batch or an agent run about every 2 seconds, and stop when `status` is `completed`, `failed` or `cancelled`. Read the results within 24 hours.
-
-## Watch your balance and spend
-
-Check what a job can spend before it starts, then track what it used.
+## Spend
 
 * Check `GET /v1/limits` before a large job. A call your balance cannot cover fails with `insufficientCredits` and charges nothing.
-* Turn on auto top-up at [stophy.dev/billing](https://stophy.dev/billing) for a job that must not stop. See [Pricing](/account/pricing).
-* Read your spend with `GET /v1/usage/history` and your calls with `GET /v1/logs`. See [Usage](/account/usage) and [Usage and logs](/production/usage-and-logs).
+* Turn on auto top-up for a job that must not stop. See [Pricing](/account/pricing#balance).
+* Read spend with `GET /v1/usage/history` and calls with `GET /v1/logs`. See [Usage and logs](/account/usage).
 
 ## Close what you open
 
-Stop work you no longer need so it does not keep billing.
+* Close each [browser session](/browser/overview) with `DELETE /v1/browser/{id}`. It bills until it closes or its `ttl` ends.
+* Cancel a crawl or batch you no longer need. Pages already read are kept and billed.
+* Pause or delete a [monitor](/monitors/overview) you do not need. It bills on its schedule.
 
-* Close every [browser session](/browser/overview) with `DELETE /v1/browser/{id}`. A session is billed for the time it is open, until it closes or its `ttl` ends.
-* Cancel a crawl or a batch you no longer need. The pages already read are kept and billed.
-* Delete a [monitor](/monitors/overview) you do not need. Each check reads every page and costs what a scrape costs, so a monitor bills on its schedule until you pause or delete it.
-
-## Reduce transfer size
-
-Cut response size if your app only reads part of the page. Ask for just the formats you need. Keep `onlyMainContent` on and use `maxChars` to cut long text. Add `?maxTextLength=<characters>` to the URL to cut every text value in an answer. Longer text ends with `…`.
-
-## Handle sensitive content
+## Sensitive content
 
 Use [zero data retention](/production/zero-data-retention) for calls that must leave nothing behind. Treat page text as data, never as instructions for a model, and scan with `checkPromptInjection` when a model reads it. See [Safety](/scrape/safety) and [Responsible use](/production/responsible-use).
 
-## Watch the service
+## Service status and changes
 
-Call `GET /v1/status` to tell a Stophy-side problem from one with your request. Pin your SDK version and read the [changelog](/changelog) before you update. See [Status](/production/status).
+`GET /v1/status` is free and needs no key. It lists each source with:
 
-## Report problems
+| Field | Meaning |
+| - | - |
+| `state` | `up` when every check passed, `partial` when some failed, `down` when none passed |
+| `passed`, `total` | Checks that passed in the last run, and checks that ran |
+| `failing` | Failed checks as endpoint IDs, such as `ebay.search` |
+| `medianMs` | Median time of the last checks |
+| `lastCheckAt` | When the source was last checked. `updatedAt` at the top is when the list refreshed. |
 
-Save the `X-Request-ID` header of every call you care about. If an answer is wrong, send [feedback](/production/agent-feedback). To reach support, email support@stophy.dev with the `X-Request-ID`.
+```bash
+curl https://api.stophy.dev/v1/status
+```
 
-## Related
+A `partial` or `down` source can make calls fail with `sourceUnavailable`, `sourceRefused`, `sourceTimeout` or `sourceChanged`. See [Errors](/api-reference/errors).
 
-Use these guides to set limits and decide what to retry.
+How the API stays stable:
 
-* [Rate limits](/production/rate-limits)
-* [Timeouts](/production/timeouts)
-* [Troubleshooting](/production/troubleshooting)
-* [Pricing](/account/pricing)
+* One version, `/v1`. An unknown path answers `404` `notFound` and links to the [OpenAPI document](https://api.stophy.dev/openapi.json).
+* Many endpoints reject unknown fields with `400 invalidRequest` and list the fields you can send.
+* Responses can omit `null` and empty values. Handle both missing and empty.
+* When a field is replaced, the older one stays next to the new one, marked as older in the OpenAPI document. `costUsd` replaced `creditsUsed`.
+* The OpenAPI document and `GET /v1/endpoints` are generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
+
+Send `X-Request-ID` with [feedback](/production/agent-feedback) or to support@stophy.dev when an answer is wrong.

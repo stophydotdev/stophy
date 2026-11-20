@@ -1,15 +1,9 @@
 ---
 title: "Search"
-description: "Find web pages, news, images, papers and videos from a query in one request. Add the page text of each result. $1 per 1,000 searches of up to 10 results."
-og:title: "Search | Stophy"
-og:description: "Find web pages, news, images, papers and videos from a query in one request. Add the page text of each result. $1 per 1,000 searches of up to 10 results."
+description: "Find web pages, news, images, papers and videos from a query in one request, and optionally read the page text of each result. Works without an API key."
 ---
 
-Use Search when you have a query instead of a URL. We rank results within each source you ask for. By default you get web results.
-
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. This request searches the web and the news for three results each.
+Use Search when you have a query instead of a URL. You get one ranked list per source, and web results by default.
 
 <CodeGroup>
 ```bash cURL
@@ -51,72 +45,37 @@ for result in data["web"]:
 ```
 </CodeGroup>
 
-You can try Search without an API key, up to 10 calls a minute and 50 calls a day per IP address. Reading the page text of each result needs an API key. See [Rate limits](/production/rate-limits).
+Search works without a key, within the keyless limits in [Rate limits](/production/rate-limits). Reading result pages needs a key. Get one in the [Quickstart](/quickstart).
 
-## Read the response
+## Response
 
-Look in `data` for one list per source. Read `position` for the rank within that source. A news row can have an `imageUrl`.
+`data` holds one list per source, each row ranked by `position`.
 
 ```json
 {
   "success": true,
   "data": {
-    "news": [
-      {
-        "url": "https://bun.com/blog/bun-v1.4.4",
-        "position": 2
-      }
-    ],
-    "web": [
-      {
-        "url": "https://github.com/oven-sh/bun",
-        "position": 1,
-        "category": "github"
-      }
-    ]
+    "news": [{ "url": "https://bun.com/blog/bun-v1.4.4", "position": 2 }],
+    "web": [{ "url": "https://github.com/oven-sh/bun", "position": 1, "category": "github" }]
   }
 }
 ```
 
-A web row has a `url`, a `title` and a `description`. `date` appears when the date of the page is known, and `category` is `github`, `research` or `pdf` when the page is one of those. A news row has a `snippet` instead of a `description`. The `x-cost-usd` header is what the call cost.
+A web row has `url`, `title` and `description`, plus `date` when known and `category` (`github`, `research` or `pdf`) when the page is one of those. A news row has `snippet` instead of `description`, and may have `imageUrl`.
 
-If a source answers with fewer results than you asked for, or fails while the others work, the call still succeeds and `warning` says which. If every source fails, the call fails and costs nothing.
+If a source fails or returns fewer rows than you asked for, the call still succeeds and `warning` names the source. If every source fails, the call fails. The `x-cost-usd` header is what the call cost. See [Pricing](/account/pricing).
 
-## Options
+## Fields
 
-Choose sources for the kind of result you want. Add filters if you need a smaller set, or add page content if snippets are not enough.
-
-| Option | What you get | Guide |
+| Field | Default | Effect |
 | - | - | - |
-| `sources`, `categories` | Web, news and image results, and lists of papers, PDFs and YouTube videos | [Sources](/search/sources) |
-| `includeDomains`, `excludeDomains`, `tbs`, `location`, `country`, `lang`, `safe` | Results narrowed by site, time, place, language or safety | [Filters](/search/filters) |
-| `scrapeOptions`, `highlights` | The page text or the best passages of each result | [Page content](/search/page-content) |
-| `POST /v1/search/developer` | Code docs, READMEs, issues, pull requests and releases | [Developer search](/search/developer) |
-| `POST /v1/search/research/papers` | Research papers by title and abstract, one paper by id, and similar papers | [Papers](/search/papers) |
+| `query` | required | 1 to 500 characters. Web results take `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Images take `imagesize:WIDTHxHEIGHT` and `larger:WIDTHxHEIGHT`. |
+| `sources`, `categories` | `["web"]` | What to return. See [Options](/search/options#sources). |
+| `includeDomains`, `excludeDomains`, `tbs`, `location`, `country`, `lang`, `safe` | none | Narrow by site, time, place or language. See [Options](/search/options#filters). |
+| `scrapeOptions`, `scrapeLimit`, `highlights` | none | Read each result page, or only matching passages. See [Options](/search/options#page-content). |
+| `limit` | 10, or 5 with `scrapeOptions.formats` | Most results per source, 1 to 100. News returns at most 50. |
+| `maxAge` | 1 hour, 15 minutes for news | Accept a stored answer up to this many milliseconds old, at most 30 days. `0` searches live. A stored answer has `cachedAt`. |
+| `timeout` | 3,000 ms, 60,000 ms with `scrapeOptions.formats` | Milliseconds to wait for sources, 1,000 to 120,000. A source that has not answered is left out with a `warning`. |
+| `ignoreInvalidURLs` | `false` | Leave out results whose address is not a readable page. |
 
-Set these fields to control the size, age and wait time of a search.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `query` | `string` | none | What to search for, 1 to 500 characters. Required. Web results take the operators `"exact phrase"`, `-word`, `site:`, `-site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:` and `allintitle:`. Image results take `imagesize:WIDTHxHEIGHT` for exactly that size, and `larger:WIDTHxHEIGHT` for at least that size. |
-| `limit` | `number` | 10, or 5 with `scrapeOptions.formats` | The most results from each source, 1 to 100. News returns at most 50. |
-| `scrapeLimit` | `number` | `limit` | With `scrapeOptions.formats`, read only the top this many web results and the top this many news results. The rest come back without page text. Not more than `limit`. See [Page content](/search/page-content). |
-| `maxAge` | `number` | 1 hour, or 15 minutes with `news` | Accept a stored answer up to this many milliseconds old, at most 30 days. `0` always searches live. An answer that was stored has `cachedAt`. |
-| `timeout` | `number` | 3,000 ms, or 60,000 ms with `scrapeOptions.formats` | Milliseconds to wait for the sources, from 1,000 to 120,000. A source that has not answered is left out with a warning. |
-| `ignoreInvalidURLs` | `boolean` | `false` | Leave out results whose address cannot be read as a page. |
-
-The full field list is in the [API reference](/api-reference/endpoint/search).
-
-## Price
-
-$1 per 1,000 searches of up to 10 results: $0.001 for each 10 results from each source, and for each list of papers or videos. A search that returns nothing costs nothing. Page text adds $1 per 1,000 results read, and `summary` or `json` with a schema or a prompt add $3 per 1,000 more each. See [Pricing](/account/pricing).
-
-## Choose another API
-
-Use a different call if you already have a URL or need fields rather than ranked results.
-
-- [Scrape](/scrape/overview) reads one page you already know.
-- [Extract](/extract/overview) pulls the fields you name from pages, each checked against the page.
-- [Agent](/agent/overview) searches and reads for you until your fields are filled.
-- [Crawl](/crawl/overview) reads every page of a site in the background.
-- [Map](/map/overview) lists the pages of a site without reading them.
+Two more endpoints search one kind of content: [Papers](/search/papers) and [Developer search](/search/developer). The full field list is in the [API reference](/api-reference/endpoint/search).
