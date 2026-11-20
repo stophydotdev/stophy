@@ -1,127 +1,57 @@
 ---
 title: "PDFs and documents"
-description: "Scrape a PDF, Word, PowerPoint, Excel or CSV file from a public URL and get Markdown. Pick the pages, read scanned pages, and keep page markers."
-og:title: "PDFs and documents | Stophy"
-og:description: "Scrape a PDF, Word, PowerPoint, Excel or CSV file from a public URL and get Markdown. Pick the pages, read scanned pages, and keep page markers."
+description: "Scrape a PDF, Word, PowerPoint, Excel or CSV file from a public URL and get Markdown. Pick the pages, read scanned pages and keep page markers."
 ---
 
-Use Scrape to read a document at a public URL as Markdown. To read a file from your own disk, use [Parse documents](/parse/overview).
+Scrape reads a document at a public URL as Markdown. For a file on your own disk, use [Parse documents](/parse/overview). This request reads the first two pages of a paper and marks where each page starts:
 
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart). This request reads the first two pages of a research paper and marks where each page starts.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://arxiv.org/pdf/1706.03762",
-    "parsers": [
-      { "type": "pdf", "maxPages": 2, "pageMarkers": true }
-    ]
+    "parsers": [{ "type": "pdf", "maxPages": 2, "pageMarkers": true }]
   }'
 ```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/scrape", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://arxiv.org/pdf/1706.03762",
-    parsers: [{ type: "pdf", maxPages: 2, pageMarkers: true }],
-  }),
-});
-const { data } = await response.json();
-console.log(data.metadata.numPages);
-console.log(data.markdown);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/scrape",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://arxiv.org/pdf/1706.03762",
-        "parsers": [{"type": "pdf", "maxPages": 2, "pageMarkers": True}],
-    },
-)
-data = response.json()["data"]
-print(data["metadata"]["numPages"])
-print(data["markdown"])
-```
-</CodeGroup>
-
-## Read the response
-
-Read `data.markdown` for the text. With `pageMarkers`, page 2 starts after a `---` line and a `<!-- page 2 -->` marker.
 
 ```json
 {
   "success": true,
   "data": {
-    "markdown": "…# Attention Is All You Need\n…\n\n---\n\n<!-- page 2 -->\n\n## 1 Introduction\n\nRecurrent neural networks, long short-term memory [13] and gated recurrent …",
-    "warning": "The page text was cut short.",
+    "markdown": "…# Attention Is All You Need\n…\n\n---\n\n<!-- page 2 -->\n\n## 1 Introduction\n\n…",
     "metadata": {
       "contentType": "application/pdf",
-      "totalPages": 15,
-      "costUsd": 0.002
+      "totalPages": 15
     }
   }
 }
 ```
 
-`contentType` says what the file is. `totalPages` is the pages in the file, and `ocrPages` appears when some pages were read from their picture. A PDF always comes back as Markdown.
+Use `"pdf"` in `parsers` for the defaults, or send an object:
 
-## Options
+| Field | Default | Effect |
+| - | - | - |
+| `type` | none | `"pdf"`. Required in the object form. |
+| `mode` | `auto` | `fast` reads the text layer only. `auto` reads the text layer and the picture of any page that has none. `ocr` reads the picture of every page. |
+| `maxPages` | `500` | Read at most this many pages, 1 to 500. |
+| `pages` | `false` | Also return each page as `{ pageNumber, markdown }` in `pages`. |
+| `blocks` | `false` | Also return the layout in `blocks`: each title, section header or run of text, with its page, reading order, position (`bbox` as left, top, right, bottom, 0 to 1) and where its text sits in that page's Markdown (`span`). Tables, figures and formulas are not told apart. |
+| `pageMarkers` | `false` | Join pages with `---` and a `<!-- page N -->` line, where `N` is the page that follows. |
 
-Use `"pdf"` in `parsers` for the defaults, or send an object to limit pages or return their layout.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `type` | `string` | none | `"pdf"`. Required in the object form. |
-| `mode` | `string` | `"auto"` | `fast` reads the text layer only. `auto` reads the text layer, and reads the picture of any page that has none. `ocr` reads the picture of every page. |
-| `maxPages` | `number` | `500` | Read at most this many pages, 1 to 500. |
-| `pages` | `boolean` | `false` | Also return each page's Markdown in `pages`, as `{ pageNumber, markdown }`. |
-| `blocks` | `boolean` | `false` | Also return the layout in `blocks`: each title, section header or run of text, with its page, reading order, position on the page (`bbox` as left, top, right, bottom from 0 to 1) and where its text sits in that page's Markdown (`span`). Tables, figures and formulas are not told apart. |
-| `pageMarkers` | `boolean` | `false` | Join pages with `---` and a `<!-- page N -->` line, where `N` is the page that follows. |
-
-Stophy reads the picture of at most 20 pages per call, in `auto` or `ocr` mode. Without an API key, only the text layer is read.
+`metadata` also has `totalPages` (pages in the file) and `ocrPages` (pages read from their picture). See [Page metadata](/scrape/page-metadata).
 
 ## Other documents
 
-For a spreadsheet or a slide deck, send the public URL without a PDF parser.
+Send the public URL without a PDF parser.
 
-- A CSV file comes back as a Markdown table, and so does each sheet of an Excel `.xlsx` file. The first row becomes the table header.
-- A Word `.docx` or PowerPoint `.pptx` file comes back as Markdown text.
+- A CSV file comes back as a Markdown table, and so does each sheet of an `.xlsx` file. The first row becomes the table header.
+- A `.docx` or `.pptx` file comes back as Markdown text.
 - The older `.doc`, `.xls` and `.ppt` formats cannot be read.
-
-For example, the first line of NASA's temperature CSV is a title, so the title becomes the table header. If you set `"maxChars": 500` and get `nextOffset`, send that value as `offset` to keep reading.
 
 ## Limits and errors
 
-Check the file type and size if Scrape cannot open the document.
-
-- A file larger than 20 MB, or one that is too large once unpacked, returns `400 invalidRequest` and says so.
-- A password-protected file, a file that cannot be opened, and a URL that is an image or another download return `400 invalidRequest` and name the problem.
-- A PDF that takes too long to read returns `400 invalidRequest` and suggests a smaller `maxPages`.
-- Combine `maxChars` and `offset` to read a long document part by part. See [Content filtering](/scrape/content-filtering).
-
-## Price
-
-$1 per 1,000 pages for the read, plus $0.50 per 1,000 pages of PDF text from its text layer and $2.50 per 1,000 pages of text read from its picture, that come back. The example above read 2 pages of a PDF from their text layer and cost $0.002. A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that it returns, at least 1 page. A file that cannot be read costs nothing.
-
-## Related
-
-Use these guides to upload a file instead or read a long document in parts.
-
-- [Parse documents](/parse/overview) turns a file you upload into Markdown.
-- [Content filtering](/scrape/content-filtering) cuts a long document into parts.
-- [Page metadata](/scrape/page-metadata) explains `numPages`, `totalPages` and `ocrPages`.
-- [Scrape overview](/scrape/overview) lists every format and option.
+- The picture of at most 20 pages is read per call, in `auto` or `ocr` mode. Without an API key, only the text layer is read.
+- A file larger than 20 MB, or too large once unpacked, returns `400 invalidRequest`. So do a password protected file, a file that cannot be opened, a URL that is an image or another download, and a PDF that takes too long to read, which suggests a smaller `maxPages`.
+- Read a long document in parts with `maxChars` and `offset`. See [Content filtering](/scrape/content-filtering).
+- A PDF read with `maxChars`, `offset` or `query` is charged for the share of its pages that comes back. A file that cannot be read costs nothing. See [Pricing](/account/pricing).

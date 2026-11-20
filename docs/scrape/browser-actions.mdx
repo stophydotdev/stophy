@@ -1,18 +1,13 @@
 ---
 title: "Browser actions"
-description: "Click, type, scroll, wait and capture on a page before it is read. Send up to 50 steps in actions. They cost nothing on top of the page."
-og:title: "Browser actions | Stophy"
-og:description: "Click, type, scroll, wait and capture on a page before it is read. Send up to 50 steps in actions. They cost nothing on top of the page."
+description: "Run ordered steps such as click, scroll, type or screenshot on a page before Scrape reads it. Capture mid flow results and handle a step that fails."
 ---
 
-Use `actions` when the page needs a click, a scroll or another step before Scrape reads it. We run the steps in order. Use them to load more results, open a tab, fill a search box, or capture a screenshot at the right moment. Actions need an API key.
+`actions` runs up to 50 steps in order before the page is read. Use it to load more results, open a tab, fill a search box or capture the page at the right moment. It needs an API key. Without one the call returns `401 apiKeyRequired`.
 
-## Make a request
+This request scrolls, clicks "More", waits a second, takes a screenshot, then reads the page it ends on:
 
-Get an API key in the [Quickstart](/quickstart). This request scrolls a news front page, clicks its "More" link, waits a second, takes a screenshot, and then reads the page it ends on.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
@@ -27,56 +22,15 @@ curl -X POST https://api.stophy.dev/v1/scrape \
     ]
   }'
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
 
-const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://news.ycombinator.com",
-  formats: ["markdown", "links"],
-  actions: [
-    { type: "scroll", direction: "down", amount: "viewport" },
-    { type: "click", selector: "a.morelink" },
-    { type: "wait", milliseconds: 1000 },
-    { type: "screenshot" },
-  ],
-});
-console.log(data.metadata.url);
-console.log(data.actions?.screenshots?.[0]);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-data = stophy.scrape(
-    url="https://news.ycombinator.com",
-    formats=["markdown", "links"],
-    actions=[
-        {"type": "scroll", "direction": "down", "amount": "viewport"},
-        {"type": "click", "selector": "a.morelink"},
-        {"type": "wait", "milliseconds": 1000},
-        {"type": "screenshot"},
-    ],
-)["data"]
-print(data["metadata"]["url"])
-print(data["actions"]["screenshots"][0])
-```
-</CodeGroup>
-
-## Read the response
-
-Read the requested formats for the page after the last action. Look under `data.actions` for captures taken in the middle. For this request, read `actions.screenshots[0]` for the image.
+The formats describe the page after the last step. Captures from the middle come back under `data.actions`, in the order the steps ran. `metadata.sourceURL` is the URL you sent and `metadata.url` is where the page ended up.
 
 ```json
 {
   "success": true,
   "data": {
     "actions": {
-      "screenshots": [
-        "https://stophy.agentfsusercontent.com/screenshots/48b7bf25-92a3-42ce-9fe5-2dbe858fb872.jpg"
-      ],
+      "screenshots": ["https://stophy.agentfsusercontent.com/screenshots/48b7bf25-92a3-42ce-9fe5-2dbe858fb872.jpg"],
       "scrapes": [],
       "javascriptReturns": [],
       "pdfs": []
@@ -89,61 +43,26 @@ Read the requested formats for the page after the last action. Look under `data.
 }
 ```
 
-`metadata.sourceURL` is the URL you sent. `metadata.url` is where the page ended up, here the second page of results. Each screenshot is a link that works for 7 days.
+## Steps
 
-## Action types
-
-Pick the action that changes the page or captures it at the point you need.
-
-| Type | Fields | What it does |
+| `type` | Fields | What it does |
 | - | - | - |
-| `wait` | `milliseconds`: 1 to 60,000 | Pauses. |
-| `wait` | `selector`: a CSS selector | Waits until an element matching the selector appears, for up to 30 seconds. |
-| `click` | `selector`: a CSS selector | Clicks the first match. It looks for the element for up to 5 seconds. `all` is accepted only as `false`. |
-| `write` | `text`: the text to type | Types the text. |
-| `press` | `key`: up to 40 characters, such as `Enter` | Presses a key. |
-| `scroll` | `direction`: `down` (default), `up`, `left` or `right`. `amount`: pixels from 1 to 100,000, `"viewport"` or `"max"`. `maxScrolls`: 1 to 50. `selector`: an inner scroll container. | Scrolls. `"max"` keeps scrolling until the page stops growing, for feeds that load as you go. |
-| `screenshot` | `fullPage`: boolean. `quality`: 1 to 100. `viewport`: `{ width, height }`, 200 to 3,840 by 200 to 2,160. | Takes a JPEG. The link comes back in `actions.screenshots`. |
-| `scrape` | none | Captures the page at this point. The URL and HTML come back in `actions.scrapes`. |
-| `executeJavascript` | `script`: up to 20,000 characters | Runs the script on the page for up to 5 seconds. What it returns comes back in `actions.javascriptReturns` as `{ type, value }`. |
-| `pdf` | `format`: `Letter`, `Legal`, `Tabloid`, `Ledger` or `A0` to `A6`. <code>landscap&#101;</code>: boolean. `scale`: 0.1 to 2. | Prints the page to a PDF. The link comes back in `actions.pdfs`. |
-| `perform` | `action`: a step in plain words, 1 to 500 characters | A step such as `Click the Load more button`. It can take up to 5 browser steps on the page, up to 30 seconds, and never leaves the site. |
+| `wait` | `milliseconds`, 1 to 60,000 | Pauses. |
+| `wait` | `selector` | Waits up to 30 seconds for a matching element. |
+| `click` | `selector` | Clicks the first match, looking for it for up to 5 seconds. `all` is accepted only as `false`. |
+| `write` | `text` | Types the text. |
+| `press` | `key`, up to 40 characters, such as `Enter` | Presses a key. |
+| `scroll` | `direction`: `down` (default), `up`, `left`, `right`. `amount`: 1 to 100,000 pixels, `"viewport"` or `"max"`. `maxScrolls`: 1 to 50. `selector`: an inner container. | Scrolls. `"max"` keeps going until the page stops growing. |
+| `screenshot` | `fullPage`, `quality` 1 to 100, `viewport` `{ width, height }` | Takes a JPEG. The link comes back in `actions.screenshots` and works for 7 days. |
+| `scrape` | none | Captures the page here. URL and HTML come back in `actions.scrapes`. |
+| `executeJavascript` | `script`, up to 20,000 characters | Runs for up to 5 seconds. The result comes back in `actions.javascriptReturns` as `{ type, value }`. |
+| `pdf` | `format`: `Letter`, `Legal`, `Tabloid`, `Ledger` or `A0` to `A6`. `landscape`. `scale`: 0.1 to 2. | Prints the page. The link comes back in `actions.pdfs`. |
+| `perform` | `action`: a step in plain words, 1 to 500 characters | Does something like `Click the Load more button` in up to 5 browser steps, up to 30 seconds, and never leaves the site. At most 5 per call. |
 
-Captures come back in the order the steps ran.
+## Failures and limits
 
-## A failed action
-
-When a step fails, you still get the page as it stood, and the actions after the failed one do not run. The response has a `warning` that names the step and says why. The call is still billed as one page. For example, a step with `"selector": "button.does-not-exist"` gives a warning that nothing matched the selector. A capture you did not ask for has an empty list in `actions` when that object is returned.
-
-Always read `warning` when you send actions. To work out which selector to use, open the page in a [browser session](/scrape/interact) and try it there.
-
-## Options
-
-Put the ordered steps in `actions`, next to `url`.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `actions` | `array of object` | none | 1 to 50 steps, run in order before the page is read. At most 5 can be `perform`. |
-
-## Limits and errors
-
-Check the action limits before adding a long wait or a file capture.
-
-- Actions need an API key. Without one, the call returns `401 apiKeyRequired`.
+- When a step fails, the later steps do not run. You still get the page as it stood, with a `warning` that names the step and says why. Always read `warning` when you send actions. To find the right selector, try it in an [Interact](/scrape/interact) session.
 - A step that does not fit the table returns `400 invalidRequest` and names the step.
-- With `zeroDataRetention`, `screenshot` and `pdf` steps return `400 invalidRequest`, because they are kept as files.
-- A read with actions is always live. It is never answered from a stored copy.
-- Waits count toward the call's `timeout`. See [Timeouts and errors](/scrape/timeouts-and-errors).
-
-## Price
-
-$1 per 1,000 pages. The actions add nothing, and neither do their screenshots, captures and PDFs.
-
-## Related
-
-Use these guides if you only need a wait or want to keep using the browser after the call.
-
-- [Interact](/scrape/interact) keeps working on a scraped page after the call.
-- [Waiting and rendering](/scrape/waiting-and-rendering) sets a plain wait without any step.
-- [Screenshot](/scrape/screenshot) takes one picture of the page without actions.
-- [Scrape overview](/scrape/overview) lists every format and option.
+- `screenshot` and `pdf` steps with `zeroDataRetention` return `400 invalidRequest`, because they are kept as files.
+- A read with actions is always live. Waits count toward `timeout`.
+- The actions add no fee. See [Pricing](/account/pricing).

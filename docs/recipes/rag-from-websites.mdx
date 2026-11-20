@@ -1,81 +1,54 @@
 ---
 title: "RAG from websites"
-description: "Crawl a docs section, split each page into chunks that keep their source URL and heading, and load them into a search index. 3 pages cost $0.003."
-og:title: "RAG from websites | Stophy"
-og:description: "Crawl a docs section, split each page into chunks that keep their source URL and heading, and load them into a search index. 3 pages cost $0.003."
+description: "Crawl a docs section, split each page into chunks that keep their source URL and heading, and load them into a search index you can cite from."
 ---
 
-Build a search index from a docs section without losing where each passage came from. Crawl the section, split pages at headings and keep the URL on each chunk so your app can link to the source.
+Crawl a section, split pages at headings and keep the URL on every chunk so your app can link to the source. You need `STOPHY_API_KEY`. See the [Quickstart](/quickstart).
 
-You need an API key in `STOPHY_API_KEY`. See the [Quickstart](/quickstart). The TypeScript and Python examples use the SDK: `npm install stophy` or `pip install stophy`. The run on this page read 3 pages and cost $0.003.
+## 1. Crawl and read the section
 
-## 1. Crawl the section
-
-Start with the URL of the section you want to index. Crawl follows links from that page and reads what it finds within your limit. Starting is free, and each page is charged when it finishes. This request stops after 3 pages, which is enough to build and check the pipeline. Raise `limit` for the whole section.
+Crawl follows links from the start URL and reads what it finds within `limit`. This request stops after 3 pages, enough to build the pipeline. Raise `limit` for the whole section. The `crawlResults` helper polls until the crawl ends and yields each page as it finishes.
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/crawl \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://bun.com/docs/runtime",
-    "limit": 3
-  }'
+  -d '{ "url": "https://bun.com/docs/runtime", "limit": 3 }'
 ```
 ```typescript TypeScript
 import { Stophy } from "stophy";
+import { chunkPage } from "./chunk";
 
 const stophy = new Stophy();
 
-const { id } = await stophy.crawl({
-  url: "https://bun.com/docs/runtime",
-  limit: 3,
-});
-console.log(id);
+const { id } = await stophy.crawl({ url: "https://bun.com/docs/runtime", limit: 3 });
+if (!id) throw new Error("The crawl did not start.");
+for await (const page of stophy.crawlResults(id)) {
+  const chunks = chunkPage({
+    url: page.metadata?.sourceURL ?? "",
+    title: page.metadata?.title ?? "",
+    markdown: page.markdown ?? "",
+  });
+  console.log(chunks.length);
+}
 ```
 ```python Python
 from stophy import Stophy
 
 stophy = Stophy()
 
-result = stophy.crawl(
-    url="https://bun.com/docs/runtime",
-    limit=3,
-)
-print(result["id"])
+job = stophy.crawl(url="https://bun.com/docs/runtime", limit=3)
+for page in stophy.crawl_results(job["id"]):
+    print(page["metadata"]["sourceURL"], len(page["markdown"]))
 ```
 </CodeGroup>
 
-Save the `id` from the start response. Its `url` points to the status call. Starting a crawl costs $0.
+With cURL, poll `GET /v1/crawl/{id}` and follow `next`. See [Read a crawl](/crawl/async). Pages are kept for 24 hours. `errors` lists pages that failed. To keep a crawl to one part of a site, use `includePaths` and `excludePaths`. See [Scope and limits](/crawl/overview#scope).
 
-To keep a crawl to one part of a site, set `includePaths` and `excludePaths`. See [Scope and limits](/crawl/scope). To read only chosen pages, list them with [Map](/map/overview) and send the ones you want to a [batch](/batches/overview).
+## 2. Cut each page into chunks
 
-## 2. Read every page
-
-Wait until the crawl has finished before fetching all its pages. Poll `GET /v1/crawl/{id}` until `status` is `completed`. Then read the pages with `GET /v1/crawl/{id}/results`, up to 100 at a time, and send `cursor` from `data.cursor` until it is missing. Both calls are free, and the pages are kept for 24 hours. See [Read a crawl](/crawl/async).
-
-Each result has the page's `markdown`, its `url`, its `title` and its `depth`. This example shows one page from a three-page crawl. Check `failed` and `errors` before indexing; if there are no pages to index, `results` is empty.
-
-```json
-{
-  "success": true,
-  "data": {
-    "results": [
-      {
-        "markdown": "# Bun Runtime\n\n> Execute JavaScript/TypeScript files, package.json scripts, and …",
-        "url": "https://bun.com/docs/runtime",
-        "title": "Bun Runtime",
-        "depth": 0
-      }
-    ]
-  }
-}
-```
-
-## 3. Cut each page into chunks
-
-Split at headings, and keep a fenced code block whole, so a shell comment that starts with `#` is not read as a heading. Pack paragraphs into chunks of about 1,200 characters. Every chunk keeps the `url`, the page `title` and the `heading` it sits under. Save this file as `chunk.ts`.
+Split at headings and keep fenced code whole, so a shell comment that starts with `#` is not read as a heading. A chunk ends at the first blank line after about 1,200 characters, so a chunk can run longer. Every chunk keeps the `url`, page `title` and `heading`. Save this as `chunk.ts`.
 
 ````typescript
 export interface Page {
@@ -97,75 +70,46 @@ const MAX_CHARS = 1200;
 export function chunkPage({ url, title, markdown }: Page): Chunk[] {
   const chunks: Chunk[] = [];
   let heading = title;
-  let blocks: string[] = [];
-  let block: string[] = [];
+  let text = "";
   let inFence = false;
 
-  const endBlock = () => {
-    if (block.length > 0) blocks.push(block.join("\n"));
-    block = [];
-  };
-  const endSection = () => {
-    endBlock();
-    let text = "";
-    for (const piece of blocks) {
-      if (text !== "" && text.length + piece.length > MAX_CHARS) {
-        chunks.push({ id: `${url}#${chunks.length}`, url, title, heading, text });
-        text = "";
-      }
-      text = text === "" ? piece : `${text}\n\n${piece}`;
+  const flush = () => {
+    if (text.trim() !== "") {
+      chunks.push({ id: `${url}#${chunks.length}`, url, title, heading, text: text.trim() });
     }
-    if (text !== "") chunks.push({ id: `${url}#${chunks.length}`, url, title, heading, text });
-    blocks = [];
+    text = "";
   };
 
   for (const line of markdown.split("\n")) {
     if (line.startsWith("```")) inFence = !inFence;
     if (!inFence && /^#{1,3} /.test(line)) {
-      endSection();
+      flush();
       heading = line.replace(/^#+ /, "");
-    } else if (!inFence && line.trim() === "") {
-      endBlock();
+    } else if (!inFence && line === "" && text.length >= MAX_CHARS) {
+      flush();
     } else {
-      block.push(line);
+      text += `${line}\n`;
     }
   }
-  endSection();
+  flush();
   return chunks;
 }
 ````
 
-Pass every row in `data.results` to `chunkPage`. Keep each chunk's `id`, `url`, `title`, `heading` and `text`. Repeat for each page of results, using the same `limit` with the next `cursor`. The three example pages produced 61 chunks. The longest was 1,483 characters because the chunker keeps code blocks whole.
+## 3. Index with the source
 
-## 4. Index with the source
+Embed `text` with your model and store the whole chunk next to the vector. The `id` is the page URL plus the chunk number. When you crawl a page again, delete the chunks with its `url` first, so none stay behind. When retrieval returns a chunk, show `title`, `heading` and a link to `url`, and put the `url` in the prompt so the model cites it.
 
-Keep the source alongside every embedding so a retrieved passage can be cited. Embed `text` with your model and store the whole chunk next to the vector: `id`, `url`, `title`, `heading` and `text`. The `id` is the page URL and the chunk number. When you crawl a page again, delete the chunks with that `url` first, then add the new ones, so no old chunk stays behind.
+## 4. Keep it fresh
 
-When your retrieval returns a chunk, show `title`, `heading` and a link to `url`. Put the `url` in the prompt too, and tell the model to cite it.
+Crawl again to rebuild the index. To re-read only what changed, create a [monitor](/monitors/targets#crawl-targets) with a `crawl` target on the same section. It sends a `monitor.page` event for each page that changed or appeared. Read those pages with [Scrape](/scrape/overview) and replace their chunks.
 
-## 5. Keep it fresh
+## Check it
 
-Crawl again when you want to rebuild the whole index. To re-read only what changed, create a [monitor](/monitors/targets#crawl-targets) with a `crawl` target on the same section. It sends a `monitor.page` event for each page that changed or appeared. Read those pages again with [Scrape](/scrape/overview) and replace their chunks.
-
-## What to check
-
-Check the crawl and the chunks before sending them to the index.
-
-- The crawl's `completed` equals its `total`, and `errors` is empty. Pages that failed are listed in `GET /v1/crawl/{id}/errors`.
-- Every chunk has a `url` under your start page.
-- The chunk count per page is plausible. A page with 1 chunk and 20,000 characters means the headings were not split.
-- Pick three chunks, open their `url` and find the text. If you cannot, fix the chunker before you embed.
+- The crawl's `completed` equals its `total`, and `errors` is empty.
+- Every chunk's `url` is under your start page.
+- A page with 1 chunk and 20,000 characters means the headings were not split.
+- Open the `url` of three chunks and find the text. If you cannot, fix the chunker before you embed.
 - Ask three questions you know the answer to. The right page should come back in the top results.
 
-## What it costs
-
-Crawl costs $1 per 1,000 pages, which is $0.001 a page. A 100-page section costs $0.10, and a 1,000-page section costs $1. Reading the results costs nothing, and neither does a page that fails. A monitor on the same section costs the same per page, on every check. See [Pricing](/account/pricing).
-
-## Related
-
-Use the crawl guides if you need narrower scope or different page text.
-
-- [Crawl](/crawl/overview) explains the start options.
-- [Page content](/crawl/page-content) sets what each page returns, such as `onlyMainContent`.
-- [Website change digest](/recipes/website-change-digest) turns page changes into a summary.
-- [Parse documents](/parse/overview) turns your own PDFs into Markdown for the same pipeline.
+See [Pricing](/account/pricing) for crawl and monitor costs. See [Page content](/crawl/overview#page-content) for what each page returns.

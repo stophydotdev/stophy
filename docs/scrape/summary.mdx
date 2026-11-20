@@ -1,93 +1,49 @@
 ---
-title: "Summary"
-description: "Get a short summary of any page in one request. It reads the first 50,000 characters and adds $3 per 1,000 pages to the $1 page price."
-og:title: "Summary | Stophy"
-og:description: "Get a short summary of any page in one request. It reads the first 50,000 characters and adds $3 per 1,000 pages to the $1 page price."
+title: "Summary, highlights and question"
+sidebarTitle: "Summary and answers"
+description: "Get a summary, the passages that match a query, or one answer from a page instead of all its text. Each is a scrape format with its own limits."
 ---
 
-Use `summary` to get the main points of a page without returning all its text. For a specific question, use [Question](/scrape/question).
+Use these three formats when you need less than the full text. They read the page's Markdown after [content filtering](/scrape/content-filtering), and with `redactPII` they read the redacted text. This request asks for all three:
 
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart). This request summarizes a documentation page.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://bun.com/docs/runtime/bunfig",
-    "formats": ["summary"]
+    "formats": [
+      "summary",
+      { "type": "highlights", "query": "global config file location", "count": 3 },
+      { "type": "question", "question": "What is the name of the configuration file?" }
+    ]
   }'
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://bun.com/docs/runtime/bunfig",
-  formats: ["summary"],
-});
-console.log(data.summary);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-data = stophy.scrape(
-    url="https://bun.com/docs/runtime/bunfig",
-    formats=["summary"],
-)["data"]
-print(data["summary"])
-```
-</CodeGroup>
-
-## Read the response
-
-Read `data.summary` as a string. Check `data.metadata.costUsd` for the price of the page and the summary together.
 
 ```json
 {
   "success": true,
   "data": {
-    "summary": "bunfig.toml is Bun's optional configuration file for Bun-specific settings, placed in the project root, with a global version also readable by package manager commands. …",
-    "metadata": {
-      "costUsd": 0.004
-    }
+    "summary": "The page documents Bun's optional bunfig.toml file, which configures runtime, testing and package manager behavior. …",
+    "highlights": "Set it in the global `.bunfig.toml` (see Global vs. local) or in a file passed with `--config`. …\n\nWhen `XDG_CONFIG_HOME` is set to an absolute path, Bun reads the file there. …",
+    "answer": "bunfig.toml"
   }
 }
 ```
 
-## Options
+| Format | Field in `data` | Send |
+| - | - | - |
+| `summary` | `summary`, a string | `"summary"` |
+| `highlights` | `highlights`, one Markdown string with passages separated by a blank line | `type`, `query` (1 to 10,000 characters, required), `count` (1 to 20, default `5`, best first) |
+| `question` | `answer`, one to four sentences | `type`, `question` (1 to 10,000 characters, required) |
 
-Ask for `summary` alone, or add `markdown` if you also need the source text.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `formats` | `array` | `["markdown"]` | Add `"summary"` to return a short summary of the page. |
-
-`onlyMainContent`, `onlyCleanContent`, `includeTags` and `excludeTags` decide which text is summarized. See [Content filtering](/scrape/content-filtering). With `redactPII`, the summary is made from the redacted text. See [Safety](/scrape/safety).
-
-## Limits and errors
-
-A summary of a long page covers its beginning, not what comes after the character limit.
-
-- The summary is made from the first 50,000 characters of the page's Markdown. A longer page is summarized from its start.
-- When no summary can be made, the call returns `503 sourceUnavailable` and costs nothing. Try again after a few seconds.
+- `summary` and `question` read the first 50,000 characters of the Markdown. `summary` of a longer page covers its start.
+- `highlights` with no matching text returns `""`. A `highlights` or `question` object without its `query` or `question` returns `400 invalidRequest`.
+- When the page does not state an answer, `answer` is left out of `data` and `data.warning` says `The page does not state an answer to the question.` Check that `answer` is there before you use it.
+- When no summary can be made, the call returns `503 sourceUnavailable`. Retry after a few seconds.
+- Each `question` request answers one question. To ask several, send several requests or use [JSON](/scrape/json) with one field per question.
+- The `query` inside a `highlights` object is not the top-level `query` field, which shortens the Markdown of a long page. `question` takes its text from the format object only.
 - A PDF can be summarized.
 
-## Price
+A fee applies to each of these when it returns something, and not when it comes back empty or fails. See [Pricing](/account/pricing).
 
-$4 per 1,000 pages: $1 for the page and $3 for the summary. If you ask for `markdown` too, it adds nothing.
-
-## Related
-
-Use these formats when you need a passage, an answer or all the text.
-
-- [Highlights](/scrape/highlights) returns the passages that match a query instead of a summary.
-- [Question](/scrape/question) answers one question about the page.
-- [JSON](/scrape/json) fills the fields you describe.
-- [Markdown](/scrape/markdown) returns the full text.
+For fields your code reads by name, use [JSON](/scrape/json). To pull fields from many pages and check each against its page, use [Extract](/extract/overview).

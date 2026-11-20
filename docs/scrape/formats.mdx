@@ -1,0 +1,77 @@
+---
+title: "Scrape formats"
+sidebarTitle: "Formats"
+description: "Choose between markdown, html, links, images, raw bytes, a screenshot, network responses, branding and YouTube audio or video in one scrape call."
+---
+
+Ask for several formats in one call: `"formats": ["markdown", "links", { "type": "screenshot", "fullPage": true }]`. Each format comes back under its own name in `data`. A PDF comes back as Markdown only, and `html`, `links`, `images`, `screenshot`, `network` and `branding` on a PDF return `400 invalidRequest`. See [PDFs and documents](/scrape/pdfs-and-documents).
+
+## Markdown
+
+`markdown` is the default. Read `data.markdown` for text with headings, lists, tables, links and code blocks intact. It holds the main content only. See [Content filtering](/scrape/content-filtering) to change that.
+
+A CSV or `.xlsx` file comes back as Markdown tables. A YouTube link returns the video's title, channel, date, length, views, likes and description.
+
+## HTML
+
+`html` is the cleaned page: no `head`, no styles, and the main content only. `rawHtml` is the page as the site sent it. Both are strings. `"removeBase64Images": false` keeps images that carry their data in the URL (`data:image`) in `html`.
+
+## Links and images
+
+`links` returns every link on the page as an absolute URL in page order, from the whole page including menus and footers. `images` returns the `src` of every `img` tag, made absolute, once each, `http` and `https` only. It leaves out CSS images and `data:image` images. A page with no images returns `[]`. Use [Map](/map/overview) to list the pages of a site.
+
+## Raw bytes
+
+`rawBase64` returns the bytes the site sent as a Base64 string, with no `data:` prefix. `data.metadata.contentType` says what they are. The read is always live.
+
+## Screenshot
+
+`screenshot` returns a link to a JPEG, kept for 7 days. Download it if you need it longer. Send an object to change the capture:
+
+| Field | Default | Effect |
+| - | - | - |
+| `fullPage` | `false` | Capture from top to bottom instead of the visible part. |
+| `quality` | `70` | JPEG quality, 1 to 100. |
+| `viewport` | 1,280 by 800 | `{ "width": 200 to 3840, "height": 200 to 2160 }`. With `mobile: true` and no `viewport`, 390 by 844. |
+
+- A full page is cut at 15,000 pixels. `screenshotCropped: true` says it was. The field is left out when the page fits.
+- `quality` above 100 returns `400 invalidRequest`.
+- `screenshot` with `zeroDataRetention` returns `400 invalidRequest`, because the image is kept as a file.
+- The read happens in a browser and takes a few seconds. For a capture after a click, use [browser actions](/scrape/browser-actions). Those come back in `data.actions.screenshots`.
+
+## Network
+
+`network` returns the JSON the page loaded while it rendered, in the order the responses arrived. Use it to read a site's data without parsing HTML. Each entry has `url`, `method`, `status`, `contentType` and `body`, a string you parse as JSON.
+
+- Only `fetch` and `XMLHttpRequest` responses with a JSON content type are kept.
+- At most 30 responses come back. A body over 256 KB is left out, and the bodies together stop at 2 MB. `data.networkDropped` counts what was left out. It is absent when nothing was.
+- Data that loads after a click or a delay needs `waitFor` or [browser actions](/scrape/browser-actions).
+- The read happens in a browser and never comes from a stored copy.
+
+## Branding
+
+`branding` returns the page's styles as values. Colors are hex. A field the page does not show is left out.
+
+| Field | Holds |
+| - | - |
+| `colorScheme`, `logo` | `light` or `dark`, and the logo URL. |
+| `colors` | `primary`, `secondary`, `accent`, `background`, `textPrimary`, `textSecondary`, `link`, `success`, `warning`, `error`. |
+| `fonts`, `typography` | Font families, then sizes, weights and line heights. |
+| `spacing`, `components` | Base unit, radius, padding and margins, then `buttonPrimary`, `buttonSecondary` and `input` styles. |
+| `images` | `logo`, `favicon` and `ogImage`. |
+| `icons`, `animations`, `layout`, `personality` | Other style facts, when the page shows them. |
+
+The read happens in a browser and never comes from a stored copy.
+
+## YouTube
+
+A scrape of a YouTube video returns its details as `markdown`. `summary` and `json` work on that text. For the transcript, comments or channel, use a [pre-built parser](/scrape/prebuilt-parsers).
+
+`audio` returns a link to an M4A file and `video` a link to an MP4 file with sound. Both links work for 1 hour. Both need an API key.
+
+- Supported links are `watch?v=`, `youtu.be/`, `/shorts/`, `/embed/` and `/live/` URLs on `youtube.com`, `www.youtube.com`, `m.youtube.com` and `music.youtube.com`.
+- `audio` or `video` on another URL returns `400 invalidRequest`. So does an audio file over 40 MB, a video file over 100 MB, or either format with `zeroDataRetention`.
+- If YouTube gives no file, the call fails with `503 sourceUnavailable` and costs nothing. Retry it.
+- `metadata.title`, `description` and `ogImage` come from the video.
+
+A format that needs a browser costs the same as any page. See [Pricing](/account/pricing).

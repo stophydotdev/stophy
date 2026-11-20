@@ -1,15 +1,9 @@
 ---
 title: "Monitors"
-description: "Watch pages, a section of a site or a search on a schedule. Each change comes with its diff, by signed webhook or by reading checks. $1 per 1,000 pages."
-og:title: "Monitors | Stophy"
-og:description: "Watch pages, a section of a site or a search on a schedule. Each change comes with its diff, by signed webhook or by reading checks. $1 per 1,000 pages."
+description: "Watch pages, a site section or a search on a schedule. Each change comes with its diff, by signed webhook or by reading checks. Needs an API key."
 ---
 
-Use a monitor when you need to know what changes after the first read. We check your pages or search on a schedule and record what changed. It bills for every page it reads on every check, so a monitor keeps costing money until you pause or delete it.
-
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart). Monitors need an API key. This request watches one page once a week and sends a webhook after each check.
+A monitor checks your targets on a schedule and records what changed. It is charged for every page it reads on every check, so it keeps costing until you pause or delete it. See [Pricing](/account/pricing). Monitors need an API key. See the [Quickstart](/quickstart).
 
 <CodeGroup>
 ```bash cURL
@@ -22,8 +16,7 @@ curl -X POST https://api.stophy.dev/v1/monitor \
     "schedule": { "text": "weekly" },
     "webhook": {
       "url": "https://example.com/stophy-hook",
-      "events": ["monitor.page", "monitor.check.completed"],
-      "metadata": { "project": "docs" }
+      "events": ["monitor.page", "monitor.check.completed"]
     }
   }'
 ```
@@ -41,7 +34,6 @@ const response = await fetch("https://api.stophy.dev/v1/monitor", {
     webhook: {
       url: "https://example.com/stophy-hook",
       events: ["monitor.page", "monitor.check.completed"],
-      metadata: { project: "docs" },
     },
   }),
 });
@@ -63,7 +55,6 @@ response = requests.post(
         "webhook": {
             "url": "https://example.com/stophy-hook",
             "events": ["monitor.page", "monitor.check.completed"],
-            "metadata": {"project": "docs"},
         },
     },
 )
@@ -72,11 +63,7 @@ print(data["id"], data["nextRunAt"])
 ```
 </CodeGroup>
 
-`name`, `targets` and `schedule` are required. Creating a monitor is free.
-
-## Read the response
-
-Save `data.id` to manage the monitor and read its checks. The response also includes the ID at the top level.
+`name`, `targets` and `schedule` are required. Creating a monitor is free. The response, cut to the main fields:
 
 ```json
 {
@@ -87,89 +74,109 @@ Save `data.id` to manage the monitor and read its checks. The response also incl
     "status": "active",
     "schedule": { "cron": "0 0 * * 1", "timezone": "UTC", "everySeconds": null },
     "nextRunAt": "2026-11-17T18:19:27.540Z",
-    "estimatedCostUsdPerMonth": 0.004,
-    "checks": 0,
-    "costUsd": 0
+    "checks": 0
   },
-  "id": "mon_hpJ-ZKa4FJLr4h1m",
-  "costUsd": 0
+  "id": "mon_hpJ-ZKa4FJLr4h1m"
 }
 ```
 
-The first check starts at once and usually within a minute. For page targets, it keeps the first read as a baseline and reports no change. A search target can report new results on its first check. Later checks compare with the last read. In this example the check ran 26 seconds after the monitor was created and found the page `new`.
+The first check starts at once, usually within a minute. For page targets it records a baseline and reports no change. A search target can report results on its first check.
 
-| Field | What it holds |
-| - | - |
+| Field | Holds |
+| --- | --- |
 | `status` | `active` or `paused`. A paused monitor reads nothing and costs nothing. |
-| `pausedReason` | Why Stophy paused it, such as `insufficientCredits` when your balance ran out. |
-| `schedule` | A `cron` expression or `everySeconds`, and the `timezone`. See [Schedules](/monitors/schedules). |
-| `nextRunAt`, `lastRunAt` | When the next scheduled check is due, and when the last one ran. `nextRunAt` is `null` while paused. |
-| `currentCheckId` | The check that is queued or running now, or `null`. |
-| `targets` | What the monitor watches. See [Targets](/monitors/targets). |
-| `goal`, `judgeEnabled` | What matters to you, and whether each changed page is judged against it. |
-| `retentionDays` | How many days checks, diffs and snapshots are kept, 1 to 365. 30 by default. |
-| `estimatedCostUsdPerMonth` | Pages watched times the checks in 30 days, at $1 per 1,000 pages. `estimatedCreditsPerMonth` holds the same amount in steps of $0.002. |
-| `webhook` | Where Stophy sends events. See [Webhooks](/monitors/webhooks). |
-| `notification` | The email settings. See [Webhooks](/monitors/webhooks#get-an-email-instead). |
-| `checks`, `costUsd` | How many checks have run and what they cost so far. `creditsUsed` holds the same amount in steps of $0.002. |
+| `pausedReason` | Why Stophy paused it, such as `insufficientCredits`. |
+| `nextRunAt`, `lastRunAt`, `currentCheckId` | The next due check (`null` while paused), the last one, and the one queued or running now. |
+| `targets`, `goal`, `judgeEnabled` | See [Targets](/monitors/targets). |
+| `retentionDays` | Days checks, diffs and snapshots are kept, 1 to 365, default 30. |
+| `webhook`, `notification` | See [Checks, changes and webhooks](/monitors/checks-and-changes#webhooks). |
+| `estimatedCostUsdPerMonth` | Pages watched times checks in 30 days. |
+| `checks`, `costUsd` | Checks run and what they cost so far. |
 
 `urls`, `interval`, `formats`, `changeTracking`, `nextCheckAt` and `lastCheckAt` repeat other fields for older clients.
 
-## What a monitor can watch
-
-Choose the target based on whether you know the URLs or want the monitor to find them.
-
-| Target `type` | What it watches | Guide |
-| - | - | - |
-| `scrape` | Up to 100 pages you list | [Targets](/monitors/targets) |
-| `crawl` | The pages under a start page, found again on every check | [Targets](/monitors/targets#crawl-targets) |
-| `search` | New results for up to 12 queries | [Targets](/monitors/targets#search-targets) |
-
 ## Manage a monitor
 
-Use the monitor ID to change its settings or read what it found.
+All of these are free. A monitor that does not exist, or belongs to another account, returns `404 notFound`.
 
-| Call | What it does | Guide |
-| - | - | - |
-| `GET /v1/monitor` | Lists your monitors, newest first. Send `limit` up to 100 (20 by default), and `cursor` from `next` for the next part. | This page |
-| `GET /v1/monitor/{id}` | Reads one monitor. | This page |
-| `PATCH /v1/monitor/{id}` | Changes the name, schedule, targets, goal, webhook or email, or pauses and resumes it. | [Schedules](/monitors/schedules) |
-| `DELETE /v1/monitor/{id}` | Deletes the monitor and stops its checks, so it stops billing. | This page |
-| `POST /v1/monitor/{id}/run` | Checks now, outside the schedule. | [Schedules](/monitors/schedules#run-a-check-now) |
-| `GET /v1/monitor/{id}/checks`, `GET /v1/monitor/{id}/changes` | Reads what each check found. | [Checks and changes](/monitors/checks-and-changes) |
-| `GET /v1/monitor/limits`, `GET /v1/monitor/usage` | Reads your allowance and what monitors cost. | [Limits and errors](/monitors/limits-and-errors) |
+| Call | Does |
+| --- | --- |
+| `GET /v1/monitor` | Lists newest first. `limit` up to 100 (default 20), and `next` as `cursor` for the next part. |
+| `GET /v1/monitor/{id}` | Reads one. |
+| `PATCH /v1/monitor/{id}` | Changes `name`, `schedule`, `targets`, `goal`, `webhook`, `notification`, `retentionDays` or `status`. Send at least one field. It replaces `targets` and `webhook` as a whole. |
+| `DELETE /v1/monitor/{id}` | Deletes it and stops billing. |
+| `POST /v1/monitor/{id}/run` | Queues a check now. |
+| `GET /v1/monitor/limits`, `GET /v1/monitor/usage` | Your allowance, and cost per monitor. |
 
-Reading, listing, updating and deleting are free. A request for a monitor that does not exist, or that belongs to another account, returns `404 notFound`.
+## Schedule
 
-## List and delete
+Send `schedule` on create or `PATCH`. Send `text` or `cron`, not both. A daily time comes back as a `cron` expression.
 
-List monitors to find an ID or check which ones are still active. For example, `GET /v1/monitor?limit=1` returns one monitor in `data`. Send the returned `next` as `cursor` for the next part. `next` is `null` on the last part, and `data` is empty if you have no monitors.
+```json
+{ "schedule": { "text": "daily at 9:00", "timezone": "Europe/Ljubljana" } }
+```
 
-When you no longer need a monitor, send `DELETE /v1/monitor/{id}`. The monitor stops checking and the call returns `success: true` with `costUsd: 0`.
+| Field | Effect |
+| --- | --- |
+| `cron` | Five fields, minute to weekday. Runs no closer than 5 minutes. `0 0 1 * *` is fine. |
+| `text` | Plain words, below. |
+| `timezone` | An IANA name, default `UTC`. Sets what `daily at 9:00` and a cron expression mean. |
 
-## Before you rely on alerts
+| `text` | Runs |
+| --- | --- |
+| `every 30 minutes` | At least `every 5 minutes`. A number that divides 60 keeps to the clock. Another number, such as 7, counts from the last check. |
+| `every 15 minutes starting at :07` | At minutes 7, 22, 37 and 52. |
+| `hourly`, `every hour` | At the start of every hour. |
+| `every 2 hours` | A number that divides 24 keeps to the clock. Another counts from the last check. |
+| `daily`, `daily at 9:00`, `daily at 5:30 PM` | Every day, at midnight when no time is given. |
+| `weekly` | Monday at midnight. |
 
-Check that the first read worked and that your receiver can handle deliveries.
+The older `interval` field takes seconds, or `30m`, `6h`, `1d`. Use it only with `url` and `urls`.
 
-- The first check completed, and `checks` on the monitor is 1 or more. See [Checks and changes](/monitors/checks-and-changes).
-- `goal` says what matters, so a change that does not matter is marked as such. See [Targets](/monitors/targets#goal-and-judge).
-- Your receiver verifies the signature and ignores an event it has already seen. See [Webhooks](/webhooks).
-- You know when it stops: the monitor pauses itself when your balance runs out, and sends `monitor.failed` if you subscribed to it.
+A check starts at its time or within about a minute. Checks of one monitor never overlap: a check that falls due while the last one runs is recorded as `skipped_overlap` and is free.
 
-## Price
+## Run, pause and resume
 
-Estimate the cost from the number of pages and checks, even if nothing changes.
+`POST /v1/monitor/{id}/run` queues a check outside the schedule, which does not move. It returns the queued check, with `status: "queued"`, `trigger: "manual"` and `estimatedCostUsd`. Read the result with `GET /v1/monitor/{id}/checks/{checkId}`. A manual check costs the same as a scheduled one.
 
-Each page read costs $1 per 1,000 pages, which is $0.001, on every check, including the first. A page that cannot be read costs nothing. A page that is gone, with a 404 or 410 status, is charged once when it is first found gone.
+`PATCH` with `"status": "paused"` stops checks and keeps history. `"status": "active"` resumes with a check at once. Changing the schedule of a paused monitor keeps it paused.
 
-A `goal` adds $1 per 1,000 pages for each changed page it judges. `json` comparison adds $3 per 1,000 pages when it returns fields. A search target costs $1 per 1,000 searches of up to 10 results on every check. A monitor of one page checked daily costs about $0.03 a month. Calls that read, list, change, pause, resume and delete monitors cost nothing. See [Pricing](/account/pricing).
+Reasons a monitor stops or fails:
 
-## Choose another API
+- Your balance ran out. It pauses with `pausedReason: "insufficientCredits"` and sends `monitor.failed` if you subscribed. Add funds, then resume.
+- A page cannot be read. The monitor keeps running and the page is `error` and free. After 5 checks in a row fail on the same page, `monitor.failed` is sent once.
+- Every page failed for lack of balance. The check is `skipped_no_credits`.
 
-Use a one-off call if you do not need checks to repeat.
+## Limits
 
-- [Scrape](/scrape/overview) reads one page now. With [change tracking](/scrape/change-tracking) it compares with your last read.
-- [Crawl](/crawl/overview) reads every page of a site once, in the background.
-- [Batches](/batches/overview) read a list of URLs once, in the background.
-- [Search](/search/overview) finds pages from a query once.
-- [Webhooks](/webhooks) explains the signature and delivery of every call Stophy makes to you.
+`GET /v1/monitor/limits` returns these as `monitors`, `pages`, `perMonitor` and `intervalSeconds`. Rate limits are on [Rate limits](/production/rate-limits).
+
+| Limit | Value |
+| --- | --- |
+| Monitors per account | 25. Paused ones count. |
+| Pages watched across all monitors | 1,000. Paused ones count. A crawl target counts its `limit`, a search target its `maxResults`. |
+| Pages in one scrape target | 100 |
+| Targets in one monitor | 50 |
+| Time between checks | 5 minutes to 30 days |
+| Name | 1 to 256 characters |
+| Checks and changes kept | The last 1,000 of each, within `retentionDays` |
+
+`GET /v1/monitor/usage` totals what checks cost per monitor, highest first, including deleted ones (`deleted: true`). Send `from` and `to` as an ISO date or time, with `to` excluded and a window of at most 366 days. The default is the last 30 days.
+
+## Errors
+
+Codes are on [Errors](/api-reference/errors). Every message below is `400 invalidRequest` unless noted. A failed call is free.
+
+| `error` or code | Fix |
+| --- | --- |
+| `You can run 25 monitors. Delete one to add another.` | Delete one. Pausing does not free a slot. |
+| `Your monitors can watch 1,000 pages in total, and N are in use.` | Watch fewer pages. |
+| `schedule: the minimum interval is 5 minutes`, `the maximum interval is 30 days` | Change the schedule. |
+| `schedule.text: could not read "every banana". Try every 30 minutes, hourly, ...` | Use a form above. |
+| `schedule.cron: send five fields, minute to weekday` | Fix the expression. |
+| `schedule.timezone: Mars/Base is not an IANA timezone ...` | Use an IANA name. |
+| `schedule: Send cron or text in schedule, not both`, `schedule: send cron or text` | Send exactly one, and a schedule on create. |
+| `409 checkRunning` | A check is queued or running. Wait, then run again. |
+| `409 invalidRequest`, `This monitor is paused. ...` | Send `{ "status": "active" }`, then run again. |
+
+Target and webhook errors are on [Targets](/monitors/targets#limits-and-errors) and [Checks, changes and webhooks](/monitors/checks-and-changes#limits-and-errors).

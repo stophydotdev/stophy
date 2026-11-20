@@ -1,64 +1,39 @@
 ---
 title: "Timeouts"
-description: "Set how long each Stophy call may take, know what happens when it runs out, and keep your client timeout longer than the API's so retries do not pile up."
-og:title: "Timeouts | Stophy"
-og:description: "Set how long each Stophy call may take, know what happens when it runs out, and keep your client timeout longer than the API's so retries do not pile up."
+description: "The deadline each Stophy endpoint accepts, what happens when it runs out, how long jobs and results live, and the client timeout to set."
 ---
 
-Set an API deadline for the work and a longer client timeout for the response. If your client gives up first, the original call may still be running.
+Set an API deadline for the work, and a longer client timeout for the response. If your client gives up first, the call may still be running.
 
-## Set a deadline
+## Deadlines
 
-Set `timeout` to bound a slow read or browser step. It is in milliseconds on the endpoints below, except where the table says seconds.
+`timeout` is in milliseconds unless the table says seconds. A call that times out costs nothing.
 
-| Endpoint | Field | Default | Range | When it runs out |
-| - | - | - | - | - |
-| [Scrape](/scrape/timeouts-and-errors) | `timeout` | 60,000 | 1,000 to 300,000 | The read is an error and costs nothing |
-| [Batches](/batches/limits-and-errors) | `timeout` | 60,000 | 1,000 to 300,000 | That page is an error and costs nothing |
-| [Search](/search/overview) | `timeout` | 3,000, or 60,000 when `scrapeOptions.formats` reads pages | 1,000 to 120,000. More is read as 120,000. | A source that has not answered is left out with a warning. When none has answered, the call fails and costs nothing. |
-| [Extract](/extract/overview) | `timeout` | 30,000 | 1,000 to 300,000 | A page not read is skipped, named in `warning`, and costs nothing |
-| [Map](/map/overview) | `timeout` | None | 1,000 and up | Map stops and returns the pages it found |
-| [Parse](/parse/overview) | `timeout` | None | None | Accepted and not used: a file has no page to wait for |
-| [Browser execute](/browser/execute) and [interact](/scrape/interact) | `timeout`, in seconds | 30 for code, 120 for a prompt | 1 to 300 | Set it to the longest step you run |
+| Endpoint | Default | Range | When it runs out |
+| - | - | - | - |
+| [Scrape](/scrape/overview#timeouts-warnings-and-errors) | 60,000 | 1,000 to 300,000 | The read is an error |
+| [Batches](/batches/overview#fields) | 60,000 | 1,000 to 300,000 | That page is an error |
+| [Search](/search/overview) | 3,000, or 60,000 with `scrapeOptions.formats` | 1,000 to 120,000. More is read as 120,000. | A source that has not answered is left out with a warning. If none has, the call fails. |
+| [Extract](/extract/overview) | 30,000 | 1,000 to 300,000 | A page not read is skipped and named in `warning` |
+| [Map](/map/overview) | None | 1,000 and up | Map returns the pages it found |
+| [Parse](/parse/overview) | None | None | Accepted and ignored |
+| [Browser execute](/browser/execute) and [interact](/scrape/interact), in seconds | 30 for code, 120 for a prompt | 1 to 300 | The step fails. Set it to your longest step. |
 
-A page that needs a browser needs at least 5 seconds. Some pages need 10 to 30 seconds the first time. Do not set a scrape `timeout` below 5,000 unless you want it to fail fast.
+A short scrape `timeout` that runs out answers `504 sourceTimeout` with `retryAfterSeconds: 5`. Retry with a longer `timeout`.
 
-A scrape with `"maxAge": 0` and `"timeout": 1000` asks for a live read and allows only a second. When that is not enough, you get `504 sourceTimeout` with `Retry-After: 5`, and the call costs nothing.
+## Background jobs
 
-```json
-{
-  "success": false,
-  "error": "The source took too long to answer. Try again.",
-  "code": "sourceTimeout",
-  "retryable": true,
-  "retryAfterSeconds": 5,
-  "requestId": "a63c807e-333a-419f-9fca-b4f7d3f070ef"
-}
-```
-
-Retry with a longer `timeout`, or wait `retryAfterSeconds`. See [Troubleshooting](/production/troubleshooting).
-
-## Calls that answer at once
-
-Use a background job when you do not want to keep a connection open. Crawl, batches and agent answer at once with an `id`. You read the result with their status calls, so your client never waits for the work. A browser task works the same way. Start it, then read it with `POST /v1/browser/task/status`. Browser work has its own bounds.
+Crawl, batches, extract and agent answer at once with an `id`. Read the result with their status calls, so your client never waits for the work. A browser task works the same way: read it with `POST /v1/browser/task/status`.
 
 | Call | Bound |
 | - | - |
-| [Browser session](/browser/overview) | `ttl` is the most it can live: 600 seconds by default, from 30 to 21,600. `activityTtl` is how long it waits with no call before it closes: 300 seconds by default, from 10 to 21,600. |
-| [Browser task](/browser/tasks) | `maxSteps` is 50 by default and at most 50. `maxCost` stops the task when it has spent that much. Without it, a task runs at most 10 minutes. |
+| [Browser session](/browser/overview) | `ttl`, the most it can live: 600 seconds by default, 30 to 21,600. `activityTtl`, how long it waits with no call before it closes: 300 by default, 10 to 21,600. |
+| [Browser task](/browser/tasks) | `maxSteps` 50 by default and at most 50. `maxCost` stops the task at that spend. Without it, a task runs at most 10 minutes. |
 
-Results are kept for 24 hours. That covers a scrape, which you can read again with `GET /v1/scrape/{id}`, and a crawl, a batch or an extract. After that the `id` answers `notFound`. See [Zero data retention](/production/zero-data-retention) for the shorter time that option gives.
+Results are kept for 24 hours: a scrape you read again with `GET /v1/scrape/{id}`, a crawl, a batch and an extract. After that the `id` answers `notFound`. [Zero data retention](/production/zero-data-retention) shortens this.
 
-## Set your client timeout
+## Your client timeout
 
-Keep your client's timeout longer than the API deadline plus a few seconds. Most calls answer within 15 seconds. A slow page, a long PDF or a transcript can take up to a minute, and a scrape with the default `timeout` can take 60 seconds. Set your client timeout to at least 65 seconds, or raise it with the `timeout` you send.
+Most calls answer within 15 seconds. A slow page, a long PDF or a transcript can take a minute, and a scrape with the default `timeout` can take 60 seconds. Set your client timeout to at least 65 seconds, or longer than the `timeout` you send plus a few seconds.
 
-The [SDKs](/sdks) wait 70 seconds for each attempt and retry only eligible calls. If a write may have run and cannot safely be replayed, the SDK stops and marks its outcome unknown. Before sending a new request after a timeout, check whether the first one finished. If the error carries an idempotency key, use the same key and request body to recover the original result.
-
-## Related
-
-Use Troubleshooting to decide when a timeout is worth retrying.
-
-* [Rate limits](/production/rate-limits)
-* [Troubleshooting](/production/troubleshooting)
-* [Production checklist](/production/checklist)
+The [SDKs](/sdks) wait 70 seconds for each attempt. If a write may have run and cannot be replayed safely, the SDK stops and marks the outcome unknown. Before you resend after a timeout, check whether the first call finished. If the error carries an idempotency key, resend with the same key and body to recover the original result. Retry rules are in [Troubleshooting](/production/troubleshooting#retry).

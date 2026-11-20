@@ -1,15 +1,9 @@
 ---
-title: "Parse documents"
-description: "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Send the file as base64. From $0.50 per 1,000 pages."
-og:title: "Parse documents | Stophy"
-og:description: "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Send the file as base64. From $0.50 per 1,000 pages."
+title: "Parse"
+description: "Turn a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. Send the file as base64. Works without an API key for small files."
 ---
 
-Use Parse to turn a file you have into Markdown. Send its bytes as base64 in JSON. If you have a public URL rather than the file, use [Scrape](/scrape/pdfs-and-documents).
-
-## Make a request
-
-Send a small file in the request body. Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. This request parses a tiny HTML file. To send a file from disk, encode it first, for example with `base64 -w0 report.pdf`.
+Use Parse for a file you have. For a file at a public URL, use [Scrape](/scrape/pdfs-and-documents). Files over the JSON size limit go through [Large files](/parse/large-files).
 
 <CodeGroup>
 ```bash cURL
@@ -27,7 +21,6 @@ import { Stophy } from "stophy";
 const stophy = new Stophy();
 
 const file = Buffer.from("<h1>How tides work</h1>").toString("base64");
-
 const { data } = await stophy.parse({ file, filename: "tides.html" });
 console.log(data?.markdown);
 ```
@@ -39,86 +32,78 @@ from stophy import Stophy
 stophy = Stophy()
 
 file = base64.b64encode(b"<h1>How tides work</h1>").decode()
-
 data = stophy.parse(file=file, filename="tides.html")["data"]
 print(data["markdown"])
 ```
 </CodeGroup>
 
-You can try Parse without an API key, up to 10 calls a minute and 50 calls a day per IP address, with files up to 2 MB. Summaries, `json` and reading every page's picture need an API key. See [Rate limits](/production/rate-limits).
-
-## Read the response
-
-Read the text in `data.markdown`. `data.metadata` tells you what we identified and what the parse cost.
+Files up to 2 MB work without a key, within the keyless limits in [Rate limits](/production/rate-limits). Get a key in the [Quickstart](/quickstart). Encode a file from disk with `base64 -w0 report.pdf`.
 
 ```json
 {
   "success": true,
   "data": {
     "markdown": "# How tides work",
-    "metadata": {
-      "contentType": "text/html",
-      "costUsd": 0.0005
-    }
+    "metadata": { "contentType": "text/html", "costUsd": 0 }
   }
 }
 ```
 
-`metadata.contentType` is the type Stophy found in the file, whatever its name says. For a PDF, `numPages` is the total page count and `ocrPages` counts pages read from their picture. If the file had more pages than `maxPages`, `data.warning` says `The file text was cut short.`
+`metadata.contentType` is the type found in the bytes, whatever the name says. For a PDF, `numPages` is the page count and `ocrPages` counts pages read from their picture. `data.warning` says `The file text was cut short.` when the file had more pages than `maxPages`. See [Pricing](/account/pricing).
 
-## Formats
+## Fields
 
-Ask for another format if you need more than the text. We always return `markdown` and accept up to 8 items in `formats`.
-
-| Format | What you get | Guide |
+| Field | Default | Effect |
 | - | - | - |
-| `summary` | A short summary of the file | [Summary](/scrape/summary) |
-| `links`, `images` | Every link and every image address in the Markdown | [Links](/scrape/links) |
-| `html`, `rawHtml` | The cleaned HTML, or the HTML as sent. HTML files only | [HTML](/scrape/html) |
-| `json` with `schema` or `prompt` | An object in the shape you describe | [JSON](/scrape/json) |
+| `file` | none | The bytes as base64, up to 36 MB with a key, 2 MB without. A `data:` prefix is accepted. Send `file` or `uploadRef`. |
+| `uploadRef` | none | The `uploadId` from [Large files](/parse/large-files), instead of `file`. |
+| `filename` | none | A hint such as `report.docx`. |
+| `formats` | `[]` | Up to 8 formats besides `markdown`: `summary` ([Summary](/scrape/summary)), `links` and `images` ([Links](/scrape/links)), `html` and `rawHtml` (HTML files only, [HTML](/scrape/html)), `json` with `schema` or `prompt` ([JSON](/scrape/json)). |
+| `maxPages` | 100 | Most PDF pages, sheets or slides to read, 1 to 100. |
+| `parsers` | none | One PDF entry, below. Other files ignore it. |
+| `onlyMainContent`, `includeTags`, `excludeTags`, `removeBase64Images` | | HTML options, below. |
+| `zeroDataRetention` | `false` | Keep nothing from the call. See [Zero data retention](/production/zero-data-retention). |
 
-PDF page options, such as `pages`, `blocks` and the reading `mode`, are in [Formats](/parse/formats).
+The same fields can sit inside an `options` object. The full list is in the [API reference](/api-reference/endpoint/parse).
 
-## Request fields
+## File types
 
-Use `file` for base64, or `uploadRef` if you already uploaded the bytes.
+`GET /v1/parse/formats` lists them, with `extensions`, `mimeTypes`, `kind` (`document` or `image`), `available` and the `options` that apply. It is free. The type comes from the bytes of the file.
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `file` | `string` | none | The file's bytes as base64, up to 36 MB. A `data:` prefix is accepted. Send `file` or `uploadRef`. |
-| `uploadRef` | `string` | none | The `uploadId` of a file you sent with [Large files](/parse/large-files), instead of `file`. |
-| `filename` | `string` | none | The file's name, such as `report.docx`. The type is read from the file itself. |
-| `formats` | `array` | `[]` | What to send back besides `markdown`. |
-| `maxPages` | `number` | 100 | Read at most this many PDF pages, sheets or slides, 1 to 100. |
-| `parsers` | `array` | none | How to read a PDF. See [Formats](/parse/formats). |
-| `onlyMainContent`, `includeTags`, `excludeTags`, `removeBase64Images` | | | Shape the Markdown of an HTML file. See [Formats](/parse/formats). |
-| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the call. Adds $2 per 1,000 calls. See [Zero data retention](/production/zero-data-retention). |
+| Format | Extensions | You get |
+| - | - | - |
+| `pdf` | `.pdf` | Text of up to 100 pages. A page with no text layer is read from its picture, up to 20 pages. |
+| `docx` | `.docx` | The document text. |
+| `odt` | `.odt` | The text of the file. |
+| `xlsx` | `.xlsx` | Each sheet. |
+| `pptx` | `.pptx` | Each slide. |
+| `html` | `.html`, `.htm` | The page as Markdown. |
+| `image` | `.png`, `.jpg`, `.jpeg`, `.webp` | The text in the picture. |
 
-The same fields can sit inside an `options` object. The full field list is in the [API reference](/api-reference/endpoint/parse).
+`.doc`, `.xls`, `.ppt`, `.ods` and `.odp` are not read: save them in a listed format.
 
-## Limits and errors
+## PDF options
 
-Check the file size and type before encoding it.
+`parsers` takes one entry: `[{ "type": "pdf", "pages": true }]`.
 
-- A file can be up to 36 MB with an API key, and up to 2 MB without one. A larger file returns `400 invalidRequest`. Send a large file with [Large files](/parse/large-files).
-- A body that is not base64 returns `400 invalidRequest` with `file: this is not base64. Send the file's bytes encoded as base64.`
-- A file type that cannot be read returns `400 invalidRequest` with `file: this type of file cannot be read.` and the list of types. The older `.doc`, `.xls` and `.ppt` formats return `400 invalidRequest`: save them as `.docx`, `.xlsx`, `.pptx` or PDF.
-- A password-protected file returns `400 invalidRequest` with `file: this file is password-protected. Remove the password, then send it again.`
-- A call with neither `file` nor `uploadRef` returns `400 invalidRequest` with `Send file, or uploadRef from POST /v1/parse/upload-url.`
-- A file with no readable text comes back as a `notFound` error, and costs nothing.
-- Pages of a PDF with no text layer are read from their picture, up to 20 pages and only with an API key. The OCR rate below applies to those pages.
+| Field | Default | Effect |
+| - | - | - |
+| `mode` | `auto` | `fast` reads the text layer only. `auto` also reads the picture of pages with none. `ocr` reads every page's picture, up to 20 pages, and needs a key. `fast` on a picture returns `400`. |
+| `maxPages` | 100 | Pages to read, 1 to 100. |
+| `pages` | `false` | Also return `data.pages` as `{ pageNumber, markdown }`. |
+| `blocks` | `false` | Also return `data.blocks`: each title, section header or run of text with its page, reading order and `bbox` (left, top, right, bottom, from 0 to 1). Tables, figures and formulas are not told apart. A page read from its picture is one block. |
+| `pageMarkers` | `false` | Join pages with `---` and a `<!-- page N -->` line, where N is the page that follows. |
 
-## Price
+## HTML options
 
-Estimate the charge from how much text we can read from the text layer and how many pages need OCR.
+| Field | Default | Effect |
+| - | - | - |
+| `onlyMainContent` | `true` | `false` keeps navigation and footers. |
+| `includeTags`, `excludeTags` | none | Keep or drop what these CSS selectors match, up to 50. |
+| `removeBase64Images` | `true` | `false` keeps images that carry their data in the address. |
 
-$0.50 per 1,000 pages or files whose text comes from a text layer, and $2.50 per 1,000 pages or pictures read from their picture, up to `maxPages`. `summary` and `json` with a schema or a prompt add $3 per 1,000 files each when they return something. Zero data retention adds $2 per 1,000 calls. `costUsd` shows what the call cost. See [Pricing](/account/pricing).
+`includeTags`, `excludeTags`, `html` and `rawHtml` on a file that is not HTML return `400 invalidRequest`.
 
-## Choose another API
+## Limits
 
-Use a different call if the document is already online or you need fields rather than the full text.
-
-- [Scrape](/scrape/pdfs-and-documents) reads a page or a document that is online, by its address.
-- [Extract](/extract/overview) pulls the fields you name from pages, each checked against the page.
-- [Search](/search/overview) finds pages from a query.
-- [Agent](/agent/overview) searches and reads for you until your fields are filled.
+A file over the size limit, one that is not base64, one that is password-protected, a type that cannot be read, or one with neither `file` nor `uploadRef` returns `400 invalidRequest`. A file with no readable text returns `notFound`. Without a key, scanned pages and pictures are not read, and `mode: "ocr"`, `summary` and `json` return `400`. Codes are in [Errors](/api-reference/errors).

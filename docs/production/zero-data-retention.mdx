@@ -1,126 +1,50 @@
 ---
 title: "Zero data retention"
-description: "Send zeroDataRetention to keep nothing from a call: no stored copy read or made, nothing logged. Which endpoints take it, what it changes and what it costs."
-og:title: "Zero data retention | Stophy"
-og:description: "Send zeroDataRetention to keep nothing from a call: no stored copy read or made, nothing logged. Which endpoints take it, what it changes and what it costs."
+description: "Send zeroDataRetention to keep nothing from a call: no stored copy read or made. Which endpoints take it, what it changes and what it refuses."
 ---
 
-Set `zeroDataRetention: true` on calls that should not leave a stored copy. We read the page live and do not save a copy for later use. Billing still leaves a record, and some jobs keep results briefly so you can collect them. You set it per call, not per account.
+Set `zeroDataRetention: true` per call. Stophy reads the page live and keeps no copy. Billing still leaves a record, and some jobs hold results briefly so you can collect them. See [Pricing](/account/pricing#scrape-add-ons) for what it adds.
 
-## Make a request
-
-Set the flag on the request that reads the page. This example returns Markdown from `example.com`.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "formats": ["markdown"],
-    "zeroDataRetention": true
-  }'
-```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://example.com",
-  formats: ["markdown"],
-  zeroDataRetention: true,
-});
-console.log(data.metadata.cacheState, data.metadata.scrapeId);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-body = stophy.scrape(
-    url="https://example.com",
-    formats=["markdown"],
-    zero_data_retention=True,
-)
-print(body["data"]["metadata"]["cacheState"], body["data"]["metadata"]["scrapeId"])
-```
-</CodeGroup>
-
-## Read the response
-
-Read the Markdown from the first response. You will not be able to fetch it later.
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "This domain is for use in documentation examples without needing permission. …",
-    "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com/",
-      "statusCode": 200,
-      "cacheState": "miss",
-      "scrapeId": "f9a3f2e7-124d-4623-9bba-6408b5eebfa3",
-      "costUsd": 0.003
-    }
-  }
-}
+  -d '{"url": "https://example.com", "formats": ["markdown"], "zeroDataRetention": true}'
 ```
 
-The answer is the same shape as any scrape. `cacheState` is `miss` because no stored copy was read. The call cost $0.003: $0.001 for the page and $0.002 for zero data retention.
-
-A normal scrape can be read for 24 hours with `GET /v1/scrape/{id}`. For this scrape, the same call returns `404 notFound` even if you have the ID. The call still appears in [`GET /v1/logs`](/production/usage-and-logs) as a bill with its request ID, endpoint, method, status and cost, not the page text.
+The answer has the usual shape, with `data.metadata.cacheState` set to `miss` because no stored copy was read. Read the content from this response. A normal scrape can be read for 24 hours with `GET /v1/scrape/{id}`. This one answers `404 notFound`.
 
 ## Where to send it
 
-Set the flag where the endpoint takes its page or file options.
-
-| Endpoint | Where | What it adds |
+| Endpoint | Field | Refused with |
 | - | - | - |
-| [Scrape](/scrape/overview) | `zeroDataRetention` in the body | $2 per 1,000 pages. Not with a screenshot. |
-| [Search](/search/overview) | `scrapeOptions.zeroDataRetention` | $2 per 1,000 pages read. Not with a screenshot. |
-| [Extract](/extract/overview) | `zeroDataRetention` in the body, or `scrapeOptions.zeroDataRetention` | $2 per 1,000 pages read. Not with a screenshot. |
-| [Crawl](/crawl/overview) | `zeroDataRetention` in the body, or `scrapeOptions.zeroDataRetention` | $2 per 1,000 pages. Not with a screenshot. |
-| [Batches](/batches/overview) | `zeroDataRetention` in the body | $2 per 1,000 pages. Not with a screenshot. |
-| [Parse](/parse/overview) | `zeroDataRetention` in the body | $2 per 1,000 calls |
-| [Agent](/agent/overview) | `zeroDataRetention` in the body | $2 per 1,000 pages read. Not with `threadId`. |
-| [Browser sessions](/browser/overview) | `zeroDataRetention` in the body | See the endpoint's page |
-| [Interact on a scrape](/scrape/interact) | `zeroDataRetention` in the first call | Billed like a browser session |
+| [Scrape](/scrape/overview), [batches](/batches/overview) | `zeroDataRetention` | A screenshot |
+| [Search](/search/overview) | `scrapeOptions.zeroDataRetention` | A screenshot |
+| [Extract](/extract/overview), [crawl](/crawl/overview) | `zeroDataRetention` or `scrapeOptions.zeroDataRetention` | A screenshot |
+| [Parse](/parse/overview) | `zeroDataRetention` | Nothing |
+| [Agent](/agent/overview) | `zeroDataRetention` | `threadId` |
+| [Browser sessions](/browser/overview) | `zeroDataRetention` | `profile`, `recording` |
+| [Interact on a scrape](/scrape/interact) | `zeroDataRetention` on the first call | Nothing |
 
-[Monitors](/monitors/overview) do not take it. A monitor keeps a snapshot of each page to compare with the next one, and a monitor with `zeroDataRetention` is refused.
+[Monitors](/monitors/overview) do not take it, because a monitor keeps a snapshot to compare with the next one.
 
 ## What changes
 
-Save results you need before they expire. Check which features need to store data and cannot run with this setting.
+* **Stored copies.** None is read or made, so every read is live.
+* **Results.** `GET /v1/scrape/{id}` answers `404`, and the scrape cannot be interacted with. Open the page in a session from `POST /v1/browser` instead.
+* **Jobs.** A crawl, batch or extract keeps its results for 1 hour after it finishes instead of 24. A webhook delivery for it is recorded without its payload.
+* **Agent.** The prompt, steps and result are held for one hour at most.
+* **Logs.** [`GET /v1/logs`](/account/usage#list-calls) shows the request ID, endpoint, method, status and cost, not the content.
+* **Browser sessions.** No [replay](/browser/overview#recordings-and-replay), no recording, and no [profile](/browser/profiles), because a profile keeps cookies.
+* **Interact.** If the scrape's session is already open without the flag, stop it with `DELETE /v1/scrape/{id}/interact` and start again.
 
-* **Stored copies.** No stored copy of the page is read or made, so every read is live.
-* **Results.** A zero-data-retention scrape is not kept, so `GET /v1/scrape/{id}` answers `404` and the scrape cannot be interacted with. Start a session with `POST /v1/browser` and open the page there.
-* **Jobs.** A crawl, a batch or an extract with zero data retention keeps its results for 1 hour after it finishes instead of 24 hours. After that they are gone, and so are their pages. A webhook delivery for such a job is recorded without its payload.
-* **Agent.** The prompt, the steps and the result are held for one hour at most.
-* **Logs.** We keep the billing record, not the request or response content.
-* **Browser sessions.** A session has no [replay](/browser/recordings-and-replay). It cannot be recorded, and it cannot use a [profile](/browser/profiles), because a profile keeps cookies.
-* **Interact.** Send `zeroDataRetention` on the first call. If the scrape's session is already open without it, stop that session with `DELETE /v1/scrape/{id}/interact` and start again.
+Your app stays responsible for what it stores and logs from the answers.
 
-Your own app stays responsible for what it stores and logs from the answers.
+## Refusals
 
-## Limits and errors
+All are `400 invalidRequest`. Remove the setting that needs a stored copy and send again.
 
-Remove settings that need a stored copy before you retry an incompatible request.
-
-| Case | Answer |
-| - | - |
-| `zeroDataRetention` with a screenshot format, a `screenshot` or `pdf` action, or `onlyCleanContent`, on scrape, search, extract, crawl or batches | `400 invalidRequest` |
-| `zeroDataRetention` with `threadId` on agent | `400 invalidRequest` |
-| `zeroDataRetention` with `profile` or `recording` on a browser session | `400 invalidRequest` |
-| `zeroDataRetention` on a monitor | `400 invalidRequest` |
-| Reading a zero-data-retention scrape by id | `404 notFound` |
-
-## Related
-
-Use the logs guide to see what remains on your bill.
-
-* [Usage and logs](/production/usage-and-logs)
-* [Responsible use](/production/responsible-use)
-* [Pricing](/account/pricing)
+* A screenshot format, a `screenshot` or `pdf` action, or `onlyCleanContent` on scrape, search, extract, crawl or batches.
+* `threadId` on agent.
+* `profile` or `recording` on a browser session.
+* Any monitor.

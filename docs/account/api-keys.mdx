@@ -1,83 +1,51 @@
 ---
 title: "API keys"
-description: "Create an API key, let an agent sign up for one, check when a key expires, revoke it, and see which calls work without an API key."
-og:title: "API keys | Stophy"
-og:description: "Create an API key, let an agent sign up for one, check when a key expires, revoke it, and see which calls work without an API key."
+description: "Create an API key, let an agent sign up for one, check its expiry, revoke it, and see which calls work without a key at all."
 ---
 
-An API key identifies your account on every call. Send it in `Authorization: Bearer $STOPHY_API_KEY`. Your account holds one balance, and every key on it spends from that balance.
+Send your key on every call as `Authorization: Bearer $STOPHY_API_KEY`. Every key on an account spends from one balance. Keep the key in a server secret store, out of committed code and browser code.
 
 ## Create a key
 
-Sign up at [stophy.dev/signup](https://stophy.dev/signup) with GitHub or Google, then create an API key. Save it as `STOPHY_API_KEY` in your server's secret store. Keep it out of code you commit and out of browser code. A new account starts with $2. See [Pricing](/account/pricing).
-
-The [CLI](/install-cli) makes its own key when you run `stophy login`. Each computer gets its own key, and logging in again replaces it. [Browser sign-in](/mcp/oauth) over MCP needs no API key.
+* Sign up at [stophy.dev/signup](https://stophy.dev/signup) with GitHub or Google, then create a key. A new account has a starting balance, see [Pricing](/account/pricing).
+* `stophy login` in the [CLI](/install-cli) makes a key for that computer. Logging in again replaces it.
+* Browser sign-in over [MCP](/install-mcp) needs no key.
 
 ## Sign up from an agent
 
-An agent can request an API key for you. You only approve it.
+The agent asks for a key and you approve it. The [Agent quickstart](/agent-quickstart) has the full steps. Over MCP, `stophy_signup` does the same.
 
-1. The agent calls `POST /v1/signup`. The call needs no API key and is free. The answer holds a `claimUrl` and a secret `code`.
+1. The agent calls `POST /v1/signup`. It needs no key and is free. The answer holds a `claimUrl`, a secret `code` and `expiresAt`.
 2. You open `claimUrl`, sign in with GitHub or Google and approve.
-3. The agent calls `POST /v1/signup/poll` with the `code` every few seconds. It gets `202` with `status: "waiting"` until you approve, then `200` with the `apiKey`, once.
+3. The agent polls `POST /v1/signup/poll` with the `code` every few seconds. It gets `202` with `status: "waiting"`, then `200` with the `apiKey`, once.
 
-See the [sign-up response](/api-reference/endpoint/sign-up) for the full shape. Read `expiresAt` to see when the claim expires. The link and the code work for 24 hours. A code that is unknown, expired or already collected answers `404` with code `notFound`. Sign up again. Each IP address can start 5 signups a day, then the answer is `429` with code `rateLimited`. The full steps are in the [Agent quickstart](/agent-quickstart). Over MCP, the `stophy_signup` tool does the same.
+The link and code last 24 hours. An unknown, expired or collected code answers `404` `notFound`: sign up again. See [Rate limits](/production/rate-limits) for the signup cap.
 
-## Check a key and its expiry
+## Check expiry
 
-Call `GET /v1/limits` with the key you want to check. Read `data.rateLimit` for the minute limit, remaining calls and reset time. This real response is cut to those fields.
-
-```json
-{
-  "success": true,
-  "data": {
-    "tier": "paid",
-    "rateLimit": { "limitPerMinute": 600, "remaining": 597, "resetsAt": "2026-11-17T17:44:00.000Z" },
-    "keyExpiresAt": null,
-    "billingUrl": "https://stophy.dev/billing"
-  },
-  "costUsd": 0
-}
-```
-
-`keyExpiresAt` is `null` when the key does not expire, as for a key an agent collected. When a key has an expiry, `keyExpiresAt` is that time, and after it the key answers `401` with code `unauthorized`. A key that is wrong, revoked or expired gets the same answer.
-
-The error includes `signupUrl` and `signup` if you need a new key.
+`GET /v1/limits` returns `data.keyExpiresAt`, `null` when the key does not expire, as for a key an agent collected. After that time the key answers `401` `unauthorized`, the same as a wrong or revoked key. The error carries `signupUrl` and `signup` for a new key.
 
 ## Revoke a key
 
-`DELETE /v1/key` revokes the key you call it with. It is free, and the key stops working at once. It needs an API key, not a signed-in session.
+`DELETE /v1/key` revokes the key you call it with, at once. It is free and needs a key, not a signed-in session. `stophy logout` does the same for the CLI key.
 
-The answer is `{ "success": true }`. `stophy logout` revokes the CLI's key the same way. To replace a key, create the new one, update your app, then revoke the old one. Every call counts against the key that made it. Filter [`GET /v1/logs`](/production/usage-and-logs) and [`GET /v1/usage/history`](/account/usage) by `apiKeyId` to see one key's calls.
+To replace a key, create the new one, update your app, then revoke the old one. Filter [`GET /v1/logs`](/account/usage#list-calls) or `GET /v1/usage/history` by `apiKeyId` to see one key's calls.
 
-## Calls without an API key
+## Calls without a key
 
-Search, scrape, map and parse work without an API key, up to 10 calls a minute and 50 calls a day per IP address, with no paging. Scrape with a parser works when the parser is marked `keyless: true` in the [parser list](https://api.stophy.dev/v1/parsers). Everything else answers `401` with code `apiKeyRequired`, and so does a keyless call that uses a field below. The answer carries a `signupUrl` for a person and a `signup` call for an agent.
+Search, scrape, map and parse work without a key, within the keyless limits in [Rate limits](/production/rate-limits#without-a-key). A parser works when `keyless` is `true` in `GET /v1/parsers`. `GET /v1/keyless/eligibility` needs no key and returns `eligible`, `remainingToday` and `remainingThisMinute`.
 
-| Needs an API key | On |
+Everything else answers `401` `apiKeyRequired`, and so does a keyless call that uses one of these. The answer carries `signupUrl` for a person and `signup` for an agent.
+
+| Needs a key | On |
 | - | - |
-| `page` other than 1, or `cursor` | Every endpoint that pages |
-| `actions`, `profile`, `waitFor` | Scrape |
-| `checkPromptInjection`, `onlyCleanContent`, `redactPII` | Scrape |
-| The `json` format with a `schema` or a `prompt`, and the `audio` and `video` formats | Scrape |
-| A parser that is not marked `keyless: true`, and any parser option such as `cursor` | Scrape |
-| Sending `includeSubdomains` as `true` | Map |
-| A file over 2 MB. With an API key, a file can be up to 36 MB. | Parse |
-| Crawl, batches, extract, agent, browsers, monitors and webhooks | Every call |
+| `page` other than 1, `cursor` | Every endpoint that pages |
+| `actions`, `profile`, `waitFor`, `checkPromptInjection`, `onlyCleanContent`, `redactPII` | Scrape |
+| `json` with a `schema` or a `prompt`, `audio`, `video` | Scrape |
+| A parser not marked `keyless`, and any parser option such as `cursor` | Scrape |
+| `scrapeOptions` | Search |
+| `includeSubdomains: true` | Map |
+| A file over the keyless size limit | Parse |
+| Every call | Crawl, batches, extract, agent, browsers, monitors, webhooks |
 
-On search, `scrapeOptions` also needs an API key. Without one, that call answers `401` with code `apiKeyRequired`.
-
-`GET /v1/keyless/eligibility` needs no API key. It tells you whether your IP address can still make calls without an API key.
-
-Read `eligible`, `remainingToday` and `remainingThisMinute` to decide whether to make a keyless call now. The check costs $0.
-
-Over the limit, a keyless call answers `429` with code `freeLimit`, a `signupUrl` and `retryAfterSeconds`. See [Rate limits](/production/rate-limits).
-
-## Related
-
-Use these guides to set up an agent or check what your keys spend.
-
-* [Agent quickstart](/agent-quickstart)
-* [Pricing](/account/pricing)
-* [Usage](/account/usage)
-* [Troubleshooting](/production/troubleshooting)
+Over the keyless limit, a call answers `429` `freeLimit` with `signupUrl` and `retryAfterSeconds`.

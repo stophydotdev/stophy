@@ -1,17 +1,10 @@
 ---
 title: "Describe a crawl"
-description: "Turn a plain-language request such as only the blog posts into the options a crawl takes, without starting one. Check the options, then send them."
-og:title: "Describe a crawl | Stophy"
-og:description: "Turn a plain-language request such as only the blog posts into the options a crawl takes, without starting one. Check the options, then send them."
+description: "Turn a plain-language request such as only the blog posts into crawl options without starting a crawl or reading any page. Check the options, then send them."
 ---
 
-Describe the pages you want in plain words to get crawl options without starting a job. Use the preview when you do not know which path patterns or depth to set. We do not read any pages.
+`POST /v1/crawl/params-preview` turns a sentence into crawl options. Use it when you do not know which path patterns or depth to set. No pages are read. Needs an API key.
 
-## Make a request
-
-To preview the options for blog posts up to two links deep, send the site URL and a `prompt`. Get an API key in the [Quickstart](/quickstart).
-
-<CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/crawl/params-preview \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
@@ -21,41 +14,6 @@ curl -X POST https://api.stophy.dev/v1/crawl/params-preview \
     "prompt": "only the blog posts, two links deep"
   }'
 ```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/crawl/params-preview", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    url: "https://bun.com",
-    prompt: "only the blog posts, two links deep",
-  }),
-});
-const { data } = await response.json();
-console.log(data);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/crawl/params-preview",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={
-        "url": "https://bun.com",
-        "prompt": "only the blog posts, two links deep",
-    },
-)
-print(response.json()["data"])
-```
-</CodeGroup>
-
-## Read the response
-
-Check `data` before you start a crawl. It holds the suggested options, with fields you did not ask for left out. Here, `includePaths` keeps the blog paths and `maxDiscoveryDepth` sets how far to follow links.
 
 ```json
 {
@@ -65,43 +23,10 @@ Check `data` before you start a crawl. It holds the suggested options, with fiel
     "includePaths": ["blog/.*"],
     "maxDiscoveryDepth": 2
   },
-  "costUsd": 0.003,
-  "requestId": "2d1687ce-601b-4ad6-9757-79d9030b22da"
+  "costUsd": 0.003
 }
 ```
 
-Send the checked options to `POST /v1/crawl`. Add `"limit": 20` if you want to stop after at most 20 pages.
+`url` and `prompt` (1 to 1,000 characters) are required. `data` holds only the fields it set, from `url`, `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `allowExternalLinks`, `sitemap`, `ignoreQueryParameters` and `limit`, described in [Crawl](/crawl/overview#scope). It never sets `scrapeOptions`.
 
-## Options
-
-Use `prompt` for the scope you want us to turn into crawl settings.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `url` | `string` | none | The site to crawl, such as `https://bun.com`. Required. |
-| `prompt` | `string` | none | What you want from the crawl, such as `only the blog posts`, 1 to 1,000 characters. Required. |
-
-The answer can hold these fields, each described in [Scope and limits](/crawl/scope): `url`, `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `allowExternalLinks`, `sitemap`, `ignoreQueryParameters` and `limit`. It never sets `scrapeOptions`, so choose the page [formats and filters](/crawl/page-content) yourself.
-
-## Limits and errors
-
-Check the response for missing or capped options before you start the job.
-
-- The options are a suggestion made from your sentence. Read them before you start a crawl.
-- Each pattern in `includePaths` and `excludePaths` is checked as a valid regular expression, and a pattern that is not valid is dropped. At most 20 patterns of each are returned.
-- `maxDiscoveryDepth` is at most 10, and `limit` is at most 10,000.
-- A request that finds nothing to set returns only `url` and costs nothing.
-- The call needs an API key. Without one, it returns `401 apiKeyRequired`.
-
-## Price
-
-$3 per 1,000 calls. A call that finds nothing to set is free. See [Pricing](/account/pricing).
-
-## Related
-
-Look up each option before sending it to Crawl.
-
-- [Crawl overview](/crawl/overview) starts a crawl with these options.
-- [Scope and limits](/crawl/scope) describes every field in the answer.
-- [Page content](/crawl/page-content) chooses what each crawled page returns.
-- [Map](/map/overview) lists a site's pages before you crawl.
+The options are a suggestion, so read them, then send them to `POST /v1/crawl`. Patterns that are not valid regular expressions are dropped, and at most 20 of each are returned. `maxDiscoveryDepth` is at most 10. A request with nothing to set returns only `url`. See [Pricing](/account/pricing).

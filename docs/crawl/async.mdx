@@ -1,27 +1,25 @@
 ---
 title: "Read a crawl"
-description: "Poll a crawl, page through its results, read its errors, cancel it, list your crawls, and get a webhook for each finished page."
-og:title: "Read a crawl | Stophy"
-og:description: "Poll a crawl, page through its results, read its errors, cancel it, list your crawls, and get a webhook for each finished page."
+description: "Poll a crawl, page through its results, read its errors, cancel it, list your crawls and get webhooks. Batches use the same calls, so this page covers both."
 ---
 
-A crawl runs in the background. `POST /v1/crawl` answers at once with an `id`, and these calls let you follow it: read its status and finished pages, read its errors, cancel it, and list your crawls. All of them are free and need the same API key. A crawl and its pages are kept for 24 hours.
+A crawl runs in the background. These calls read, cancel and list it, and none of them is charged. They need your API key. A crawl and its pages are kept for 24 hours, and an unknown, expired or other account's `id` returns `404 notFound`.
 
-## Poll a crawl and read every page
+A [batch](/batches/overview) works the same way at `/v1/batch/scrape/{id}`, with `/results` and `/errors` under it. This page is the home for the shared behavior.
 
-Poll `GET /v1/crawl/{id}` until `status` is `completed`, `failed` or `cancelled`. Then follow `next` until the answer has none. This reads every page of a crawl.
+## Read every page
+
+Poll `GET /v1/crawl/{id}` until `status` is `completed`, `failed` or `cancelled`, then follow `next` until it is missing.
 
 <CodeGroup>
 ```bash cURL
 CRAWL_ID="<the id your crawl returned>"
 URL="https://api.stophy.dev/v1/crawl/$CRAWL_ID"
-
 while :; do
   BODY=$(curl -s "$URL" -H "Authorization: Bearer $STOPHY_API_KEY")
   case $(echo "$BODY" | jq -r .status) in completed|failed|cancelled) break ;; esac
   sleep 2
 done
-
 echo "$BODY" | jq .data
 NEXT=$(echo "$BODY" | jq -r '.next // empty')
 while [ -n "$NEXT" ]; do
@@ -30,96 +28,6 @@ while [ -n "$NEXT" ]; do
   NEXT=$(echo "$BODY" | jq -r '.next // empty')
 done
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const id = "<the id your crawl returned>";
-const over = new Set(["completed", "failed", "cancelled"]);
-
-let status = await stophy.crawl.status({ id });
-while (!over.has(status.status)) {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  status = await stophy.crawl.status({ id });
-}
-
-const pages = [...status.data];
-let next = status.next;
-while (next !== undefined) {
-  const cursor = new URL(next).searchParams.get("cursor") ?? undefined;
-  const more = await stophy.crawl.status({ id, cursor });
-  pages.push(...more.data);
-  next = more.next;
-}
-```
-```python Python
-import time
-from urllib.parse import parse_qs, urlparse
-
-from stophy import Stophy
-
-stophy = Stophy()
-
-crawl_id = "<the id your crawl returned>"
-
-status = stophy.crawl.status(id=crawl_id)
-while status["status"] not in ("completed", "failed", "cancelled"):
-    time.sleep(2)
-    status = stophy.crawl.status(id=crawl_id)
-
-pages = list(status["data"])
-next_url = status.get("next")
-while next_url:
-    cursor = parse_qs(urlparse(next_url).query)["cursor"][0]
-    more = stophy.crawl.status(id=crawl_id, cursor=cursor)
-    pages.extend(more["data"])
-    next_url = more.get("next")
-```
-</CodeGroup>
-
-A status answer holds up to 100 finished pages or 2 MB, whichever comes first. That is separate from the `limit` you sent to the crawl, which is how many pages it reads in all. A crawl with `limit` 30 is usually read in one call once it is done, and one with `limit` 250 in three.
-
-`next` appears only when more finished pages are waiting, so it never leads to an empty `data`. It is a full URL on `api.stophy.dev`. Call it with the same API key. The SDK examples send its `cursor` back to `crawl.status`.
-
-For example, with a `limit` of 250 and 100 pages per answer, read the first two `next` links to get all 250 pages. The third answer has no `next`.
-
-## Read the status
-
-Check `status` before reading the pages. While a crawl runs, `status` is `scraping`. If a crawl has found a page but has not finished reading it, `total` can be `1` while `data` is still empty.
-
-```json
-{
-  "success": true,
-  "data": [],
-  "status": "scraping",
-  "total": 1,
-  "completed": 0,
-  "failed": 0,
-  "costUsd": 0,
-  "expiresAt": "2026-11-18T18:03:49.796Z",
-  "errors": []
-}
-```
-
-| Field | What it holds |
-| - | - |
-| `status` | `scraping`, `completed`, `failed` or `cancelled`. |
-| `queuePosition` | Where the crawl waits, when it has not started yet. |
-| `total` | The pages found so far. It grows while the crawl runs. |
-| `completed`, `failed` | Pages that finished, and pages that could not be read. |
-| `data` | The finished pages, in the shape the formats you chose give. See [Page content](/crawl/page-content). |
-| `errors` | The failed pages in this answer, each with `url`, `code`, `message`, `retryable` and `at`. |
-| `error` | Set only when the whole crawl failed, such as when the start page could not be read. |
-| `costUsd` | What the pages read so far cost. |
-| `createdAt`, `completedAt`, `duration`, `expiresAt` | Times, and the seconds the crawl ran. The pages are removed at `expiresAt`. |
-| `next` | The URL of the next answer, when more finished pages are waiting. |
-
-## Read pages as they finish
-
-The SDKs read a crawl or a batch through its checkpoint. Send `checkpoint=ck_start` to `GET /v1/crawl/{id}` to start. Each answer returns a `checkpoint` and only the pages you have not seen. Send it back to read on, even when no new page is ready.
-
-<CodeGroup>
 ```typescript TypeScript
 import { Stophy } from "stophy";
 
@@ -139,81 +47,67 @@ for page in stophy.crawl_results("<the id your crawl returned>"):
 ```
 </CodeGroup>
 
-The iterator reads one answer at a time, waits while the job runs, and ends once the job is over and every page was delivered. Two pages that share a final URL both come back. It stops with `resultsTimeout` after 15 minutes without finishing: pass `timeoutMs` (`timeout` in Python) to change that. Keep the checkpoint from `onCheckpoint` (`on_checkpoint` in Python) and pass it as `checkpoint` to resume after a restart. Use `batchScrapeResults` (`batch_scrape_results`) for a batch.
+A status answer holds up to 100 finished pages or 2 MB, whichever comes first, which is separate from the crawl's `limit`. `next` appears only when more finished pages wait, so it never leads to an empty `data`. It is a full URL: call it with the same key. A `cursor` works only for its own job and `limit`.
 
-## Read page by page
+The SDK iterators read through a `checkpoint`: `checkpoint=ck_start` starts, and each answer returns the next checkpoint and only pages you have not seen. They wait while the job runs and end when it is over and every page was delivered. After 15 minutes without finishing they stop with `resultsTimeout`. Pass `timeoutMs` (`timeout` in Python) to change that, and `onCheckpoint` (`on_checkpoint`) to resume after a restart. For a batch use `batchScrapeResults` (`batch_scrape_results`).
 
-If you need the URL and depth of each page, use `GET /v1/crawl/{id}/results`. It returns the finished pages with more detail on each, 20 at a time. Send `limit` up to 100, and send `cursor` from the answer to read the next part. Keep going until `cursor` is missing.
+## Status fields
 
-Each result has the `url` the crawl ended on, the `requestedUrl` it followed, the page's `depth` (links from the start page), and its own `costUsd`. For example, with `limit=2` on a three-page crawl, send the first answer's `cursor` with the same `limit` to read the last page. That answer has no `cursor`.
+```json
+{
+  "success": true,
+  "data": [],
+  "status": "scraping",
+  "total": 1,
+  "completed": 0,
+  "failed": 0,
+  "costUsd": 0,
+  "expiresAt": "2026-11-18T18:03:49.796Z",
+  "errors": []
+}
+```
 
-## Read the errors
-
-`GET /v1/crawl/{id}/errors` lists the pages the crawl could not read, and why. If no pages failed, `errors` is empty.
-
-Each item of `errors` has the page's `url`, a stable `code`, a `message`, whether trying again can help (`retryable`) and when it failed (`at`). The list holds up to 1,000 errors, and `isTruncated` says when there were more. A failed page costs nothing. `robotsBlocked` lists up to 1,000 links that a robots.txt the crawl read did not allow. They are skipped, not counted as failures. A link whose robots.txt could not be read is skipped and not listed.
-
-A page that answers with a 404 or 410 status is not an error. It is a finished page with its actual `metadata.statusCode` and a `metadata.error` that says which status the site returned. It costs nothing.
-
-## Cancel a crawl
-
-Use `DELETE /v1/crawl/{id}` when you no longer need a running crawl. The call returns `status: "cancelled"` and keeps the pages it already read. You are charged for those pages and no more.
-
-A crawl that already finished or failed cannot be cancelled. The call returns `409 jobFinished`.
-
-## List your crawls
-
-`GET /v1/crawl` lists your crawls, newest first, 20 at a time. Send `status` to keep one status, `limit` up to 100, and `cursor` from the answer for the next part. A page can hold fewer than `limit`, so keep going until `cursor` is missing.
-
-`GET /v1/crawl/active` lists only the crawls that are waiting or running, each with its `id`, `url`, `status` (`queued` or `scraping`), `createdAt` and the `options` it was started with. When no jobs are waiting or running, `crawls` is empty.
-
-## Get told with a webhook
-
-Send `webhook` when you start the crawl, instead of polling. It is a URL, or an object. We send a JSON `POST` when the crawl starts, for each finished page, and when it ends. For just page and completion events, set `"events": ["page", "completed"]` inside `webhook`. For example, use `"metadata": { "project": "docs" }` to identify the crawl in each delivery.
-
-| `webhook` field | Effect |
+| Field | What it holds |
 | - | - |
-| `url` | Where to send the calls. Required. |
-| `headers` | Headers sent with every call. |
-| `metadata` | An object that comes back in every call. |
-| `events` | Which of `started`, `page`, `action`, `completed`, `failed` and `cancelled` to send. All by default. |
+| `status` | `scraping`, `completed`, `failed` or `cancelled`. `failed` means the job stopped, such as an unreadable start page or an empty balance, with the reason in `error`. Failed pages do not make a job fail. |
+| `queuePosition` | Where the job waits, before it starts. |
+| `total` | Pages found so far. It grows while the crawl runs, so `data` can be empty while `total` is 1. |
+| `completed`, `failed` | Pages that finished and pages that could not be read. |
+| `data` | Finished pages, in the shape of the formats you chose. |
+| `errors` | Failed pages in this answer: `url`, `code`, `message`, `retryable`, `at`. |
+| `costUsd` | What the pages read so far cost. |
+| `createdAt`, `completedAt`, `duration`, `expiresAt` | Times, and the seconds the job ran. Pages are removed at `expiresAt`. |
+| `next` | The next answer, when more pages wait. |
 
-Each call is signed in a `Stophy-Signature` header, `t=<unix seconds>,v1=<hex>`, where `v1` is the HMAC-SHA256 of `<t>.<body>` with your webhook secret. A call that gets no `2xx` answer is sent again, up to 3 times. Every call has an `eventId` that stays the same when it is sent again. If your endpoint answers slowly, a `page` event can carry only the page's `url`. Read that page with the status call. See [Webhooks](/webhooks).
+## Results with depth
 
-## Options
+`GET /v1/crawl/{id}/results` returns finished pages with more detail: the `url` the crawl ended on, the `requestedUrl` it followed, `depth` and a `costUsd` per page. It returns 20 at a time. Send `limit` up to 100 and `cursor` from the answer, with the same `limit`, until `cursor` is missing. A part can hold fewer than `limit`.
 
-Set these fields in `POST /v1/crawl` when you want notifications, a limit on how fast we read pages, or shorter retention.
+## Errors
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `webhook` | `string` or `object` | none | Be told as the crawl runs. See above. |
-| `delay` | `number` | none | Seconds to wait between pages, up to 60. With `delay` the crawl reads one page at a time. |
-| `maxConcurrency` | `number` | none | The most pages read at once, 1 to 100. A crawl reads at most 4 pages at once, so a larger number gives the same speed. |
-| `zeroDataRetention` | `boolean` | `false` | Keep nothing from the crawl: no stored copy is read or made, results are held for one hour at most, and nothing is logged. Adds $2 per 1,000 pages. |
+`GET /v1/crawl/{id}/errors` lists the pages that could not be read, up to 1,000, with `isTruncated` when there were more. `retryable` says whether trying again can help. Error codes and fixes are in [Errors](/api-reference/errors). `robotsBlocked` lists up to 1,000 links that robots rules disallow. They are skipped, not failures.
 
-## Batches work the same way
+A 404 or 410 page is not an error. It is a finished page with its `metadata.statusCode` and a `metadata.error`.
 
-A [batch scrape](/batches/overview) is read like a crawl, at `https://api.stophy.dev/v1/batch/scrape/<id>`, with `/results` and `/errors` under it. Its pages are kept for 24 hours as well.
+## Cancel and list
 
-## Limits and errors
+- `DELETE /v1/crawl/{id}` cancels a running crawl and keeps the pages already read, which are charged. A finished job returns `409 jobFinished`.
+- `GET /v1/crawl` lists your crawls, newest first, 20 at a time. Send `status`, `limit` up to 100 and `cursor`. A part can hold fewer than `limit`.
+- `GET /v1/crawl/active` lists crawls that are waiting or running: `id`, `url`, `status` (`queued` or `scraping`), `createdAt` and `options`.
 
-Use the status and error code to tell a failed crawl from a missing job or an invalid request.
+## Webhooks
 
-- A status answer holds up to 100 pages or 2 MB. `/results` holds up to 100 pages, 20 by default.
-- An `id` that does not exist, belongs to another account, or has expired returns `404 notFound`.
-- A `cursor` is only good for the crawl and the `limit` it came from. Send it unchanged.
-- A crawl that has failed shows `status` `failed` and the reason in `error`.
-- Without an API key, every call returns `401 apiKeyRequired`.
+Send `webhook` when you start a job instead of polling. It is a URL, or an object.
 
-## Price
+```json
+{ "webhook": { "url": "https://example.com/hook", "events": ["page", "completed"], "metadata": { "project": "docs" } } }
+```
 
-Free. Reading, listing, cancelling and reading errors cost nothing. The pages a crawl reads are charged when they finish, at the price in [Crawl](/crawl/overview#price).
+| Field | Effect |
+| - | - |
+| `url` | Public address that answers `2xx`. Required. |
+| `headers` | Sent with every call. For a batch, up to 10, values up to 1,000 characters. |
+| `metadata` | Comes back in every call. For a batch, up to 4,000 characters. |
+| `events` | Any of `started`, `page`, `completed`, `failed`, `cancelled`, and for a crawl `action`. All by default. |
 
-## Related
-
-Use these guides to change the crawl you start or how you receive its results.
-
-- [Crawl overview](/crawl/overview) starts a crawl.
-- [Scope and limits](/crawl/scope) chooses the pages.
-- [Page content](/crawl/page-content) chooses what each page returns.
-- [Webhooks](/webhooks) explains signatures and retries.
+A call that gets no `2xx` is sent again, up to 3 times, with the same `eventId`. If your endpoint answers slowly, a `page` event can carry only the page's `url`: read that page with the status call. Signatures and payloads are in [Webhooks](/webhooks).

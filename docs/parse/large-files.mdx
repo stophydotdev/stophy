@@ -1,17 +1,10 @@
 ---
 title: "Large files"
-description: "Upload a file of up to 36 MB to a one-time address, then parse it with its upload id. Use it when a base64 body is too big. Getting the address is free."
-og:title: "Large files | Stophy"
-og:description: "Upload a file of up to 36 MB to a one-time address, then parse it with its upload id. Use it when a base64 body is too big. Getting the address is free."
+description: "Upload a file of up to 36 MB to a one-time address, then parse it with its upload id. Use it when a base64 body is too big. Needs an API key."
 ---
 
-Use an upload address when you do not want to put a large file in the JSON request. Get the address, send the bytes, then pass the returned `uploadId` to Parse. The file goes straight to the address as raw bytes, with no base64 and no JSON around it.
+Use an upload when you do not want a large file inside the JSON body. Get an address, `PUT` the raw bytes to it (no base64), then pass the `uploadId` to [Parse](/parse/overview) as `uploadRef`. Needs an API key. Get one in the [Quickstart](/quickstart).
 
-## Upload and parse a file
-
-Use this flow to parse a local PDF and keep its page breaks. Get an API key in the [Quickstart](/quickstart). An upload needs an API key. This flow has three steps: get the address, `PUT` the file to it, and parse. The file is a small two-page PDF named `report.pdf`.
-
-<CodeGroup>
 ```bash cURL
 UPLOAD=$(curl -s -X POST https://api.stophy.dev/v1/parse/upload-url \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
@@ -33,134 +26,25 @@ curl -X POST https://api.stophy.dev/v1/parse \
   -H "Content-Type: application/json" \
   -d '{
     "uploadRef": "'"$UPLOAD_ID"'",
-    "formats": ["markdown"],
     "parsers": [{ "type": "pdf", "pages": true }]
   }'
 ```
-```typescript TypeScript
-import { readFile } from "node:fs/promises";
 
-const headers = {
-  Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-  "Content-Type": "application/json",
-};
-const bytes = await readFile("report.pdf");
+The first call returns `uploadUrl`, `uploadId`, `expiresAt` and `maxBytes`. Keep the URL private. The `PUT` answers an empty `200`. The parse answer is the one in [Parse](/parse/overview), here with `data.pages`.
 
-const upload = await fetch("https://api.stophy.dev/v1/parse/upload-url", {
-  method: "POST",
-  headers,
-  body: JSON.stringify({
-    filename: "report.pdf",
-    contentType: "application/pdf",
-    declaredSizeBytes: bytes.length,
-  }),
-}).then((response) => response.json());
+| Field of the first call | Effect |
+| - | - |
+| `filename` | The file's name, up to 255 characters. Used when the parse call sends none. |
+| `contentType` | The file type, such as `application/pdf`. Send the same `Content-Type` in the `PUT`. |
+| `declaredSizeBytes` | The size in bytes, 1 to 37,748,736 (36 MB). |
 
-await fetch(upload.uploadUrl, {
-  method: "PUT",
-  headers: { "Content-Type": "application/pdf" },
-  body: bytes,
-});
+`POST /v1/parse` takes `uploadRef` in place of `file`, and every other field works the same.
 
-const parsed = await fetch("https://api.stophy.dev/v1/parse", {
-  method: "POST",
-  headers,
-  body: JSON.stringify({
-    uploadRef: upload.uploadId,
-    formats: ["markdown"],
-    parsers: [{ type: "pdf", pages: true }],
-  }),
-}).then((response) => response.json());
-console.log(parsed.data.pages);
-```
-```python Python
-import os
+## Limits
 
-import requests
+- `PUT` within 15 minutes of getting the address, and parse within 1 hour.
+- Each `uploadId` parses once. The file is deleted when the parse ends, and a repeat or late parse returns `404 notFound`.
+- Parsing before the `PUT` returns `400 invalidRequest`. A file over 36 MB returns `400` and the upload is deleted.
+- `uploadRef` without a key returns `400 invalidRequest`.
 
-headers = {"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"}
-with open("report.pdf", "rb") as handle:
-    data = handle.read()
-
-upload = requests.post(
-    "https://api.stophy.dev/v1/parse/upload-url",
-    headers=headers,
-    json={
-        "filename": "report.pdf",
-        "contentType": "application/pdf",
-        "declaredSizeBytes": len(data),
-    },
-).json()
-
-requests.put(
-    upload["uploadUrl"],
-    headers={"Content-Type": "application/pdf"},
-    data=data,
-).raise_for_status()
-
-parsed = requests.post(
-    "https://api.stophy.dev/v1/parse",
-    headers=headers,
-    json={
-        "uploadRef": upload["uploadId"],
-        "formats": ["markdown"],
-        "parsers": [{"type": "pdf", "pages": True}],
-    },
-).json()
-print(parsed["data"]["pages"])
-```
-</CodeGroup>
-
-## Read the response
-
-Check each response before sending the next call. The first gives you `uploadUrl`, `uploadId`, `expiresAt` and `maxBytes`. It also returns `uploadRef`, which is the same value as `uploadId`. Keep the one-time URL private. The `PUT` returns an empty `200` when it accepts the file. In the parse call, set `"pages": true` in the PDF parser to get each page's Markdown in addition to the whole document.
-
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "Revenue grew in every region.\n\nOutlook: stable.",
-    "pages": [
-      { "pageNumber": 1, "markdown": "Revenue grew in every region." },
-      { "pageNumber": 2, "markdown": "Outlook: stable." }
-    ]
-  }
-}
-```
-
-The file is deleted when the parse ends, so each `uploadId` parses once. Parsing the same `uploadId` again returns `404 notFound`.
-
-Copy the text before you discard the response. `data.metadata` identifies the file type and page count, and `data.metadata.costUsd` is the parse charge.
-
-## Options
-
-Send the file details to `POST /v1/parse/upload-url` before you upload.
-
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `filename` | `string` | none | The file's name, up to 255 characters. It is used when the parse call sends no `filename`. |
-| `contentType` | `string` | none | The type of the file, such as `application/pdf`. Send the same `Content-Type` in the `PUT`. |
-| `declaredSizeBytes` | `number` | none | The size of the file in bytes, 1 to 37,748,736. |
-
-`POST /v1/parse` takes `uploadRef` in place of `file`. Every other field works the same. See [Parse documents](/parse/overview) and [Formats](/parse/formats).
-
-## Limits and errors
-
-Finish the upload before the URL expires, and parse it before the ID expires.
-
-- A file can be up to 36 MB (37,748,736 bytes).
-- Send the file to `uploadUrl` within 15 minutes of the call. After that, the address stops working.
-- Parse the file within 1 hour of getting the address. After that, the id stops working and parse returns `404 notFound` with `No upload with that id. An upload id works for one hour.`
-- Parse before the `PUT` returns `400 invalidRequest` with `That file was not uploaded yet. PUT it to uploadUrl first.`
-- A file over 36 MB returns `400 invalidRequest` with `This file is larger than 36 MB. Send a file of up to 36 MB.` and the upload is deleted.
-- A parse that sends `uploadRef` without an API key returns `400 invalidRequest` with `An upload needs an API key.`
-- Getting the address is free. The parse costs what any parse costs, and a failed parse costs nothing.
-
-## Related
-
-Use the parse and formats guides to choose what you want back.
-
-- [Parse documents](/parse/overview) sends a file of up to 36 MB inside the JSON body.
-- [Formats](/parse/formats) lists the file types and the PDF options.
-- [PDFs and documents](/scrape/pdfs-and-documents) reads a file by its address.
-- [Zero data retention](/production/zero-data-retention) keeps nothing from a parse.
+Getting the address is free. See [Pricing](/account/pricing) for the parse.

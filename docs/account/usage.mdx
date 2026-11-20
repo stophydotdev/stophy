@@ -1,117 +1,75 @@
 ---
-title: "Usage"
-description: "Read your balance, what you spent per hour, day or month, your per-minute limits and your monthly spend. Account calls are free and need an API key."
-og:title: "Usage | Stophy"
-og:description: "Read your balance, what you spent per hour, day or month, your per-minute limits and your monthly spend. Account calls are free and need an API key."
+title: "Usage and logs"
+sidebarTitle: "Usage"
+description: "Read your balance, limits and spend over time, list billed calls with their cost, and look up one call by its request ID. These calls are free."
 ---
 
-Check your balance, spending and limits without opening the dashboard. They are free and need an API key. Every amount is in dollars. Each response also has older fields that count the same amounts in steps of $0.002. This page leaves them out. Use the dollar fields.
+These calls are free and need a key. Amounts are in dollars. Use the dollar fields, not the older ones beside them.
 
-| Call | What it shows |
-| - | - |
-| `GET /v1/limits` | Your tier, balance, per-minute limits, calls and jobs at once, and key expiry |
-| `GET /v1/usage` | Your balance, and what all your calls have cost |
-| `GET /v1/usage/history` | What you spent and how many paid calls you made, per hour, day or month |
-| `GET /v1/team/credit-usage` | Your balance |
-| `GET /v1/team/credit-usage/historical` | What you spent each month |
+## Limits and balance
 
-## Check your limits and balance
-
-Call `GET /v1/limits` to see what you can spend and how many calls you can make with this key.
-
-<CodeGroup>
-```bash cURL
-curl https://api.stophy.dev/v1/limits \
-  -H "Authorization: Bearer $STOPHY_API_KEY"
-```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/limits", {
-  headers: { Authorization: `Bearer ${process.env.STOPHY_API_KEY}` },
-});
-const { data } = await response.json();
-console.log(data.balanceUsd, data.perMinute);
-```
-```python Python
-import os
-
-import requests
-
-response = requests.get(
-    "https://api.stophy.dev/v1/limits",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-)
-data = response.json()["data"]
-print(data["balanceUsd"], data["perMinute"])
-```
-</CodeGroup>
-
-Start with `data.balanceUsd` and `data.perMinute`. This response uses an example balance.
-
-```json
-{
-  "success": true,
-  "data": {
-    "tier": "paid",
-    "balanceUsd": 25,
-    "rateLimit": {
-      "limitPerMinute": 600,
-      "remaining": 597,
-      "resetsAt": "2026-11-17T17:44:00.000Z"
-    },
-    "perMinute": { "calls": 600, "jobs": 100, "interact": 100, "reads": 1500 },
-    "billingUrl": "https://stophy.dev/billing"
-  },
-  "costUsd": 0,
-  "requestId": "5f9f38f3-3b4b-4cf0-87c5-d88404d9ad2f"
-}
+```bash
+curl https://api.stophy.dev/v1/limits -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
 
-| Field | What it is |
+| Field in `data` | Meaning |
 | - | - |
 | `tier` | `free` until your first top-up, then `paid` |
-| `balanceUsd` | What is left on the account, in dollars |
-| `rateLimit` | Calls a minute this key may make, how many are left counting this request, and when the minute resets. `null` when the counter is unavailable. |
-| `perMinute` | The limit a minute for each kind of call: `calls`, `jobs`, `interact` and `reads` |
-| `concurrency` | How many calls may run at once and how many run now |
-| `jobsAtOnce`, `queuedJobs` | Crawls, batches, extracts and agent runs that may run at once, and that may wait |
-| `sessionsAtOnce` | Browser sessions that may be open at once |
-| `paidLimits` | On the `free` tier, the limits a `paid` account has. `null` on `paid`. |
-| `keyExpiresAt` | When this key stops working, or `null` when it does not expire |
+| `balanceUsd` | What is left, in dollars |
+| `rateLimit` | `limitPerMinute`, `remaining` (counting this call) and `resetsAt`. `null` when the counter is unavailable. |
+| `perMinute` | Limits for `calls`, `jobs`, `interact` and `reads` |
+| `concurrency` | Calls allowed at once and running now |
+| `jobsAtOnce`, `queuedJobs` | Jobs that may run and wait |
+| `sessionsAtOnce` | Open browser sessions allowed |
+| `paidLimits` | The `paid` limits, shown on `free`. `null` on `paid`. |
+| `keyExpiresAt` | When the key stops working, or `null` |
 | `billingUrl` | Where to add money |
 
-`GET /v1/limits` counts as one call toward the per-minute limit. See [Rate limits](/production/rate-limits) for what each limit means.
+The call counts toward the per-minute limit. See [Rate limits](/production/rate-limits).
 
-## Check what you have used
+## Usage
 
-Call `GET /v1/usage` for your total spend and paid call count. `balanceMicros` is the balance in millionths of a dollar. `costUsd` is what all your calls have cost, and `requestCount` is how many paid calls you made. This response has no `success` or `data` wrapper.
+`GET /v1/usage` returns `balanceMicros` (millionths of a dollar), `costUsd` for all your calls and `requestCount` of paid calls. It has no `success` or `data` wrapper.
 
-## Read your spending over time
+`GET /v1/usage/history` takes these parameters. Read the window in `data.from` and `data.to`, the sum in `data.totals` and the rows in `data.buckets` (`start`, `costUsd`, `requests`).
 
-Use `GET /v1/usage/history` to compare spend over time or narrow it to one endpoint or key. For example, set `interval=day`, `endpoint=scrape` and `from=2026-11-15` for daily scrape spend from November 15 onward. Read the window in `data.from` and `data.to`, the total in `data.totals`, and its breakdown in `data.buckets`. Each bucket gives you `start`, `costUsd` and `requests`.
-
-| Parameter | Default | What it does |
+| Parameter | Default | Meaning |
 | - | - | - |
-| `interval` | `day` | The bucket size: `hour`, `day` or `month` |
-| `from` | 2 days, 30 days or 366 days before `to`, for `hour`, `day` and `month` | The start of the window. An ISO time such as `2026-11-01` or `2026-11-01T08:00:00Z`. |
-| `to` | Now | The end of the window, not included |
-| `endpoint` | All | Only calls to this endpoint, such as `scrape` |
-| `apiKeyId` | All | Only calls made with this key |
+| `interval` | `day` | `hour`, `day` or `month` |
+| `from` | 2, 30 or 366 days before `to` for `hour`, `day`, `month` | Start of the window, an ISO time such as `2026-11-01` |
+| `to` | Now | End of the window, not included |
+| `endpoint` | All | One endpoint, such as `scrape` |
+| `apiKeyId` | All | One key |
 
-The window can span at most 31 days for `hour` and 366 days for `day` and `month`, and `from` must be before `to`, or the call answers `invalidRequest`. `start` is the UTC start of the bucket. Buckets with no paid calls are left out, and calls that cost nothing are not counted. `totals` adds the buckets.
+The window spans at most 31 days for `hour` and 366 for `day` and `month`, and `from` must be before `to`, or the call answers `invalidRequest`. `start` is the UTC start of the bucket. Buckets with no paid calls are left out.
 
-## Read your monthly spend
+`GET /v1/team/credit-usage` returns `balanceUsd`. Its plan and period fields are `null`. `/historical` returns `periods`, one per month, with `startDate`, `endDate`, `totalCostUsd` and `costUsd`. Add `byApiKey=true` to split each month by key, named in `apiKey`.
 
-`GET /v1/team/credit-usage` returns your balance. `GET /v1/team/credit-usage/historical` returns one row for each month of the last year, with what you spent. The first call returns `balanceUsd`. There are no plans, so its plan and period fields are `null`.
+## List calls
 
-Read `periods` for the monthly rows. Each has `startDate`, `endDate`, `totalCostUsd` and `costUsd`. Send `byApiKey=true` to split each month by the key that made the calls. Each row then has the key's name in `apiKey`.
+```bash
+curl "https://api.stophy.dev/v1/logs?days=1&endpoint=scrape" -H "Authorization: Bearer $STOPHY_API_KEY"
+```
 
-For the model use of extract and agent, see [Usage and logs](/production/usage-and-logs).
+`GET /v1/logs` returns `logs`, newest first, 50 a page, with `page`, `pageSize`, `total`, `totalPages` and the `endpoints` you can filter by. Each row has `id`, `requestId`, `createdAt`, `endpoint`, `costUsd`, the key, the HTTP method and status.
 
-## Related
+| Parameter | Default | Meaning |
+| - | - | - |
+| `days` | 7 | How far back, 1 to 90 |
+| `page` | 0 | Page number, from 0 |
+| `apiKeyId` | All | One key |
+| `endpoint` | All | One endpoint ID, such as `crawl` |
 
-Use pricing to estimate your next run or logs to look up a single call.
+Only billed calls are logged. A free call, an error and an empty result have no entry, and a billed [zero data retention](/production/zero-data-retention) call does. Rows hold billing fields, not content. Logs are kept for 90 days.
 
-* [Pricing](/account/pricing)
-* [API keys](/account/api-keys)
-* [Usage and logs](/production/usage-and-logs)
-* [Rate limits](/production/rate-limits)
+`GET /v1/logs/{id}` takes the `X-Request-ID` of any answer, looks back `days` days (7 by default, up to 90) and returns `data.costUsd`. `charges` counts how often the call was charged: a crawl or batch charges once per page. An ID not billed in that time answers `404` `notFound`.
+
+`GET /v1/team/activity` returns the same calls with a cursor. Each row has `id`, `endpoint`, `api_version` and `created_at`. Parameters: `endpoint`, `limit` (1 to 100, default 50) and `cursor`. Stop when `has_more` is `false`.
+
+## Jobs and model use
+
+`GET /v1/team/queue-status` returns `activeJobsInQueue`, `waitingJobsInQueue`, `jobsInQueue`, `maxConcurrency` for your tier and `mostRecentSuccess`, the finish time of your last billed call.
+
+`GET /v1/team/token-usage` has older field names ending in `Tokens`. The values count billed amounts, not model tokens. Read `tokensUsed`, `byEndpoint` and `usedSince`. `/historical` returns one row per month, split by key with `byApiKey=true`.
+
+Save the `X-Request-ID` of every call you care about. It is on every answer and in every error body, and [feedback](/production/agent-feedback) takes it too. See [Troubleshooting](/production/troubleshooting).

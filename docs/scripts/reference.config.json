@@ -117,7 +117,8 @@
       "group": "Browser tasks",
       "operations": [
         "browserTask",
-        "browserTaskStatus"
+        "browserTaskStatus",
+        "browserTaskCancel"
       ]
     },
     {
@@ -317,7 +318,8 @@
     "listParsers": "List parsers",
     "listEndpoints": "List endpoints",
     "siteStatus": "Site status",
-    "feedback": "Send feedback"
+    "feedback": "Send feedback",
+    "browserTaskCancel": "Stop a browser task"
   },
   "calls": {
     "scrape": {
@@ -820,7 +822,8 @@
     "searchDeveloperGet": "No separate example is recorded. It takes the fields of the POST call as query parameters and returns the same answer.",
     "searchResearchPapersGet": "No separate example is recorded. It takes the fields of the POST call as query parameters and returns the same answer.",
     "monitorCheck": "No example is recorded: the monitor that recorded the other examples was deleted before this call. The schema below lists every field.",
-    "monitorChange": "No example is recorded: it needs a change with a diff, and the first read of a page has none. The schema below lists every field."
+    "monitorChange": "No example is recorded: it needs a change with a diff, and the first read of a page has none. The schema below lists every field.",
+    "browserTaskCancel": "No example is recorded: it needs a task that is still running, and every task costs money. The schema below lists every field."
   },
   "masks": {
     "getLimits": {
@@ -875,25 +878,6 @@
     "browserProxyUpdate": {
       "exitIp": "203.0.113.7"
     }
-  },
-  "prices": {
-    "extractResult": "Free.",
-    "listParsers": "Free.",
-    "agent": "Each search and page at its normal price, plus $3 per 1,000 pages for each planning or answering step that returns something, up to the limit you set with `maxCredits` ($5 when you leave it out). Starting the run is free.",
-    "browserCreate": "$0.06 per hour open, $0.84 per hour once a prompt has run, billed when it closes, one minute at least. Traffic adds $5 per GB through the managed network location, the default, and $0.2 per GB direct or through your own proxy.",
-    "browserDelete": "Closing a session bills the time it was open: $0.06 per hour, or $0.84 per hour once a prompt has run, one minute at least.",
-    "browserExecute": "No charge of its own. The session is billed when it closes, at $0.84 per hour once a prompt has run.",
-    "scrapeInteract": "Billed like a browser session: $0.06 per hour open, or $0.84 per hour once a prompt has run, one minute at least.",
-    "scrapeInteractStop": "Closing the session bills the time it was open: $0.06 per hour, or $0.84 per hour once a prompt has run, one minute at least.",
-    "monitorCreate": "$1 per 1,000 pages read, for every check. A json mode adds $3 per 1,000 pages when it returns something, and a judged change adds $1 per 1,000 pages.",
-    "monitorRun": "$1 per 1,000 pages read, the same as a scheduled check.",
-    "monitorList": "Free.",
-    "monitorGet": "Free.",
-    "monitorUpdate": "Free.",
-    "monitorDelete": "Free.",
-    "monitorChecks": "Free.",
-    "monitorCheck": "Free.",
-    "monitorChanges": "Free."
   },
   "descriptions": {
     "browserExtensionUpload": "Upload a Chrome extension for browser sessions as a zip of up to 50 MiB with a Manifest V3 manifest. Uploading is free; open a session with its id."
@@ -1074,45 +1058,6 @@
       ]
     }
   ],
-  "parserBrands": {
-    "google": "Google",
-    "maps": "Maps",
-    "play": "Play",
-    "youtube": "YouTube",
-    "tiktok": "TikTok",
-    "instagram": "Instagram",
-    "linkedin": "LinkedIn",
-    "reddit": "Reddit",
-    "x": "X",
-    "threads": "Threads",
-    "pinterest": "Pinterest",
-    "facebook": "Facebook",
-    "yelp": "Yelp",
-    "tripadvisor": "Tripadvisor",
-    "booking": "Booking.com",
-    "expedia": "Expedia",
-    "airbnb": "Airbnb",
-    "luma": "Luma",
-    "indeed": "Indeed",
-    "upwork": "Upwork",
-    "glassdoor": "Glassdoor",
-    "amazon": "Amazon",
-    "ebay": "eBay",
-    "craigslist": "Craigslist",
-    "trustpilot": "Trustpilot",
-    "appstore": "App Store",
-    "zillow": "Zillow",
-    "realtor": "Realtor.com",
-    "meta": "Meta",
-    "crunchbase": "Crunchbase",
-    "g2": "G2",
-    "shop": "Shop",
-    "ads": "ads",
-    "trends": "Trends",
-    "patents": "Patents",
-    "flights": "Flights",
-    "hotels": "Hotels"
-  },
   "alsoGet": {
     "searchDeveloper": "searchDeveloperGet",
     "searchResearchPapers": "searchResearchPapersGet"

@@ -16,34 +16,23 @@
   <a href="https://x.com/stophydotdev">X</a>
 </p>
 
-Stophy is one API for agents that need the web. They can search it, read any page as Markdown or JSON, crawl a whole site, pull fields out of pages, and drive a cloud browser when a page needs clicks.
+Stophy is one API for agents that need the web. Search it, read any page as Markdown or JSON, crawl a site, extract fields, watch pages for changes, and drive a cloud browser.
 
-This repo holds everything you install to use it: the SDKs, the `stophy` command, the MCP server, the agent skills and the docs.
+This repo holds what you install to use it: the SDKs, the `stophy` command, the MCP server, the agent skills and the docs.
 
 ## Try it
 
-You don't need a key. This searches the web and prints two results:
+You don't need a key:
 
 ```bash
 npx -y @stophy/cli search "bun runtime" --limit 2
 ```
 
-Search, scrape, map and parse work without a key, up to 10 calls a minute and 50 a day. For more, [sign up](https://stophy.dev/signup) with GitHub or Google. A new account starts with $2 and no card, which is about 2,000 pages.
-
-## What you get
-
-- **Search.** Web, news and image results, with the text of each result when you ask for it.
-- **Scrape.** Any public page as Markdown, HTML, links, a screenshot, or JSON in the shape you describe.
-- **Map and crawl.** Every URL on a site, or the content of all its pages, as a background job.
-- **Extract.** The fields you name, filled from pages and checked against them.
-- **Browsers.** A cloud browser that your code or your agent drives, for pages that need clicks.
-- **Monitors.** Pages checked on a schedule, with each change sent to your webhook.
-
-Prices are in dollars and you pay for what you use. A failed call is free.
+Search, scrape, map and parse work without a key. For the rest, [sign up](https://stophy.dev/signup).
 
 ## Install
 
-Pick the one that fits where your agent runs. They all call the same API.
+Each one calls the same API.
 
 | From                            | Install                                         | Guide                                                |
 | ------------------------------- | ----------------------------------------------- | ---------------------------------------------------- |

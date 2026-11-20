@@ -1,0 +1,85 @@
+---
+title: "Search options"
+description: "Choose search sources, narrow results by site, time, place or language, and read the page text or best passages of each result."
+sidebarTitle: "Options"
+---
+
+These fields go next to `query` in [Search](/search/overview).
+
+## Sources
+
+`sources` takes `web`, `news` and `images`. `categories` takes `pdf`, `research` and `videos`. Each entry is a string or an object such as `{ "type": "web" }`. Send up to 5 sources.
+
+```json
+{ "query": "sqlite", "sources": ["news", "images"], "categories": ["research", "videos"], "limit": 2 }
+```
+
+| Value | Where in `data` | Row fields |
+| - | - | - |
+| `web` (default) | `web` | `url`, `title`, `description`, `date` and `category` when known. |
+| `news` | `news` | `title`, `url`, `snippet`, `date`, `imageUrl`. |
+| `images` | `images` | `imageUrl`, `imageWidth`, `imageHeight`, and the `url` of the page that holds the image. |
+| `pdf` | `web` | Web results that are PDFs, with `category` set to `pdf`. A result gets it when its address ends in `.pdf`, is an arXiv `/pdf/` link, or the page read for it is a PDF. |
+| `research` | `research` | Papers ranked by relevance, then citations: `doi`, `authors`, `year`, `venue`, `type`, `citedByCount`, `openAccessUrl` when known, and a `snippet` from the matching abstract. |
+| `videos` | `videos` | YouTube videos in YouTube's order: `channel`, `durationSeconds`, `views`, watch `url`. When the video has captions, also the matching `snippet` and `startSeconds`, and `url` ends with `&t=`. |
+
+With only `research` or `videos`, no web search runs, and the filters below return `400 invalidRequest`. With `research` and `web`, web results are limited to academic sites, and `includeDomains` and `excludeDomains` return `400`. An image search needs words next to `imagesize:` or `larger:`.
+
+## Filters
+
+Top-level filters apply to every source they fit. Give web results their own with a source object: `{ "type": "web", "tbs": "qdr:w", "country": "de" }`.
+
+```json
+{ "query": "sqlite driver", "includeDomains": ["bun.com", "nodejs.org"], "tbs": "qdr:y" }
+```
+
+| Field | Default | Effect |
+| - | - | - |
+| `includeDomains` | none | Keep only these sites, up to 10. Matches subdomains. Not with `excludeDomains`. |
+| `excludeDomains` | none | Drop these sites, up to 10. Not with `includeDomains`. |
+| `tbs` | any time | Time window, below. Web takes every value, news takes `qdr` and `sbd`, images take none. |
+| `location` | none | Where to search from, such as `Berlin,Germany`. It must end in a country, which replaces `country`. A city before it narrows web results. |
+| `country` | `us` | Two-letter country, such as `de`. `uk` is read as `gb`. Images are always from the US, so another country with `images` returns `400`. |
+| `lang` | none | Two-letter language for web results, such as `de`. Some results can still be in other languages. |
+| `safe` | `false` | Hide explicit web, news and image results. |
+
+`tbs` values, joined with commas, such as `sbd:1,qdr:w`:
+
+| `tbs` | Effect |
+| - | - |
+| `qdr:d`, `qdr:w`, `qdr:m`, `qdr:y` | Past day, week, month or year. |
+| `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY` | Date range, web only. `cd_min` must not be after `cd_max`. |
+| `sbd:1` | Newest first. Results without a date come last and `warning` counts them. Sorting happens before `limit`, so `limit: 1` returns the newest result. |
+
+`tbs` with only `images` returns `400`. With other sources, images stay unfiltered and `warning` says so. A filter can leave fewer results than `limit`.
+
+## Page content
+
+Add `scrapeOptions` to read the page behind each web and news result. Needs an API key. Images cannot be read, so `scrapeOptions.formats` with `images` returns `400`.
+
+```json
+{ "query": "bun sqlite", "limit": 2, "scrapeOptions": { "formats": ["markdown"], "onlyMainContent": true } }
+```
+
+Each row read gets the format fields (`markdown` here) and a `metadata` object as in [Page metadata](/scrape/page-metadata). The web `description` is filled from the page. `scrapeOptions` takes the options in [Scrape](/scrape/overview), so every format and option applies here.
+
+| Field | Default | Effect |
+| - | - | - |
+| `scrapeOptions.formats` | none | What to return per result, up to 20. With none, no page is read. |
+| `scrapeOptions.timeout` | 30,000 ms | Most time one page may take, 1,000 to 300,000. A page never gets more than what is left of the search `timeout`. |
+| `scrapeLimit` | `limit` | Read only the top this many web results and top this many news results, 1 to 100. Not more than `limit`, and `400` without `scrapeOptions.formats`. |
+| `highlights` | `false` | Fill each web `description` with the passages that best match `query`, up to about 2,000 characters, with `…` where text is skipped. Needs no `scrapeOptions`. |
+| `maxTextLength` | none | Query parameter. Cuts every text value in the response to this many characters, ending with `…`. |
+
+For passages as their own list, use `{ "type": "highlights", "query": "refund policy" }` in `formats`. See [Highlights](/scrape/highlights).
+
+A page that fails does not fail the search. The row keeps its URL, title and description, has no page text, and carries `metadata.error`. Up to 10 pages are read at once.
+
+| `metadata.error` | What to do |
+| - | - |
+| `The page took too long to read. Read this address with scrape.` | Read the URL with [Scrape](/scrape/overview). |
+| `There was no time left to read this page. Read this address with scrape.` | Raise the search `timeout`, or lower `scrapeLimit`. |
+| `The page was not found or has no readable text.` | Nothing to read. |
+| `The page could not be read in this call. Read this address with scrape.` | Scrape the URL to see why. |
+
+Without a key, `scrapeOptions` returns `401 apiKeyRequired`. Pages read add to the price of the search. See [Pricing](/account/pricing).

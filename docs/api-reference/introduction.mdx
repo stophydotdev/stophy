@@ -1,77 +1,35 @@
 ---
 title: "Introduction"
-description: "Send JSON to one base URL with a bearer key. Every operation of the API in one reference, from scrape and search to browsers, monitors and billing in dollars."
-og:title: "Introduction | Stophy"
-og:description: "Send JSON to one base URL with a bearer key. Every operation of the API in one reference, from scrape and search to browsers, monitors and billing in dollars."
+description: "Send JSON to one base URL with a bearer key. Every operation in one reference, from scrape and search to browsers, monitors and your balance in dollars."
 mode: "wide"
 ---
 
-The Stophy API takes JSON over HTTPS at one base URL and answers in JSON. Every call needs an API key, except the few listed under [Authentication](#authentication).
-
-## Base URL
-
-Send your calls to `https://api.stophy.dev`. Use the JSON body or query string shown for the operation. A field the operation does not take can return `400`. Each operation has a reference page with its fields, a real request in cURL, TypeScript and Python, and a real response.
+The API takes JSON over HTTPS at `https://api.stophy.dev` and answers in JSON. Use the body or query string shown on each operation's page. A field the operation does not take can return `400`. Send your key as `Authorization: Bearer $STOPHY_API_KEY`. Which calls work without one is in [API keys](/account/api-keys).
 
 ## Operations
 
-Pick the group for the task you want to run. Each link opens its first operation.
-
-| Group | What it does |
-| --- | --- |
-| [Scrape](/api-reference/endpoint/scrape) | Reads one page as Markdown, HTML, links, a screenshot or JSON. Reads a stored result again, and keeps working on a page in a browser session. |
-| [Map](/api-reference/endpoint/map) | Lists the pages on a site. |
-| [Crawl](/api-reference/endpoint/crawl) | Reads a whole site in the background. Lists, reads, describes and cancels crawls. |
-| [Search](/api-reference/endpoint/search) | Searches the web, news and images, developer sources and research papers. Rates a search. |
-| [Extract](/api-reference/endpoint/extract) | Pulls the fields you name from pages, each checked against the page. |
-| [Agent](/api-reference/endpoint/agent) | Runs a task that searches, reads pages and fills your fields. Lists, stops and traces runs. |
-| [Parse](/api-reference/endpoint/parse) | Turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown. |
-| [Browser sessions](/api-reference/endpoint/browser-create) | Opens a cloud browser, runs code or a prompt in it, moves files, and reads recordings and replays. |
-| [Browser profiles](/api-reference/endpoint/browser-profile-create) | Keeps cookies and logins that sessions reuse. |
-| [Browser extensions](/api-reference/endpoint/browser-extension-upload) | Stores Chrome extensions for sessions. |
-| [Network policies](/api-reference/endpoint/browser-network-policy-create) | Allows or blocks domains for browser sessions. |
-| [Browser tasks](/api-reference/endpoint/browser-task) | Clicks through a site in a real browser to reach a goal. |
-| [Batches](/api-reference/endpoint/batch-scrape) | Scrapes a list of pages in the background. |
-| [Monitors](/api-reference/endpoint/monitor-create) | Watches pages on a schedule and records what changed. |
-| [Webhooks](/api-reference/endpoint/webhook-secret) | Reads the secret that signs your webhook calls, and the calls Stophy sent. |
-| [Logs](/api-reference/endpoint/logs) | Lists your recent calls and reads what one paid call cost. |
-| [Usage](/api-reference/endpoint/usage) | Shows your balance, spend, model use and queue. |
-| [Account](/api-reference/endpoint/sign-up) | Gets an agent an API key, shows your limits and revokes a key. |
-| [Catalog](/api-reference/endpoint/list-parsers) | Lists the parsers, the operations with their prices, and which sites work now. |
-| [Feedback](/api-reference/endpoint/feedback) | Rates the answer of an earlier call. |
-
-A site's own data, like a Reddit search or a YouTube transcript, comes from scrape with a [pre-built parser](/scrape/prebuilt-parsers).
-
-## Authentication
-
-Create an API key at [stophy.dev/signup](https://stophy.dev/signup) and send it in `Authorization: Bearer $STOPHY_API_KEY`. An agent can ask its person for one with [Sign up](/api-reference/endpoint/sign-up).
-
-Without an API key, an operation that needs one returns `401` with code `apiKeyRequired`, a `signupUrl` for a person and a `signup` call for an agent. Search, scrape, map and parse also work without an API key, up to 10 calls a minute and 50 calls a day per IP address, with no paging. Sign up, collect the key, the parser list, the endpoint list, site status and keyless eligibility need no API key at all. See [Rate limits](/production/rate-limits).
+The sidebar lists every operation by group: scrape, map, crawl, search, extract, agent, parse, browser sessions, profiles, extensions, network policies and tasks, batches, monitors, webhooks, logs, usage, account, catalog and feedback. A site's own data, like a Reddit search or a YouTube transcript, comes from scrape with a [pre-built parser](/scrape/prebuilt-parsers).
 
 ## Responses
 
-Check `success` before you read the result. Almost every answer includes it. The answers of scrape, search, map and parse calls, and the starts of crawl, batch, extract and agent jobs, have no top-level `costUsd`, `creditsUsed` or `requestId`. A job start still answers with its job `id`. Job and run status pages keep their running totals. Crawl and batch results and lists, crawl params-preview, developer search, papers search, scrape interact, parse upload-url and the account, browser and monitor calls still send all three. This real [Map](/api-reference/endpoint/map) answer is cut to one link.
+Check `success` before you read the result. A job start answers with its job `id`, and job status pages keep their running totals. This [Map](/api-reference/endpoint/map) answer is cut to one link.
 
 ```json
 {
   "success": true,
-  "links": [
-    {
-      "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE"
-    }
-  ]
+  "links": [{ "url": "https://bun.com/reference/node/sqlite/constants/SQLITE_ANALYZE" }]
 }
 ```
 
-The `x-cost-usd` header is what the call cost, in dollars, and the `X-Request-ID` header names the request. Scrape and parse also have the cost in `data.metadata.costUsd`, and scrape has its ID in `data.metadata.scrapeId`. Where a body does carry `costUsd`, `creditsUsed` is the same cost in whole steps of $0.002, kept for older clients. Use `costUsd`. Read a job with its status call, or its result call for extract.
+Headers on an answer:
 
-Each answer has headers too: `X-Request-ID`, `x-cost-usd`, `x-credits-used` (the older one), `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. Some operations add `x-cache` and `x-cache-age`, which say whether the result came from a stored copy. Quote the request id when you contact support.
+* `X-Request-ID` names the request. Quote it to support.
+* `x-cost-usd` is what the call cost, in dollars. See [Pricing](/account/pricing#read-what-a-call-cost).
+* `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. See [Rate limits](/production/rate-limits#headers).
+* `x-cache` and `x-cache-age` on some operations: whether the result came from a stored copy.
 
-To cut long text, add `?maxTextLength=<characters>` to the URL. A value that was cut ends with `…`, and a page whose text was cut has `isTruncated` set to `true`. A screenshot is never cut.
+Add `?maxTextLength=<characters>` to cut long text. A cut value ends with `…`, and a page whose text was cut has `isTruncated: true`. A screenshot is never cut.
 
-When an answer has a `cursor`, send it back unchanged with the same input to get the next page. Where it has a `page`, send the next page number. Crawl and batch status answers use `next`. Paging needs an API key.
+When an answer has a `cursor`, send it back unchanged with the same input for the next page. Where it has a `page`, send the next number. Crawl and batch status answers use `next`. Paging needs a key.
 
-A failed call returns an error status and a flat body: `{ "success": false, "error": "<what went wrong>", "code": "<code>" }`. See [Errors](/api-reference/errors).
-
-## Cost
-
-Check the operation page for its price in dollars before you call it. Reading a job, listing your own jobs, sessions and monitors, and the account calls are free, and a call that fails costs nothing. Where an operation takes `limit`, send it to get fewer results and pay for fewer. Your balance is in dollars. Read it with [Limits](/api-reference/endpoint/limits) or [Usage](/api-reference/endpoint/usage). See [Pricing](/account/pricing).
+A failed call returns an error status and a flat body, `{ "success": false, "error": "...", "code": "..." }`. See [Errors](/api-reference/errors).

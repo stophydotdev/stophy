@@ -1,31 +1,28 @@
 ---
 title: "Changelog"
-description: "What changed in the Stophy API, SDKs, CLI and MCP server, one week per entry and newest first. Each line links the page that says how it works now."
-og:title: "Changelog | Stophy"
-og:description: "What changed in the Stophy API, SDKs, CLI and MCP server, one week per entry and newest first. Each line links the page that says how it works now."
+description: "What changed in the Stophy API, SDKs, CLI and MCP server, one week per entry and newest first, with a link to the page that says how it works now."
 ---
 
-Each entry covers one week and is named for its Monday. We list the changes you would notice or need to act on, and each one links the page that describes how it works today.
+Each entry is named for its Monday.
 
 <Update label="Week of November 16, 2026" description="Smaller answers, lower prices and new parsers">
 
-- **Breaking: smaller answers.** Scrape, search, map and parse answers, and the starts of crawl, batch, extract and agent jobs, no longer carry `costUsd`, `creditsUsed` or `requestId` at the top, and search no longer has an `id`. Job starts still answer with their job `id`, and status pages keep their running totals. The cost is the `x-cost-usd` header, scrape and parse also keep it in `data.metadata.costUsd`, and the request id is the `X-Request-ID` header. See [Errors](/api-reference/errors) and [Scrape](/scrape/overview).
-- **Breaking: results and credit limits.** Crawl, batch and search result `metadata` no longer carries `scrapeId`. An agent run cut short by `maxCredits` now ends `failed` with `credit_limit_reached`, not `completed`. See [Agent runs](/agent/runs).
-- **Lower prices from November 18.** A page read is $1 per 1,000, down from $2. Map is $0.50 per 1,000, extract $5 per 1,000 pages, and search $0.001 for each 10 results. See [Pricing](/account/pricing).
-- **Nine new parsers** for Bluesky, link-in-bio pages, X communities, TikTok trending and live, Twitch channels and clips, and Facebook groups. See [Pre-built parsers](/scrape/prebuilt-parsers).
-- **Webhooks carry `costUsd` and `eventId`**, so you know what each job cost and can skip an event you already handled. See [Webhooks](/webhooks).
-- **The MCP server has a tool for each product**, such as `stophy_crawl_status`. The generic `stophy_call` tools are gone. See [Install MCP](/install-mcp#what-your-agent-sees).
+- **Breaking: smaller answers.** Scrape, search, map and parse answers and job starts no longer carry `costUsd`, `creditsUsed` or `requestId` at the top, and search has no `id`. The cost is the `x-cost-usd` header and the request id is `X-Request-ID`. See [Errors](/api-reference/errors).
+- **Breaking: result metadata and the agent cap.** Crawl, batch and search results no longer carry `scrapeId`. An agent run cut short by `maxCredits` ends `failed` with `credit_limit_reached`. See [Agent runs](/agent/runs).
+- **Lower prices from November 18** for page reads, map, extract and search. See [Pricing](/account/pricing).
+- **Nine new parsers** for Bluesky, link-in-bio pages, X communities, TikTok trending and live, Twitch and Facebook groups. See [Pre-built parsers](/scrape/prebuilt-parsers).
+- **Webhooks carry `costUsd` and `eventId`.** See [Webhooks](/webhooks).
+- **The MCP server has a tool for each product.** The generic `stophy_call` tools are gone. See [Install MCP](/install-mcp#what-your-agent-sees).
 - **Removed:** GitHub search, now [developer search](/search/developer), and the `google-scholar` parser, now [papers search](/search/papers).
 
 </Update>
 
 <Update label="Week of November 9, 2026" description="Dollar billing, browser sessions and new limits">
 
-- **Billing is in dollars.** Costs are shown in dollars, and a top-up adds exactly what you paid. See [Pricing](/account/pricing).
-- **Browser sessions** take network policies, Chrome extensions, MP4 recordings, file uploads and downloads, and run up to 6 hours. See [Browser sessions](/browser/overview).
-- **Rate limits per endpoint.** Each one allows 100 calls a minute before your first top-up and 600 after. `GET /v1/limits` shows yours. See [Rate limits](/production/rate-limits).
+- **Billing is in dollars.** A top-up adds what you paid. See [Pricing](/account/pricing).
+- **Browser sessions** take network policies, extensions, recordings, uploads and downloads. See [Browser sessions](/browser/overview).
+- **Rate limits are per endpoint** and `GET /v1/limits` shows yours. See [Rate limits](/production/rate-limits).
 - **A stored copy costs the same as a live read**, and one older than `maxAge` is never returned. See [Freshness and caching](/scrape/freshness-and-caching).
-- **New accounts start with $2**, and you sign in with Google or GitHub.
 - **Removed:** company, people and government search, and the `qdr:h` time window.
 
 </Update>
@@ -33,15 +30,14 @@ Each entry covers one week and is named for its Monday. We list the changes you 
 <Update label="Week of November 2, 2026" description="API v1">
 
 - **API v1.** On November 5, Stophy became scrape, search, map, crawl, batch and extract, with parse, agent, monitors and browsers beside them. See the [Introduction](/introduction).
-- **Parsers replace the per-site endpoints.** Paths such as `/v1/google/search` answer `404`. Send the page address to scrape with a parser instead. See [Pre-built parsers](/scrape/prebuilt-parsers).
-- **No key needed to try it.** Search, scrape, map and parse work without one, up to 10 calls a minute and 50 a day. See [Rate limits](/production/rate-limits).
-- **An agent can sign itself up.** It gets a link for you to approve, then its key. See [API keys](/account/api-keys).
-- **The SDKs, CLI, MCP server and skills** all call API v1. See [SDKs](/sdks).
+- **Parsers replace the per-site endpoints.** Paths such as `/v1/google/search` answer `404`. Scrape the page with a parser instead. See [Pre-built parsers](/scrape/prebuilt-parsers).
+- **No key needed to try it.** Search, scrape, map and parse work without one, within the [free limits](/production/rate-limits).
+- **An agent can sign itself up.** See [API keys](/account/api-keys).
 
 </Update>
 
 <Update label="October 2026" description="Launch">
 
-Stophy launched on October 5, 2026, with one endpoint per site, such as `google.search` and `youtube.transcript`. Through October we added sites, scrape formats such as `highlights`, `changeTracking` and `network`, and crawl and batch. API v1 replaced that API on November 5, and each site lives on as a [parser](/scrape/prebuilt-parsers).
+Stophy launched on October 5, 2026 with one endpoint per site, such as `google.search`. API v1 replaced it on November 5, and each site lives on as a [parser](/scrape/prebuilt-parsers).
 
 </Update>

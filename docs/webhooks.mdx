@@ -1,25 +1,22 @@
 ---
 title: "Webhooks"
-description: "Get a signed call when a batch, crawl, agent, extract or monitor reports. Verify the signature, handle retries and read, retry or inspect each delivery."
-og:title: "Webhooks | Stophy"
-og:description: "Get a signed call when a batch, crawl, agent, extract or monitor reports. Verify the signature, handle retries and read, retry or inspect each delivery."
+description: "Get a signed JSON POST when a batch, crawl, agent, extract or monitor reports. Verify the signature, handle retries and replay missed deliveries."
 ---
 
-Set a webhook to get a JSON `POST` when a job reports or a monitor finds something, instead of polling for updates. Every call is signed, so verify the signature before you trust it. Any `2xx` answer says you got it.
+Set `webhook` on a job or monitor to get a JSON `POST` when it reports, instead of polling. Verify the signature before you trust a call. Any `2xx` answer acknowledges it. Everything on this page is free. Webhooks need an API key.
 
 ## Events
 
-Use `event` to decide how to handle each call. Every source uses the same top-level fields: `id` is the job or monitor, `event` says what happened, `eventId` names the call, and the rest depends on the event. Your `metadata`, if you set it, comes last.
+Every source sends the same top-level fields: `id` is the job or monitor, `event` says what happened, `eventId` names the call, and your `metadata` comes last.
 
-| Source | Events | Set with |
-| - | - | - |
-| [Crawl](/crawl/async#get-told-with-a-webhook) | `started`, `page`, `completed`, `failed`, `cancelled` | `webhook` on `POST /v1/crawl` |
-| [Batch](/batches/overview) | `started`, `page`, `completed`, `failed`, `cancelled` | `webhook` on `POST /v1/batch/scrape` |
-| [Agent](/agent/overview) | `started`, `page`, `action`, `completed`, `failed`, `cancelled` | `webhook` on `POST /v1/agent` |
-| [Extract](/extract/results) | `completed`, `failed` | `webhook` on `POST /v1/extract` |
-| [Monitor](/monitors/webhooks) | `monitor.page`, `monitor.check.completed`, `monitor.changed`, `monitor.failed` | `webhook` on `POST /v1/monitor` |
+| Source | Events |
+| --- | --- |
+| [Crawl](/crawl/async#get-told-with-a-webhook), [Batch](/batches/overview) | `started`, `page`, `completed`, `failed`, `cancelled` |
+| [Agent](/agent/overview) | the same, plus `action` for each step |
+| [Extract](/extract/overview) | `completed`, `failed` |
+| [Monitor](/monitors/checks-and-changes#webhooks) | `monitor.page`, `monitor.check.completed`, `monitor.changed`, `monitor.failed` |
 
-A job sends `started` when it begins and `page` for each finished page. An agent also sends `action` for each step it takes. The last event is `completed`, `failed` or `cancelled`. For a crawl, `started` gives you `total`. A `page` event gives you the page as it finishes. Use `completed` for the final counts and cost. This example comes from a one-page crawl with custom `metadata`.
+A job sends `started` (a crawl gives `total`), then `page` as each page finishes, then one of `completed`, `failed` or `cancelled`. Use the last for final counts and cost.
 
 ```json
 {
@@ -30,122 +27,75 @@ A job sends `started` when it begins and `page` for each finished page. An agent
   "total": 1,
   "completed": 1,
   "failed": 0,
-  "creditsUsed": 1,
   "costUsd": 0.001,
   "metadata": { "project": "docs" }
 }
 ```
 
-Every call has an `eventId` that stays the same when the call is sent again, so you can skip one you already handled. A `page` call holds `result` for a page that was read and `error` for one that failed. When your address falls far behind, a `page` call holds only the page `url` and `resultOmitted: true`. Read that page with the status call of the job. `failed` and `cancelled` have the same fields as `completed`, and `failed` also has a `message`. `costUsd` is what the job was charged so far, in dollars. `creditsUsed` is an older field that counts the same amount in whole steps of $0.002, rounded up. The fields of a monitor event are on [Monitor webhooks](/monitors/webhooks#read-an-event).
+- `failed` and `cancelled` have the same fields, and `failed` adds `message`.
+- A `page` call holds `result` for a page that was read, or `error` for one that failed. When your address falls far behind, it holds only `url` and `resultOmitted: true`. Read that page with the job's status call.
+- `eventId` stays the same when a call is sent again. Skip an ID you already handled.
+- `creditsUsed` is an older field for the same cost as `costUsd`.
 
 ## Set a webhook
 
-Send `webhook` as a URL when all you need is an address. Use an object at job creation to set custom headers or metadata, or to pick which events you get. For example, set `"events": ["completed"]` if you only need successful completions.
+Send `webhook` as a URL, or as an object. For example, `"events": ["completed"]` limits the calls to successful completions.
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `url` | `string` | none | A public website address that takes a `POST`. Required. |
-| `headers` | `object` | none | Up to 10 headers sent with every call. Names are letters, digits and hyphens up to 64 characters, and values up to 1,000 characters without line breaks. `content-type`, `user-agent`, `host`, `content-length` and `stophy-signature` are set by Stophy. |
-| `metadata` | `object` | none | An object of up to 4,000 characters that comes back in every call. |
-| `events` | `array of string` | all | Which events to send. An extract takes only `completed` and `failed`. |
-
-The headers you set are never kept with a delivery.
+| Field | Effect |
+| --- | --- |
+| `url` | Required. A public address that takes a `POST`. |
+| `headers` | Up to 10 headers sent with every call. Names are letters, digits and hyphens up to 64 characters. Values are up to 1,000 characters, no line breaks. `content-type`, `user-agent`, `host`, `content-length` and `stophy-signature` are set by Stophy. Never kept with a delivery. |
+| `metadata` | An object of up to 4,000 characters, returned in every call. |
+| `events` | Which events to send. Default all. An extract takes only `completed` and `failed`. |
 
 ## Get the signing secret
 
-`POST /v1/webhook/secret` returns the secret that signs your calls. One account secret signs the calls of every job, and a [monitor](/monitors/webhooks#rotate-the-signing-secret) can have its own. Store it on your server and never in browser code or logs.
+One account secret signs the calls of every job. A [monitor](/monitors/checks-and-changes#rotate-the-secret) can have its own. Keep it on your server.
 
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/webhook/secret \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
-```typescript TypeScript
-const response = await fetch("https://api.stophy.dev/v1/webhook/secret", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.STOPHY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({}),
-});
-const { data } = await response.json();
-const secret = data.secret;
-```
-```python Python
-import os
 
-import requests
-
-response = requests.post(
-    "https://api.stophy.dev/v1/webhook/secret",
-    headers={"Authorization": f"Bearer {os.environ['STOPHY_API_KEY']}"},
-    json={},
-)
-secret = response.json()["data"]["secret"]
-```
-</CodeGroup>
-
-Read the key from `data.secret`. Keep the whole string, with the `whsec_` prefix, as the key. Send `{ "rotate": true }` to replace it with a new secret. The old secret stops signing at once. Update your receiver with the new secret after you rotate. For a planned rotation, you can accept both for a while to handle calls already signed with the old one. If the old secret was exposed, stop accepting it. Reading and rotating cost nothing.
+Read `data.secret`, and keep the whole string including the `whsec_` prefix. Send `{ "rotate": true }` to replace it. The old secret stops signing at once. For a planned rotation, accept both for a while. If the old one was exposed, accept only the new one.
 
 ## Verify signatures
 
-Verify calls before you parse or store them. Read the signature from these headers.
+Every call has these headers.
 
 | Header | Value |
-| - | - |
+| --- | --- |
 | `Stophy-Signature` | `t=<unix seconds>,v1=<hex>` |
 | `Content-Type` | `application/json` |
 | `User-Agent` | `Stophy-Webhook/1` |
 
-`v1` is the HMAC-SHA256, in hex, of `<t>.<body>`, with your secret as the key. `<body>` is the exact text of the request body, so read it before you parse it. Compare in constant time, and reject a call whose `t` is more than 5 minutes from your clock.
+`v1` is the HMAC-SHA256, in hex, of `<t>.<body>` with your secret as the key, where `<body>` is the exact request text. Read the raw body before you parse it. Compare in constant time. Reject a missing or malformed signature, or a `t` more than 5 minutes from your clock.
 
-Reject a missing or malformed signature. Once it passes verification, store the body by `eventId`. If that ID already exists, answer `2xx` without processing it again. Retries and replays send the same body bytes and event ID. Answer before doing slow work.
+After verification, store the body by `eventId`. If the ID already exists, answer `2xx` without processing again. Answer before slow work.
 
-## Acknowledge and retry
+## Retries
 
-Answer `2xx` within 5 seconds to stop retries. Redirects are not followed. A call that fails is tried again after 0.5, 2 and 8 seconds, so 4 attempts in all. The calls of one job or monitor are sent in order, one at a time. After 3 deliveries in a row fail, the ones still waiting are skipped.
+Answer `2xx` within 5 seconds. Redirects are not followed. A failed call is sent again after 0.5, 2 and 8 seconds, so 4 attempts in all. The calls of one job or monitor go in order, one at a time. After 3 failed deliveries in a row, the ones still waiting are skipped.
 
 ## Delivery history and retry
 
-Use delivery history to see what reached your receiver and replay a missed event. We keep delivery records for 30 days. Reading and retrying them is free.
+Records are kept for 30 days.
 
-| Call | What it does |
-| - | - |
-| `GET /v1/webhook/deliveries` | Lists deliveries, newest first. Filter with `sourceType` (`batch`, `crawl`, `agent`, `monitor` or `extract`), `sourceId`, `status` (`delivered`, `failed` or `skipped`) and `event`. Send `limit` up to 100 (20 by default), and `cursor` for the next part until it is missing. |
-| `GET /v1/webhook/deliveries/{id}` | Reads one delivery with the `payload` that was sent. |
-| `GET /v1/webhook/deliveries/{id}/attempts` | Lists every try of one delivery, oldest first. |
-| `POST /v1/webhook/deliveries/{id}/retry` | Sends the original payload again. |
+| Call | Does |
+| --- | --- |
+| `GET /v1/webhook/deliveries` | Lists newest first, under `data.deliveries`. Filters: `sourceType` (`batch`, `crawl`, `agent`, `monitor`, `extract`), `sourceId`, `status` (`delivered`, `failed`, `skipped`), `event`. `limit` up to 100 (default 20), and `cursor` until it is missing. |
+| `GET /v1/webhook/deliveries/{id}` | One delivery, with the `payload` sent and `payloadKeptUntil`. |
+| `GET /v1/webhook/deliveries/{id}/attempts` | Every try, oldest first: `at`, `ms`, `status`, `error`, and `trigger` (`auto` or `manual`). |
+| `POST /v1/webhook/deliveries/{id}/retry` | Sends the original payload once to the current address and headers, signed with the current secret. Read `data.attempt` for the outcome, because the call succeeds even when your receiver rejects it. |
 
-The list answers with `data.deliveries`. Each has its `id` (`whd_` and a uuid), `sourceType`, `sourceId`, `event`, `url`, `status`, how many `attempts` it took, and the time and status code of the last one. [Monitor webhooks](/monitors/webhooks#check-deliveries) shows a real list.
-
-If there are no matching deliveries, `data.deliveries` is empty. Read one delivery for `payload`, the exact JSON text we sent. `payloadKeptUntil` tells you when it expires. We keep it for 7 days, but not for zero data retention jobs or after you delete a batch's results.
-
-Read the attempts to see how your address answered. Each attempt has `at`, `ms` for its duration, `status` for the HTTP status, and `error` if it failed. `trigger` is `auto` for automatic attempts and `manual` for a retry you ask for.
-
-When you retry a delivery, we send the original payload once to the current address and headers, signed with the current secret. You can only do this while we still have the payload. If your receiver rejects it, the retry call itself can still succeed. Read `data.attempt` to see the outcome.
+A delivery has `id` (`whd_` and a uuid), `sourceType`, `sourceId`, `event`, `url`, `status`, `attempts` and the time and status code of the last one.
 
 ## Limits and errors
 
-Check the address and event names before you send a job. Use the error code to see what you can change.
+Codes are on [Errors](/api-reference/errors).
 
-- You get `404 notFound` if the delivery belongs to another account or is more than 30 days old.
-- A retry returns `400 invalidRequest` when the payload was not kept, when the delivery is older than 7 days, when the monitor was deleted, or when the monitor has no webhook now.
-- A `webhook.url` that is not a public website address returns `400 invalidRequest`.
-- `webhook.events` with a name the source does not send returns `400 invalidRequest`. An extract takes only `completed` and `failed`.
-- Without an API key, every call here returns `401 apiKeyRequired`.
-
-## Price
-
-Free. Calls Stophy sends, the secret, the delivery reads and the retry cost nothing. The job or the monitor behind a call is charged as usual.
-
-## Related
-
-Use the guide for the event source or receiver you are working on.
-
-- [Monitor webhooks](/monitors/webhooks) lists the monitor events.
-- [Read a crawl](/crawl/async) polls a crawl instead of waiting for a call.
-- [Rate limits](/production/rate-limits) covers the limits on these calls.
-- [Website change digest](/recipes/website-change-digest) builds a receiver end to end.
+- The payload is kept 7 days, and never for zero data retention jobs or after you delete a batch's results.
+- `404 notFound`: the delivery belongs to another account or is over 30 days old.
+- `400 invalidRequest`: a `webhook.url` that is not public, a `webhook.events` name the source does not send, or a retry when the payload was not kept, is over 7 days old, or the monitor was deleted or has no webhook.

@@ -1,171 +1,70 @@
 ---
 title: "Tasks"
-description: "Give a public website and a goal in plain words, and a browser clicks through it and returns an answer. $0.84 per hour of browser time, capped by maxCost."
-og:title: "Tasks | Stophy"
-og:description: "Give a public website and a goal in plain words, and a browser clicks through it and returns an answer. $0.84 per hour of browser time, capped by maxCost."
+description: "Give a public website and a goal in plain words. A browser clicks through it and returns an answer or named fields, with no session of your own."
 ---
 
-Use a browser task when a public site needs clicks and you know the goal, not the steps. Send a start page and a goal, such as using search filters to find a result. We open and close the browser for you.
+A task starts a browser on a public page, works toward your goal, and closes the browser for you. It answers at once with an `id`, and the task runs in the background.
 
-## Start a task
-
-Get an API key in the [Quickstart](/quickstart), and install the SDK with `npm install stophy` or `pip install stophy`. Send `url`, `goal` and, if you want fields back, a `schema`. `POST /v1/browser/task` answers at once with an `id`, and the task runs in the background.
-
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/browser/task \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://www.python.org",
     "goal": "Open the Downloads page and find the latest Python release number and its release date.",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "version": { "type": "string" },
-        "releaseDate": { "type": "string" }
-      }
-    },
+    "schema": {"type": "object", "properties": {"version": {"type": "string"}, "releaseDate": {"type": "string"}}},
     "maxSteps": 10,
     "maxCost": 0.05
   }'
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
 
-const stophy = new Stophy();
-
-const { data } = await stophy.browser.task({
-  url: "https://www.python.org",
-  goal: "Open the Downloads page and find the latest Python release number and its release date.",
-  schema: {
-    type: "object",
-    properties: {
-      version: { type: "string" },
-      releaseDate: { type: "string" },
-    },
-  },
-  maxSteps: 10,
-  maxCost: 0.05,
-});
-console.log(data.id, data.status);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-data = stophy.browser.task(
-    url="https://www.python.org",
-    goal="Open the Downloads page and find the latest Python release number and its release date.",
-    schema={
-        "type": "object",
-        "properties": {
-            "version": {"type": "string"},
-            "releaseDate": {"type": "string"},
-        },
-    },
-    max_steps=10,
-    max_cost=0.05,
-)["data"]
-print(data["id"], data["status"])
-```
-</CodeGroup>
-
-Save `data.id` to read the result. The start call returns `data.status` as `running` and costs $0 by itself.
+The TypeScript SDK has `stophy.browser.task(...)` and `stophy.browser.task.status(...)` with the same fields. Starting a task is free. See [Pricing](/account/pricing).
 
 ## Read the result
 
-Poll the status call to see whether the task reached its goal. Send the `id` to `POST /v1/browser/task/status` until `status` is `done`. The call is free. While the task runs, `result` is `null`.
+Send the `id` to `POST /v1/browser/task/status` until `status` is `done`. The call is free. While the task runs, `result` is `null`.
 
-<CodeGroup>
-```bash cURL
+```bash
 curl -X POST https://api.stophy.dev/v1/browser/task/status \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "id": "<the id your task returned>" }'
+  -d '{"id": "<the id your task returned>"}'
 ```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data: task } = await stophy.browser.task.status({ id: "<the id your task returned>" });
-console.log(task.status, task.result?.fields);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-task = stophy.browser.task.status(id="<the id your task returned>")["data"]
-print(task["status"], task["result"]["fields"])
-```
-</CodeGroup>
-
-This real task finished in 9 seconds.
 
 ```json
 {
   "success": true,
   "data": {
     "status": "done",
-    "result": {
-      "done": true,
-      "fields": {
-        "version": "3.15.2",
-        "releaseDate": "Oct. 25, 2026"
-      }
-    },
+    "result": { "done": true, "fields": { "version": "3.15.2", "releaseDate": "Oct. 25, 2026" } },
     "costUsd": 0.014
   }
 }
 ```
 
-`result.done` says whether the goal was met. `answer` is the result in words, and `steps` lists what the task clicked. `url` and `title` are the page it ended on. `seconds` is how long the task ran. With a `schema`, `fields` holds one value per property, and `confidence` says how sure the task is of each, from 0 to 1. A field that no page stated comes back `null`. When the goal was not met, `done` is `false` and `reason` says why. `costUsd` on `data` is what the task cost. `creditsUsed` is the older field for the same amount, in steps of $0.002.
+* `result.done` says whether the goal was met. When it is `false`, `reason` says why.
+* `answer` is the result in words. `steps` lists what the task clicked. `url` and `title` are the page it ended on.
+* With a `schema`, `fields` holds one value per property and `confidence` rates each from 0 to 1. A field no page stated is `null`.
+* `costUsd` is what the task cost. `creditsUsed` is the older field for the same amount.
 
 A task is kept for 24 hours after it starts.
 
-## Options
+## Request fields
 
-Describe the goal and cap how long the browser can work. Add a schema when your app needs named values rather than a text answer.
+| Field | Default | Meaning |
+| - | - | - |
+| `url` | none | The public page to start on. Required. |
+| `goal` | none | What to get done, up to 1,000 characters. Required. |
+| `values` | none | Values the steps need, such as `from London, to Istanbul, date 2026-12-01`, up to 1,000 characters. They are typed only on the start page's site. |
+| `schema` | none | A JSON Schema object with `properties`. Each field is checked against the pages the task saw. |
+| `maxSteps` | `50` | The most steps, 1 to 50 |
+| `maxCost` | the full 10 minutes | The most the task may spend, in US dollars. The task stops when it is spent. Starting a task sets that amount aside, and what it does not use comes back. |
 
-| Field | Type | Default | Effect |
-| - | - | - | - |
-| `url` | `string` | none | The public page to start on, such as `https://www.python.org`. Required. |
-| `goal` | `string` | none | What to get done, in one or two sentences, up to 1,000 characters. Required. |
-| `values` | `string` | none | Values the steps need, such as `from London, to Istanbul, date 2026-12-01`. Up to 1,000 characters. They are typed only on the start page's site. |
-| `schema` | `object` | none | Fields to fill when the task is done, as a JSON Schema object with `properties`. Each is checked against the pages the task saw. |
-| `maxSteps` | `number` | `50` | The most steps the task may take, 1 to 50. |
-| `maxCost` | `number` | the full 10 minutes | The most the task may spend, in US dollars. At least $0.014. The task stops when it is spent. |
+A task stops before anything that pays, books, sends, submits or deletes, and never signs in. It takes up to 50 steps and 10 minutes. For a login or a flow you control, open a [browser session](/browser/overview) and use [Execute](/browser/execute).
 
-## What a task will not do
+## Errors
 
-A task stops before anything that pays, books, sends, submits or deletes. It never signs in to a site. It takes up to 50 steps and 10 minutes. For logged-in work, or a flow you want to control, open a [browser session](/browser/overview) and use [Execute](/browser/execute).
-
-## Price
-
-Use `maxCost` to control what a task can spend.
-
-$0.84 per hour of browser time the task runs, billed by the minute, one minute at least, up to `maxCost`. Each minute is $0.014. The task above ran 9 seconds and cost $0.014, one minute. A task that ends before its first step costs nothing.
-
-Starting a task sets aside the most it can cost, and what it does not use comes back when it ends. Send `maxCost` to set that amount: `0.05` allows 3 minutes. Without it, the task may spend up to 10 minutes, $0.14. See [Pricing](/account/pricing).
-
-## Limits and errors
-
-Check the task limit and your balance before you start another task.
-
-- You can have 2 tasks open at once. A third returns `429 rateLimited`: `You have 2 browser tasks open, the most at once. Start another when one ends, which is within 15 minutes.`
-- A `maxCost` below one minute returns `400 invalidRequest`: `maxCost must cover at least one browser minute, which is $0.014 ($0.84 per hour).`
-- A `schema` that is not an object with `properties` returns `400 invalidRequest`: `schema: Send a JSON Schema object with properties, or one whose $ref points at such an object`.
-- A task id that is unknown, or older than 24 hours, returns `404 notFound`: `Stophy has no browser task with that id. Check the id. A browser task is kept for 24 hours after it starts.`
-- A balance too low to cover `maxCost` returns `402 insufficientCredits` and the task does not start.
-
-## Related
-
-Open a browser session if you need a login or want to choose each step yourself.
-
-- [Browser sessions](/browser/overview) give you a browser to drive yourself.
-- [Execute](/browser/execute) runs a prompt in a session you control.
-- [Scrape](/scrape/overview) reads a page with no clicks.
-- [Task reference](/api-reference/endpoint/browser-task) and [status reference](/api-reference/endpoint/browser-task-status) list every field.
+* Too many tasks open: `429 rateLimited`. See [Rate limits](/production/rate-limits).
+* A `maxCost` below one browser minute, or a `schema` that is not an object with `properties`: `400 invalidRequest`.
+* An unknown id, or one older than 24 hours: `404 notFound`.
+* A balance too low to cover `maxCost`: `402 insufficientCredits`, and the task does not start.

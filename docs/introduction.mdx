@@ -1,103 +1,63 @@
 ---
-title: "Introduction"
-description: "Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents. Start here to pick the right call."
-og:title: "Introduction | Stophy"
-og:description: "Web search, scraping, extraction, crawling, monitoring, and cloud browsers. One API for developers building AI agents. Start here to pick the right call."
+title: "Stophy API documentation"
+sidebarTitle: "Introduction"
+description: "Stophy is one API to search the web, read any page as Markdown or JSON, crawl a site, pull fields from pages and drive a cloud browser."
 ---
 
-Search, read, and act on the web. Stophy is one API that lets your agent search the web, read any page as Markdown or JSON, crawl a whole site, fill fields from pages, and drive a cloud browser when a page needs clicks. You pay in dollars for what you use, and a failed call is free.
-
-<CardGroup cols={3}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Make your first request and read the result.
-  </Card>
-  <Card title="Agent quickstart" icon="robot" href="/agent-quickstart">
-    Let your coding agent sign up and set Stophy up for you.
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Check each endpoint's fields and responses.
-  </Card>
-</CardGroup>
+Search, read, and act on the web. Send a URL or a question and get Markdown, JSON or a finished task back. A failed call is free.
 
 ## Make a request
 
-Scrape is where most agents start. You send a URL and get the page back in the formats you list. This request returns the main content of `example.com` as Markdown. To try it without an API key, leave out the `Authorization` line of the cURL request, as the [Quickstart](/quickstart) does. That works up to 10 calls a minute and 50 a day, and the Quickstart gets you a key for more. The TypeScript and Python tabs use the [SDK](/sdks), from `npm install stophy` or `pip install stophy`.
+This call reads `example.com` as Markdown. It needs no API key. The TypeScript and Python tabs use the [SDK](/sdks).
 
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "formats": ["markdown"],
-    "onlyMainContent": true
-  }'
+  -d '{ "url": "https://example.com", "formats": ["markdown"], "onlyMainContent": true }'
 ```
 ```typescript TypeScript
 import { Stophy } from "stophy";
 
 const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://example.com",
-  formats: ["markdown"],
-  onlyMainContent: true,
-});
+const { data } = await stophy.scrape({ url: "https://example.com", formats: ["markdown"], onlyMainContent: true });
 console.log(data.markdown);
 ```
 ```python Python
 from stophy import Stophy
 
 stophy = Stophy()
-
-result = stophy.scrape(
-    url="https://example.com",
-    formats=["markdown"],
-    only_main_content=True,
-)
+result = stophy.scrape(url="https://example.com", formats=["markdown"], only_main_content=True)
 print(result["data"]["markdown"])
 ```
 </CodeGroup>
 
-The page text is in `data.markdown`. `data.metadata` holds the page title, the status code the site answered with, and `costUsd`, what the call cost in dollars. With a key, this one costs $0.001.
+The page text is in `data.markdown`. `data.metadata` has the title, the site's status code and `costUsd`.
 
 ```json
 {
   "success": true,
   "data": {
     "markdown": "This domain is for use in documentation examples without needing permission. …",
-    "metadata": {
-      "title": "Example Domain",
-      "statusCode": 200,
-      "costUsd": 0.001
-    }
+    "metadata": { "title": "Example Domain", "statusCode": 200, "costUsd": 0 }
   }
 }
 ```
 
-## What you can do
-
-* **Read a page.** [Scrape](/scrape/overview) returns Markdown, HTML, links, images, a screenshot, a summary or JSON in a shape you describe. Add [browser actions](/scrape/browser-actions) to click and type before the page is read.
-* **Read a site's own data.** A [pre-built parser](/scrape/prebuilt-parsers) returns a video, a listing or a profile as JSON instead of page text.
-* **Work on many pages.** [Map](/map/overview) lists a site's pages, [crawl](/crawl/overview) reads them in the background, and [batches](/batches/overview) read a list of URLs.
-* **Find pages.** [Search](/search/overview) returns web, news, image, research and video results, and can read each result.
-* **Pull fields.** [Extract](/extract/overview) fills the fields you name from pages, each checked against the page. [Agent](/agent/overview) searches and reads on its own to fill them.
-* **Read files.** [Parse](/parse/overview) turns a PDF, Word, Excel, PowerPoint or HTML file, or a picture of text, into Markdown.
-* **Use a browser.** [Browser sessions](/browser/overview) give you a cloud browser to drive with code or a prompt. [Browser tasks](/browser/tasks) click through a public site and return what they find.
-* **Watch for changes.** [Monitors](/monitors/overview) check pages on a schedule and tell you what changed. They can send each change to a [webhook](/webhooks).
+Other endpoints and more calls a minute need an API key. See the [Quickstart](/quickstart), or let your coding agent do the setup with the [Agent quickstart](/agent-quickstart).
 
 ## Choose an API
 
-Start from what you have. Two pairs get mixed up most. Crawl finds pages for you by following links from one URL, while a batch reads a list of URLs you already have. Extract reads the pages you name, while Agent searches for the pages on its own.
+Crawl follows links from one URL to find pages. A batch reads a list of URLs you already have. Extract reads the pages you name. Agent searches for the pages itself.
 
 | You have | You want | Use |
 | - | - | - |
 | A URL | The page as Markdown, links, a screenshot or JSON | [Scrape](/scrape/overview) |
+| A URL on a site with its own data | A video, listing or profile as JSON | [Scrape with a parser](/scrape/prebuilt-parsers) |
 | A site | Every URL on it | [Map](/map/overview) |
 | A site | The content of many of its pages | [Crawl](/crawl/overview) |
 | A list of URLs | Their content, as a background job | [Batches](/batches/overview) |
-| A question | Ranked web, news, image or research results | [Search](/search/overview) |
+| A question | Ranked web, news, image, video or research results | [Search](/search/overview) |
 | Pages and the fields you want | The values, each checked against the page | [Extract](/extract/overview) |
 | A task in plain words | An answer with a quote for each field | [Agent](/agent/overview) |
 | A PDF, Word, Excel or PowerPoint file | Its text as Markdown | [Parse](/parse/overview) |
@@ -105,10 +65,8 @@ Start from what you have. Two pairs get mixed up most. Crawl finds pages for you
 | A site with a search box or a form | What the form returns | [Browser tasks](/browser/tasks) |
 | A page that changes | A record of each change | [Monitors](/monitors/overview) |
 
-## Use Stophy from an agent
+## Next
 
-The [Agent quickstart](/agent-quickstart) shows how an agent signs itself up and sets Stophy up in a project. To set up one piece yourself, connect the [MCP server](/install-mcp), add the [agent skills](/install-skill) or install the [CLI](/install-cli). Search, scrape, map and parse work from MCP without an API key.
-
-## Before you ship
-
-Your balance is prepaid dollars, and every endpoint has a list price. See [Pricing](/account/pricing). The [production checklist](/production/checklist) covers timeouts, retries and rate limits. Official [SDKs](/sdks) for TypeScript and Python handle retries for you.
+- [Pricing](/account/pricing) and [Rate limits](/production/rate-limits) before you ship.
+- [Install MCP](/install-mcp), [skills](/install-skill) or the [CLI](/install-cli) to use Stophy from an agent.
+- [API reference](/api-reference/introduction) for every field.

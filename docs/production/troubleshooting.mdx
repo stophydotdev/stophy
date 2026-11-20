@@ -1,95 +1,34 @@
 ---
 title: "Troubleshooting"
-description: "Read the Stophy error code, retry only rate limits and outages, wait for Retry-After and back off. Every code, its status and what to do, with a retry loop."
-og:title: "Troubleshooting | Stophy"
-og:description: "Read the Stophy error code, retry only rate limits and outages, wait for Retry-After and back off. Every code, its status and what to do, with a retry loop."
+description: "Read the status and code, retry only rate limits and outages, honor Retry-After, back off, and let the SDK retry for you."
 ---
 
-Read the error before you retry. Compare your input with the [API reference](/api-reference/introduction), and keep the HTTP status, `code` and `requestId` to trace the failure. A failed call costs nothing. If your client timed out, check the original request before you retry because it may still finish.
-
-```json
-{
-  "success": false,
-  "error": "Unknown field `colour`. Fields: formats, onlyMainContent, onlyCleanContent, includeTags, excludeTags, maxAge, …",
-  "code": "invalidRequest",
-  "retryable": false,
-  "requestId": "ab4ba002-3e3f-47cf-8f43-9c63de1b9f70"
-}
-```
-
-This is a real answer with its field list cut. `error` says what went wrong and what to do next. `retryable` is `true` when trying again can help. `retryAfterSeconds`, when present, is also the `Retry-After` header. The `X-Request-ID` header names the request. Include it when you contact support.
+A failed call costs nothing. Keep the HTTP status, `code` and `requestId` of a failure. If your client timed out, check the original request before you retry because it may still finish. Every code and its fix is in [Errors](/api-reference/errors).
 
 ## Start with the status
 
-Use the HTTP status to narrow down what went wrong, then read the message for the cause.
-
-| Status | What to check |
+| Status | Check |
 | - | - |
-| `200` with less than you expected | A `warning` in the answer, `isTruncated`, a filter that matched nothing, or a page that has no content. See [Timeouts and errors](/scrape/timeouts-and-errors). |
-| `400` | A field the endpoint does not take, or a value it does not accept. `error` names the field. |
-| `401` | No API key, a wrong key, an expired key, or a field that needs an API key. See [API keys](/account/api-keys). |
-| `402` | Your balance is too low for the call. Nothing was charged. See [Pricing](/account/pricing). |
-| `403` | The site is read through a parser, the page was refused, or the call needs the dashboard. |
-| `404` | The path, the id or the page does not exist, or an id has expired. |
-| `405` | The path takes another method. The `Allow` header names it. |
-| `409` | The job already ended, the profile is busy, or a check is already running. |
-| `413`, `415` | The body is too large, or it is not JSON. |
-| `429` | A rate limit. See [Rate limits](/production/rate-limits). |
-| `500` to `504` | Stophy or the site you asked for is not answering. |
+| `200` with less than you expected | A `warning`, `isTruncated`, a filter that matched nothing, or an empty page. See [Scrape](/scrape/overview#timeouts-warnings-and-errors). |
+| `400` | `error` names the field the endpoint does not take or the value it rejects. |
+| `401` | No key, a wrong or expired key, or a field that needs a key. See [API keys](/account/api-keys). |
+| `402` | Balance too low. See [Pricing](/account/pricing). |
+| `403`, `404`, `405`, `409` | Read `code` in [Errors](/api-reference/errors). |
+| `413`, `415` | Body too large, or not JSON. |
+| `429` | A limit. See [Rate limits](/production/rate-limits). |
+| `500` to `504` | Stophy or the site is not answering. Retry. |
 
-## Every error code
+## Retry
 
-Retry only the codes marked Yes. Wait `retryAfterSeconds` when the answer has it. Otherwise back off. Wait 0.5 seconds, then 1 second, then 2 seconds. If the wait is longer than a minute, stop retrying. A `freeLimit` wait can be hours, so get an API key instead.
+Retry a call only when `retryable` is `true`. If it is missing, retry only `429`, `500`, `502`, `503` and `504`.
 
-| Code | Status | Retry | What it means and what to do |
-| - | - | - | - |
-| `invalidRequest` | 400, 409 | No | The input is not valid, or a browser profile with that name already exists. `error` names the field. |
-| `prohibitedPermission` | 400 | No | A [browser extension](/browser/extensions) has a `key` field in its manifest, or asks for a permission that is not allowed. |
-| `invalidCliSession`, `invalidCliVerifier` | 400 | No | A CLI sign-in session or verifier is not valid. Run `stophy login` again. |
-| `apiKeyRequired` | 401 | No | The call needs an API key, because of the endpoint, paging or a field you sent. Get one at `signupUrl`, or call `signup`. |
-| `unauthorized` | 401 | No | The key is not valid, has been revoked or has expired. |
-| `insufficientCredits` | 402 | No | Your balance cannot cover the most the call can cost. Add money at [stophy.dev/billing](https://stophy.dev/billing). `requiredUsd` and `availableUsd` say by how much. |
-| `forbidden` | 403 | No | This needs the Stophy dashboard. Sign in at stophy.dev and make the change there. |
-| `siteNotRead` | 403 | No | Stophy does not read this site as a page. Use a [parser](/scrape/prebuilt-parsers). |
-| `promptInjectionDetected` | 403 | No | With `checkPromptInjection`, the page has text that tries to instruct an AI model. Nothing was returned or charged. Send `checkPromptInjection: false` to read it anyway. |
-| `notFound` | 404, 410 | No | The endpoint, the page or the job does not exist. Check the id or the URL. Crawls, batches, extracts and scrapes expire after 24 hours. A 410 means the browser session has ended. |
-| `cliSessionNotFound` | 404 | No | The CLI sign-in session was not found or has expired. |
-| `methodNotAllowed` | 405 | No | The path takes another method. The `Allow` header names it. |
-| `jobFinished` | 409 | No | The crawl, batch scrape or agent run already ended, so you cannot cancel it or add URLs to the batch. |
-| `checkRunning` | 409 | No | A check of this monitor is already running. Wait for it to finish, then run it again. |
-| `profileBusy` | 409 | Yes | Another call is saving to this browser profile. Wait, or send `saveChanges: false`. |
-| `cliSessionExists`, `cliSessionCompleted` | 409 | No | The CLI sign-in session already exists, or is no longer pending. |
-| `inviteClaimed` | 409 | No | You already claimed this invite. Its balance is in your account. |
-| `inviteDisabled`, `inviteExpired`, `inviteUsedUp` | 410 | No | The invite link was turned off, has expired, or has been used up. Ask the sender for a new one. |
-| `payloadTooLarge` | 413 | No | The request body is too large. Send a smaller body. |
-| `profileTooLarge` | 413 | No | The browser profile is too large to save. Use a new profile name, or send `saveChanges: false`. |
-| `unsupportedMediaType` | 415 | No | Send the body as JSON with `Content-Type: application/json`. |
-| `freeLimit` | 429 | Yes | You used the free calls without an API key. Get an API key at `signupUrl`, or wait `retryAfterSeconds`. |
-| `rateLimited` | 429 | Yes | Too many calls this minute, too many running at once, or too many browser sessions open. Wait `retryAfterSeconds`. |
-| `internalError` | 500, 503 | Yes | The error is on Stophy's side, and the call cost nothing. Retry in a second. If it fails again, send support the `X-Request-ID`. |
-| `sourceChanged` | 502 | No | The site answered in a shape Stophy could not read. Retrying will not help yet. |
-| `busy` | 503, 409 | Yes | Stophy, or every browser, is busy. A 409 means a network policy or a proxy change on a session is still being applied. Wait `retryAfterSeconds`, 1 to 30 seconds. |
-| `sourceUnavailable` | 503 | Yes | The site is not answering right now. Wait `retryAfterSeconds`. |
-| `sourceRefused` | 503 | Yes | The site is refusing requests right now. Wait `retryAfterSeconds`. |
-| `sourceTimeout` | 504 | Yes | The site took too long to answer. Wait `retryAfterSeconds`, which is 5, then try again. |
+1. Wait `retryAfterSeconds` when it is present. Otherwise wait 0.5 seconds, then double the wait for each retry. Add random jitter so workers do not retry together.
+2. Stop after 3 retries, or when the wait is over 60 seconds. A `freeLimit` wait can be hours, so get a key instead.
+3. Log `requestId` on the last error.
 
-After the last try, stop and log the `requestId`. Three tries are enough for a retryable code. The CLI sign-in and invite codes come from signing in and invites, not from the data endpoints.
+The [SDKs](/sdks) do this. They follow `retryable`, retry eligible network errors, and stop after `maxRetries` retries (2 by default) or a wait over 60 seconds. A write that may have run is retried only when it can be replayed safely. API errors carry `code`, `retryable` and the request ID.
 
-## Real errors
-
-Use the message to tell a bad request from a missing resource. Crawl without a key returns `401 apiKeyRequired` with `signupUrl` and `signup`. A keyless scrape with `waitFor` returns the same code; leave the field out or get a key. An invalid or expired key returns `401 unauthorized` instead.
-
-An unknown crawl ID returns `404 notFound`. Check the ID and whether the result has expired after 24 hours. Sending `DELETE` to `/v1/scrape` returns `405 methodNotAllowed`; use `POST` with a JSON body.
-
-A site that does not answer can return `503 sourceUnavailable` with `retryable: true`. Wait the returned `retryAfterSeconds` before trying again.
-
-## Retry with the SDK
-
-Use the [SDKs](/sdks) to handle retryable errors. They honor `retryable` when it is present. If it is missing, the retryable statuses are `429`, `500`, `502`, `503` and `504`. They retry eligible network errors and stop after `maxRetries` retries, 2 by default. If the requested wait exceeds 60 seconds, they stop instead. A write that may have run is retried only when it can be replayed safely. API errors carry fields such as `code`, `retryable` and the request ID. Network errors keep their original type.
-
-<CodeGroup>
-
-```ts TypeScript
+```ts
 import { Stophy, StophyError } from "stophy";
 
 const stophy = new Stophy({ maxRetries: 3 });
@@ -98,41 +37,12 @@ try {
   const page = await stophy.scrape({ url: "https://bun.com/docs/runtime/bunfig" });
   console.log(page.data.metadata.title);
 } catch (error) {
-  if (error instanceof StophyError) {
-    console.log(`${error.code}: ${error.message} (${error.requestId})`);
-  }
+  if (error instanceof StophyError) console.log(`${error.code} (${error.requestId})`);
 }
 ```
 
-```python Python
-from stophy import Stophy, StophyError
-
-stophy = Stophy(max_retries=3)
-
-try:
-    page = stophy.scrape(url="https://bun.com/docs/runtime/bunfig")
-    print(page["data"]["metadata"]["title"])
-except StophyError as error:
-    print(f"{error.code}: {error} ({error.request_id})")
-```
-
-</CodeGroup>
-
-## A retry loop for other calls
-
-Use a retry loop for calls the SDK does not cover. Return on success. Otherwise stop if `retryable` is not `true`, if you have already made three attempts, or if the requested delay is more than 60 seconds. Wait `retryAfterSeconds` if present. Otherwise wait half a second before the first retry and double the delay for each retry. Add random jitter so your workers do not all retry at once.
-
-Keep your client timeout longer than the API deadline. If the client did not get an HTTP response, check whether the original call finished before sending it again. Log `X-Request-ID` on the last error.
+Python: `Stophy(max_retries=3)`, and catch `StophyError` with `error.code` and `error.request_id`.
 
 ## Report a problem
 
-If an answer is wrong or differs from these docs, send [feedback](/production/agent-feedback) with the `X-Request-ID`. To reach support, email support@stophy.dev with the `X-Request-ID`.
-
-## Related
-
-Use the logs to tell a failed request from one that was still running when your client stopped waiting.
-
-* [Rate limits](/production/rate-limits)
-* [Timeouts](/production/timeouts)
-* [Usage and logs](/production/usage-and-logs)
-* [API errors reference](/api-reference/errors)
+If an answer is wrong or differs from these docs, send [feedback](/production/agent-feedback) with the `X-Request-ID`. For support, email support@stophy.dev with it. [`GET /v1/logs/{id}`](/account/usage#list-calls) shows what a request cost.

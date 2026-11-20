@@ -1,19 +1,13 @@
 ---
-title: "Results"
-description: "Check a batch, read its pages a page at a time, list the pages that failed, delete the stored results, and find your earlier batches. Kept for 24 hours."
-og:title: "Results | Stophy"
-og:description: "Check a batch, read its pages a page at a time, list the pages that failed, delete the stored results, and find your earlier batches. Kept for 24 hours."
+title: "Batch results"
+description: "Check a batch, read its pages and errors, retry failed pages, cancel it, delete its stored results and list your batches. Batches are kept for 24 hours."
+sidebarTitle: "Results"
 ---
 
-Read pages and errors as your batch runs, or wait until its `status` is final. We keep the batch and its pages for 24 hours. All of these calls are free.
-
-## Check status
-
-Get an API key in the [Quickstart](/quickstart). `GET /v1/batch/scrape/{id}` returns the counts and the finished pages. Poll it every few seconds while `status` is `scraping`.
+Batches are read like crawls: polling, `next` paging, the status fields, `errors`, `maxTextLength` and webhooks work as in [Read a crawl](/crawl/async), at `/v1/batch/scrape`. A batch and its pages are kept for 24 hours, then reading it returns `404 notFound`. These calls are not charged.
 
 <CodeGroup>
 ```bash cURL
-BATCH_ID="<the id your batch returned>"
 curl https://api.stophy.dev/v1/batch/scrape/$BATCH_ID \
   -H "Authorization: Bearer $STOPHY_API_KEY"
 ```
@@ -35,92 +29,25 @@ print(batch["status"], batch["completed"], "of", batch["total"])
 ```
 </CodeGroup>
 
-Read `status` and the counts first. This batch returned one page. The other URL had no website, so it appears in `errors` as `notFound`.
-
 ```json
-{
-  "success": true,
-  "status": "completed",
-  "total": 2,
-  "completed": 1,
-  "failed": 1,
-  "costUsd": 0.001
-}
+{ "success": true, "status": "completed", "total": 2, "completed": 1, "failed": 1, "costUsd": 0.001 }
 ```
 
-| Field | What it holds |
+A page that answers `404` or `410` counts as `completed`, with `metadata.error` and no charge. `failed` counts pages that could not be read. Each page in `data` is a [scrape](/scrape/overview) answer.
+
+## Calls
+
+| Call | What it does |
 | - | - |
-| `status` | `scraping`, `completed`, `cancelled` or `failed`. See [Batches](/batches/overview#status). |
-| `queuePosition` | Where the batch is in line, while it waits to start. |
-| `total`, `completed`, `failed` | Pages in the batch, pages that came back, and pages that could not be read. |
-| `creditsUsed`, `costUsd` | What the batch has cost so far. `creditsUsed` is the older field, in steps of $0.002. |
-| `createdAt`, `completedAt`, `duration` | When it started and ended, and how many seconds it took. |
-| `expiresAt` | When the batch and its pages are deleted. |
-| `data` | Up to 100 finished pages, or 2 MB. Each page is a [scrape](/scrape/overview) answer. |
-| `errors` | The pages that could not be read, each with a `code` and whether it is `retryable`. |
-| `error` | Why the batch itself stopped, when `status` is `failed`. |
-| `next` | The address of the next page of results, when more finished pages are waiting. |
+| `GET /v1/batch/scrape/{id}` | Counts and up to 100 finished pages or 2 MB, with `next`. |
+| `GET /v1/batch/scrape/{id}/results` | Pages in parts. Send `limit` (20 by default, at most 100) and `cursor` with the same `limit` until `data.cursor` is missing. `data.results` holds the pages, `isTruncated` marks cut text, and failed pages appear in `data.errors` of the part where they landed. An error's `at` is Unix milliseconds here. |
+| `GET /v1/batch/scrape/{id}/errors` | Failed pages, up to 1,000, with `isTruncated`. Each has `id`, `url`, `code`, `message`, `retryable`, and `at` and `timestamp` as date strings. `robotsBlocked` is always empty. |
+| `DELETE /v1/batch/scrape/{id}` | Cancel. The pages already read are kept and charged. A batch that ended returns `409 jobFinished`. |
+| `DELETE /v1/batch/scrape/{id}/results` | Remove stored pages early, once the batch is `completed`, `failed` or `cancelled`. `data.deletedPages` counts them, and reads then return an empty `results` with `message`. A running batch returns `400 invalidRequest`. |
+| `GET /v1/batch/scrape` | Your batches, newest first, as `data.batches`. Send `status`, `limit` (1 to 100, default 20) and `cursor` until it is missing. |
 
-A page that answered `404` or `410` is not an error. It counts as `completed`, its `metadata.error` says what happened, and it costs nothing.
+The older `creditsUsed` field is a legacy field. Use `costUsd`.
 
-## Read the results in parts
+## Retry failed pages
 
-Use `GET /v1/batch/scrape/{id}/results` when you want to page through finished results rather than get them with status. Send `limit` and `cursor`.
-
-Use `?limit=2` if you want two records at a time. Read `data.results` for the pages and `data.cursor` for the next part. `isTruncated` on a result tells you whether its text was cut.
-
-`limit` is 20 by default and at most 100. Send `cursor` from the answer, with the same `limit`, to read the next part. A part can hold fewer results than `limit`, so keep going until there is no `cursor`. Each result has its own `url`, `creditsUsed` and `costUsd`.
-
-Failed pages appear in `data.errors` in the part where they landed. A part can have an empty `results` array and still have errors. On this route, an error's `at` is in Unix milliseconds.
-
-## Read the errors
-
-Use `GET /v1/batch/scrape/{id}/errors` when you need only failed pages. Read `status`, `failed` and `errors`. If nothing failed, `errors` is empty. Each error has `id`, `url`, `code`, `message` and `retryable`; `at` and `timestamp` are date strings on this route.
-
-`code` is one of the [error codes](/api-reference/errors). `retryable: true` means a new batch with that URL can work. A batch does not apply robots rules, so `robotsBlocked` is always empty. At most 1,000 errors are listed, and `isTruncated` is `true` when there were more. See [Limits and errors](/batches/limits-and-errors).
-
-## Delete the results
-
-Use `DELETE /v1/batch/scrape/{id}/results` to remove stored pages before they expire. It removes the stored pages at once. It works once the batch is `completed`, `failed` or `cancelled`. The batch keeps its counts. `data.deletedPages` tells you how many pages were removed.
-
-After the delete, reading the results answers with the counts, an empty `results`, and `message` set to `The stored results were deleted.` Deleting again returns `deletedPages` of `0`. A batch that is still running returns `400 invalidRequest`: `This batch scrape has not finished, so its results cannot be deleted yet. Wait until its status is completed, failed or cancelled, then send the call again.` To stop a batch first, see [Limits and errors](/batches/limits-and-errors#cancel-a-batch).
-
-## List your batches
-
-Use `GET /v1/batch/scrape` to find a batch ID or check whether your batches are still running. It returns `data.batches` newest first, with counts, cost and timestamps. If none match, `data.batches` is empty. The call is free.
-
-| Query field | Type | Default | Effect |
-| - | - | - | - |
-| `status` | `string` | all | Only batches in this status: `scraping`, `completed`, `cancelled` or `failed`. |
-| `limit` | `number` | `20` | Batches per page, 1 to 100. |
-| `cursor` | `string` | none | `cursor` from the last answer. |
-
-A page can hold fewer batches than `limit`, so keep sending `cursor` until it is missing. A batch that stopped early has its reason in `message`. Run this to confirm that no batch you started is still reading.
-
-## Options
-
-Set the page size or cut long text before saving a result.
-
-| Field | Where | Type | Default | Effect |
-| - | - | - | - | - |
-| `limit` | results and list query | `number` | `20` | 1 to 100. |
-| `cursor` | status, results and list query | `string` | none | Where to read on from. |
-| `status` | list query | `string` | all | Filter by status. |
-| `maxTextLength` | any read | `number` | none | Cuts every text value to this many characters. A cut value ends with `…`, and `isTruncated` is `true`. |
-
-## Limits and errors
-
-Copy what you need before the batch expires.
-
-- A batch, its pages and its errors are kept for 24 hours after it starts. After that, reading it returns `404 notFound`: `No batch scrape with that id. Results are kept for 24 hours.` Copy what you need before then.
-- A status read returns at most 100 pages or 2 MB in one answer.
-- An id that is not yours returns `404 notFound` too.
-
-## Related
-
-Use the submit guide to start a batch or the error guide to decide what to retry.
-
-- [Batches](/batches/overview) explains the statuses and the price.
-- [Submit a batch](/batches/submit) sends the list and the options.
-- [Limits and errors](/batches/limits-and-errors) covers cancelling and failed pages.
-- [Results reference](/api-reference/endpoint/batch-scrape-results) and [status reference](/api-reference/endpoint/batch-scrape-status) list every field.
+Read `/errors` and take the `url` of each row with `retryable: true`. Send them in `urls` to a new `POST /v1/batch/scrape` with the same options, or to the running batch with `appendToId`. Wait a few seconds before retrying `sourceUnavailable` and `sourceRefused`. Do not retry a row with `retryable: false`, such as `notFound`, `siteNotRead` or `promptInjectionDetected`. Codes are in [Errors](/api-reference/errors) and retry timing in [Troubleshooting](/production/troubleshooting). Batches share job limits with crawls: see [Rate limits](/production/rate-limits).

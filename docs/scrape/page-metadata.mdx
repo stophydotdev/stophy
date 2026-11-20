@@ -1,55 +1,9 @@
 ---
 title: "Page metadata"
-description: "Read the title, description, language, social preview tags and status code of a page. Every Scrape response carries them, whatever formats you ask for."
-og:title: "Page metadata | Stophy"
-og:description: "Read the title, description, language, social preview tags and status code of a page. Every Scrape response carries them, whatever formats you ask for."
+description: "Read data.metadata for the page status, title, preview image, cache state and cost. Every successful scrape returns it, whatever formats you ask for."
 ---
 
-Use `data.metadata` to check the page status, build a preview or see what a scrape cost. Successful scrapes return this object whatever formats you ask for. A field is left out when the page does not have it, so check that a field is there before you use it.
-
-## Make a request
-
-Get an API key in the [Quickstart](/quickstart). This request reads a docs page. It asks for `markdown` so the response has something besides `metadata`.
-
-<CodeGroup>
-```bash cURL
-curl -X POST https://api.stophy.dev/v1/scrape \
-  -H "Authorization: Bearer $STOPHY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-    "formats": ["markdown"]
-  }'
-```
-```typescript TypeScript
-import { Stophy } from "stophy";
-
-const stophy = new Stophy();
-
-const { data } = await stophy.scrape({
-  url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-  formats: ["markdown"],
-});
-console.log(data.metadata.title);
-console.log(data.metadata.ogImage);
-```
-```python Python
-from stophy import Stophy
-
-stophy = Stophy()
-
-metadata = stophy.scrape(
-    url="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
-    formats=["markdown"],
-)["data"]["metadata"]
-print(metadata["title"])
-print(metadata.get("ogImage"))
-```
-</CodeGroup>
-
-## Read the response
-
-Check `statusCode` before you use the page. For previews, start with `title` and `ogImage`. A page about HTTP 404 can still return HTTP 200, as this one does.
+`data.metadata` is an object on every successful scrape. A field is left out when the page does not have it, so check that it is there before you use it. A page with no meta tags still has `sourceURL`, `url`, `statusCode`, `contentType` and `cacheState`.
 
 ```json
 {
@@ -67,49 +21,23 @@ Check `statusCode` before you use the page. For previews, start with `title` and
 }
 ```
 
-The same tag can appear twice: once under a plain name such as `ogTitle`, and once under the tag's own name such as `og:title`. Use the plain names when they exist.
+A tag can appear twice, under a plain name such as `ogTitle` and under the tag's own name such as `og:title`. Use the plain names when they exist.
 
-## Fields
+| Field | Holds |
+| - | - |
+| `title`, `description`, `language`, `ogImage`, `favicon` | From the page. `language` is such as `en-US`. |
+| `sourceURL`, `url` | The URL you sent, and where the page ended up after redirects. |
+| `statusCode`, `contentType` | The HTTP status, and what the page is, such as `text/html`, `application/pdf` or `text/csv`. |
+| `cacheState`, `cachedAt` | `hit`, `miss` or `stale`, and when the stored copy was made (only on `hit` and `stale`). See [Freshness and caching](/scrape/freshness-and-caching). |
+| `scrapeId` | The id of this read, for `GET /v1/scrape/{id}`. |
+| `costUsd` | What the call cost, in dollars. |
+| `creditsUsed` | Crawl and batch pages only. Read `costUsd` instead. |
+| `numPages`, `totalPages`, `ocrPages` | For a PDF: pages read, pages in the file, pages read from their picture. See [PDFs and documents](/scrape/pdfs-and-documents). |
+| `error` | Set when the page answered with a status of 400 or more, such as `The page answered with status 403.` |
+| `keywords`, `robots`, `publishedTime`, `modifiedTime`, `articleSection`, `articleTag` | From the page's `keywords`, `robots` and `article:*` tags. |
+| `ogTitle`, `ogDescription`, `ogUrl`, `ogLocale`, `ogLocaleAlternate`, `ogSiteName`, `ogVideo`, `ogAudio`, `ogDeterminer` | From the Open Graph tags. |
+| `dcDate`, `dcDateCreated`, `dcDescription`, `dcSubject`, `dcType`, `dcTermsCreated`, `dcTermsKeywords`, `dcTermsSubject`, `dcTermsType`, `dcTermsAudience` | From the Dublin Core tags. |
 
-Use `sourceURL` to identify the input and `url` to see where we ended up. Use `costUsd` for the price.
+Every other meta tag comes back under its own name, such as `twitter:card` or `viewport`. A tag that appears several times comes back as an array of strings.
 
-| Field | Type | What it holds |
-| - | - | - |
-| `title` | `string` | The page title. |
-| `description` | `string` | The page description. |
-| `language` | `string` | The page language, such as `en-US`. |
-| `ogImage` | `string` | The preview image the page names. |
-| `favicon` | `string` | The page icon. |
-| `sourceURL` | `string` | The URL you sent. |
-| `url` | `string` | The URL the page ended up at after redirects. |
-| `statusCode` | `number` | The HTTP status the page answered with. |
-| `contentType` | `string` | What the page is, such as `text/html`, `application/pdf` or `text/csv`. |
-| `cacheState` | `string` | `hit`, `miss` or `stale`. See [Freshness and caching](/scrape/freshness-and-caching). |
-| `cachedAt` | `string` | When the stored copy was made. Only on `hit` and `stale`. |
-| `scrapeId` | `string` | The id of this read. Use it with `GET /v1/scrape/{id}`. |
-| `costUsd` | `number` | What the call cost, in dollars. |
-| `creditsUsed` | `number` | On crawl and batch pages only: the same charge as a whole number, one for each $0.002. Read `costUsd` instead. |
-| `numPages`, `totalPages`, `ocrPages` | `number` | For a PDF: the pages read, the pages in the file, and the pages read from their picture. See [PDFs and documents](/scrape/pdfs-and-documents). |
-| `error` | `string` | Set when the page answered with a status of 400 or more, such as `The page answered with status 403.` |
-| `keywords`, `robots`, `publishedTime`, `modifiedTime`, `articleSection`, `articleTag` | `string` or `array of string` | From the page's `keywords`, `robots` and `article:*` tags. |
-| `ogTitle`, `ogDescription`, `ogUrl`, `ogLocale`, `ogLocaleAlternate`, `ogSiteName`, `ogVideo`, `ogAudio`, `ogDeterminer` | `string` or `array of string` | From the page's Open Graph tags. |
-| `dcDate`, `dcDateCreated`, `dcDescription`, `dcSubject`, `dcType`, `dcTermsCreated`, `dcTermsKeywords`, `dcTermsSubject`, `dcTermsType`, `dcTermsAudience` | `string` or `array of string` | From the page's Dublin Core tags. |
-
-Every other meta tag on the page also comes back under its own name, such as `twitter:card` or `viewport`. A tag that appears several times comes back as an array of strings.
-
-## Limits and errors
-
-Check for missing tags and page errors before using metadata from a new site.
-
-- `metadata` is always an object. A page with no meta tags still has `sourceURL`, `url`, `statusCode`, `contentType` and `cacheState`.
-- A YouTube link has no meta tags to read. Its `title`, `description` and `ogImage` come from the video. See [YouTube](/scrape/youtube).
-- A page that answers with a 404 or 410 status comes back with that `statusCode` and an `error`, and costs nothing. See [Timeouts and errors](/scrape/timeouts-and-errors).
-
-## Related
-
-Use these guides to read metadata in a crawl or understand where a response came from.
-
-- [Scrape overview](/scrape/overview) lists every format and option.
-- [Crawl page content](/crawl/page-content) shows the same object on every crawled page.
-- [Freshness and caching](/scrape/freshness-and-caching) explains `cacheState` and `cachedAt`.
-- [Markdown](/scrape/markdown) returns the page text next to this object.
+A YouTube link has no meta tags to read. Its `title`, `description` and `ogImage` come from the video. A page that answers 404 or 410 has that `statusCode` and an `error`, and costs nothing. [Crawl](/crawl/overview) returns the same object for each crawled page.
