@@ -54,6 +54,11 @@ test("tool deadlines let valid work finish and cut off overdue requests", async 
       },
       { name: "browserRun", args: { id: "session", prompt: "Read the page" }, deadline: 125_000 },
       {
+        name: "stophy_browser_run",
+        args: { id: "session", prompt: "Read the page" },
+        deadline: 125_000,
+      },
+      {
         name: "stophy_parse",
         args: { url: "https://example.com/file.pdf", timeout: 200_000 },
         deadline: 65_000,

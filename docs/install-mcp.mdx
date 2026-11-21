@@ -88,7 +88,7 @@ With sign-in or a key, the server lists a tool for each product. Without a key i
 | `stophy_developer_search` | Search code docs, issues, pull requests and releases |
 | `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, find similar ones |
 | `stophy_monitor`, `stophy_monitor_read` | Create, change, run or delete a monitor with `action`; read monitors, their checks and what changed |
-| `browserOpen`, `browserRun`, `browserClose` and seven more | Drive a cloud browser |
+| `stophy_browser_open`, `stophy_browser_run`, `stophy_browser_close` and three more | Drive a cloud browser |
 
 Ask *"What are people saying about Bun on Reddit?"* and the agent calls `stophy_scrape` with a Reddit search URL and `"formats": [{ "type": "json", "parser": "reddit-search" }]`. See [Pre-built parsers](/scrape/prebuilt-parsers).
 
@@ -98,19 +98,21 @@ A tool's description names the inputs its schema leaves out, such as `profile` o
 
 | Tool | What it does |
 | - | - |
-| `browserOpen` | Opens a cloud browser. Returns its `id`, a live view link you can watch or take over, and the page's elements with refs such as `e12`. Takes `url` and the session options of [Browser sessions](/browser/overview), such as `profile`, `proxy`, `location`, `ttl`, `solveCaptchas` and `captureConsole`. |
-| `browserRun` | Does one thing. Send the `id` and exactly one of `steps`, `code` or `prompt`. Returns the elements and open tabs. |
-| `browserClose` | Closes the browser, saves its profile, and bills the session. Returns the time, traffic and cost. |
+| `stophy_browser_open` | Opens a cloud browser. Returns its `id`, `expiresAt` and a live view link you can watch or take over. With `url`, it also returns the page's elements with refs such as `e12`. Takes `url`, `profile`, `proxy`, `location`, `ttl` and `captureConsole`, and the other session options of [Browser sessions](/browser/overview), such as `solveCaptchas`. It opens `direct` unless you send `proxy` or `location`. |
+| `stophy_browser_run` | Does one thing. Send the `id` and exactly one of `steps`, `code` or `prompt`. |
+| `stophy_browser_close` | Closes the browser, saves its profile, and bills the session. Returns the time, traffic and cost. |
 
-`browserUpload`, `browserDownloads`, `browserRecording`, `browserProxy`, `browserExtensions` and `browserNetworkPolicy` work on an open browser. `browserTask` gives a goal to an agent that clicks through a public site and answers, as in [Browser tasks](/browser/tasks).
+`stophy_browser_upload` puts a file in an open browser. `stophy_browser_task` gives a goal to an agent that clicks through a public site and answers, as in [Browser tasks](/browser/tasks), and `stophy_browser_task_cancel` stops it.
 
-`steps` is up to 50 actions that run in order and stop at the first failure. The actions are `open`, `back`, `reload`, `click`, `dblclick`, `hover`, `check`, `uncheck`, `fill`, `type`, `press`, `select`, `scroll`, `drag`, `find`, `wait`, `get`, `is`, `read`, `screenshot`, `pdf`, `tab`, `dialog`, `upload`, `network` and `console`. A step names an element by its ref from the latest answer, and `find` picks one by role and name. `read` returns Markdown, `network` lists requests since the session opened, and `console` needs `captureConsole`. `code` is a script, and `prompt` is plain words. A call may take 30 seconds, and `timeout` raises that to 300.
+`steps` is up to 50 actions that run in order and stop at the first failure. The actions are `open`, `back`, `reload`, `snapshot`, `click`, `dblclick`, `hover`, `check`, `uncheck`, `fill`, `type`, `press`, `select`, `scroll`, `drag`, `find`, `wait`, `get`, `is`, `read`, `screenshot`, `pdf`, `tab`, `dialog`, `upload`, `network` and `console`. A step names an element by its ref from the latest page, and `find` picks one by role and name. Steps that can change the page answer with the page as its own text block. `read`, `screenshot`, `pdf`, `get`, `is`, `network` and `console` only look, so a call of only those leaves the page out; `snapshot` asks for it. `read` returns Markdown, `network` lists requests since the session opened, and `console` needs `captureConsole`.
 
-A session is billed from `browserOpen` to `browserClose`, so tell your agent to close every browser it opens.
+`code` is JavaScript by default, with `page` a Playwright Page. Send statements, whose last expression or `return` value comes back as `result`, or a function such as `async (page) => { ... }`. With `"language": "python"`, `page` is in scope and you set `result`. `prompt` is plain words for an agent. A call may take 30 seconds, and `timeout` raises that to 300.
+
+A session is billed from `stophy_browser_open` to `stophy_browser_close`, so tell your agent to close every browser it opens. The tools were named `browserOpen`, `browserRun` and so on until November 2026, and those names still work.
 
 ## More tools and a local server
 
-`?toolsets=web` on `https://api.stophy.dev/mcp` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `browserProfiles`, `browserTaskStatus` and `browserTaskCancel`. `toolsets=webhook` adds the webhook delivery tools.
+`?toolsets=web` on `https://api.stophy.dev/mcp` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `stophy_browser_downloads`, `stophy_browser_recording`, `stophy_browser_proxy`, `stophy_browser_extensions`, `stophy_browser_network_policy`, `browserProfiles` and `browserTaskStatus`. `toolsets=webhook` adds the webhook delivery tools.
 
 For an app that can only start a local server, `npx -y @stophy/mcp` (Node.js 18 or later) passes every request to the hosted server. Set `STOPHY_API_KEY` for every tool, and `STOPHY_MCP_URL` to change the server. Claude Desktop uses the connector above, not this package.
 
