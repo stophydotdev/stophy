@@ -72,6 +72,6 @@ A scrape of a YouTube video returns its details as `markdown`. `summary` and `js
 - Supported links are `watch?v=`, `youtu.be/`, `/shorts/`, `/embed/` and `/live/` URLs on `youtube.com`, `www.youtube.com`, `m.youtube.com` and `music.youtube.com`.
 - `audio` or `video` on another URL returns `400 invalidRequest`. So does an audio file over 40 MB, a video file over 100 MB, or either format with `zeroDataRetention`.
 - If YouTube gives no file, the call fails with `503 sourceUnavailable` and costs nothing. Retry it.
-- `metadata.title`, `description` and `ogImage` come from the video.
+- `metadata.title` and `description` come from the video, and `ogImage` (the thumbnail) with `allMetaTags`.
 
 A format that needs a browser costs the same as any page. See [Pricing](/account/pricing).

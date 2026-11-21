@@ -67,6 +67,7 @@ Each row read gets the format fields (`markdown` here) and a `metadata` object a
 | - | - | - |
 | `scrapeOptions.formats` | none | What to return per result, up to 20. With none, no page is read. |
 | `scrapeOptions.timeout` | 30,000 ms | Most time one page may take, 1,000 to 300,000. A page never gets more than what is left of the search `timeout`. |
+| `scrapeOptions.maxChars` | 4,000 | Most characters of each page's `markdown`, 500 to 1,000,000. A longer page comes back as the passages that match `query`, in page order, with `isTruncated: true`. The `description` is picked from the whole page. |
 | `scrapeLimit` | `limit` | Read only the top this many web results and top this many news results, 1 to 100. Not more than `limit`, and `400` without `scrapeOptions.formats`. |
 | `highlights` | `false` | Fill each web `description` with the passages that best match `query`, up to about 2,000 characters, with `…` where text is skipped. Needs no `scrapeOptions`. |
 | `maxTextLength` | none | Query parameter. Cuts every text value in the response to this many characters, ending with `…`. |
