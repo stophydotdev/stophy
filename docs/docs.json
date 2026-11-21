@@ -296,7 +296,6 @@
               "api-reference/endpoint/browser-proxy-update",
               "api-reference/endpoint/browser-delete",
               "api-reference/endpoint/browser-recording",
-              "api-reference/endpoint/browser-recording-timeline",
               "api-reference/endpoint/browser-recording-delete",
               "api-reference/endpoint/browser-replay",
               "api-reference/endpoint/browser-replay-page"
