@@ -87,10 +87,12 @@ With sign-in or a key, the server lists a tool for each product. Without a key i
 | `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel` | Start a task that searches and reads pages, read its answer, stop it |
 | `stophy_developer_search` | Search code docs, issues, pull requests and releases |
 | `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, find similar ones |
-| `stophy_monitor_create`, `_list`, `_get`, `_update`, `_delete`, `_run`, `_checks`, `_check` | Watch pages on a schedule and read what changed |
+| `stophy_monitor`, `stophy_monitor_read` | Create, change, run or delete a monitor with `action`; read monitors, their checks and what changed |
 | `browserOpen`, `browserRun`, `browserClose` and seven more | Drive a cloud browser |
 
 Ask *"What are people saying about Bun on Reddit?"* and the agent calls `stophy_scrape` with a Reddit search URL and `"formats": [{ "type": "json", "parser": "reddit-search" }]`. See [Pre-built parsers](/scrape/prebuilt-parsers).
+
+A tool's description names the inputs its schema leaves out, such as `profile` on `stophy_scrape`. They work as over HTTP. Page Markdown and HTML come back as their own text blocks after the JSON, which keeps `[text block 2]` in their place. Over MCP, `stophy_scrape` keeps link text and drops link addresses: send `"linkStyle": "inline"` for `[text](address)`, or add `links` to `formats`.
 
 ## Drive a browser
 

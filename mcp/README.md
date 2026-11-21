@@ -53,19 +53,19 @@ Without a key, the server lists these tools:
 
 With a key, it also lists a tool for each product:
 
-| Tools                                                                                                                                                                                         | What they do                                                                               |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel`                                                                                                                                  | Start a crawl of a site in the background, read its pages, or stop it                      |
-| `stophy_extract`                                                                                                                                                                              | Pulls the fields you name from pages as JSON, each checked against the page                |
-| `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel`                                                                                                                                  | Start a task that searches, reads pages and fills your fields, read its answer, or stop it |
-| `stophy_developer_search`                                                                                                                                                                     | Searches code docs, READMEs, issues, pull requests and releases                            |
-| `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar`                                                                                                                            | Search research papers, read one, or find papers like it                                   |
-| `stophy_monitor_create`, `stophy_monitor_list`, `stophy_monitor_get`, `stophy_monitor_update`, `stophy_monitor_delete`, `stophy_monitor_run`, `stophy_monitor_checks`, `stophy_monitor_check` | Watch pages on a schedule and read what changed                                            |
-| `browserOpen`, `browserRun`, `browserClose` and six more                                                                                                                                      | Drive a cloud browser                                                                      |
+| Tools                                                              | What they do                                                                               |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel`       | Start a crawl of a site in the background, read its pages, or stop it                      |
+| `stophy_extract`                                                   | Pulls the fields you name from pages as JSON, each checked against the page                |
+| `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel`       | Start a task that searches, reads pages and fills your fields, read its answer, or stop it |
+| `stophy_developer_search`                                          | Searches code docs, READMEs, issues, pull requests and releases                            |
+| `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, or find papers like it                                   |
+| `stophy_monitor`, `stophy_monitor_read`                            | Create, change, run or delete a monitor with `action`, or read monitors and what changed   |
+| `browserOpen`, `browserRun`, `browserClose` and six more           | Drive a cloud browser                                                                      |
 
 To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser: send `formats` as `[{ "type": "json", "parser": "reddit-search" }]` with the Reddit search page as the `url`. The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
 
-A crawl runs in the background: read it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. For more endpoints of a source, add `toolsets` to the URL with the source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`.
+Over MCP, `stophy_scrape` keeps link text and drops link addresses: send `"linkStyle": "inline"` for `[text](address)`, or add `links` to `formats`. A crawl runs in the background: read it with `stophy_crawl_status` and the crawl's `id`. A call costs the same as over HTTP, and `costUsd` in a result is what it cost. For more endpoints of a source, add `toolsets` to the URL with the source name, such as `https://api.stophy.dev/mcp?toolsets=web`. Your agent then also gets tools for batches and for more crawl and agent endpoints, such as `batchScrape`, `crawlList` and `agentList`.
 
 ## Network and credentials
 
