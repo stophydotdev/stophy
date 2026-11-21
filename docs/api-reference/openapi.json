@@ -4749,7 +4749,7 @@
       "get": {
         "operationId": "browserRecording",
         "summary": "See the video of a recorded browser session.",
-        "description": "Free. Send recording true when you create the session. The video covers every tab the session showed, as an MP4. It is made after the session stops, and processing usually takes a few minutes. A ready video is kept 7 days, or until you delete it. Answers 404 when the session was not recorded.",
+        "description": "Free. Every session is recorded unless it was created with recording false or zeroDataRetention. The video covers every tab the session showed, as an MP4. It is made after the session stops, and processing usually takes a few minutes. A ready video is kept 7 days, or until you delete it. Answers 404 when the session was not recorded.",
         "parameters": [
           {
             "name": "session_id",
@@ -4840,7 +4840,7 @@
       "delete": {
         "operationId": "browserRecordingDelete",
         "summary": "Delete the video of a browser session.",
-        "description": "Free. Answers 409 while the video is still being made, and 404 when there is none.",
+        "description": "Free. Deletes the timeline too. Answers 409 while the video is still being made, and 404 when there is none.",
         "parameters": [
           {
             "name": "session_id",
@@ -4904,6 +4904,230 @@
                     "recordingUrl": {
                       "type": "string",
                       "description": "The MP4, with no key needed, for 15 minutes. It plays and seeks in a browser or player. Sent when recordingStatus is ready. Read the session again for a new link."
+                    },
+                    "creditsUsed": {
+                      "type": "integer"
+                    },
+                    "costUsd": {
+                      "type": "number",
+                      "description": "What this call cost, in dollars."
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/browser/{session_id}/recording/timeline": {
+      "get": {
+        "operationId": "browserRecordingTimeline",
+        "summary": "See what a recorded session did, in step with its video.",
+        "description": "Free. The session's steps (code calls, clicks, keys, scrolls, downloads, dialogs; typed text is counted, never kept), page loads per tab, the browser's console messages (page console output only with captureConsole) and network requests, each stamped at in epoch milliseconds. The video's first frame is at videoStartedAt, so an event plays at (at - videoStartedAt) / 1000 seconds. dropped counts events past the per-kind limits. Ready when the session stops, kept with the video for 7 days. Answers 409 while the session runs, 503 for a few seconds after it stops, and 404 when the session was not recorded or was recorded before timelines existed.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The timeline.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimitLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimitRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimitReset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "costUsd",
+                    "creditsUsed",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "videoStartedAt": {
+                      "type": "integer"
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "step"
+                              },
+                              "at": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "text": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "at",
+                              "text"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "page"
+                              },
+                              "at": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "tab": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "at",
+                              "tab",
+                              "url"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "console"
+                              },
+                              "at": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "level": {
+                                "type": "string",
+                                "enum": [
+                                  "error",
+                                  "warning",
+                                  "info",
+                                  "log",
+                                  "debug"
+                                ]
+                              },
+                              "text": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string"
+                              },
+                              "repeats": {
+                                "type": "integer",
+                                "minimum": 2,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "at",
+                              "level",
+                              "text"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "request"
+                              },
+                              "at": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "tab": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "method": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "ms": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "error": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "at",
+                              "method",
+                              "url",
+                              "type",
+                              "status",
+                              "ms"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "dropped": {
+                      "type": "integer"
                     },
                     "creditsUsed": {
                       "type": "integer"
@@ -5363,11 +5587,11 @@
                     "type": "boolean"
                   },
                   "pdfRenderer": {
-                    "description": "true shows PDFs in the browser's own viewer. Left out or false, a PDF is saved as a download.",
+                    "description": "Left out or true, a PDF opens in the browser's own viewer, as in any Chrome. false saves each PDF as a download instead, which also hides Chrome's PDF plugins from pages.",
                     "type": "boolean"
                   },
                   "recording": {
-                    "description": "true records every tab the session shows as an MP4 video. Free. The video is made after the session stops and kept 7 days. Read recordingStatus on the session, then recordingUrl. Not with zeroDataRetention.",
+                    "description": "Left out or true, the session is recorded: an MP4 of every tab it shows, and a timeline of its steps, page loads, console and network beside it. Free. The video is made after the session stops and both are kept 7 days. Read recordingStatus on the session, then GET /v1/browser/{id}/replay. false records nothing. A zeroDataRetention session is never recorded.",
                     "type": "boolean"
                   },
                   "metadata": {
@@ -11410,10 +11634,10 @@
                 "type": "object",
                 "properties": {
                   "query": {
-                    "description": "What to search for, up to 500 characters. Search operators work in web results: quotes for an exact phrase, -word, site:, -site:, filetype:, inurl:, allinurl:, intitle: and allintitle:. In image results, imagesize:WIDTHxHEIGHT keeps images of exactly that size and larger:WIDTHxHEIGHT keeps images at least that large.",
+                    "description": "What to search for, up to 1,000 characters. A query longer than 50 words or 400 characters reaches the search engines as its leading keywords. Search operators work in web results: quotes for an exact phrase, -word, site:, -site:, filetype:, inurl:, allinurl:, intitle: and allintitle:. In image results, imagesize:WIDTHxHEIGHT keeps images of exactly that size and larger:WIDTHxHEIGHT keeps images at least that large.",
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 500
+                    "maxLength": 1000
                   },
                   "sources": {
                     "description": "What to search: web, news, images. Each is a string or {type}. Default web, or none when categories asks for research or videos.",
@@ -11584,11 +11808,11 @@
                     "type": "boolean"
                   },
                   "scrapeOptions": {
-                    "description": "With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page), headers, actions, location, parsers, profile and zeroDataRetention. redactPII uses patterns on web descriptions, news snippets, research snippets and video snippets, even without formats, when sources has web or news. Titles and URLs are unchanged. Snippets can still contain names and places that patterns miss. With formats, page reads and their add-ons use scrape pricing, starting at $1 per 1,000 pages for a standard read.",
+                    "description": "With formats, reads each web and news result, as many as scrapeLimit or limit asks for, within timeout, and fills each web result's description from it. Without formats no page is read and nothing more is charged. Takes the options of scrape: formats (markdown, html, rawHtml, links, images, summary, screenshot, json and the rest), onlyMainContent, includeTags, excludeTags, maxAge, minAge, waitFor, mobile, timeout (per page; without it, pages still reading 3 seconds after the reads start come back without text), headers, actions, location, parsers, profile and zeroDataRetention. redactPII uses patterns on web descriptions, news snippets, research snippets and video snippets, even without formats, when sources has web or news. Titles and URLs are unchanged. Snippets can still contain names and places that patterns miss. With formats, page reads and their add-ons use scrape pricing, starting at $1 per 1,000 pages for a standard read.",
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "default": [
                           "markdown"
                         ],
@@ -11970,8 +12194,7 @@
                         "type": "boolean"
                       },
                       "timeout": {
-                        "default": 30000,
-                        "description": "How long to keep trying, in milliseconds, from 1 second to 5 minutes; 30 seconds by default. A page that needs a browser needs at least 5 seconds, and pages behind a bot check can need 10 to 30 seconds the first time. A read that runs out of time is an error and costs nothing.",
+                        "description": "Milliseconds each page read may take, from 1 second to 5 minutes. Without it, the search answers 3 seconds after its reads start, and pages still reading then come back without text and cost nothing.",
                         "type": "integer",
                         "minimum": 1000,
                         "maximum": 300000
@@ -12337,6 +12560,16 @@
                         "description": "Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.",
                         "type": "boolean"
                       },
+                      "imageUrls": {
+                        "default": false,
+                        "description": "Send true to keep image addresses in the markdown, as ![alt](address). By default an image is its alt text.",
+                        "type": "boolean"
+                      },
+                      "allMetaTags": {
+                        "default": false,
+                        "description": "Send true to add every meta tag to metadata, such as ogImage, favicon and twitter:card. By default metadata has the title, description, language, addresses, status, content type, keywords and dates.",
+                        "type": "boolean"
+                      },
                       "blockAds": {
                         "description": "Ads and trackers are not loaded when a page runs in a browser. Send false to load them.",
                         "type": "boolean"
@@ -12452,6 +12685,12 @@
                         "default": false,
                         "description": "Send true to keep nothing from this call: no stored copy is read or made, and nothing from it is logged. Adds $2 per 1,000 scraped URLs, not per PDF page. Not with a screenshot.",
                         "type": "boolean"
+                      },
+                      "maxChars": {
+                        "description": "Most characters of each page's markdown, 4,000 by default. A longer page comes back as the passages that match the query, in page order, with isTruncated true. The description is picked from the whole page either way.",
+                        "type": "integer",
+                        "minimum": 500,
+                        "maximum": 1000000
                       }
                     },
                     "additionalProperties": false
@@ -13131,14 +13370,8 @@
                                 "required": []
                               },
                               "warning": {
-                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.",
+                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action. Also set when the site redirected the address to a page above it, such as a blog index for a removed post.",
                                 "type": "string"
-                              },
-                              "nextOffset": {
-                                "description": "Where the next part of the text starts, when more follows. Send it as offset, with the same maxChars, to read on.",
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
                               },
                               "url": {
                                 "type": "string",
@@ -13157,6 +13390,11 @@
                               },
                               "markdown": {
                                 "type": "string"
+                              },
+                              "isTruncated": {
+                                "description": "true when the page text is cut to scrapeOptions.maxChars, so markdown holds the passages that match the query. Scrape the url for the whole page.",
+                                "type": "boolean",
+                                "const": true
                               },
                               "metadata": {
                                 "type": "object",
@@ -13812,14 +14050,8 @@
                                 "required": []
                               },
                               "warning": {
-                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.",
+                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action. Also set when the site redirected the address to a page above it, such as a blog index for a removed post.",
                                 "type": "string"
-                              },
-                              "nextOffset": {
-                                "description": "Where the next part of the text starts, when more follows. Send it as offset, with the same maxChars, to read on.",
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
                               },
                               "title": {
                                 "type": "string"
@@ -13845,6 +14077,11 @@
                               },
                               "markdown": {
                                 "type": "string"
+                              },
+                              "isTruncated": {
+                                "description": "true when the page text is cut to scrapeOptions.maxChars, so markdown holds the passages that match the query. Scrape the url for the whole page.",
+                                "type": "boolean",
+                                "const": true
                               },
                               "metadata": {
                                 "type": "object",
@@ -14095,7 +14332,7 @@
                     "type": "string"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -14842,6 +15079,16 @@
                   },
                   "removeBase64Images": {
                     "description": "Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.",
+                    "type": "boolean"
+                  },
+                  "imageUrls": {
+                    "default": false,
+                    "description": "Send true to keep image addresses in the markdown, as ![alt](address). By default an image is its alt text.",
+                    "type": "boolean"
+                  },
+                  "allMetaTags": {
+                    "default": false,
+                    "description": "Send true to add every meta tag to metadata, such as ogImage, favicon and twitter:card. By default metadata has the title, description, language, addresses, status, content type, keywords and dates.",
                     "type": "boolean"
                   },
                   "blockAds": {
@@ -15888,6 +16135,16 @@
                         "description": "Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.",
                         "type": "boolean"
                       },
+                      "imageUrls": {
+                        "default": false,
+                        "description": "Send true to keep image addresses in the markdown, as ![alt](address). By default an image is its alt text.",
+                        "type": "boolean"
+                      },
+                      "allMetaTags": {
+                        "default": false,
+                        "description": "Send true to add every meta tag to metadata, such as ogImage, favicon and twitter:card. By default metadata has the title, description, language, addresses, status, content type, keywords and dates.",
+                        "type": "boolean"
+                      },
                       "blockAds": {
                         "description": "Ads and trackers are not loaded when a page runs in a browser. Send false to load them.",
                         "type": "boolean"
@@ -16146,7 +16403,7 @@
                     "maxLength": 1000
                   },
                   "schema": {
-                    "description": "Fields to fill when the task is done, as a JSON Schema object. Each one is checked against the pages the task saw and comes back null when no page states it.",
+                    "description": "Fields to fill when the task is done, as a JSON Schema object. Each one is checked against the pages the task saw and comes back null when no page states it. confidence gives the check's chance for each field.",
                     "type": "object",
                     "propertyNames": {
                       "type": "string"
@@ -16294,6 +16551,12 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                     "description": "The id browser.task returned."
+                  },
+                  "wait": {
+                    "description": "Seconds to wait for the task to end, up to 60. The answer comes as soon as it ends, or when the wait is over with status running.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 60
                   }
                 },
                 "required": [
@@ -16394,6 +16657,12 @@
                             "seconds": {
                               "type": "number"
                             },
+                            "turns": {
+                              "description": "How many turns the browser agent took.",
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
                             "fields": {
                               "type": "object",
                               "propertyNames": {
@@ -16423,7 +16692,8 @@
                           "maximum": 9007199254740991
                         },
                         "costUsd": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "What the task cost, in dollars: 0 while it runs, final once status is done."
                         }
                       },
                       "required": [
@@ -17493,7 +17763,7 @@
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "default": [
                           "markdown"
                         ],
@@ -18239,6 +18509,16 @@
                       },
                       "removeBase64Images": {
                         "description": "Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.",
+                        "type": "boolean"
+                      },
+                      "imageUrls": {
+                        "default": false,
+                        "description": "Send true to keep image addresses in the markdown, as ![alt](address). By default an image is its alt text.",
+                        "type": "boolean"
+                      },
+                      "allMetaTags": {
+                        "default": false,
+                        "description": "Send true to add every meta tag to metadata, such as ogImage, favicon and twitter:card. By default metadata has the title, description, language, addresses, status, content type, keywords and dates.",
                         "type": "boolean"
                       },
                       "blockAds": {
@@ -19619,7 +19899,7 @@
                     "type": "boolean"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -20366,6 +20646,16 @@
                   },
                   "removeBase64Images": {
                     "description": "Images inside the page that carry their data in the address (data:image) are dropped by default. Send false to keep them in markdown and html.",
+                    "type": "boolean"
+                  },
+                  "imageUrls": {
+                    "default": false,
+                    "description": "Send true to keep image addresses in the markdown, as ![alt](address). By default an image is its alt text.",
+                    "type": "boolean"
+                  },
+                  "allMetaTags": {
+                    "default": false,
+                    "description": "Send true to add every meta tag to metadata, such as ogImage, favicon and twitter:card. By default metadata has the title, description, language, addresses, status, content type, keywords and dates.",
                     "type": "boolean"
                   },
                   "blockAds": {
@@ -23336,7 +23626,7 @@
                                 "required": []
                               },
                               "warning": {
-                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.",
+                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action. Also set when the site redirected the address to a page above it, such as a blog index for a removed post.",
                                 "type": "string"
                               },
                               "isTruncated": {
@@ -24374,7 +24664,7 @@
                                 "required": []
                               },
                               "warning": {
-                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action.",
+                                "description": "Set when an action failed: it names the action and says why. The rest of the answer is the page as it stood before that action. Also set when the site redirected the address to a page above it, such as a blog index for a removed post.",
                                 "type": "string"
                               },
                               "nextOffset": {

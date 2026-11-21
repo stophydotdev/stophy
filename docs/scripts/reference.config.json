@@ -79,6 +79,7 @@
         "browserProxyUpdate",
         "browserDelete",
         "browserRecording",
+        "browserRecordingTimeline",
         "browserRecordingDelete",
         "browserReplay",
         "browserReplayPage"
@@ -253,6 +254,7 @@
     "browserProxyUpdate": "Change the network location",
     "browserDelete": "Close a session",
     "browserRecording": "Read a recording",
+    "browserRecordingTimeline": "Read a recording's timeline",
     "browserRecordingDelete": "Delete a recording",
     "browserReplay": "Replay pages",
     "browserReplayPage": "Replay page",
@@ -554,6 +556,11 @@
         "session_id": "sessionId"
       }
     },
+    "browserRecordingTimeline": {
+      "use": {
+        "session_id": "sessionId"
+      }
+    },
     "browserRecordingDelete": {
       "use": {
         "session_id": "sessionId"
@@ -812,6 +819,7 @@
     "revokeKey": "Calling it would revoke the key that recorded these examples.",
     "agentCancel": "No example is recorded: it needs a run that is still working, and every run costs money. The schema below lists every field.",
     "agentSnapshot": "No example is recorded. The schema below lists every field.",
+    "browserRecordingTimeline": "No example is recorded: it needs a recorded browser session. The schema below lists every field.",
     "browserExtensionUpload": "No example is recorded. Send the zip as multipart form data in the `file` field.",
     "browserExtensionGet": "No example is recorded: it needs an uploaded extension.",
     "browserExtensionDelete": "No example is recorded: it needs an uploaded extension.",

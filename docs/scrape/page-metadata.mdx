@@ -1,6 +1,6 @@
 ---
 title: "Page metadata"
-description: "Read data.metadata for the page status, title, preview image, cache state and cost. Every successful scrape returns it, whatever formats you ask for."
+description: "Read data.metadata for the page status, title, dates, cache state and cost. Every successful scrape returns it, whatever formats you ask for."
 ---
 
 `data.metadata` is an object on every successful scrape. A field is left out when the page does not have it, so check that it is there before you use it. A page with no meta tags still has `sourceURL`, `url`, `statusCode`, `contentType` and `cacheState`.
@@ -11,9 +11,8 @@ description: "Read data.metadata for the page status, title, preview image, cach
   "data": {
     "metadata": {
       "title": "404 Not Found - HTTP | MDN",
-      "ogImage": "https://developer.mozilla.org/mdn-social-image.46ac2375.png",
-      "ogTitle": "404 Not Found - HTTP | MDN",
-      "og:title": "404 Not Found - HTTP | MDN",
+      "description": "The HTTP 404 Not Found client error response status code indicates that the server cannot find the requested resource.",
+      "language": "en-US",
       "statusCode": 200,
       "costUsd": 0.001
     }
@@ -21,11 +20,9 @@ description: "Read data.metadata for the page status, title, preview image, cach
 }
 ```
 
-A tag can appear twice, under a plain name such as `ogTitle` and under the tag's own name such as `og:title`. Use the plain names when they exist.
-
 | Field | Holds |
 | - | - |
-| `title`, `description`, `language`, `ogImage`, `favicon` | From the page. `language` is such as `en-US`. |
+| `title`, `description`, `language` | From the page. `language` is such as `en-US`. |
 | `sourceURL`, `url` | The URL you sent, and where the page ended up after redirects. |
 | `statusCode`, `contentType` | The HTTP status, and what the page is, such as `text/html`, `application/pdf` or `text/csv`. |
 | `cacheState`, `cachedAt` | `hit`, `miss` or `stale`, and when the stored copy was made (only on `hit` and `stale`). See [Freshness and caching](/scrape/freshness-and-caching). |
@@ -34,10 +31,8 @@ A tag can appear twice, under a plain name such as `ogTitle` and under the tag's
 | `creditsUsed` | Crawl and batch pages only. Read `costUsd` instead. |
 | `numPages`, `totalPages`, `ocrPages` | For a PDF: pages read, pages in the file, pages read from their picture. See [PDFs and documents](/scrape/pdfs-and-documents). |
 | `error` | Set when the page answered with a status of 400 or more, such as `The page answered with status 403.` |
-| `keywords`, `robots`, `publishedTime`, `modifiedTime`, `articleSection`, `articleTag` | From the page's `keywords`, `robots` and `article:*` tags. |
-| `ogTitle`, `ogDescription`, `ogUrl`, `ogLocale`, `ogLocaleAlternate`, `ogSiteName`, `ogVideo`, `ogAudio`, `ogDeterminer` | From the Open Graph tags. |
-| `dcDate`, `dcDateCreated`, `dcDescription`, `dcSubject`, `dcType`, `dcTermsCreated`, `dcTermsKeywords`, `dcTermsSubject`, `dcTermsType`, `dcTermsAudience` | From the Dublin Core tags. |
+| `keywords`, `ogLocaleAlternate`, `publishedTime`, `modifiedTime` | From the page's `keywords`, `og:locale:alternate` and `article:*` time tags. |
 
-Every other meta tag comes back under its own name, such as `twitter:card` or `viewport`. A tag that appears several times comes back as an array of strings.
+Send `"allMetaTags": true` for every other tag too: `ogImage`, `favicon`, the Open Graph and Dublin Core fields under plain names such as `ogTitle` and `dcDate`, and every meta tag under its own name, such as `og:title` or `twitter:card`. A tag that appears several times comes back as an array of strings.
 
-A YouTube link has no meta tags to read. Its `title`, `description` and `ogImage` come from the video. A page that answers 404 or 410 has that `statusCode` and an `error`, and costs nothing. [Crawl](/crawl/overview) returns the same object for each crawled page.
+A YouTube link has no meta tags to read. Its `title` and `description` come from the video, and `ogImage` with `allMetaTags`. A page that answers 404 or 410 has that `statusCode` and an `error`, and costs nothing. [Crawl](/crawl/overview) returns the same object for each crawled page.

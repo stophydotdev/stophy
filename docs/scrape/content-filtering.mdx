@@ -41,6 +41,7 @@ To read on, send the same request with `"offset": 529`. Use the `nextOffset` the
 | `includeTags` | none | Keep only parts that match these CSS selectors, such as `article` or `.price`. `onlyMainContent` is then not applied. |
 | `excludeTags` | none | Remove parts that match these selectors, such as `.comments`. |
 | `removeBase64Images` | `true` | Drops `data:image` images. `false` keeps them in Markdown and HTML. |
+| `imageUrls` | `false` | An image in the Markdown is its alt text. `true` keeps `![alt](url)`. Ask for `images` to get every image URL. |
 | `linkStyle` | `inline` | `inline` keeps `[text](url)`. `numbered` writes `Pricing⟨3⟩` and lists each URL once at the end. `none` keeps the link text only, which makes link heavy pages 10 to 70% shorter. Ask for `links` to get the URLs. |
 | `maxChars` | none | Cut the Markdown at this many characters, 500 to 1,000,000. |
 | `offset` | `0` | Start this many characters into the page, PDF or file. Not with `query`. |
