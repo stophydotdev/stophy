@@ -61,7 +61,7 @@ With a key, it also lists a tool for each product:
 | `stophy_developer_search`                                          | Searches code docs, READMEs, issues, pull requests and releases                            |
 | `stophy_paper_search`, `stophy_paper_read`, `stophy_paper_similar` | Search research papers, read one, or find papers like it                                   |
 | `stophy_monitor`, `stophy_monitor_read`                            | Create, change, run or delete a monitor with `action`, or read monitors and what changed   |
-| `browserOpen`, `browserRun`, `browserClose` and six more           | Drive a cloud browser                                                                      |
+| `stophy_browser_open`, `_run`, `_close` and three more             | Drive a cloud browser                                                                      |
 
 To get a site's own data as JSON, such as a Reddit search, a YouTube transcript or Google Maps places, call `stophy_scrape` with the site's page URL and a parser: send `formats` as `[{ "type": "json", "parser": "reddit-search" }]` with the Reddit search page as the `url`. The `stophy_scrape` description names every parser, and [the parser list](https://api.stophy.dev/v1/parsers) shows the page each one takes.
 

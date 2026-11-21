@@ -17,8 +17,8 @@ curl -X POST https://api.stophy.dev/v1/browser \
 
 | Field | Default | Meaning |
 | - | - | - |
-| `location.country` | `US` | Two-letter country code. Only with the default network. |
-| `proxy` | `residential` | `residential` is the default network. `direct` uses no proxy. A `http`, `https`, `socks5` or `socks5h` URL on a public host uses your own. |
+| `location.country` | none | Two-letter country code. Only on `residential`: sent without `proxy`, it opens the session on `residential`. |
+| `proxy` | `direct` | `direct` uses no proxy and has no country. `residential` goes out through a home address in `location.country`, `US` if you send none. A `http`, `https`, `socks5` or `socks5h` URL on a public host uses your own. |
 
 A profile keeps the country it first used. See [Profiles](/browser/profiles). The closing answer's `exitBytes` splits traffic by network: `managed`, `direct` and `custom`.
 
@@ -28,7 +28,7 @@ A profile keeps the country it first used. See [Profiles](/browser/profiles). Th
 
 | `mode` | Meaning | `country` | `exitIp` |
 | - | - | - | - |
-| `managed` | The default network, in a country you pick | Lower case code | Address sites see |
+| `managed` | Residential, in a country you pick | Lower case code | Address sites see |
 | `direct` | No proxy | `null` | Address sites see |
 | `custom` | Your own proxy | `null` | `null` |
 
@@ -80,7 +80,7 @@ A policy holds at most 10,000 domains in `allow` and `block` together. An accoun
 
 All return `400 invalidRequest` unless noted.
 
-* `location.country` with `proxy` set to `direct` or a URL. A country needs the default network.
+* `location.country` with `proxy` set to `direct` or a URL. A country needs `residential`.
 * A country that is not two letters, a `proxy` that is not `residential`, `direct` or a public URL, or a `customProxy.host` that is not public, such as `localhost`.
 * A URL, path, port, IP address, other wildcard, or a domain in both lists in a policy.
 * `allowedDomains` with `networkPolicyId`.

@@ -85,7 +85,7 @@ Every field of `POST /v1/browser` is optional.
 | `allowResizing` | `false` keeps the window size: resize commands are accepted and change nothing. |
 | `pdfRenderer` | `true` shows PDFs in the browser viewer. Otherwise a PDF is saved as a download. |
 | `solveCaptchas` | Captchas are solved for you. `false` leaves them for you or your user in the live view. |
-| `captureConsole` | `true` keeps console messages and page errors for the `console` step of `browserRun` in [MCP server](/install-mcp#drive-a-browser). Off by default: a few sites behave differently with it on. |
+| `captureConsole` | `true` keeps console messages and page errors for the `console` step of `stophy_browser_run` in [MCP server](/install-mcp#drive-a-browser). Off by default: a few sites behave differently with it on. |
 | `blockAds` | `false` loads ads and trackers. |
 | `streamWebView` | `false` leaves out the live view links. |
 | `zeroDataRetention` | Keep nothing, so no replay. Not with `profile` or `recording`. See [Zero data retention](/production/zero-data-retention). |

@@ -33,6 +33,7 @@ const toolTimeout = ({ name, arguments: args }: CallToolRequest["params"]): numb
     case "stophy_map":
       budget = requested ?? DEFAULT_BUDGET_MS;
       break;
+    case "stophy_browser_run":
     case "browserRun":
     case "browserExecute":
     case "scrapeInteract":
