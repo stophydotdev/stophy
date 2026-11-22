@@ -1,0 +1,8 @@
+---
+title: "Retention and zero data retention"
+description: "Find the zero data retention rules and the retention evidence that remains pending review."
+---
+
+The [zero data retention page](/production/zero-data-retention) defines supported endpoints, exceptions, and temporary job state. Billing metadata remains. The setting is per call and does not cover every feature.
+
+The planned retention audit at [docs/operations/retention.md](https://github.com/stophydotdev/stophy-api/blob/agents/zdr-audit/docs/operations/retention.md) is pending verification. On November 22, 2026, that file and its PR were not present on the branch. The current public page describes temporary job and agent state, and excludes monitors and certain browser features. It does not establish deletion times for every store, provider, backup, or log. Confirm those before making a broader zero retention commitment.

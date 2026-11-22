@@ -1,0 +1,20 @@
+---
+title: "Security questionnaire answers"
+description: "Find concise answers to common security review questions, with links to the supporting evidence and open items."
+---
+
+These draft answers are not a completed CAIQ or an independent assessment.
+
+| Question | Answer and evidence |
+| --- | --- |
+| How do users authenticate? | Dashboard sign-in uses Google or GitHub. API keys and MCP OAuth have different access paths. See [security](/trust/security). |
+| Can a key be revoked? | The code disables the key and checks the database on authentication. Verify the deployed version. See [security](/trust/security). |
+| Are data encrypted in transit and at rest? | HTTPS is documented. Internal transport and each store's at-rest controls are to confirm. See [security](/trust/security). |
+| Is customer data isolated? | The security model defines account and browser boundaries. Independent assurance is to confirm. See [security](/trust/security). |
+| Who processes data and where? | See the incomplete [data map](/trust/subprocessors). Provider regions and proxy operators are to confirm. |
+| Is a DPA available? | A [draft DPA](/trust/dpa) needs a verified open-license template, completed schedules, and legal review. |
+| How long is data retained? | See [retention](/trust/retention) and the linked product page. Store and backup deletion are to confirm. |
+| How are incidents handled? | A proposed [response plan](/trust/incident-response) names triage, notices, and review. Coverage and deadlines need approval. |
+| How do researchers report vulnerabilities? | Email support@stophy.dev privately. See [security.txt](/trust/security-txt). |
+| Is there an SLA? | A [policy draft](/trust/availability) is available. A target and measured history are to confirm. |
+| Is there an independent audit or penetration test? | To confirm. See [security](/trust/security). |

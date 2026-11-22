@@ -1,0 +1,16 @@
+---
+title: "Availability and SLA draft"
+description: "Review the proposed availability measurement, credit process, and decisions needed before an SLA is offered."
+---
+
+This is a proposed policy, not a service level commitment. The [status page](https://status.stophy.dev) shows API and website history. Its monitor coverage, history and measurement method are to confirm. The [observability runbook](https://github.com/stophydotdev/stophy-api/blob/6b824524/docs/operations/observability.md) notes limits of the internal canary and readiness checks.
+
+## Measurement and target
+
+Proposed measurement: monthly availability equals the minutes the covered API monitor reports available, divided by the minutes in the calendar month, expressed as a percentage. Confirm monitor interval, incident aggregation, partial outages, missing data, planned maintenance, and any exclusions before using this formula in a contract.
+
+Target: **to be selected by Hussein**. Measured history and the period it covers: **to confirm**. No numeric target is supported by the evidence in this draft. A status check alone may not cover authenticated requests or all dependencies.
+
+## Proposed service credits
+
+If monthly availability falls below the agreed target, a customer may request a service credit within a period to be agreed. The agreement must define eligible spend, credit tiers, a cap, evidence, dispute handling, and exclusions. Apply approved credits as account balance, not cash. Confirm the accounting, tax, expiration, and refund treatment. Account credits reduce future revenue and are not necessarily costless to provide.

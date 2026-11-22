@@ -1,0 +1,22 @@
+---
+title: "Subprocessors and data map"
+description: "Review known providers, the data they may receive, and processing locations that still need confirmation."
+---
+
+This draft is an inventory of observed code paths and public policy, not a verified complete register. A code path does not prove that a provider is enabled in production. Confirm contracts, subprocessors, transfers, regions, and retention before relying on it.
+
+| Provider or destination | Purpose and data class | Region and evidence |
+| --- | --- | --- |
+| Railway | API hosting. Request and operational data may pass through the service. | US East was observed in the enterprise handoff; current deployment and downstream locations are to confirm. [Public policy source](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) |
+| Neon | Database hosting. Account and usage records. | To confirm. [Public policy source](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) |
+| Redis host | Job and short-lived state storage. Provider and contents by operation are to confirm. | To confirm. [Redis client](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/redis.ts) |
+| Cloudflare | Website, email delivery, object storage, and model processing on applicable paths. Email addresses and messages, files, and model inputs may be sent. | To confirm. [Policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts), [object storage](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/clients/r2.ts), [model path](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/extract/workersAi.ts) |
+| Stripe | Payments. Checkout details and transaction identifiers. | To confirm. [Policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) |
+| Google and GitHub | Optional sign-in. Identity and profile data. | To confirm. [Policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) |
+| PostHog | Analytics and error reports. The policy describes usage data and consent. Server-side configuration and actual fields are to confirm. | To confirm. [Policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts), [tracking](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/track.ts) |
+| OpenAI and Anthropic | Model calls on applicable paths. Prompts and page content may be sent. Anthropic is optional in code. | To confirm. [Model routing](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/extract/askModel.ts), [OpenAI client](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/clients/openai.ts), [Anthropic client](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/clients/anthropic.ts) |
+| Proxy operators | Residential, mobile, datacenter, and ISP routes. Destinations and traffic visibility depend on the route and transport. Operator names and terms are to confirm. | To confirm. [Configuration names](https://github.com/stophydotdev/stophy-api/blob/6b824524/packages/env/src/server.ts), [request routing](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/fetch/proxy.ts) |
+| Better Stack | Status page and monitoring. Monitor configuration and data sent are to confirm. | To confirm. [Status page](https://status.stophy.dev) |
+| WorkOS | Planned evaluation for identity. Not confirmed as a production provider. Identity and membership data would depend on the integration. | To confirm before adoption. [WorkOS DPA](https://workos.com/legal/data-processing-addendum) |
+
+Customer-selected sites and search providers receive requests as part of the service. They are separate destinations, and their role depends on the request. For example, the [Brave search path](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/sources/web/brave.ts) sends search queries to Brave. Review each route, proxy operator, model, and observability destination before treating this map as complete.
