@@ -1,5 +1,5 @@
-import { mkdirSync } from "node:fs";
-import { expect, test } from "bun:test";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { expect, spyOn, test } from "bun:test";
 
 const home = `/tmp/stophy-cli-catalog-${process.pid}`;
 mkdirSync(home, { recursive: true });
@@ -107,4 +107,36 @@ test("a catalog entry the CLI cannot read is skipped, and missing extras get def
   expect(catalog.endpoints[0]?.keyless).toBe(false);
   expect(catalog.endpoints[0]?.costUsd).toBeUndefined();
   expect(catalog.sources).toEqual([{ id: "google" }]);
+});
+
+test("catalogs keep only API route paths from the server and the cache", async () => {
+  const { loadCatalog, parseCatalog } = await import("../src/catalog.ts");
+  const entries = [endpoint, { ...newer, path: "https://other.invalid/v1/example" }];
+  expect(parseCatalog({ endpoints: entries }).endpoints).toEqual([endpoint]);
+
+  const file = `${home}/route-catalog.json`;
+  writeFileSync(file, JSON.stringify({ fetchedAt: new Date().toISOString(), endpoints: entries }));
+  const cached = await loadCatalog({
+    file,
+    now: Date.now(),
+    force: false,
+    fetch: async () => {
+      throw new Error("the cache should be fresh");
+    },
+    warn: () => {},
+  });
+  expect(cached.endpoints).toEqual([endpoint]);
+});
+
+test("the transport refuses a destination outside the API origin before fetching", async () => {
+  const { request } = await import("../src/client.ts");
+  using fetch = spyOn(globalThis, "fetch").mockRejectedValue(new Error("unexpected fetch"));
+  await expect(
+    request({
+      method: "GET",
+      path: "https://other.invalid/v1/example",
+      accept: "application/json",
+    }),
+  ).rejects.toThrow("Request destination must use the configured API origin.");
+  expect(fetch).not.toHaveBeenCalled();
 });
