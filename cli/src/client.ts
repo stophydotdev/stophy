@@ -73,7 +73,15 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const runtime = await resolveRuntimeConfig();
   const { baseUrl, sessionCookie } = runtime;
   const apiKey = options.apiKey ?? runtime.apiKey;
-  const url = new URL(options.path, `${baseUrl}/`);
+  const base = new URL(`${baseUrl}/`);
+  const url = new URL(options.path, base);
+  if (
+    (base.protocol !== "http:" && base.protocol !== "https:") ||
+    url.protocol !== base.protocol ||
+    url.origin !== base.origin
+  ) {
+    throw new CliError("Request destination must use the configured API origin.");
+  }
   for (const [key, value] of Object.entries(options.params ?? {})) {
     if (value) url.searchParams.set(key, value);
   }
@@ -89,7 +97,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   if (apiKey) headers.set("Authorization", `Bearer ${apiKey}`);
   if (sessionCookie) headers.set("Cookie", sessionCookie);
   if (options.method === "POST") headers.set("Content-Type", "application/json");
-  const init: RequestInit = { method: options.method, headers };
+  const init: RequestInit = { method: options.method, headers, redirect: "error" };
   if (options.method === "POST") init.body = JSON.stringify(options.body ?? {});
 
   let response: Response;

@@ -14,7 +14,7 @@ export const endpointSchema = z.object({
   summary: z.string().min(1).optional(),
   bestWhen: z.string().min(1).nullish(),
   method: z.enum(["GET", "POST", "DELETE"]).catch("POST"),
-  path: z.string().min(1),
+  path: z.string().regex(/^\/v1(?:\/(?:[a-z0-9_-]+|\{\w+\}))+$/iu),
   costUsd: z.number().nonnegative().optional().catch(undefined),
   pricing: z.string().min(1).nullish().catch(undefined),
   keyless: z.boolean().catch(false),
