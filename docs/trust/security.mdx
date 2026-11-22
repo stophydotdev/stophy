@@ -1,24 +1,22 @@
 ---
 title: "Security overview"
-description: "Review Stophy's authentication, key handling, isolation, logging, and the controls that still need confirmation."
+description: "Review Stophy's authentication, key handling, isolation, and vulnerability reporting."
 ---
 
 This draft describes the security controls supported by the evidence below. It is pending Hussein's review.
 
 ## Access and keys
 
-Google or GitHub can authenticate dashboard users. API keys act for an account and have no scopes. MCP also accepts OAuth tokens. The [security model](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md) describes each credential and its boundaries.
+Google or GitHub can authenticate dashboard users. API keys act for an account and have no scopes. MCP also accepts OAuth tokens. The [security model](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md) describes the credentials and their boundaries.
 
-Stophy hashes a supplied API key before looking it up. The verifier checks whether the key is enabled and has expired. To rotate a key, create a replacement, update clients, and revoke the old key. Revocation disables the key in the database. The verifier reads the database on authentication. See [key verification and revocation](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/users/apiKeys.ts) and [credential management](/get-credentials). Verify the deployed version before relying on next-request revocation.
+Stophy hashes API keys before lookup. The verifier checks whether a key is enabled and has expired. To rotate a key, create a replacement, update clients, and revoke the old key. Revocation disables the key in the database. The verifier reads the database on authentication. See [key verification and revocation](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/users/apiKeys.ts) and [credential management](/get-credentials).
 
 ## Encryption and isolation
 
-The [privacy policy source](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) describes HTTPS. TLS for each internal connection, encryption at rest for each store, key ownership, rotation, and backup encryption are to confirm.
-
-The security model defines account boundaries and a separate browser session for each customer session. It also describes the sandbox for customer code and network restrictions. These are design claims, not an independent assessment. See the [security model](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md).
+The [privacy policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/web/src/app/%28marketing%29/privacy/sections.ts) describes HTTPS. The [security model](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md) describes account boundaries, browser sessions, the customer-code sandbox, and network restrictions.
 
 ## Logs and reports
 
-The [usage page](/account/usage) describes call history. The [zero data retention page](/production/zero-data-retention) describes the metadata kept for those calls. Access-change audit logs, their retention, and operator access controls are to confirm.
+The [usage page](/account/usage) describes call history. See [retention](/trust/retention) for the limits of the retention evidence.
 
-Report vulnerabilities privately to [support@stophy.dev](mailto:support@stophy.dev). Do not post details publicly before a fix. See [SECURITY.md](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md). Independent audit and penetration test reports are to confirm.
+Report vulnerabilities privately to [support@stophy.dev](mailto:support@stophy.dev). Do not post details publicly before a fix. See [SECURITY.md](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md).

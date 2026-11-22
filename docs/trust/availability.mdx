@@ -1,16 +1,10 @@
 ---
-title: "Availability and SLA draft"
-description: "Review the proposed availability measurement, credit process, and decisions needed before an SLA is offered."
+title: "Availability and SLA"
+description: "See the API availability target, status history, and how to request an account balance credit."
 ---
 
-This is a proposed policy, not a service level commitment. The [status page](https://status.stophy.dev) shows API and website history. Its monitor coverage, history and measurement method are to confirm. The [observability runbook](https://github.com/stophydotdev/stophy-api/blob/6b824524/docs/operations/observability.md) notes limits of the internal canary and readiness checks.
+The API availability target is **99.9% per calendar month**. The [status page](https://status.stophy.dev) reports the API monitor's history. The monitor checks every three minutes, so shorter outages can go undetected. The monitor does not establish availability for every API operation or dependency.
 
-## Measurement and target
+On November 22, 2026, the status page history showed API availability of 100% over 30 days and 99.997% over 54 monitored days. The longer figure covers the monitored period, not a full 90 days. These observations are subject to the three-minute check interval.
 
-Proposed measurement: monthly availability equals the minutes the covered API monitor reports available, divided by the minutes in the calendar month, expressed as a percentage. Confirm monitor interval, incident aggregation, partial outages, missing data, planned maintenance, and any exclusions before using this formula in a contract.
-
-Target: **to be selected by Hussein**. Measured history and the period it covers: **to confirm**. No numeric target is supported by the evidence in this draft. A status check alone may not cover authenticated requests or all dependencies.
-
-## Proposed service credits
-
-If monthly availability falls below the agreed target, a customer may request a service credit within a period to be agreed. The agreement must define eligible spend, credit tiers, a cap, evidence, dispute handling, and exclusions. Apply approved credits as account balance, not cash. Confirm the accounting, tax, expiration, and refund treatment. Account credits reduce future revenue and are not necessarily costless to provide.
+If availability falls below the target, email [hussein@stophy.dev](mailto:hussein@stophy.dev) to request a service credit. Approved credits are paid as account balance. Contact Stophy for the applicable credit terms.

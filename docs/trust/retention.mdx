@@ -1,8 +1,10 @@
 ---
 title: "Retention and zero data retention"
-description: "Find the zero data retention rules and the retention evidence that remains pending review."
+description: "See the scope of zero data retention and the limits of published deletion times."
 ---
 
-The [zero data retention page](/production/zero-data-retention) defines supported endpoints, exceptions, and temporary job state. Billing metadata remains. The setting is per call and does not cover every feature.
+The [zero data retention page](/production/zero-data-retention) describes the setting and its feature restrictions. Billing and operational metadata remain, and jobs and browser sessions need temporary state.
 
-The planned retention audit at [docs/operations/retention.md](https://github.com/stophydotdev/stophy-api/blob/agents/zdr-audit/docs/operations/retention.md) is pending verification. On November 22, 2026, that file and its PR were not present on the branch. The current public page describes temporary job and agent state, and excludes monitors and certain browser features. It does not establish deletion times for every store, provider, backup, or log. Confirm those before making a broader zero retention commitment.
+For ordinary calls, the application sets a 24-hour lifetime for [stored scrape results](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/api/scrapeResult.ts) and [job records](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/jobs/jobStore.ts). [Change tracking](https://github.com/stophydotdev/stophy-api/blob/6b824524/apps/server/src/sources/web/scrape/changes.ts) retains a previous snapshot for 30 days. These application limits do not establish physical deletion from every store or backup.
+
+An [API retention audit](https://github.com/stophydotdev/stophy-api/pull/1447) inventories application stores and proposes changes to private processing. The changes have not been merged, so its private-processing behavior is not a statement about the deployed service. The audit distinguishes expiry and read windows from physical deletion. Redis snapshots, database backups, object storage lifecycle rules, platform logs, and third-party retention require separate evidence. A 90-day log lookup window does not establish deletion of the underlying ledger after 90 days.

@@ -1,20 +1,8 @@
 ---
-title: "Incident response plan"
-description: "Review the proposed incident response roles, triage process, customer notices, and post-incident review."
+title: "Incident response"
+description: "Find the security contact and the steps used to assess and respond to a report."
 ---
 
-This plan is proposed and has not been verified by a tabletop exercise. The [operations runbook](https://github.com/stophydotdev/stophy-api/blob/6b824524/docs/operations/observability.md) describes existing alerts and response tools.
+Report vulnerabilities privately to [support@stophy.dev](mailto:support@stophy.dev). The [security policy](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md) asks reporters not to disclose details publicly before a fix.
 
-## Roles
-
-Primary responder: Hussein, to confirm contact and coverage. Backup responder: _______________.
-
-## Response
-
-1. Record the report, time, affected services, and a lead. Classify severity and assess whether personal data may be affected.
-2. Contain the incident, preserve relevant logs and configuration, and record actions and timestamps. Restrict evidence access and avoid collecting unnecessary content.
-3. Assess impact and restore service. Revoke compromised credentials and coordinate with affected providers when needed.
-4. Notify affected customers without undue delay after confirming a personal data breach. Proposed initial notice target: within 72 hours of Stophy's confirmation, subject to legal review and the signed agreement. Send updates as facts change. Do not wait for a complete investigation when the agreement or law requires earlier notice.
-5. Record the cause, impact, timeline, corrective actions, owners, and due dates. Share an appropriate post-mortem with affected customers. Review completion internally.
-
-Report a vulnerability to [support@stophy.dev](mailto:support@stophy.dev), as directed by [SECURITY.md](https://github.com/stophydotdev/stophy-api/blob/6b824524/SECURITY.md). Response coverage, notification deadlines, and evidence retention require approval.
+The response plan is to assess the affected services and data, contain the problem, preserve relevant evidence, and restore service. Customer notice and contractual deadlines depend on the applicable agreement and law.
