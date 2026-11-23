@@ -113,7 +113,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const json = parseJsonBody(text, response.headers.get("content-type"));
   const retryAfter = response.headers.get("Retry-After");
   if (!response.ok) {
-    const failure = failureOf(json, response.status, retryAfter);
+    const failure = withHint(failureOf(json, response.status, retryAfter), apiKey);
     const requestId = failure.requestId ?? response.headers.get("X-Request-ID");
     const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
@@ -175,6 +175,11 @@ function failureOf(
     return { ...failure, retryAfterSeconds: header };
   }
   return failure;
+}
+
+function withHint(failure: Failure, apiKey: string | undefined): Failure {
+  if (failure.code !== "freeLimit" || apiKey) return failure;
+  return { ...failure, message: `${failure.message} Run \`stophy login\` to get a key.` };
 }
 
 function failureMessage(failure: Failure, retryAfter: string | null): string {

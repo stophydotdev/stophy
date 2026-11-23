@@ -198,7 +198,7 @@ const fakeServer = (poll: Poll) => {
         : reply(202, { success: true, data: { status: "waiting", claimUrl: CLAIM_URL } });
     }
     return key === null
-      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
+      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "apiKeyRequired" } })
       : reply(200, { success: true, data: {}, costUsd: 0.001, requestId: "req-2" });
   });
   return { seen, fetched };
@@ -298,7 +298,7 @@ test("a failed signup is the answer, with no second try", async () => {
           success: false,
           error: { code: "rateLimited", message: "Slow down.", retryable: true },
         })
-      : reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } });
+      : reply(429, { success: false, error: { ...apiKeyRequired.error, code: "apiKeyRequired" } });
   });
   try {
     const failed = withSignup(() =>
@@ -359,7 +359,7 @@ const pollServer = (answer: (code: string) => Response | Promise<Response>) => {
       return answer(String(body.code));
     }
     return key === null
-      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "freeLimit" } })
+      ? reply(429, { success: false, error: { ...apiKeyRequired.error, code: "apiKeyRequired" } })
       : reply(200, { success: true, data: {}, costUsd: 0.001, requestId: "req-2" });
   });
   return { seen, fetched };
@@ -557,7 +557,7 @@ test("a flat error keeps its code, retryability, retry delay, request id and fie
     await expect(callApi("/v1/free")).rejects.toMatchObject({
       failure: {
         code: "freeLimit",
-        message: "freeLimit message",
+        message: "freeLimit message Run `stophy login` to get a key.",
         retryable: true,
         retryAfterSeconds: 3600,
         requestId: REQUEST_ID,
@@ -585,16 +585,34 @@ test("an HTTP-date retry header is displayed without a seconds suffix", () =>
     });
   }));
 
-test("a keyless freeLimit or apiKeyRequired answer starts a signup", () =>
+test("a keyless apiKeyRequired answer starts a signup", () =>
   withApi(async (seen) => {
     const { withSignup } = await import("../src/signup.ts");
     const { clearStoredAuth } = await import("../src/config.ts");
-    for (const path of ["/v1/free", "/v1/needs-key"]) {
+    await clearStoredAuth();
+    await expect(withSignup(() => callApi("/v1/needs-key"))).rejects.toMatchObject({
+      failure: { code: "claimRequired" },
+    });
+    expect(seen).toEqual(["/v1/needs-key", "/v1/signup"]);
+  }));
+
+test("a keyless freeLimit answer keeps its retry window and starts no signup", () =>
+  withApi(async (seen) => {
+    const { withSignup } = await import("../src/signup.ts");
+    const { clearStoredAuth } = await import("../src/config.ts");
+    for (const ci of [undefined, "true"]) {
       await clearStoredAuth();
       seen.length = 0;
-      await expect(withSignup(() => callApi(path))).rejects.toMatchObject({
-        failure: { code: "claimRequired" },
-      });
-      expect(seen).toEqual([path, "/v1/signup"]);
+      if (ci) process.env.CI = ci;
+      try {
+        await expect(withSignup(() => callApi("/v1/free"))).rejects.toMatchObject({
+          failure: { code: "freeLimit", retryable: true, retryAfterSeconds: 3600 },
+          message: expect.stringContaining("Retry after 3600s."),
+        });
+        await expect(withSignup(() => callApi("/v1/free"))).rejects.toThrow("stophy login");
+      } finally {
+        delete process.env.CI;
+      }
+      expect(seen).toEqual(["/v1/free", "/v1/free"]);
     }
   }));

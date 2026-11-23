@@ -12,7 +12,6 @@ import {
 import { CliError, statusFrom } from "./errors.js";
 
 const POLL_MS = 3000;
-const NEEDS_KEY = new Set(["apiKeyRequired", "freeLimit"]);
 
 const started = z.object({
   data: z.object({ claimUrl: z.string(), code: z.string(), expiresAt: z.string() }),
@@ -132,7 +131,7 @@ export async function withSignup<Value>(send: () => Promise<Value>): Promise<Val
   try {
     return await send();
   } catch (error) {
-    if (!(error instanceof RequestError) || !NEEDS_KEY.has(error.failure.code)) throw error;
+    if (!(error instanceof RequestError) || error.failure.code !== "apiKeyRequired") throw error;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) throw error;
     await ensureKey();
