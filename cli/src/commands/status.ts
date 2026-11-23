@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
 import { formatUsd, limitsSchema } from "../account.js";
-import { RequestError, request, unexpectedResponse } from "../client.js";
+import { RequestError, rejectedKeyHint, request, unexpectedResponse } from "../client.js";
 import { statusFrom } from "../errors.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { handleOutput } from "../output.js";
@@ -68,7 +68,7 @@ async function getStatus(): Promise<StatusResult> {
       (error.failure.code === "unauthorized" || statusFrom(error) === 401)
     ) {
       result.authenticated = false;
-      result.next = LOGIN_NEXT;
+      result.next = rejectedKeyHint(apiKeySource) ?? LOGIN_NEXT;
     }
   }
 

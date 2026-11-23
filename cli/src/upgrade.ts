@@ -9,7 +9,7 @@ const UPGRADE_ADVICE = `Upgrade with \`${UPGRADE_COMMAND}\`, or run the installe
 
 const current = packageJson.version;
 
-const VERSION = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/u;
+const VERSION = /^\d+\.\d+\.\d+$/u;
 
 export const isBelowMinimum = (minimum: string | null): minimum is string =>
   minimum !== null && VERSION.test(minimum) && compareVersions(current, minimum) < 0;

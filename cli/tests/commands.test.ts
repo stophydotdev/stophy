@@ -396,7 +396,7 @@ test("status does not call a rejected key authenticated, and prints why on stder
       authenticated: false,
       source: "stored",
       error: expect.stringContaining("not valid or has expired"),
-      next: expect.stringContaining("stophy login"),
+      next: expect.stringContaining("stophy logout"),
     });
     expect(process.exitCode).toBe(1);
     expect(written.join("")).toContain("not valid or has expired");
@@ -474,7 +474,18 @@ test("status marks a key rejected by a bare 401 as not authenticated", async () 
 });
 
 test("status for a person at a terminal puts the rejection on stderr", async () => {
-  const agentSignals = ["CLAUDECODE", "AI_AGENT", "STOPHY_AGENT"];
+  const agentSignals = [
+    "CLAUDECODE",
+    "CODEX_SANDBOX",
+    "CODEX_CI",
+    "CODEX_THREAD_ID",
+    "CURSOR_AGENT",
+    "GEMINI_CLI",
+    "OPENCODE_CLIENT",
+    "OPENCODE",
+    "AI_AGENT",
+    "STOPHY_AGENT",
+  ];
   const saved = agentSignals.map((name) => [name, process.env[name]] as const);
   for (const name of agentSignals) delete process.env[name];
   const { registerStatusCommand } = await import("../src/commands/status.ts");

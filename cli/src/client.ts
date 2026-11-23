@@ -193,12 +193,15 @@ function failureOf(
   return failure;
 }
 
-function hintFor(code: string, source: "env" | "stored" | undefined): string | undefined {
-  if (code === "freeLimit" && source === undefined) return "Run `stophy login` to get a key.";
-  if (code !== "unauthorized") return undefined;
+export function rejectedKeyHint(source: "env" | "stored" | undefined): string | undefined {
   if (source === "stored") return "Run `stophy logout`, then `stophy login`.";
   if (source === "env") return "Set a valid STOPHY_API_KEY, or unset it and run `stophy login`.";
   return undefined;
+}
+
+function hintFor(code: string, source: "env" | "stored" | undefined): string | undefined {
+  if (code === "freeLimit" && source === undefined) return "Run `stophy login` to get a key.";
+  return code === "unauthorized" ? rejectedKeyHint(source) : undefined;
 }
 
 function withHint(failure: Failure, source: "env" | "stored" | undefined): Failure {
