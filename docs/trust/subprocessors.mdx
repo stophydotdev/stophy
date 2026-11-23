@@ -1,8 +1,17 @@
 ---
 title: "Subprocessors and data map"
-description: "Request the current list of subprocessors and processing locations."
+description: "See providers used by Stophy and the full subprocessor list."
 ---
 
-For the full list of subprocessors and processing regions, email [hussein@stophy.dev](mailto:hussein@stophy.dev).
+The [full subprocessor list](https://stophy.dev/legal/subprocessors) includes processing regions. The providers below are described in Stophy's [privacy policy source](https://github.com/stophydotdev/stophy-api/blob/4c58429b53a46c124dcaea089bb0d01de3af5de9/apps/web/src/app/%28marketing%29/privacy/sections.ts).
+
+| Provider | Purpose |
+| --- | --- |
+| Railway | Hosts the API. |
+| Neon | Hosts the database containing account and usage data. |
+| Cloudflare | Hosts the website and sends email. |
+| Stripe | Processes payments. |
+| Google and GitHub | Provide sign-in when selected. |
+| PostHog | Provides analytics and error reports. |
 
 Customer-selected sites and search providers receive requests as part of the service. Their role depends on the request. See [zero data retention](/production/zero-data-retention) for the restrictions on private requests.

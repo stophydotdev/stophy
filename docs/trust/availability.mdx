@@ -1,16 +1,10 @@
 ---
 title: "Availability and SLA"
-description: "See the API availability target and service credit terms."
+description: "See the API availability target, status history, and enterprise SLA."
 ---
 
 ## Uptime SLA
 
-Stophy targets **99.9% API uptime per calendar month**. We measure availability using the API monitor on our [status page](https://status.stophy.dev). The monitor does not test every API operation or dependency, and it can miss outages between checks.
+Stophy targets **99.9% API uptime per calendar month**. A contractual uptime SLA is included in enterprise agreements. Contact [hussein@stophy.dev](mailto:hussein@stophy.dev) for an enterprise agreement.
 
-Downtime is the time the monitor records the API as unavailable, excluding the events below. Monthly uptime is the number of minutes in the calendar month minus downtime, divided by the number of minutes in that month, expressed as a percentage.
-
-If monthly uptime falls below 99.9%, you may claim a credit of 10% of your paid usage for that month. If it falls below 99.0%, you may claim 25% instead. Credits are applied to your account balance. The two credits do not stack.
-
-To claim a credit, email [hussein@stophy.dev](mailto:hussein@stophy.dev) within 30 days after the end of the affected month. Include your account and the affected month.
-
-Downtime excludes planned maintenance announced in advance, outages on your side, and unavailability caused by abuse or suspension. It also excludes target sites that block or refuse requests, fail, or are unavailable. A third-party site's outage is not Stophy downtime.
+The [status page](https://status.stophy.dev) reports API monitor history. On November 23, 2026, at 11:08 UTC, it showed 100% uptime over 30 monitored days and approximately 99.9968% over 55 monitored days. The monitor does not test every API operation or dependency and can miss outages between checks.
