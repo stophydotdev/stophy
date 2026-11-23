@@ -14,7 +14,18 @@ export function registerVersionCommand(program: Command) {
       const credentials = apiKey ? apiKeySource : sessionCookie ? "session" : "none";
 
       if (options.json) {
-        console.log(JSON.stringify({ version: packageJson.version, credentials }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              version: packageJson.version,
+              credentials,
+              authenticated: credentials !== "none",
+              source: credentials,
+            },
+            null,
+            2,
+          ),
+        );
         return;
       }
 

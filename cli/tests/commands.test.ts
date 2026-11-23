@@ -362,8 +362,8 @@ test("a rejected stored key says to sign in again, a rejected env key says to re
     await expect(
       request({ method: "GET", path: "/v1/limits", accept: "application/json" }),
     ).rejects.toMatchObject({
-      message: expect.stringContaining("Run `stophy login` to sign in again."),
-      failure: { code: "unauthorized", message: expect.stringContaining("stophy login") },
+      message: expect.stringContaining("Run `stophy logout`, then `stophy login`"),
+      failure: { code: "unauthorized", message: expect.stringContaining("stophy logout") },
     });
     process.env.STOPHY_API_KEY = KEY;
     await expect(
@@ -425,9 +425,87 @@ test("version reports stored credentials, not a login it has not checked", async
         log.mockRestore();
       }
     });
-    expect(JSON.parse(out)).toEqual({ version: expect.any(String), credentials: "stored" });
+    expect(JSON.parse(out)).toEqual({
+      version: expect.any(String),
+      credentials: "stored",
+      authenticated: true,
+      source: "stored",
+    });
   } finally {
     await clearStoredAuth();
+  }
+});
+
+test("a key a header cannot carry is refused without printing the key", async () => {
+  const { request } = await import("../src/client.ts");
+  process.env.STOPHY_API_KEY = `${KEY}\nsecond line`;
+  const fetched = spyOn(globalThis, "fetch");
+  try {
+    const failed = request({ method: "GET", path: "/v1/limits", accept: "application/json" });
+    await expect(failed).rejects.toThrow("STOPHY_API_KEY");
+    await expect(failed).rejects.not.toThrow(KEY);
+    expect(fetched).not.toHaveBeenCalled();
+  } finally {
+    delete process.env.STOPHY_API_KEY;
+    fetched.mockRestore();
+  }
+});
+
+test("status marks a key rejected by a bare 401 as not authenticated", async () => {
+  process.env.CLAUDECODE = "1";
+  const { registerStatusCommand } = await import("../src/commands/status.ts");
+  const { setStoredApiKey, clearStoredAuth } = await import("../src/config.ts");
+  const program = new Command();
+  registerStatusCommand(program);
+  await setStoredApiKey(KEY);
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(
+    async () => new Response(null, { status: 401 }),
+  );
+  const err = spyOn(process.stderr, "write").mockImplementation(() => true);
+  try {
+    const out = await captureStdout(() => program.parseAsync(["status"], { from: "user" }));
+    expect(JSON.parse(out)).toMatchObject({ authenticated: false });
+  } finally {
+    process.exitCode = 0;
+    err.mockRestore();
+    fetched.mockRestore();
+    await clearStoredAuth();
+  }
+});
+
+test("status for a person at a terminal puts the rejection on stderr", async () => {
+  const agentSignals = ["CLAUDECODE", "AI_AGENT", "STOPHY_AGENT"];
+  const saved = agentSignals.map((name) => [name, process.env[name]] as const);
+  for (const name of agentSignals) delete process.env[name];
+  const { registerStatusCommand } = await import("../src/commands/status.ts");
+  const { setStoredApiKey, clearStoredAuth } = await import("../src/config.ts");
+  const program = new Command();
+  registerStatusCommand(program);
+  await setStoredApiKey(KEY);
+  const fetched = rejectedKey();
+  const tty = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+  Object.defineProperty(process.stdout, "isTTY", { value: true, configurable: true });
+  const errors: string[] = [];
+  const err = spyOn(console, "error").mockImplementation((line) => {
+    errors.push(String(line));
+  });
+  const log = spyOn(console, "log").mockImplementation(() => {});
+  try {
+    await program.parseAsync(["status"], { from: "user" });
+    expect(errors.join("\n")).toContain("not valid or has expired");
+  } finally {
+    process.exitCode = 0;
+    if (tty) Object.defineProperty(process.stdout, "isTTY", tty);
+    else Reflect.deleteProperty(process.stdout, "isTTY");
+    err.mockRestore();
+    log.mockRestore();
+    fetched.mockRestore();
+    await clearStoredAuth();
+    for (const [name, value] of saved) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+    process.env.CLAUDECODE = "1";
   }
 });
 

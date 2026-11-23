@@ -160,6 +160,14 @@ test("a working call under a newer minimum version still answers, and warns on s
   expect(err).toContain(UPGRADE);
 });
 
+test("a minimum version that is not a version prints nothing", async () => {
+  const { err } = await run(
+    () => success({ ...priced, "x-stophy-min-cli-version": "99.invalid" }),
+    ["--raw"],
+  );
+  expect(err).toBe("");
+});
+
 test("a minimum version this CLI meets prints nothing", async () => {
   const { err } = await run(
     () => success({ ...priced, "x-stophy-min-cli-version": "1.0.0" }),
