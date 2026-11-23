@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import { formatUsd, limitsSchema, usageDataSchema } from "../account.js";
-import { request } from "../client.js";
-import { CliError } from "../errors.js";
+import { request, unexpectedResponse } from "../client.js";
 import { handleOutput, writeOutput } from "../output.js";
 import type { OutputOptions } from "../types/api.js";
 
@@ -27,7 +26,7 @@ Examples:
       const usage = usageDataSchema.safeParse(usageResponse.json);
       const limits = limitsSchema.safeParse(limitsResponse.json);
       if (!usage.success || !limits.success) {
-        throw new CliError("Server returned an unexpected response shape.");
+        throw unexpectedResponse(usage.success ? limitsResponse : usageResponse);
       }
       const account = { balanceUsd: limits.data.data.balanceUsd, ...usage.data };
       if (options.json || options.output) {

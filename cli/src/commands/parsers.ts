@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import { z } from "zod";
-import { request } from "../client.js";
-import { CliError } from "../errors.js";
+import { request, unexpectedResponse } from "../client.js";
 import { handleOutput, writeOutput } from "../output.js";
 import type { OutputOptions } from "../types/api.js";
 
@@ -33,7 +32,7 @@ Examples:
         accept: "application/json",
       });
       const parsed = parsersSchema.safeParse(response.json);
-      if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
+      if (!parsed.success) throw unexpectedResponse(response);
       const query = term?.trim().toLowerCase() ?? "";
       const parsers = parsed.data.data.parsers.filter((parser) => parser.name.includes(query));
       if (options.json || options.output) {

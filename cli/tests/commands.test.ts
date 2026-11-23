@@ -496,6 +496,21 @@ test("a server error while polling keeps the signup instead of failing", async (
   expect((await loadConfig()).pendingSignups?.map((entry) => entry.code)).toEqual([CODE]);
 });
 
+test("a signup status this CLI does not know counts as still waiting", async () => {
+  await agentWithoutKey();
+  const { loadConfig, saveConfig } = await import("../src/config.ts");
+  await saveConfig({ ...(await loadConfig()), pendingSignups: [pending(CODE)] });
+  const { fetched } = pollServer(() =>
+    reply(202, { success: true, data: { status: "reviewing", eta: 5 }, extra: true }),
+  );
+  try {
+    await expect(callWithSignup()).rejects.toMatchObject(claimRequired);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect((await loadConfig()).pendingSignups?.map((entry) => entry.code)).toEqual([CODE]);
+});
+
 test("a code another run already collected counts as approved, not expired", async () => {
   await agentWithoutKey();
   const { loadConfig, saveConfig, setStoredApiKey } = await import("../src/config.ts");

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { agentName } from "./agent.js";
-import { RequestError, request } from "./client.js";
+import { RequestError, request, unexpectedResponse } from "./client.js";
 import {
   type PendingSignup,
   assertConfigWritable,
@@ -17,9 +17,7 @@ const started = z.object({
   data: z.object({ claimUrl: z.string(), code: z.string(), expiresAt: z.string() }),
 });
 
-const collected = z.object({
-  data: z.union([z.object({ apiKey: z.string() }), z.object({ status: z.literal("waiting") })]),
-});
+const collected = z.object({ data: z.object({ apiKey: z.string().optional() }) });
 
 export const canPrompt = (): boolean => Boolean(process.stdin.isTTY) && agentName() === undefined;
 
@@ -49,7 +47,7 @@ async function startSignup(): Promise<PendingSignup> {
     accept: "application/json",
   });
   const parsed = started.safeParse(response.json);
-  if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
+  if (!parsed.success) throw unexpectedResponse(response);
   const pending = parsed.data.data;
   const config = await loadConfig();
   await saveConfig({ ...config, pendingSignups: [...(config.pendingSignups ?? []), pending] });
@@ -65,9 +63,10 @@ async function collect(pending: PendingSignup): Promise<"approved" | "waiting" |
       accept: "application/json",
     });
     const parsed = collected.safeParse(response.json);
-    if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
-    if (!("apiKey" in parsed.data.data)) return "waiting";
-    await setStoredApiKey(parsed.data.data.apiKey);
+    if (!parsed.success) throw unexpectedResponse(response);
+    const { apiKey } = parsed.data.data;
+    if (apiKey === undefined) return "waiting";
+    await setStoredApiKey(apiKey);
     return "approved";
   } catch (error) {
     if (!(error instanceof RequestError)) throw error;

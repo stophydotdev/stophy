@@ -5,6 +5,7 @@ import { request } from "./client.js";
 import { getConfigPath } from "./config.js";
 import { CliError } from "./errors.js";
 import { type JsonValue, jsonRecord, parseJson } from "./json.js";
+import { unreadableAdvice } from "./upgrade.js";
 
 const CATALOG_TTL_MS = 5 * 60 * 1000;
 
@@ -120,7 +121,8 @@ export async function fetchCatalog(): Promise<Catalog> {
 
 export function parseCatalog(json: JsonValue | undefined): Catalog {
   const parsed = catalogResponseSchema.safeParse(json);
-  if (!parsed.success) throw new CliError("Server returned an unexpected endpoint catalog.");
+  if (!parsed.success)
+    throw new CliError(`Server returned an unexpected endpoint catalog. ${unreadableAdvice(null)}`);
   assertCatalog(parsed.data.endpoints);
   return {
     endpoints: parsed.data.endpoints,

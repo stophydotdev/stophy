@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { type LogEntry, formatUsd, logsDataSchema } from "../account.js";
-import { request } from "../client.js";
+import { request, unexpectedResponse } from "../client.js";
 import { CliError } from "../errors.js";
 import { handleOutput } from "../output.js";
 import type { OutputOptions } from "../types/api.js";
@@ -43,7 +43,7 @@ Examples:
         },
       });
       const parsed = logsDataSchema.safeParse(response.json);
-      if (!parsed.success) throw new CliError("Server returned an unexpected response shape.");
+      if (!parsed.success) throw unexpectedResponse(response);
       if (options.json || options.output) {
         handleOutput(parsed.data, options);
         return;

@@ -2,7 +2,7 @@ import { formatUsd } from "./account.js";
 import { isAgentMode } from "./agent.js";
 import { currentArgs, flagTokens } from "./argv.js";
 import type { CatalogEndpoint } from "./catalog.js";
-import { type HttpResponse, RequestError, request, withRequestId } from "./client.js";
+import { type HttpResponse, request, unexpectedResponse } from "./client.js";
 import { CliError } from "./errors.js";
 import { type ParsedCall, parseCall } from "./flags.js";
 import { isAgentCommand, requestFor, reserveAgentPrompt } from "./jobs.js";
@@ -57,15 +57,6 @@ export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
   }
   handleOutput(format === "raw" ? body : payloadOf(parsed.data), { output: call.outputFile });
   writeReceipt(response, { cost: format === "json", requestId: format === "json" });
-}
-
-function unexpectedResponse({ status, requestId }: HttpResponse): RequestError {
-  const message = `Server returned an unexpected response shape (status ${status}).`;
-  return new RequestError(
-    withRequestId(message, requestId),
-    { code: "unexpectedResponse", message, retryable: false, requestId: requestId ?? undefined },
-    { status },
-  );
 }
 
 function withReceiptId(body: JsonRecord, { requestId }: HttpResponse): JsonRecord {
