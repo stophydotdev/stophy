@@ -1,7 +1,8 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
 import { formatUsd, limitsSchema } from "../account.js";
-import { RequestError, request, unexpectedResponse } from "../client.js";
+import { RequestError, rejectedKeyHint, request, unexpectedResponse } from "../client.js";
+import { statusFrom } from "../errors.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { handleOutput } from "../output.js";
 import { isAgentMode } from "../agent.js";
@@ -62,9 +63,12 @@ async function getStatus(): Promise<StatusResult> {
     result.balance = formatUsd(limits.data.data.balanceUsd);
   } catch (error) {
     result.error = error instanceof Error ? error.message : "Failed to fetch account info";
-    if (error instanceof RequestError && error.failure.code === "unauthorized") {
+    if (
+      error instanceof RequestError &&
+      (error.failure.code === "unauthorized" || statusFrom(error) === 401)
+    ) {
       result.authenticated = false;
-      result.next = LOGIN_NEXT;
+      result.next = rejectedKeyHint(apiKeySource) ?? LOGIN_NEXT;
     }
   }
 
@@ -102,14 +106,15 @@ export function registerStatusCommand(program: Command) {
         console.log(`  ${green}●${reset} Authenticated ${dim}${sourceLabel}${reset}`);
       } else {
         console.log(`  ${red}●${reset} Not authenticated`);
-        console.log(`  ${dim}${status.error ?? "Run 'stophy login' to authenticate"}${reset}`);
+        if (status.error) console.error(`  ${status.error}`);
+        else console.log(`  ${dim}Run 'stophy login' to authenticate${reset}`);
         console.log("");
         if (status.error) process.exitCode = 1;
         return;
       }
 
       if (status.error) {
-        console.log(`  ${dim}Could not fetch account info: ${status.error}${reset}`);
+        console.error(`  Could not fetch account info: ${status.error}`);
       } else if (status.balance) {
         console.log(`  ${dim}Balance:${reset} ${status.balance}`);
       }

@@ -9,8 +9,10 @@ const UPGRADE_ADVICE = `Upgrade with \`${UPGRADE_COMMAND}\`, or run the installe
 
 const current = packageJson.version;
 
+const VERSION = /^\d+\.\d+\.\d+$/u;
+
 export const isBelowMinimum = (minimum: string | null): minimum is string =>
-  minimum !== null && compareVersions(current, minimum) < 0;
+  minimum !== null && VERSION.test(minimum) && compareVersions(current, minimum) < 0;
 
 export const minimumNote = (minimum: string) =>
   `This CLI (v${current}) is older than the minimum (v${minimum}) the API supports. ${UPGRADE_ADVICE}`;

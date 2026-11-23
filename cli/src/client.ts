@@ -97,8 +97,14 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   if (agent) headers.set("x-stophy-agent", agent);
   const command = currentCommand();
   if (command) headers.set("x-stophy-command", command);
-  if (apiKey) headers.set("Authorization", `Bearer ${apiKey}`);
-  if (sessionCookie) headers.set("Cookie", sessionCookie);
+  try {
+    if (apiKey) headers.set("Authorization", `Bearer ${apiKey}`);
+    if (sessionCookie) headers.set("Cookie", sessionCookie);
+  } catch {
+    throw new CliError(
+      "The API key or session cookie has characters an HTTP header cannot carry. Fix STOPHY_API_KEY, or run `stophy logout` and sign in again.",
+    );
+  }
   if (options.method === "POST") headers.set("Content-Type", "application/json");
   const init: RequestInit = { method: options.method, headers, redirect: "error" };
   if (options.method === "POST") init.body = JSON.stringify(options.body ?? {});
@@ -187,12 +193,15 @@ function failureOf(
   return failure;
 }
 
-function hintFor(code: string, source: "env" | "stored" | undefined): string | undefined {
-  if (code === "freeLimit" && source === undefined) return "Run `stophy login` to get a key.";
-  if (code !== "unauthorized") return undefined;
-  if (source === "stored") return "Run `stophy login` to sign in again.";
+export function rejectedKeyHint(source: "env" | "stored" | undefined): string | undefined {
+  if (source === "stored") return "Run `stophy logout`, then `stophy login`.";
   if (source === "env") return "Set a valid STOPHY_API_KEY, or unset it and run `stophy login`.";
   return undefined;
+}
+
+function hintFor(code: string, source: "env" | "stored" | undefined): string | undefined {
+  if (code === "freeLimit" && source === undefined) return "Run `stophy login` to get a key.";
+  return code === "unauthorized" ? rejectedKeyHint(source) : undefined;
 }
 
 function withHint(failure: Failure, source: "env" | "stored" | undefined): Failure {
