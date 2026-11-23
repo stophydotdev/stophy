@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import packageJson from "../../package.json" with { type: "json" };
 import { formatUsd, limitsSchema } from "../account.js";
-import { request } from "../client.js";
+import { RequestError, request } from "../client.js";
 import { getConfigPath, resolveRuntimeConfig } from "../config.js";
 import { CliError } from "../errors.js";
 import { handleOutput } from "../output.js";
@@ -21,6 +21,9 @@ const bold = c("\x1b[1m");
 const green = c("\x1b[32m");
 const red = c("\x1b[31m");
 const accent = c("\x1b[38;2;0;98;57m");
+
+const LOGIN_NEXT =
+  "Run stophy login. It prints a link for a person to approve. Run it again after they approve to save the key, or set STOPHY_API_KEY.";
 
 interface StatusResult {
   version: string;
@@ -45,7 +48,7 @@ async function getStatus(): Promise<StatusResult> {
   if (!authenticated) {
     return {
       ...result,
-      next: "Run stophy login. It prints a link for a person to approve. Run it again after they approve to save the key, or set STOPHY_API_KEY.",
+      next: LOGIN_NEXT,
     };
   }
 
@@ -60,6 +63,10 @@ async function getStatus(): Promise<StatusResult> {
     result.balance = formatUsd(limits.data.data.balanceUsd);
   } catch (error) {
     result.error = error instanceof Error ? error.message : "Failed to fetch account info";
+    if (error instanceof RequestError && error.failure.code === "unauthorized") {
+      result.authenticated = false;
+      result.next = LOGIN_NEXT;
+    }
   }
 
   return result;
@@ -75,7 +82,10 @@ export function registerStatusCommand(program: Command) {
 
       if (options.json || isAgentMode()) {
         handleOutput(status);
-        if (status.error) process.exitCode = 1;
+        if (status.error) {
+          process.stderr.write(`${status.error}\n`);
+          process.exitCode = 1;
+        }
         return;
       }
 
@@ -93,8 +103,9 @@ export function registerStatusCommand(program: Command) {
         console.log(`  ${green}●${reset} Authenticated ${dim}${sourceLabel}${reset}`);
       } else {
         console.log(`  ${red}●${reset} Not authenticated`);
-        console.log(`  ${dim}Run 'stophy login' to authenticate${reset}`);
+        console.log(`  ${dim}${status.error ?? "Run 'stophy login' to authenticate"}${reset}`);
         console.log("");
+        if (status.error) process.exitCode = 1;
         return;
       }
 
