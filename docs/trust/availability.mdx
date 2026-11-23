@@ -1,10 +1,16 @@
 ---
 title: "Availability and SLA"
-description: "See the API availability target, status history, and how to request an account balance credit."
+description: "See the API availability target and service credit terms."
 ---
 
-The API availability target is **99.9% per calendar month**. The [status page](https://status.stophy.dev) reports the API monitor's history. The monitor checks every three minutes, so shorter outages can go undetected. The monitor does not establish availability for every API operation or dependency.
+## Uptime SLA
 
-On November 22, 2026, the status page history showed API availability of 100% over 30 days and 99.997% over 54 monitored days. The longer figure covers the monitored period, not a full 90 days. These observations are subject to the three-minute check interval.
+Stophy targets **99.9% API uptime per calendar month**. We measure availability using the API monitor on our [status page](https://status.stophy.dev). The monitor does not test every API operation or dependency, and it can miss outages between checks.
 
-If availability falls below the target, email [hussein@stophy.dev](mailto:hussein@stophy.dev) to request a service credit. Approved credits are paid as account balance. Contact Stophy for the applicable credit terms.
+Downtime is the time the monitor records the API as unavailable, excluding the events below. Monthly uptime is the number of minutes in the calendar month minus downtime, divided by the number of minutes in that month, expressed as a percentage.
+
+If monthly uptime falls below 99.9%, you may claim a credit of 10% of your paid usage for that month. If it falls below 99.0%, you may claim 25% instead. Credits are applied to your account balance. The two credits do not stack.
+
+To claim a credit, email [hussein@stophy.dev](mailto:hussein@stophy.dev) within 30 days after the end of the affected month. Include your account and the affected month.
+
+Downtime excludes planned maintenance announced in advance, outages on your side, and unavailability caused by abuse or suspension. It also excludes target sites that block or refuse requests, fail, or are unavailable. A third-party site's outage is not Stophy downtime.

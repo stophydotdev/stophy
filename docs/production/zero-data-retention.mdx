@@ -1,9 +1,9 @@
 ---
 title: "Zero data retention"
-description: "Send zeroDataRetention to keep nothing from a call: no stored copy read or made. Which endpoints take it, what it changes and what it refuses."
+description: "Use zero data retention, and see what is kept temporarily and which features are refused."
 ---
 
-Set `zeroDataRetention: true` per call. Stophy reads the page live and keeps no copy. Billing still leaves a record, and some jobs hold results briefly so you can collect them. See [Pricing](/account/pricing#scrape-add-ons) for what it adds.
+Set `zeroDataRetention: true` on a supported call to skip shared and saved copies of its content. Billing and operational metadata remain. Jobs and live browser sessions need temporary state. See [Pricing](/account/pricing#scrape-add-ons) for the charge.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \
@@ -12,39 +12,30 @@ curl -X POST https://api.stophy.dev/v1/scrape \
   -d '{"url": "https://example.com", "formats": ["markdown"], "zeroDataRetention": true}'
 ```
 
-The answer has the usual shape, with `data.metadata.cacheState` set to `miss` because no stored copy was read. Read the content from this response. A normal scrape can be read for 24 hours with `GET /v1/scrape/{id}`. This one answers `404 notFound`.
-
 ## Where to send it
 
-| Endpoint | Field | Refused with |
-| - | - | - |
-| [Scrape](/scrape/overview), [batches](/batches/overview) | `zeroDataRetention` | A screenshot |
-| [Search](/search/overview) | `scrapeOptions.zeroDataRetention` | A screenshot |
-| [Extract](/extract/overview), [crawl](/crawl/overview) | `zeroDataRetention` or `scrapeOptions.zeroDataRetention` | A screenshot |
-| [Parse](/parse/overview) | `zeroDataRetention` | Nothing |
-| [Agent](/agent/overview) | `zeroDataRetention` | `threadId` |
-| [Browser sessions](/browser/overview) | `zeroDataRetention` | `profile`, `recording` |
-| [Interact on a scrape](/scrape/interact) | `zeroDataRetention` on the first call | Nothing |
-
-[Monitors](/monitors/overview) do not take it, because a monitor keeps a snapshot to compare with the next one.
+| Endpoint | Field |
+| - | - |
+| [Scrape](/scrape/overview), [batches](/batches/overview) | `zeroDataRetention` |
+| [Search](/search/overview) | `scrapeOptions.zeroDataRetention` |
+| [Extract](/extract/overview), [crawl](/crawl/overview) | `zeroDataRetention` or `scrapeOptions.zeroDataRetention` |
+| [Parse](/parse/overview), [agent](/agent/overview), [browser sessions](/browser/overview) | `zeroDataRetention` |
 
 ## What changes
 
-* **Stored copies.** None is read or made, so every read is live.
-* **Results.** `GET /v1/scrape/{id}` answers `404`, and the scrape cannot be interacted with. Open the page in a session from `POST /v1/browser` instead.
-* **Jobs.** A crawl, batch or extract keeps its results for 1 hour after it finishes instead of 24. A webhook delivery for it is recorded without its payload.
-* **Agent.** The prompt, steps and result are held for one hour at most.
-* **Logs.** [`GET /v1/logs`](/account/usage#list-calls) shows the request ID, endpoint, method, status and cost, not the content.
-* **Browser sessions.** No [replay](/browser/overview#recordings-and-replay), no recording, and no [profile](/browser/profiles), because a profile keeps cookies.
-* **Interact.** If the scrape's session is already open without the flag, stop it with `DELETE /v1/scrape/{id}/interact` and start again.
-
-Your app stays responsible for what it stores and logs from the answers.
+* Shared content copies and model answer caches are not read or written. ZDR requests do not go to OpenAI. Other providers may process the request.
+* A ZDR scrape result is not saved for later retrieval. Read it from the response.
+* ZDR crawl, batch, extract, and agent jobs use temporary Redis state for polling. Their private job or result records have a one-hour lifetime. Live browser sessions also need temporary state.
+* Billing and operational metadata remain. Logs and third-party systems may retain information; ZDR is not a promise of physical deletion from every backup or provider.
+* Your app is responsible for what it stores and logs from the answers.
 
 ## Refusals
 
-All are `400 invalidRequest`. Remove the setting that needs a stored copy and send again.
+ZDR requests refuse features that need retained content:
 
-* A screenshot format, a `screenshot` or `pdf` action, or `onlyCleanContent` on scrape, search, extract, crawl or batches.
-* `threadId` on agent.
-* `profile` or `recording` on a browser session.
-* Any monitor.
+* Webhooks on crawl, batch, extract, and other jobs. Poll for results instead.
+* Browser tasks. Use a browser session instead.
+* Screenshots and screenshot or PDF actions, change tracking, profiles, and `onlyCleanContent` on scrape paths.
+* `threadId` on agent; profiles and recording on browser sessions; and monitors.
+
+See [retention](/trust/retention) for the limits of deletion evidence.
