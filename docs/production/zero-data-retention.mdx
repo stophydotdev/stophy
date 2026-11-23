@@ -3,7 +3,7 @@ title: "Zero data retention"
 description: "Use zero data retention, and see what is kept temporarily and which features are refused."
 ---
 
-Set `zeroDataRetention: true` on a supported call to skip shared and saved copies of its content. Billing and operational metadata remain. Jobs and live browser sessions need temporary state.
+On any plan, set `zeroDataRetention: true` on a supported call to skip shared and saved copies of its content. Billing and operational metadata remain. Jobs and live browser sessions need temporary state. Enterprise agreements include ZDR as a contractual commitment.
 
 ```bash
 curl -X POST https://api.stophy.dev/v1/scrape \

@@ -3,7 +3,7 @@ title: "Retention and zero data retention"
 description: "See the scope of zero data retention and the limits of published deletion times."
 ---
 
-The [zero data retention page](/production/zero-data-retention) describes the setting, temporary state, and feature restrictions. Billing and operational metadata remain.
+The [zero data retention page](/production/zero-data-retention) describes the setting, temporary state, and feature restrictions. Billing and operational metadata remain. Enterprise agreements include ZDR as a contractual commitment.
 
 For ordinary calls, the application sets a 24-hour lifetime for [stored scrape results](https://github.com/stophydotdev/stophy-api/blob/4c58429b53a46c124dcaea089bb0d01de3af5de9/apps/server/src/api/scrapeResult.ts) and [job records](https://github.com/stophydotdev/stophy-api/blob/4c58429b53a46c124dcaea089bb0d01de3af5de9/apps/server/src/jobs/jobStore.ts). [Change tracking](https://github.com/stophydotdev/stophy-api/blob/4c58429b53a46c124dcaea089bb0d01de3af5de9/apps/server/src/sources/web/scrape/changes.ts) retains a previous snapshot for 30 days. These application limits do not establish physical deletion from every store or backup.
 
