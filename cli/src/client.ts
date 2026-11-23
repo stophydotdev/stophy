@@ -4,6 +4,7 @@ import { agentName, currentCommand } from "./agent.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, type ErrorDetails } from "./errors.js";
 import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
+import { MIN_VERSION_HEADER, isBelowMinimum, minimumNote, unreadableAdvice } from "./upgrade.js";
 
 const errorObject = z.looseObject({
   code: z.string(),
@@ -61,6 +62,7 @@ export interface HttpResponse {
   readonly json: JsonValue | undefined;
   readonly retryAfter: string | null;
   readonly requestId: string | null;
+  readonly minCliVersion: string | null;
   readonly costUsd: string | null;
   readonly rateLimit: {
     readonly limit: string | null;
@@ -113,8 +115,12 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const text = await response.text();
   const json = parseJsonBody(text, response.headers.get("content-type"));
   const retryAfter = response.headers.get("Retry-After");
+  const minCliVersion = response.headers.get(MIN_VERSION_HEADER);
   if (!response.ok) {
-    const failure = withHint(failureOf(json, response.status, retryAfter), keySource);
+    const failure = withUpgrade(
+      withHint(failureOf(json, response.status, retryAfter), keySource),
+      minCliVersion,
+    );
     const requestId = failure.requestId ?? response.headers.get("X-Request-ID");
     const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
@@ -127,11 +133,14 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
     );
   }
 
+  if (isBelowMinimum(minCliVersion)) process.stderr.write(`${minimumNote(minCliVersion)}\n`);
+
   return {
     status: response.status,
     text,
     json,
     retryAfter,
+    minCliVersion,
     requestId: response.headers.get("X-Request-ID"),
     costUsd: response.headers.get("x-cost-usd"),
     rateLimit: {
@@ -189,6 +198,25 @@ function hintFor(code: string, source: "env" | "stored" | undefined): string | u
 function withHint(failure: Failure, source: "env" | "stored" | undefined): Failure {
   const hint = hintFor(failure.code, source);
   return hint ? { ...failure, message: `${failure.message} ${hint}` } : failure;
+}
+
+function withUpgrade(failure: Failure, minimum: string | null): Failure {
+  return isBelowMinimum(minimum)
+    ? { ...failure, message: `${failure.message} ${minimumNote(minimum)}` }
+    : failure;
+}
+
+export function unexpectedResponse({
+  status,
+  requestId,
+  minCliVersion,
+}: HttpResponse): RequestError {
+  const message = `Server returned an unexpected response shape (status ${status}). ${unreadableAdvice(minCliVersion)}`;
+  return new RequestError(
+    withRequestId(message, requestId),
+    { code: "unexpectedResponse", message, retryable: false, requestId: requestId ?? undefined },
+    { status },
+  );
 }
 
 function failureMessage(failure: Failure, retryAfter: string | null): string {

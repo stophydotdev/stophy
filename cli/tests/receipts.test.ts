@@ -121,16 +121,69 @@ test("a failed call with -o still explains itself on stderr and writes no file",
   expect(existsSync(file)).toBe(false);
 });
 
-test("an answer that is not the API's JSON says so with its status and request id", async () => {
+const UPGRADE = "npm install -g @stophy/cli@latest";
+
+test("an answer that is not the API's JSON says so, with its status, request id and the upgrade command", async () => {
   const { exit, err } = await run(
     () =>
       new Response("<html>gateway</html>", { headers: { ...priced, "content-type": "text/html" } }),
     [],
   );
   expect(exit).toBe(1);
-  expect(err).toBe(
-    "Server returned an unexpected response shape (status 200).\nRequest id: req-abc\n",
+  expect(err).toStartWith("Server returned an unexpected response shape (status 200).");
+  expect(err).toContain(UPGRADE);
+  expect(err).toEndWith("\nRequest id: req-abc\n");
+});
+
+test("a server that names a newer minimum version tells a failing call to upgrade", async () => {
+  const { exit, err } = await run(
+    () =>
+      Response.json(
+        { success: false, error: "Try later", code: "busy", retryable: true },
+        { status: 503, headers: { ...ID, "x-stophy-min-cli-version": "99.0.0" } },
+      ),
+    [],
   );
+  expect(exit).toBe(1);
+  expect(err).toContain("Try later");
+  expect(err).toContain("older than the minimum (v99.0.0)");
+  expect(err).toContain(UPGRADE);
+});
+
+test("a working call under a newer minimum version still answers, and warns on stderr", async () => {
+  const { exit, out, err } = await run(
+    () => success({ ...priced, "x-stophy-min-cli-version": "99.0.0" }),
+    ["--raw"],
+  );
+  expect(exit).toBe(0);
+  expect(JSON.parse(out).data).toEqual({ markdown: "hi" });
+  expect(err).toContain(UPGRADE);
+});
+
+test("a minimum version this CLI meets prints nothing", async () => {
+  const { err } = await run(
+    () => success({ ...priced, "x-stophy-min-cli-version": "1.0.0" }),
+    ["--raw"],
+  );
+  expect(err).toBe("");
+});
+
+test("a reply with fields this CLI does not know, and none it once required, is read", async () => {
+  const { exit, out } = await run(
+    () =>
+      Response.json({
+        success: true,
+        data: { markdown: "hi", future: { nested: [1, 2] } },
+        futureTop: "x",
+      }),
+    ["--raw"],
+  );
+  expect(exit).toBe(0);
+  expect(JSON.parse(out)).toEqual({
+    success: true,
+    data: { markdown: "hi", future: { nested: [1, 2] } },
+    futureTop: "x",
+  });
 });
 
 test("an output file that cannot be written fails with its path and prints no cost", async () => {
