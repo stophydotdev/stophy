@@ -73,6 +73,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const runtime = await resolveRuntimeConfig();
   const { baseUrl, sessionCookie } = runtime;
   const apiKey = options.apiKey ?? runtime.apiKey;
+  const keySource = options.apiKey ? "stored" : runtime.apiKeySource;
   const base = new URL(`${baseUrl}/`);
   const url = new URL(options.path, base);
   if (
@@ -113,7 +114,7 @@ export async function request(options: RequestOptions): Promise<HttpResponse> {
   const json = parseJsonBody(text, response.headers.get("content-type"));
   const retryAfter = response.headers.get("Retry-After");
   if (!response.ok) {
-    const failure = withHint(failureOf(json, response.status, retryAfter), apiKey);
+    const failure = withHint(failureOf(json, response.status, retryAfter), keySource);
     const requestId = failure.requestId ?? response.headers.get("X-Request-ID");
     const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
@@ -177,9 +178,17 @@ function failureOf(
   return failure;
 }
 
-function withHint(failure: Failure, apiKey: string | undefined): Failure {
-  if (failure.code !== "freeLimit" || apiKey) return failure;
-  return { ...failure, message: `${failure.message} Run \`stophy login\` to get a key.` };
+function hintFor(code: string, source: "env" | "stored" | undefined): string | undefined {
+  if (code === "freeLimit" && source === undefined) return "Run `stophy login` to get a key.";
+  if (code !== "unauthorized") return undefined;
+  if (source === "stored") return "Run `stophy login` to sign in again.";
+  if (source === "env") return "Set a valid STOPHY_API_KEY, or unset it and run `stophy login`.";
+  return undefined;
+}
+
+function withHint(failure: Failure, source: "env" | "stored" | undefined): Failure {
+  const hint = hintFor(failure.code, source);
+  return hint ? { ...failure, message: `${failure.message} ${hint}` } : failure;
 }
 
 function failureMessage(failure: Failure, retryAfter: string | null): string {

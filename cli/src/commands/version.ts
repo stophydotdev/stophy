@@ -5,24 +5,20 @@ import { resolveRuntimeConfig } from "../config.js";
 export function registerVersionCommand(program: Command) {
   program
     .command("version")
-    .description("Show the CLI version and whether you are logged in")
+    .description(
+      "Show the CLI version and where its credentials come from. Run status to check them",
+    )
     .option("--json", "Print raw JSON")
     .action(async (options) => {
       const { apiKey, apiKeySource, sessionCookie } = await resolveRuntimeConfig();
-      const authenticated = Boolean(apiKey || sessionCookie);
-      const source = apiKey ? apiKeySource : sessionCookie ? "session" : "none";
+      const credentials = apiKey ? apiKeySource : sessionCookie ? "session" : "none";
 
       if (options.json) {
-        console.log(
-          JSON.stringify({ version: packageJson.version, authenticated, source }, null, 2),
-        );
+        console.log(JSON.stringify({ version: packageJson.version, credentials }, null, 2));
         return;
       }
 
       console.log(`version: ${packageJson.version}`);
-      console.log(`authenticated: ${authenticated}`);
-      if (authenticated) {
-        console.log(`source: ${source}`);
-      }
+      console.log(`credentials: ${credentials}`);
     });
 }

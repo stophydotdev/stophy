@@ -342,6 +342,95 @@ test("login and status never wait for a person when an agent runs them", async (
   expect(seen).toEqual(["/v1/signup"]);
 });
 
+const rejectedKey = () =>
+  spyOn(globalThis, "fetch").mockImplementation(async () =>
+    reply(401, {
+      success: false,
+      error: "This API key is not valid or has expired.",
+      code: "unauthorized",
+      retryable: false,
+      requestId: "req-9",
+    }),
+  );
+
+test("a rejected stored key says to sign in again, a rejected env key says to replace it", async () => {
+  const { request } = await import("../src/client.ts");
+  const { setStoredApiKey, clearStoredAuth } = await import("../src/config.ts");
+  await setStoredApiKey(KEY);
+  const fetched = rejectedKey();
+  try {
+    await expect(
+      request({ method: "GET", path: "/v1/limits", accept: "application/json" }),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining("Run `stophy login` to sign in again."),
+      failure: { code: "unauthorized", message: expect.stringContaining("stophy login") },
+    });
+    process.env.STOPHY_API_KEY = KEY;
+    await expect(
+      request({ method: "GET", path: "/v1/limits", accept: "application/json" }),
+    ).rejects.toThrow("STOPHY_API_KEY");
+  } finally {
+    delete process.env.STOPHY_API_KEY;
+    fetched.mockRestore();
+    await clearStoredAuth();
+  }
+});
+
+test("status does not call a rejected key authenticated, and prints why on stderr", async () => {
+  process.env.CLAUDECODE = "1";
+  const { registerStatusCommand } = await import("../src/commands/status.ts");
+  const { setStoredApiKey, clearStoredAuth } = await import("../src/config.ts");
+  const program = new Command();
+  registerStatusCommand(program);
+  await setStoredApiKey(KEY);
+  const fetched = rejectedKey();
+  const written: string[] = [];
+  const err = spyOn(process.stderr, "write").mockImplementation((chunk) => {
+    written.push(String(chunk));
+    return true;
+  });
+  process.exitCode = 0;
+  try {
+    const out = await captureStdout(() => program.parseAsync(["status"], { from: "user" }));
+    expect(JSON.parse(out)).toMatchObject({
+      authenticated: false,
+      source: "stored",
+      error: expect.stringContaining("not valid or has expired"),
+      next: expect.stringContaining("stophy login"),
+    });
+    expect(process.exitCode).toBe(1);
+    expect(written.join("")).toContain("not valid or has expired");
+  } finally {
+    process.exitCode = 0;
+    err.mockRestore();
+    fetched.mockRestore();
+    await clearStoredAuth();
+  }
+});
+
+test("version reports stored credentials, not a login it has not checked", async () => {
+  const { registerVersionCommand } = await import("../src/commands/version.ts");
+  const { setStoredApiKey, clearStoredAuth } = await import("../src/config.ts");
+  const program = new Command();
+  registerVersionCommand(program);
+  await setStoredApiKey(KEY);
+  try {
+    const out = await captureStdout(async () => {
+      const log = spyOn(console, "log").mockImplementation((line) => {
+        process.stdout.write(`${line}\n`);
+      });
+      try {
+        await program.parseAsync(["version", "--json"], { from: "user" });
+      } finally {
+        log.mockRestore();
+      }
+    });
+    expect(JSON.parse(out)).toEqual({ version: expect.any(String), credentials: "stored" });
+  } finally {
+    await clearStoredAuth();
+  }
+});
+
 const pollServer = (answer: (code: string) => Response | Promise<Response>) => {
   const seen: string[] = [];
   const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
