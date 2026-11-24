@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { flagTokens, stripGlobalRefresh } from "../src/argv.ts";
+import { catalogNeeded, flagTokens, stripGlobalRefresh } from "../src/argv.ts";
 import {
   formatDescribe,
   formatEndpointHelp,
@@ -150,6 +150,14 @@ test("strips a global refresh flag and finds command flags", () => {
       ["youtube", "search"],
     ),
   ).toEqual(["--query", "bun runtime", "--page", "2"]);
+});
+
+test("printing the version reads no endpoint catalog, but the command list does", () => {
+  expect(catalogNeeded(["-V"])).toBe(false);
+  expect(catalogNeeded(["--version"])).toBe(false);
+  expect(catalogNeeded([])).toBe(true);
+  expect(catalogNeeded(["--help"])).toBe(true);
+  expect(catalogNeeded(["scrape", "https://bun.com"])).toBe(true);
 });
 
 test("requires fields before the call and rejects unknown flags", () => {

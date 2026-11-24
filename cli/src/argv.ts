@@ -45,7 +45,7 @@ export function firstCommand(args: readonly string[]): string | undefined {
 
 export function catalogNeeded(args: readonly string[]): boolean {
   const command = firstCommand(args);
-  if (command === undefined) return true;
+  if (command === undefined) return !args.some((arg) => arg === "-V" || arg === "--version");
   return !SKIP_CATALOG.has(command);
 }
 
