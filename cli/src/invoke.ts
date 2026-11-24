@@ -12,7 +12,9 @@ import { renderData } from "./render.js";
 import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
-export function parseEndpointCall(endpoint: CatalogEndpoint): ParsedCall {
+type TextView = (body: JsonRecord) => JsonRecord;
+
+export function endpointTokens(endpoint: CatalogEndpoint): readonly string[] {
   const args = currentArgs();
   const words = endpoint.id.split(".");
   const agentControl = endpoint.id !== "agent" && isAgentCommand(endpoint.id);
@@ -21,30 +23,47 @@ export function parseEndpointCall(endpoint: CatalogEndpoint): ParsedCall {
       `Use \`stophy ${words.join(" ")}\` without a separator before the subcommand.`,
     );
   }
-  const tokens = agentControl ? args.slice(words.length) : flagTokens(args, words);
+  return agentControl ? args.slice(words.length) : flagTokens(args, words);
+}
+
+export function parseEndpointCall(
+  endpoint: CatalogEndpoint,
+  tokens = endpointTokens(endpoint),
+): ParsedCall {
   const parsed = parseCall(tokens, endpoint.input);
   if (!parsed.ok) throw new CliError(parsed.message);
   reserveAgentPrompt(endpoint, tokens, parsed.call.body);
   return parsed.call;
 }
 
-export async function runEndpoint(endpoint: CatalogEndpoint): Promise<void> {
-  const call = parseEndpointCall(endpoint);
+export async function runEndpoint(
+  endpoint: CatalogEndpoint,
+  call = parseEndpointCall(endpoint),
+  view: TextView = (body) => body,
+): Promise<void> {
   const send = () => request({ ...requestFor(endpoint, call.body), accept: "application/json" });
   const response = await withSignup(() =>
     isAgentMode() ? send() : withSpinner(`Calling ${endpoint.id.split(".").join(" ")}…`, send),
   );
+  writeAnswer(endpoint, call, response, view);
+}
 
+export function writeAnswer(
+  endpoint: CatalogEndpoint,
+  call: ParsedCall,
+  response: HttpResponse,
+  view: TextView,
+): void {
   const parsed = jsonRecord.safeParse(response.json);
   if (!parsed.success) throw unexpectedResponse(response);
   const body = withReceiptId(parsed.data, response);
   const { format } = call;
   if (format === "text" && isAgentMode() && call.outputFile === undefined) {
-    handleOutput(agentLineOf(body));
+    handleOutput(agentLineOf(view(body)));
     return;
   }
   if (format === "text") {
-    const shown = shownOf(payloadOf(parsed.data));
+    const shown = shownOf(payloadOf(view(parsed.data)));
     const text = renderData(shown);
     const emptyAgentList =
       endpoint.id === "agent.list" &&
