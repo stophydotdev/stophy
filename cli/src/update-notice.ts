@@ -1,4 +1,3 @@
-import updateNotifier from "update-notifier";
 import packageJson from "../package.json" with { type: "json" };
 
 const INSTALL_COMMAND = "npm install -g @stophy/cli";
@@ -13,6 +12,7 @@ export async function maybeShowUpdateNotice(): Promise<void> {
   if (updateCheckDisabled() || !process.stderr.isTTY) return;
 
   try {
+    const { default: updateNotifier } = await import("update-notifier");
     const notifier = updateNotifier({
       pkg: { name: packageJson.name, version: packageJson.version },
       updateCheckInterval: CHECK_INTERVAL_MS,
