@@ -4,6 +4,13 @@ import type { CatalogEndpoint, CatalogSource } from "../catalog.js";
 import { CliError } from "../errors.js";
 import { formatEndpointHelp } from "../flags.js";
 import { runEndpoint } from "../invoke.js";
+import {
+  BROWSER_TASK,
+  BROWSER_TASK_FLAGS,
+  BROWSER_TASK_STATUS,
+  runBrowserTask,
+  runBrowserTaskStatus,
+} from "../task.js";
 
 const RESERVED = new Set([
   "login",
@@ -21,8 +28,15 @@ const RESERVED = new Set([
   "help",
 ]);
 
-const runCommand = (endpoint: CatalogEndpoint) =>
-  endpoint === BROWSER_RUN ? runBrowser(endpoint) : runEndpoint(endpoint);
+function runCommand(endpoint: CatalogEndpoint): Promise<void> {
+  if (endpoint === BROWSER_RUN) return runBrowser(endpoint);
+  if (endpoint.id === BROWSER_TASK) return runBrowserTask(endpoint);
+  if (endpoint.id === BROWSER_TASK_STATUS) return runBrowserTaskStatus(endpoint);
+  return runEndpoint(endpoint);
+}
+
+const cliFlagsOf = (endpoint: CatalogEndpoint) =>
+  endpoint.id === BROWSER_TASK ? BROWSER_TASK_FLAGS : [];
 
 interface TreeNode {
   endpoint?: CatalogEndpoint;
@@ -102,7 +116,7 @@ function registerNode(
         await run(endpoint);
       });
     command.helpInformation = () =>
-      [formatEndpointHelp(endpoint), ...childLines(node, label)].join("\n");
+      [formatEndpointHelp(endpoint, cliFlagsOf(endpoint)), ...childLines(node, label)].join("\n");
   } else {
     command.description(label).action(() => {
       command.outputHelp();

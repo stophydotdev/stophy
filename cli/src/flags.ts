@@ -828,7 +828,10 @@ export function positionalSlot(slots: readonly Slot[]): StringSlot | undefined {
   );
 }
 
-export function formatEndpointHelp(endpoint: CatalogEndpoint): string {
+export function formatEndpointHelp(
+  endpoint: CatalogEndpoint,
+  cliFlags: readonly (readonly [string, string])[] = [],
+): string {
   const slots = slotsFromInput(endpoint.input);
   const positional = positionalSlot(slots);
   const words = endpoint.id.split(".").join(" ");
@@ -839,10 +842,11 @@ export function formatEndpointHelp(endpoint: CatalogEndpoint): string {
     : pair
       ? `stophy ${words} <link-or-${argName(pair[1]).split("-").at(-1)}> [options]`
       : `stophy ${words} [options]`;
-  const rows: [string, string][] = [
+  const rows: (readonly [string, string])[] = [
     ...slots
       .filter((slot) => slot !== positional)
       .map((slot): [string, string] => [optionName(slot), optionText(slot)]),
+    ...cliFlags,
     ["--json", "Output as JSON"],
     ["--raw", "Output the full response with its request id"],
     ["-o, --output <path>", "Write to a file"],

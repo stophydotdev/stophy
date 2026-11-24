@@ -1,5 +1,5 @@
-import { mkdirSync } from "node:fs";
-import { expect, spyOn, test } from "bun:test";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { expect, setSystemTime, spyOn, test } from "bun:test";
 import { Command } from "commander";
 import type { JsonValue } from "../src/json.ts";
 
@@ -1030,4 +1030,207 @@ test("browser run sits next to the catalog's browser commands, and only there", 
   const search = { ...browserTask, id: "search", path: "/v1/search" };
   const plain = await browserProgram([search]);
   expect(plain.commands.map((command) => command.name())).toEqual(["search"]);
+});
+
+const browserTaskStatus = {
+  ...browserTask,
+  id: "browser.task.status",
+  path: "/v1/browser/task/status",
+  input: {
+    type: "object",
+    properties: { id: { type: "string" }, wait: { type: "integer", minimum: 0, maximum: 60 } },
+    required: ["id"],
+  },
+};
+
+const TASK_ID = "6bd8981c-f2a8-403c-b188-352828c08bc2";
+const PAGE_TEXT = "unblemished adjective ".repeat(400);
+const PAGE_POINTER = `${PAGE_TEXT.length} characters; stophy browser task status ${TASK_ID} --raw shows them`;
+
+const taskStarted = {
+  success: true,
+  data: { id: TASK_ID, status: "running" },
+  costUsd: 0,
+  creditsUsed: 0,
+  requestId: "req-start",
+};
+
+const taskRunning = {
+  success: true,
+  data: { status: "running", result: null, creditsUsed: 0, costUsd: 0 },
+  costUsd: 0,
+  creditsUsed: 0,
+  requestId: "req-running",
+};
+
+const taskDone = {
+  success: true,
+  data: {
+    status: "done",
+    result: {
+      done: true,
+      answer: "Cambridge gives one meaning.",
+      steps: ["Searched for unblemished"],
+      url: "https://dictionary.cambridge.org/dictionary/english/unblemished",
+      title: "UNBLEMISHED | Cambridge English Dictionary",
+      pageText: PAGE_TEXT,
+    },
+    creditsUsed: 7,
+    costUsd: 0.014,
+  },
+  costUsd: 0,
+  creditsUsed: 0,
+  requestId: "req-done",
+};
+
+const withPointer = {
+  ...taskDone.data,
+  result: { ...taskDone.data.result, pageText: PAGE_POINTER },
+};
+
+const taskServer = (statuses: readonly JsonValue[], onStatus = () => {}) => {
+  const seen: [string, JsonValue][] = [];
+  const answers = [...statuses];
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    seen.push([path, JSON.parse(String(init?.body))]);
+    if (path === "/v1/browser/task") return reply(200, taskStarted);
+    onStatus();
+    return reply(200, answers.shift() ?? taskDone);
+  });
+  return { seen, fetched };
+};
+
+const browserTaskCommand = async (args: readonly string[]) => {
+  process.env.CLAUDECODE = "1";
+  const { setCurrentArgs } = await import("../src/argv.ts");
+  const program = await browserProgram([browserTask, browserTaskStatus]);
+  const words = ["browser", "task", ...args];
+  setCurrentArgs(words);
+  return captureStdout(() => program.parseAsync(words, { from: "user" }));
+};
+
+const statusCall = ["/v1/browser/task/status", { id: TASK_ID, wait: 60 }];
+
+test("browser task waits for the answer and points to the page text instead of printing it", async () => {
+  const { seen, fetched } = taskServer([taskRunning]);
+  try {
+    const out = await browserTaskCommand(["--goal", "Count the meanings"]);
+    expect(seen).toEqual([
+      ["/v1/browser/task", { goal: "Count the meanings" }],
+      statusCall,
+      statusCall,
+    ]);
+    expect(JSON.parse(out)).toEqual({
+      success: true,
+      data: withPointer,
+      costUsd: 0,
+      requestId: "req-done",
+    });
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("browser task --no-wait prints the started task at once and sends no wait", async () => {
+  const { seen, fetched } = taskServer([]);
+  try {
+    const out = await browserTaskCommand(["--goal", "Count the meanings", "--no-wait"]);
+    expect(seen).toEqual([["/v1/browser/task", { goal: "Count the meanings" }]]);
+    expect(JSON.parse(out).data).toEqual({ id: TASK_ID, status: "running" });
+  } finally {
+    fetched.mockRestore();
+  }
+  const program = await browserProgram([browserTask, browserTaskStatus]);
+  const browser = program.commands.find((command) => command.name() === "browser");
+  const task = browser?.commands.find((command) => command.name() === "task");
+  expect(task?.helpInformation()).toMatch(/--no-wait +\S/u);
+});
+
+test("browser task status gives an agent the pointer instead of the page text", async () => {
+  const { seen, fetched } = taskServer([]);
+  try {
+    const out = await browserTaskCommand(["status", TASK_ID]);
+    expect(seen).toEqual([["/v1/browser/task/status", { id: TASK_ID }]]);
+    expect(JSON.parse(out).data).toEqual(withPointer);
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("browser task --json and status --raw keep the page text", async () => {
+  const { fetched } = taskServer([]);
+  try {
+    const json = await browserTaskCommand(["--goal", "Count the meanings", "--json"]);
+    expect(JSON.parse(json).result.pageText).toBe(PAGE_TEXT);
+    const raw = await browserTaskCommand(["status", TASK_ID, "--raw"]);
+    expect(JSON.parse(raw).data.result.pageText).toBe(PAGE_TEXT);
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("a task still running after 12 minutes prints its last status and id, and exits 1", async () => {
+  const minutes = (count: number) => new Date(Date.now() + count * 60_000);
+  const { seen, fetched } = taskServer([taskRunning, taskRunning], () =>
+    setSystemTime(minutes(13)),
+  );
+  const errors: string[] = [];
+  const err = spyOn(process.stderr, "write").mockImplementation((chunk) => {
+    errors.push(String(chunk));
+    return true;
+  });
+  try {
+    const out = await browserTaskCommand(["--goal", "Count the meanings"]);
+    expect(seen).toHaveLength(2);
+    expect(JSON.parse(out).data.status).toBe("running");
+    expect(errors.join("")).toContain(`stophy browser task status ${TASK_ID}`);
+    expect(process.exitCode).toBe(1);
+  } finally {
+    process.exitCode = 0;
+    setSystemTime();
+    err.mockRestore();
+    fetched.mockRestore();
+  }
+});
+
+test("an interrupted wait names the task and how to cancel it, and exits 130", async () => {
+  const taskHome = `${home}/task-interrupt`;
+  mkdirSync(`${taskHome}/stophy`, { recursive: true });
+  writeFileSync(
+    `${taskHome}/stophy/catalog.json`,
+    JSON.stringify({
+      fetchedAt: new Date().toISOString(),
+      endpoints: [browserTask, browserTaskStatus],
+    }),
+  );
+  const { promise: polling, resolve: polled } = Promise.withResolvers<void>();
+  const server = Bun.serve({
+    port: 0,
+    fetch(req) {
+      if (new URL(req.url).pathname === "/v1/browser/task") return Response.json(taskStarted);
+      polled();
+      return new Promise<Response>(() => {});
+    },
+  });
+  const run = Bun.spawn(["bun", "src/index.ts", "browser", "task", "--goal", "Count"], {
+    env: {
+      ...process.env,
+      XDG_CONFIG_HOME: taskHome,
+      STOPHY_API_KEY: KEY,
+      STOPHY_BASE_URL: `http://127.0.0.1:${server.port}`,
+      STOPHY_NO_UPDATE_CHECK: "1",
+    },
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  try {
+    await polling;
+    run.kill("SIGINT");
+    const [exit, err] = await Promise.all([run.exited, new Response(run.stderr).text()]);
+    expect(exit).toBe(130);
+    expect(err).toContain(`stophy browser task cancel ${TASK_ID}`);
+  } finally {
+    server.stop(true);
+  }
 });
