@@ -216,6 +216,43 @@ test("a site command from before v1 points to search and parsers", async () => {
   expect(error).not.toContain("too many arguments");
 });
 
+const helpWith = async (ids: readonly string[]) => {
+  const home = `/tmp/stophy-cli-help-${ids.length}-${process.pid}`;
+  mkdirSync(`${home}/stophy`, { recursive: true });
+  const catalog = { fetchedAt: new Date().toISOString(), endpoints: ids.map(endpoint) };
+  writeFileSync(`${home}/stophy/catalog.json`, JSON.stringify(catalog));
+  const run = Bun.spawn(["bun", "src/index.ts", "--help"], {
+    env: { ...process.env, XDG_CONFIG_HOME: home, STOPHY_NO_UPDATE_CHECK: "1" },
+    stdout: "pipe",
+  });
+  return new Response(run.stdout).text();
+};
+
+test("the command list shows how to run code in a browser when the API has one", async () => {
+  expect(await helpWith(["search", "browser.task"])).toContain(
+    `$ stophy browser run --url https://example.com --code "return await page.title()"`,
+  );
+  expect(await helpWith(["search"])).not.toContain("browser run");
+});
+
+test("the command list starts with which command uses a real browser", async () => {
+  const help = await helpWith(["scrape", "browser.task"]);
+  const hint = help.indexOf(
+    "A real browser: stophy browser run --url <url>, with --code for Playwright.\nstophy scrape reads a page without a browser.\n",
+  );
+  expect(hint).toBeGreaterThan(0);
+  expect(hint).toBeLessThan(help.indexOf("Commands:"));
+});
+
+test("the command list names the account commands on one line", async () => {
+  const help = await helpWith(["scrape"]);
+  expect(help).toContain(
+    "Account and setup: init, login, logout, view-config, status, usage, logs, doctor, version, endpoints, describe.",
+  );
+  expect(help).not.toMatch(/^ {2}view-config +/mu);
+  expect(help).toMatch(/^ {2}parsers \[options\] \[term\] +/mu);
+});
+
 const firstCommand = () => {
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
   const line = readme.split("\n").find((text) => text.startsWith("npx -y @stophy/cli "));

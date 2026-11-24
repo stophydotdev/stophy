@@ -104,6 +104,10 @@ test("sources show their summary, or their name when the server has none", async
   const help = without.helpInformation();
   expect(help).toMatch(/reddit +Reddit/u);
   expect(help).not.toContain("endpoints");
+
+  const bare = new Command();
+  registerDynamicCommands(bare, [endpoint], async () => {}, [{ id: "reddit", summary: "reddit" }]);
+  expect(bare.helpInformation()).toMatch(/reddit +Search Reddit posts/u);
 });
 
 const reply = (status: number, body: JsonValue) =>
@@ -809,3 +813,221 @@ test("a keyless freeLimit answer keeps its retry window and starts no signup", (
       expect(seen).toEqual(["/v1/free", "/v1/free"]);
     }
   }));
+
+const browserTask = {
+  id: "browser.task",
+  summary: "Click through a public website in a real browser",
+  method: "POST" as const,
+  path: "/v1/browser/task",
+  keyless: false,
+  input: { type: "object", properties: { goal: { type: "string" } }, required: ["goal"] },
+};
+
+const CDP_URL = "wss://cdp.test/s1?token=secret";
+
+const ranInBrowser = {
+  success: true,
+  output: "",
+  stdout: "",
+  result: "Example Domain",
+  stderr: "",
+  exitCode: 0,
+  killed: false,
+  truncated: false,
+  steps: [],
+  cdpUrl: CDP_URL,
+  liveViewUrl: "https://live.test/s1",
+  interactiveLiveViewUrl: "https://live.test/s1?control=1",
+  costUsd: 0,
+  creditsUsed: 0,
+  requestId: "req-run",
+};
+
+const browserServer = (execute: () => Response = () => reply(200, ranInBrowser)) => {
+  const seen: [string, string, JsonValue][] = [];
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    const method = init?.method ?? "GET";
+    seen.push([method, path, init?.body ? JSON.parse(String(init.body)) : null]);
+    if (path === "/v1/browser") {
+      return reply(200, { success: true, id: "s1", status: "active", cdpUrl: CDP_URL });
+    }
+    if (path === "/v1/browser/s1/execute") return execute();
+    return reply(200, { success: true, sessionDurationMs: 3600, costUsd: 0.004, creditsUsed: 2 });
+  });
+  return { seen, fetched };
+};
+
+const browserProgram = async (endpoints: readonly (typeof browserTask)[] = [browserTask]) => {
+  const { registerDynamicCommands } = await import("../src/commands/dynamic.ts");
+  const { withBrowserRun } = await import("../src/browser.ts");
+  const program = new Command();
+  registerDynamicCommands(program, withBrowserRun(endpoints));
+  return program;
+};
+
+const browserRun = async (args: readonly string[]) => {
+  process.env.CLAUDECODE = "1";
+  const { setCurrentArgs } = await import("../src/argv.ts");
+  const program = await browserProgram();
+  const words = ["browser", "run", ...args];
+  setCurrentArgs(words);
+  return captureStdout(() => program.parseAsync(words, { from: "user" }));
+};
+
+test("browser run opens a browser, runs the code and closes it, also when the run fails", async () => {
+  const code = "return await page.title()";
+  const ok = browserServer();
+  try {
+    await browserRun(["--code", code, "--timeout", "20"]);
+  } finally {
+    ok.fetched.mockRestore();
+  }
+  expect(ok.seen).toEqual([
+    ["POST", "/v1/browser", { ttl: 80 }],
+    ["POST", "/v1/browser/s1/execute", { code, timeout: 20 }],
+    ["DELETE", "/v1/browser/s1", null],
+  ]);
+
+  const broken = browserServer(() =>
+    reply(503, {
+      success: false,
+      error: { code: "internalError", message: "Busy.", retryable: true },
+    }),
+  );
+  try {
+    await expect(browserRun(["--code", code])).rejects.toThrow("Busy.");
+  } finally {
+    broken.fetched.mockRestore();
+  }
+  expect(broken.seen.map(([method, path]) => `${method} ${path}`)).toEqual([
+    "POST /v1/browser",
+    "POST /v1/browser/s1/execute",
+    "DELETE /v1/browser/s1",
+  ]);
+});
+
+test("browser run --id runs in that session and leaves it open", async () => {
+  const { seen, fetched } = browserServer();
+  try {
+    await browserRun(["--id", "s1", "--prompt", "Read the title"]);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual([["POST", "/v1/browser/s1/execute", { prompt: "Read the title" }]]);
+});
+
+test("browser run --url alone opens the page in a browser and prints its text", async () => {
+  const page = { ...ranInBrowser, result: "Example Domain\nThis domain is for use in examples." };
+  const { seen, fetched } = browserServer(() => reply(200, page));
+  try {
+    const out = await browserRun(["--url", "https://example.com"]);
+    expect(out).toBe("Example Domain\nThis domain is for use in examples.\n");
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual([
+    ["POST", "/v1/browser", { ttl: 90 }],
+    [
+      "POST",
+      "/v1/browser/s1/execute",
+      {
+        code: 'await page.goto("https://example.com"); return await page.locator("body").innerText()',
+      },
+    ],
+    ["DELETE", "/v1/browser/s1", null],
+  ]);
+});
+
+test("browser run --url with code opens the page, then runs the code there", async () => {
+  const { seen, fetched } = browserServer();
+  try {
+    await browserRun(["--url", "https://example.com", "--code", "return await page.title()"]);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen.map(([method, path, body]) => [method, path, body])).toEqual([
+    ["POST", "/v1/browser", { ttl: 90 }],
+    ["POST", "/v1/browser/s1/execute", { code: 'await page.goto("https://example.com")' }],
+    ["POST", "/v1/browser/s1/execute", { code: "return await page.title()" }],
+    ["DELETE", "/v1/browser/s1", null],
+  ]);
+});
+
+test("browser run prints the result as plain text, and --json gives one line with the close's cost and no session links", async () => {
+  const { fetched } = browserServer();
+  try {
+    expect(await browserRun(["--code", "return await page.title()"])).toBe("Example Domain\n");
+    const out = await browserRun(["--code", "return await page.title()", "--json"]);
+    expect(out.trim().split("\n")).toHaveLength(1);
+    expect(JSON.parse(out)).toEqual({
+      success: true,
+      result: "Example Domain",
+      costUsd: 0.004,
+      requestId: "req-run",
+    });
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("browser run prints the error of a failed run and exits 1", async () => {
+  const failed = {
+    ...ranInBrowser,
+    result: "",
+    stderr: "TimeoutError: locator.click\n",
+    exitCode: 1,
+    error: "TimeoutError: locator.click",
+  };
+  const { fetched } = browserServer(() => reply(200, failed));
+  try {
+    expect(await browserRun(["--code", "await page.click('#gone')"])).toBe("");
+    expect(process.exitCode).toBe(1);
+    const out = await browserRun(["--code", "await page.click('#gone')", "--json"]);
+    expect(JSON.parse(out)).toEqual({
+      success: true,
+      stderr: "TimeoutError: locator.click\n",
+      exitCode: 1,
+      error: "TimeoutError: locator.click",
+      costUsd: 0.004,
+      requestId: "req-run",
+    });
+    expect(process.exitCode).toBe(1);
+  } finally {
+    process.exitCode = 0;
+    fetched.mockRestore();
+  }
+});
+
+test("browser run refuses both --code and --prompt, or neither, before any request", async () => {
+  const fetched = spyOn(globalThis, "fetch");
+  try {
+    await expect(browserRun(["--code", "1", "--prompt", "Read it"])).rejects.toThrow(
+      "Send only one of --code or --prompt.",
+    );
+    await expect(browserRun(["--language", "python"])).rejects.toThrow(
+      "Send --url, --code or --prompt.",
+    );
+    expect(fetched).not.toHaveBeenCalled();
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("browser run sits next to the catalog's browser commands, and only there", async () => {
+  const browser = (await browserProgram()).commands.find((command) => command.name() === "browser");
+  expect(browser?.commands.map((command) => command.name())).toEqual(["run", "task"]);
+  expect(browser?.helpInformation()).toMatch(
+    /run +Run Playwright code or a prompt in a real browser, in one call/u,
+  );
+  const help = browser?.commands.find((command) => command.name() === "run")?.helpInformation();
+  expect(help).toContain("--language <language>");
+  expect(help).toContain("node, python or bash (default: node)");
+  expect(help).toContain(
+    `stophy browser run --url https://example.com --code "return await page.title()"`,
+  );
+
+  const search = { ...browserTask, id: "search", path: "/v1/search" };
+  const plain = await browserProgram([search]);
+  expect(plain.commands.map((command) => command.name())).toEqual(["search"]);
+});

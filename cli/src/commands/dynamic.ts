@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { BROWSER_RUN, runBrowser } from "../browser.js";
 import type { CatalogEndpoint, CatalogSource } from "../catalog.js";
 import { CliError } from "../errors.js";
 import { formatEndpointHelp } from "../flags.js";
@@ -20,6 +21,9 @@ const RESERVED = new Set([
   "help",
 ]);
 
+const runCommand = (endpoint: CatalogEndpoint) =>
+  endpoint === BROWSER_RUN ? runBrowser(endpoint) : runEndpoint(endpoint);
+
 interface TreeNode {
   endpoint?: CatalogEndpoint;
   children: Map<string, TreeNode>;
@@ -28,13 +32,18 @@ interface TreeNode {
 export function registerDynamicCommands(
   program: Command,
   endpoints: readonly CatalogEndpoint[],
-  run: (endpoint: CatalogEndpoint) => Promise<void> = runEndpoint,
+  run: (endpoint: CatalogEndpoint) => Promise<void> = runCommand,
   sources: readonly CatalogSource[] = [],
 ): void {
   const summaries = new Map(sources.map((source) => [source.id, source.summary]));
   for (const [name, node] of tree(endpoints)) {
-    registerNode(program, name, node, run, summaries.get(name) ?? sourceLabel(name));
+    registerNode(program, name, node, run, sourceSummary(name, summaries.get(name), node));
   }
+}
+
+function sourceSummary(name: string, summary: string | undefined, node: TreeNode): string {
+  const said = summary !== undefined && summary.toLowerCase() !== name.toLowerCase();
+  return (said ? summary : firstSummary(node)) ?? sourceLabel(name);
 }
 
 export function sourceLabel(name: string): string {

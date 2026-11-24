@@ -75,7 +75,7 @@ function writeReceipt(
   }
 }
 
-function without(body: JsonRecord, dropped: readonly string[]): JsonRecord {
+export function without(body: JsonRecord, dropped: readonly string[]): JsonRecord {
   return Object.fromEntries(Object.entries(body).filter(([key]) => !dropped.includes(key)));
 }
 
