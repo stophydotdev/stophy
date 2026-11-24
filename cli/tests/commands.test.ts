@@ -1071,7 +1071,7 @@ test("browser run sits next to the catalog's browser commands, and only there", 
   expect(help).toContain("--language <language>");
   expect(help).toContain("node, python or bash (default: node)");
   expect(help).toContain(
-    `stophy browser run --url https://example.com --code "return await page.title()"`,
+    `stophy browser run --url https://example.com --code 'return await page.title()'`,
   );
 
   const search = { ...browserTask, id: "search", path: "/v1/search" };

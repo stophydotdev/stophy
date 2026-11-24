@@ -249,7 +249,7 @@ const helpWith = async (ids: readonly string[]) => {
 
 test("the command list shows how to run code in a browser when the API has one", async () => {
   expect(await helpWith(["search", "browser.task"])).toContain(
-    `$ stophy browser run --url https://example.com --code "return await page.title()"`,
+    `$ stophy browser run --url https://example.com --code 'return await page.title()'`,
   );
   expect(await helpWith(["search"])).not.toContain("browser run");
 });
@@ -259,7 +259,7 @@ test("the command list starts with which command uses a real browser", async () 
   const hint = help.indexOf(
     [
       "A real browser: stophy browser run --url <url> prints the page's text.",
-      '--code "<js>" runs there with page as a Playwright Page; return what to print.',
+      "--code '<js>' runs there with page as a Playwright Page; return what to print.",
       "A run stops after 30 s; --timeout <seconds> allows up to 300.",
       "stophy scrape reads a page without a browser.\n",
     ].join("\n"),
