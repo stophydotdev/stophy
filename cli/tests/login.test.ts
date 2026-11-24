@@ -24,7 +24,10 @@ test("the config file earlier versions wrote is read, and saving keeps it privat
   const key = `st_${"b".repeat(40)}`;
   const file = getConfigPath();
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, JSON.stringify({ apiKey: key, baseUrl: "https://api.example.com/" }, undefined, "\t"));
+  writeFileSync(
+    file,
+    JSON.stringify({ apiKey: key, baseUrl: "https://api.example.com/" }, undefined, "\t"),
+  );
   expect(await loadConfig()).toMatchObject({ apiKey: key, baseUrl: "https://api.example.com" });
 
   await setStoredApiKey(key);
