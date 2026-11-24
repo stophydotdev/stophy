@@ -230,7 +230,7 @@ const helpWith = async (ids: readonly string[]) => {
 
 test("the command list shows how to run code in a browser when the API has one", async () => {
   expect(await helpWith(["search", "browser.task"])).toContain(
-    `$ stophy browser run --code "await page.goto('https://example.com'); return await page.title()"`,
+    `$ stophy browser run --url https://example.com --code "return await page.title()"`,
   );
   expect(await helpWith(["search"])).not.toContain("browser run");
 });

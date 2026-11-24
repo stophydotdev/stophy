@@ -2,7 +2,7 @@ import { Command } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
-import { BROWSER_RUN, BROWSER_RUN_CODE, withBrowserRun } from "./browser.js";
+import { BROWSER_RUN, BROWSER_RUN_CODE, BROWSER_RUN_URL, withBrowserRun } from "./browser.js";
 import {
   type Catalog,
   type CatalogEndpoint,
@@ -49,7 +49,12 @@ function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
   return [
     `  $ stophy search "bun runtime" --limit 5`,
     "  $ stophy scrape https://bun.com/docs",
-    ...(byId.has(BROWSER_RUN.id) ? [`  $ stophy browser run --code "${BROWSER_RUN_CODE}"`] : []),
+    ...(byId.has(BROWSER_RUN.id)
+      ? [
+          `  $ stophy browser run --url ${BROWSER_RUN_URL}`,
+          `  $ stophy browser run --url ${BROWSER_RUN_URL} --code "${BROWSER_RUN_CODE}"`,
+        ]
+      : []),
     "  $ stophy map https://bun.com --limit 20",
     "  $ stophy parsers youtube",
     "  $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript",

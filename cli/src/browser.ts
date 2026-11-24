@@ -3,13 +3,15 @@ import { formatUsd } from "./account.js";
 import { isAgentMode } from "./agent.js";
 import type { CatalogEndpoint } from "./catalog.js";
 import { type RequestOptions, request, unexpectedResponse } from "./client.js";
+import { CliError } from "./errors.js";
 import type { ParsedCall } from "./flags.js";
 import { parseEndpointCall, without } from "./invoke.js";
 import { type JsonRecord, type JsonValue, jsonRecord, readNumber, readString } from "./json.js";
 import { handleOutput, writeOutput } from "./output.js";
 import { withSpinner } from "./spinner.js";
 
-export const BROWSER_RUN_CODE = "await page.goto('https://example.com'); return await page.title()";
+export const BROWSER_RUN_URL = "https://example.com";
+export const BROWSER_RUN_CODE = "return await page.title()";
 
 export const BROWSER_RUN: CatalogEndpoint = {
   id: "browser.run",
@@ -20,6 +22,11 @@ export const BROWSER_RUN: CatalogEndpoint = {
   input: {
     type: "object",
     properties: {
+      url: {
+        type: "string",
+        minLength: 1,
+        description: "Page to open first. Alone, it prints the page's text",
+      },
       code: {
         type: "string",
         minLength: 1,
@@ -39,9 +46,8 @@ export const BROWSER_RUN: CatalogEndpoint = {
         description: "Run in this open session and leave it open",
       },
     },
-    sendOne: ["code", "prompt"],
   },
-  example: { code: BROWSER_RUN_CODE },
+  example: { url: BROWSER_RUN_URL, code: BROWSER_RUN_CODE },
 };
 
 const TTL_MARGIN_SECONDS = 60;
@@ -80,27 +86,50 @@ export function withBrowserRun(endpoints: readonly CatalogEndpoint[]): readonly 
 
 export async function runBrowser(endpoint: CatalogEndpoint): Promise<void> {
   const call = parseEndpointCall(endpoint);
-  const { id, ...body } = call.body;
+  const { id, url, ...body } = call.body;
+  const steps = stepsFor(readString(url), body);
   const session = readString(id);
   const run = async (): Promise<Ran> =>
-    session === undefined ? runInNewBrowser(body) : { executed: await execute(session, body) };
+    session === undefined
+      ? runInNewBrowser(steps, ttlFor(body))
+      : { executed: await runSteps(session, steps) };
   show(await (isAgentMode() ? run() : withSpinner("Running in a cloud browser…", run)), call);
 }
 
-async function runInNewBrowser(body: JsonRecord): Promise<Ran> {
-  const { id } = await send(opened, {
-    method: "POST",
-    path: "/v1/browser",
-    body: { ttl: ttlFor(body) },
-  });
+function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
+  const wanted = ["code", "prompt"].filter((field) => body[field] !== undefined);
+  if (wanted.length > 1) throw new CliError("Send only one of --code or --prompt.");
+  const open = url === undefined ? undefined : `await page.goto(${JSON.stringify(url)})`;
+  if (open === undefined) {
+    if (wanted.length === 0) throw new CliError("Send --url, --code or --prompt.");
+    return [body];
+  }
+  if (wanted.length === 0) {
+    const read = `${open}; return await page.locator("body").innerText()`;
+    return [{ ...without(body, ["language"]), code: read }];
+  }
+  return [{ code: open }, body];
+}
+
+async function runInNewBrowser(steps: readonly JsonRecord[], ttl: number): Promise<Ran> {
+  const { id } = await send(opened, { method: "POST", path: "/v1/browser", body: { ttl } });
   let executed: JsonRecord;
   let closed: JsonRecord;
   try {
-    executed = await execute(id, body);
+    executed = await runSteps(id, steps);
   } finally {
     closed = await send(jsonRecord, { method: "DELETE", path: sessionPath(id) });
   }
   return { executed, closed };
+}
+
+async function runSteps(id: string, steps: readonly JsonRecord[]): Promise<JsonRecord> {
+  let executed: JsonRecord = {};
+  for (const step of steps) {
+    executed = await execute(id, step);
+    if (didFail(executed)) break;
+  }
+  return executed;
 }
 
 function ttlFor({ timeout, prompt }: JsonRecord): number {
@@ -129,12 +158,18 @@ function show(ran: Ran, call: ParsedCall): void {
   const compact = compactOf(ran);
   if (call.format === "raw") {
     handleOutput(rawOf(ran), file);
-  } else if (call.format === "json" || failed || isAgentMode()) {
+  } else if (call.format === "json") {
     handleOutput(compact, file);
   } else {
-    writeOutput(textOf(ran.executed), call.outputFile);
+    const text = textOf(ran.executed);
+    if (text) writeOutput(text, call.outputFile);
+    if (failed) process.stderr.write(`${failureOf(ran.executed)}\n`);
     writeCost(compact.costUsd);
   }
+}
+
+function failureOf({ stderr, error }: JsonRecord): string {
+  return readString(stderr)?.trimEnd() || readString(error) || "The run failed.";
 }
 
 function didFail({ error, exitCode }: JsonRecord): boolean {

@@ -917,10 +917,48 @@ test("browser run --id runs in that session and leaves it open", async () => {
   expect(seen).toEqual([["POST", "/v1/browser/s1/execute", { prompt: "Read the title" }]]);
 });
 
-test("browser run gives an agent one line with the result and the close's cost, and no session links", async () => {
+test("browser run --url alone opens the page in a browser and prints its text", async () => {
+  const page = { ...ranInBrowser, result: "Example Domain\nThis domain is for use in examples." };
+  const { seen, fetched } = browserServer(() => reply(200, page));
+  try {
+    const out = await browserRun(["--url", "https://example.com"]);
+    expect(out).toBe("Example Domain\nThis domain is for use in examples.\n");
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen).toEqual([
+    ["POST", "/v1/browser", { ttl: 90 }],
+    [
+      "POST",
+      "/v1/browser/s1/execute",
+      {
+        code: 'await page.goto("https://example.com"); return await page.locator("body").innerText()',
+      },
+    ],
+    ["DELETE", "/v1/browser/s1", null],
+  ]);
+});
+
+test("browser run --url with code opens the page, then runs the code there", async () => {
+  const { seen, fetched } = browserServer();
+  try {
+    await browserRun(["--url", "https://example.com", "--code", "return await page.title()"]);
+  } finally {
+    fetched.mockRestore();
+  }
+  expect(seen.map(([method, path, body]) => [method, path, body])).toEqual([
+    ["POST", "/v1/browser", { ttl: 90 }],
+    ["POST", "/v1/browser/s1/execute", { code: 'await page.goto("https://example.com")' }],
+    ["POST", "/v1/browser/s1/execute", { code: "return await page.title()" }],
+    ["DELETE", "/v1/browser/s1", null],
+  ]);
+});
+
+test("browser run prints the result as plain text, and --json gives one line with the close's cost and no session links", async () => {
   const { fetched } = browserServer();
   try {
-    const out = await browserRun(["--code", "return await page.title()"]);
+    expect(await browserRun(["--code", "return await page.title()"])).toBe("Example Domain\n");
+    const out = await browserRun(["--code", "return await page.title()", "--json"]);
     expect(out.trim().split("\n")).toHaveLength(1);
     expect(JSON.parse(out)).toEqual({
       success: true,
@@ -943,7 +981,9 @@ test("browser run prints the error of a failed run and exits 1", async () => {
   };
   const { fetched } = browserServer(() => reply(200, failed));
   try {
-    const out = await browserRun(["--code", "await page.click('#gone')"]);
+    expect(await browserRun(["--code", "await page.click('#gone')"])).toBe("");
+    expect(process.exitCode).toBe(1);
+    const out = await browserRun(["--code", "await page.click('#gone')", "--json"]);
     expect(JSON.parse(out)).toEqual({
       success: true,
       stderr: "TimeoutError: locator.click\n",
@@ -965,7 +1005,9 @@ test("browser run refuses both --code and --prompt, or neither, before any reque
     await expect(browserRun(["--code", "1", "--prompt", "Read it"])).rejects.toThrow(
       "Send only one of --code or --prompt.",
     );
-    await expect(browserRun(["--language", "python"])).rejects.toThrow("Send --code or --prompt.");
+    await expect(browserRun(["--language", "python"])).rejects.toThrow(
+      "Send --url, --code or --prompt.",
+    );
     expect(fetched).not.toHaveBeenCalled();
   } finally {
     fetched.mockRestore();
@@ -982,7 +1024,7 @@ test("browser run sits next to the catalog's browser commands, and only there", 
   expect(help).toContain("--language <language>");
   expect(help).toContain("node, python or bash (default: node)");
   expect(help).toContain(
-    `stophy browser run --code "await page.goto('https://example.com'); return await page.title()"`,
+    `stophy browser run --url https://example.com --code "return await page.title()"`,
   );
 
   const search = { ...browserTask, id: "search", path: "/v1/search" };

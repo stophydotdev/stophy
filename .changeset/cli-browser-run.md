@@ -2,4 +2,4 @@
 "@stophy/cli": minor
 ---
 
-`stophy browser run --code "..."` runs Playwright code or a prompt in a cloud browser in one command: it opens the browser, runs the code, always closes it, and prints the result with what it cost.
+`stophy browser run` works a real cloud browser in one command. `--url` alone opens the page and prints its text. Add `--code` for Playwright code, or `--prompt` for plain words. The browser always closes, and the cost is printed on stderr.
