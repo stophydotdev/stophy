@@ -2,7 +2,6 @@ import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import { delimiter, join } from "node:path";
 import { type Command, Option } from "commander";
-import prompts from "prompts";
 import { green } from "../color.js";
 import { resolveRuntimeConfig } from "../config.js";
 import { CliError } from "../errors.js";
@@ -69,6 +68,7 @@ async function commandExists(name: string): Promise<boolean> {
 }
 
 async function confirm(question: string): Promise<boolean> {
+  const { default: prompts } = await import("prompts");
   const { value } = await prompts({
     type: "confirm",
     name: "value",

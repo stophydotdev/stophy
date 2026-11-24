@@ -1,4 +1,5 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { expect, test } from "bun:test";
 import { deviceName, loginCode } from "../src/login-code.ts";
 
@@ -16,6 +17,24 @@ test("the device name keeps only what the server accepts", () => {
   expect(deviceName(" my\nmac<>book!!  pro ")).toBe("my macbook pro");
   expect(deviceName("x".repeat(80))).toBe("x".repeat(64));
   expect(deviceName("@@@")).toBeUndefined();
+});
+
+test("the config file earlier versions wrote is read, and saving keeps it private", async () => {
+  const { getConfigPath, loadConfig, setStoredApiKey } = await import("../src/config.ts");
+  const key = `st_${"b".repeat(40)}`;
+  const file = getConfigPath();
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(
+    file,
+    JSON.stringify({ apiKey: key, baseUrl: "https://api.example.com/" }, undefined, "\t"),
+  );
+  expect(await loadConfig()).toMatchObject({ apiKey: key, baseUrl: "https://api.example.com" });
+
+  await setStoredApiKey(key);
+  expect(readFileSync(file, "utf8")).toBe(
+    JSON.stringify({ apiKey: key, baseUrl: "https://api.example.com" }, undefined, "\t"),
+  );
+  expect(statSync(file).mode & 0o777).toBe(0o600);
 });
 
 test("logout forgets the saved key even when the server cannot revoke it", async () => {

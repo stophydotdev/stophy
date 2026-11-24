@@ -1,5 +1,3 @@
-import open from "open";
-import prompts from "prompts";
 import { z } from "zod";
 import { startBrowserLogin } from "./browser-login.js";
 import { green } from "./color.js";
@@ -11,6 +9,7 @@ const answerSchema = z.string();
 const err = (msg: string) => process.stderr.write(`${msg}\n`);
 
 export async function prompt(question: string, secret = false): Promise<string> {
+  const { default: prompts } = await import("prompts");
   const { value } = await prompts({
     type: secret ? "password" : "text",
     name: "value",
@@ -21,6 +20,7 @@ export async function prompt(question: string, secret = false): Promise<string> 
 
 async function tryOpenBrowser(url: string): Promise<boolean> {
   try {
+    const { default: open } = await import("open");
     await open(url);
     return true;
   } catch {

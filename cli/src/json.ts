@@ -4,7 +4,9 @@ export const jsonValue = z.json();
 export type JsonValue = z.infer<typeof jsonValue>;
 export type JsonRecord = Record<string, JsonValue>;
 
-export const jsonRecord = z.record(z.string(), jsonValue);
+const parsedJson = z.custom<JsonValue>();
+
+export const jsonRecord = z.record(z.string(), parsedJson);
 
 const text = z.string();
 const finiteNumber = z.number();
@@ -25,5 +27,5 @@ export function isJsonRecord(value: JsonValue | undefined): value is JsonRecord 
 }
 
 export function parseJson(source: string): JsonValue {
-  return jsonValue.parse(JSON.parse(source));
+  return parsedJson.parse(JSON.parse(source));
 }
