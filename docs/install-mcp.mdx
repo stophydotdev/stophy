@@ -78,10 +78,13 @@ The server refuses a wrong key. An agent with no key can call `stophy_signup`, w
 
 ## Tools
 
-With sign-in or a key, the server lists a tool for each product. Without a key it lists only `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. A call costs what it does over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
+With sign-in or a key, the server lists seven tools: `stophy_search`, `stophy_scrape`, `stophy_extract`, the three browser tools below, and `stophy_tools`, which lists and runs the rest. A short list keeps each model turn small. Without a key it lists only `stophy_search`, `stophy_scrape`, `stophy_map`, `stophy_parse` and `stophy_signup`. A call costs what it does over HTTP, and `costUsd` in a result is what it cost. See [Pricing](/account/pricing).
+
+`stophy_tools` with no `name` lists the other tools, one line each. With a `name` it returns that tool's description and inputs. With a `name` and `input` it runs that tool at its own price. Every tool can also be called by its name, and `?toolsets=all` lists them all.
 
 | Tools | What they do |
 | - | - |
+| `stophy_tools` | List, describe and run the tools below that the short list leaves out |
 | `stophy_crawl`, `stophy_crawl_status`, `stophy_crawl_cancel` | Start a background crawl, read its pages, stop it |
 | `stophy_extract` | Pull fields you name from pages as JSON |
 | `stophy_agent`, `stophy_agent_status`, `stophy_agent_cancel` | Start a task that searches and reads pages, read its answer, stop it |
@@ -99,7 +102,7 @@ A tool's description names the inputs its schema leaves out, such as `profile` o
 | Tool | What it does |
 | - | - |
 | `stophy_browser_open` | Opens a cloud browser. Returns its `id`, `expiresAt` and a live view link you can watch or take over. With `url`, it also returns the page's elements with refs such as `e12`. Takes `url`, `profile`, `proxy`, `location`, `ttl` and `captureConsole`, and the other session options of [Browser sessions](/browser/overview), such as `solveCaptchas`. It opens `direct` unless you send `proxy` or `location`. |
-| `stophy_browser_run` | Does one thing. Send exactly one of `steps`, `code` or `prompt`. With the `id` from `stophy_browser_open`, it runs in that browser. Without an `id`, it runs in a new browser that closes and bills when the call ends, so a task that fits in one call needs no open or close. Start that call with an `open` step or `page.goto(url)`. A `read` step returns the page's main content as markdown; with `text`, only the parts that mention it. |
+| `stophy_browser_run` | Does one thing. Send exactly one of `steps`, `code` or `prompt`. Without an `id`, it runs in the connection's own browser, so no open or close is needed: the first call opens it and starts with an `open` step or `page.goto(url)`, and later calls go on from its page. With the `id` from `stophy_browser_open`, it runs in that browser; open one per task to run tasks in parallel. A `read` step returns the page's main content as markdown without link addresses. With `text`, it searches the whole page and returns the parts that mention it, with the text beside them. |
 | `stophy_browser_close` | Closes the browser, saves its profile, and bills the session. Returns the time, traffic and cost. |
 
 `stophy_browser_upload` puts a file in an open browser. `stophy_browser_task` gives a goal to an agent that clicks through a public site and answers, as in [Browser tasks](/browser/tasks), and `stophy_browser_task_cancel` stops it.
@@ -108,11 +111,11 @@ A tool's description names the inputs its schema leaves out, such as `profile` o
 
 `code` is JavaScript by default, with `page` a Playwright Page. Send statements, whose last expression or `return` value comes back as `result`, or a function such as `async (page) => { ... }`. With `"language": "python"`, `page` is in scope and you set `result`. `prompt` is plain words for an agent. A call may take 30 seconds, and `timeout` raises that to 300.
 
-A session is billed from `stophy_browser_open` to `stophy_browser_close`, so tell your agent to close every browser it opens. The tools were named `browserOpen`, `browserRun` and so on until November 2026, and those names still work.
+A session is billed from `stophy_browser_open` to `stophy_browser_close`, so tell your agent to close every browser it opens. The connection's own browser closes 2 minutes after its last call, or when the client ends the connection, and bills then; its answers show its `id`. A client that keeps no MCP session gets a new browser for each call, which closes when the call ends; its answer says `closed`. The tools were named `browserOpen`, `browserRun` and so on until November 2026, and those names still work.
 
 ## More tools and a local server
 
-`?toolsets=web` on `https://api.stophy.dev/mcp` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `stophy_browser_downloads`, `stophy_browser_recording`, `stophy_browser_proxy`, `stophy_browser_extensions`, `stophy_browser_network_policy`, `browserProfiles` and `browserTaskStatus`. `toolsets=webhook` adds the webhook delivery tools.
+`?toolsets=all` on `https://api.stophy.dev/mcp` lists every tool. `?toolsets=web` adds batches and more crawl and agent tools, such as `batchScrape`, `crawlList` and `agentList`. `toolsets=browser` adds `stophy_browser_downloads`, `stophy_browser_recording`, `stophy_browser_proxy`, `stophy_browser_extensions`, `stophy_browser_network_policy`, `browserProfiles` and `browserTaskStatus`. `toolsets=webhook` adds the webhook delivery tools.
 
 For an app that can only start a local server, `npx -y @stophy/mcp` (Node.js 18 or later) passes every request to the hosted server. Set `STOPHY_API_KEY` for every tool, and `STOPHY_MCP_URL` to change the server. Claude Desktop uses the connector above, not this package.
 
