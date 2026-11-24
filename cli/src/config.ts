@@ -1,8 +1,9 @@
-import { accessSync, chmodSync, constants, existsSync } from "node:fs";
-import { dirname } from "node:path";
-import Conf from "conf";
+import { accessSync, constants, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { z } from "zod";
 import { CliError } from "./errors.js";
+import { type JsonRecord, isJsonRecord, readString } from "./json.js";
 
 const pendingSignup = z.object({ code: z.string(), claimUrl: z.string(), expiresAt: z.string() });
 
@@ -20,61 +21,79 @@ export interface CliConfig {
 export const DEFAULT_BASE_URL = "https://api.stophy.dev";
 export const DEFAULT_FRONTEND_URL = "https://stophy.dev";
 
-const store = new Conf<CliConfig>({
-  projectName: "stophy",
-  projectSuffix: "",
-  configName: "config",
-});
+function configDirectory(): string {
+  const { env, platform } = process;
+  if (platform === "darwin") return join(homedir(), "Library", "Preferences", "stophy");
+  if (platform === "win32") {
+    return join(env.APPDATA || join(homedir(), "AppData", "Roaming"), "stophy", "Config");
+  }
+  return join(env.XDG_CONFIG_HOME || join(homedir(), ".config"), "stophy");
+}
+
+const CONFIG_PATH = join(configDirectory(), "config.json");
 
 export function getConfigPath() {
-  return store.path;
+  return CONFIG_PATH;
 }
 
 export function assertConfigWritable() {
-  const target = existsSync(store.path) ? store.path : dirname(store.path);
+  const target = existsSync(CONFIG_PATH) ? CONFIG_PATH : dirname(CONFIG_PATH);
   try {
     accessSync(existsSync(target) ? target : dirname(target), constants.W_OK);
   } catch {
     throw new CliError(
-      `Can't save a key to ${store.path}. Set STOPHY_API_KEY instead, or make that file writable.`,
+      `Can't save a key to ${CONFIG_PATH}. Set STOPHY_API_KEY instead, or make that file writable.`,
     );
   }
 }
 
-function secureConfigFile() {
+function readStore(): JsonRecord {
+  let text: string;
   try {
-    chmodSync(store.path, 0o600);
-  } catch {}
+    text = readFileSync(CONFIG_PATH, "utf8");
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return {};
+    throw error;
+  }
+  const stored: unknown = JSON.parse(text);
+  return isJsonRecord(stored) ? stored : {};
+}
+
+function writeStore(config: CliConfig) {
+  mkdirSync(dirname(CONFIG_PATH), { recursive: true });
+  const temporary = `${CONFIG_PATH}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify(config, undefined, "\t"), { mode: 0o600 });
+  renameSync(temporary, CONFIG_PATH);
 }
 
 export async function loadConfig(): Promise<CliConfig> {
   try {
-    const listed = z.array(pendingSignup).safeParse(store.get("pendingSignups")).data ?? [];
-    const legacy = pendingSignup.safeParse(store.get("pendingSignup")).data;
+    const stored = readStore();
+    const listed = z.array(pendingSignup).safeParse(stored.pendingSignups).data ?? [];
+    const legacy = pendingSignup.safeParse(stored.pendingSignup).data;
     const pendingSignups = legacy === undefined ? listed : [...listed, legacy];
     return {
-      apiKey: normalizeApiKey(store.get("apiKey")),
-      baseUrl: normalizeBaseUrl(store.get("baseUrl")),
-      frontendUrl: normalizeBaseUrl(store.get("frontendUrl")),
-      sessionCookie: normalizeSessionCookie(store.get("sessionCookie")),
-      sessionExpiresAt: normalizeSessionExpiry(store.get("sessionExpiresAt")),
+      apiKey: normalizeApiKey(readString(stored.apiKey)),
+      baseUrl: normalizeBaseUrl(readString(stored.baseUrl)),
+      frontendUrl: normalizeBaseUrl(readString(stored.frontendUrl)),
+      sessionCookie: normalizeSessionCookie(readString(stored.sessionCookie)),
+      sessionExpiresAt: normalizeSessionExpiry(readString(stored.sessionExpiresAt)),
       pendingSignups: pendingSignups.length > 0 ? pendingSignups : undefined,
     };
   } catch {
-    throw new CliError(`Failed to read config at ${store.path}.`);
+    throw new CliError(`Failed to read config at ${CONFIG_PATH}.`);
   }
 }
 
 export async function saveConfig(config: CliConfig) {
-  store.store = {
+  writeStore({
     apiKey: config.apiKey,
     baseUrl: config.baseUrl,
     frontendUrl: config.frontendUrl,
     sessionCookie: config.sessionCookie,
     sessionExpiresAt: config.sessionExpiresAt,
     pendingSignups: config.pendingSignups?.length ? config.pendingSignups : undefined,
-  };
-  secureConfigFile();
+  });
 }
 
 export async function setStoredApiKey(apiKey: string) {
