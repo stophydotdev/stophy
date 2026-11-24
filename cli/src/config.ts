@@ -5,10 +5,11 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { z } from "zod";
 import { CliError } from "./errors.js";
 import { type JsonRecord, isJsonRecord, parseJson, readString } from "./json.js";
@@ -38,16 +39,16 @@ function configDirectory(): string {
   return join(env.XDG_CONFIG_HOME || join(homedir(), ".config"), "stophy");
 }
 
-const CONFIG_PATH = join(configDirectory(), "config.json");
+const CONFIG_PATH = resolve(configDirectory(), "config.json");
 
 export function getConfigPath() {
   return CONFIG_PATH;
 }
 
 export function assertConfigWritable() {
-  const target = existsSync(CONFIG_PATH) ? CONFIG_PATH : dirname(CONFIG_PATH);
   try {
-    accessSync(existsSync(target) ? target : dirname(target), constants.W_OK);
+    mkdirSync(dirname(CONFIG_PATH), { recursive: true });
+    accessSync(existsSync(CONFIG_PATH) ? CONFIG_PATH : dirname(CONFIG_PATH), constants.W_OK);
   } catch {
     throw new CliError(
       `Can't save a key to ${CONFIG_PATH}. Set STOPHY_API_KEY instead, or make that file writable.`,
@@ -70,8 +71,14 @@ function readStore(): JsonRecord {
 function writeStore(config: CliConfig) {
   mkdirSync(dirname(CONFIG_PATH), { recursive: true });
   const temporary = `${CONFIG_PATH}.${process.pid}.tmp`;
-  writeFileSync(temporary, JSON.stringify(config, undefined, "\t"), { mode: 0o600 });
-  renameSync(temporary, CONFIG_PATH);
+  rmSync(temporary, { force: true });
+  try {
+    writeFileSync(temporary, JSON.stringify(config, undefined, "\t"), { mode: 0o600, flag: "wx" });
+    renameSync(temporary, CONFIG_PATH);
+  } catch (error) {
+    rmSync(temporary, { force: true });
+    throw error;
+  }
 }
 
 export async function loadConfig(): Promise<CliConfig> {

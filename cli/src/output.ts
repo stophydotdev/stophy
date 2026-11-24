@@ -33,15 +33,26 @@ export function handleOutput<Value>(value: Value, options: OutputOptions = {}) {
   );
 }
 
-export function writeFailure(error: CliError) {
+export function written(stream: NodeJS.WriteStream, text: string): Promise<void> {
+  return new Promise((resolve) => {
+    stream.write(text, () => resolve());
+  });
+}
+
+export function exitAfter(writes: readonly Promise<void>[], code: number): void {
+  process.exitCode = code;
+  void Promise.all(writes).then(() => process.exit(code));
+}
+
+export function writeFailure(error: CliError): Promise<void> {
   const failure =
     error instanceof RequestError
       ? error.failure
       : { code: "cliError", message: error.message, retryable: false };
   const { requestId, ...body } = failure;
-  writeOutput(JSON.stringify({ success: false, error: body, requestId }));
+  return written(process.stdout, `${JSON.stringify({ success: false, error: body, requestId })}\n`);
 }
 
-export function writeFailureMessage(error: CliError) {
-  process.stderr.write(`${error.message}\n`);
+export function writeFailureMessage(error: CliError): Promise<void> {
+  return written(process.stderr, `${error.message}\n`);
 }

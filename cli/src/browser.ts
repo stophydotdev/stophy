@@ -2,12 +2,13 @@ import { z } from "zod";
 import { formatUsd } from "./account.js";
 import { isAgentMode } from "./agent.js";
 import type { CatalogEndpoint } from "./catalog.js";
-import { type RequestOptions, request, unexpectedResponse } from "./client.js";
-import { CliError } from "./errors.js";
+import { type RequestOptions, RequestError, request, unexpectedResponse } from "./client.js";
+import { clock } from "./clock.js";
+import { CliError, statusFrom } from "./errors.js";
 import type { ParsedCall } from "./flags.js";
 import { parseEndpointCall, without } from "./invoke.js";
 import { type JsonRecord, type JsonValue, jsonRecord, readNumber, readString } from "./json.js";
-import { handleOutput, writeOutput } from "./output.js";
+import { exitAfter, handleOutput, writeOutput, written } from "./output.js";
 import { withSpinner } from "./spinner.js";
 
 export const BROWSER_RUN_URL = "https://example.com";
@@ -51,6 +52,9 @@ export const BROWSER_RUN: CatalogEndpoint = {
 };
 
 const TTL_MARGIN_SECONDS = 60;
+const WARM_UP_RETRY_MS = 1000;
+const CLOSE_ON_INTERRUPT_MS = 3000;
+const INTERRUPTED_EXIT_CODE = 130;
 const SHOWN = new Set([
   "success",
   "result",
@@ -75,7 +79,7 @@ const opened = z.object({ id: z.string().min(1) });
 
 interface Ran {
   readonly executed: JsonRecord;
-  readonly closed?: JsonRecord;
+  readonly closed?: JsonRecord | null;
 }
 
 export function withBrowserRun(endpoints: readonly CatalogEndpoint[]): readonly CatalogEndpoint[] {
@@ -92,7 +96,7 @@ export async function runBrowser(endpoint: CatalogEndpoint): Promise<void> {
   const run = async (): Promise<Ran> =>
     session === undefined
       ? runInNewBrowser(steps, ttlFor(body))
-      : { executed: await runSteps(session, steps) };
+      : { executed: await runSteps(session, steps, false) };
   show(await (isAgentMode() ? run() : withSpinner("Running in a cloud browser…", run)), call);
 }
 
@@ -113,23 +117,70 @@ function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
 
 async function runInNewBrowser(steps: readonly JsonRecord[], ttl: number): Promise<Ran> {
   const { id } = await send(opened, { method: "POST", path: "/v1/browser", body: { ttl } });
-  let executed: JsonRecord;
-  let closed: JsonRecord;
+  const interrupted = () => void closeOnInterrupt(id, ttl);
+  process.once("SIGINT", interrupted);
   try {
-    executed = await runSteps(id, steps);
+    return await runThenClose(id, steps, ttl);
   } finally {
-    closed = await send(jsonRecord, { method: "DELETE", path: sessionPath(id) });
+    process.off("SIGINT", interrupted);
   }
-  return { executed, closed };
 }
 
-async function runSteps(id: string, steps: readonly JsonRecord[]): Promise<JsonRecord> {
+async function runThenClose(id: string, steps: readonly JsonRecord[], ttl: number): Promise<Ran> {
+  try {
+    const executed = await runSteps(id, steps, true);
+    return { executed, closed: await closeSession(id, ttl) };
+  } catch (error) {
+    await closeSession(id, ttl);
+    throw error;
+  }
+}
+
+async function runSteps(
+  id: string,
+  steps: readonly JsonRecord[],
+  justOpened: boolean,
+): Promise<JsonRecord> {
   let executed: JsonRecord = {};
-  for (const step of steps) {
-    executed = await execute(id, step);
+  for (const [index, step] of steps.entries()) {
+    const run = justOpened && index === 0 ? executeWhenWarm : execute;
+    executed = await run(id, step);
     if (didFail(executed)) break;
   }
   return executed;
+}
+
+async function executeWhenWarm(id: string, body: JsonRecord): Promise<JsonRecord> {
+  try {
+    return await execute(id, body);
+  } catch (error) {
+    const warmingUp =
+      error instanceof RequestError &&
+      error.failure.code === "internalError" &&
+      statusFrom(error) === 503;
+    if (!warmingUp) throw error;
+    await clock.sleep(WARM_UP_RETRY_MS);
+    return execute(id, body);
+  }
+}
+
+const closeBrowser = (id: string) =>
+  send(jsonRecord, { method: "DELETE", path: sessionPath(id) }).catch(() => null);
+
+const unclosed = (id: string, ttl: number) =>
+  `Browser session ${id} could not be closed; it closes on its own ${ttl} s after it opened.\n`;
+
+async function closeSession(id: string, ttl: number): Promise<JsonRecord | null> {
+  const closed = await closeBrowser(id);
+  if (closed === null) process.stderr.write(unclosed(id, ttl));
+  return closed;
+}
+
+async function closeOnInterrupt(id: string, ttl: number): Promise<void> {
+  const gaveUp = clock.sleep(CLOSE_ON_INTERRUPT_MS).then(() => null);
+  const closed = await Promise.race([closeBrowser(id), gaveUp]);
+  const note = closed === null ? unclosed(id, ttl) : `Stopped; browser session ${id} is closed.\n`;
+  exitAfter([written(process.stderr, `\n${note}`)], INTERRUPTED_EXIT_CODE);
 }
 
 function ttlFor({ timeout, prompt }: JsonRecord): number {
@@ -177,7 +228,8 @@ function didFail({ error, exitCode }: JsonRecord): boolean {
 }
 
 function compactOf({ executed, closed }: Ran): JsonRecord {
-  const answer: JsonRecord = { ...executed, costUsd: (closed ?? executed).costUsd ?? null };
+  const costUsd = closed === undefined ? executed.costUsd : closed?.costUsd;
+  const answer: JsonRecord = { ...executed, costUsd: costUsd ?? null };
   return Object.fromEntries(
     Object.entries(answer).filter(([key, value]) => SHOWN.has(key) && !saysNothing(key, value)),
   );
@@ -189,7 +241,8 @@ function saysNothing(key: string, value: JsonValue): boolean {
 
 function rawOf({ executed, closed }: Ran): JsonRecord {
   const run = without(executed, SESSION_LINKS);
-  return closed === undefined ? { execute: run } : { execute: run, close: closed };
+  if (closed === undefined) return { execute: run };
+  return { execute: run, close: closed === null ? null : without(closed, SESSION_LINKS) };
 }
 
 function textOf({ output, result }: JsonRecord): string {

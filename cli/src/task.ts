@@ -5,6 +5,7 @@ import { type HttpResponse, type RequestOptions, request, unexpectedResponse } f
 import { endpointTokens, parseEndpointCall, runEndpoint, writeAnswer } from "./invoke.js";
 import { requestFor } from "./jobs.js";
 import { type JsonRecord, jsonValue, readString } from "./json.js";
+import { exitAfter, written } from "./output.js";
 import { withSpinner } from "./spinner.js";
 
 export const BROWSER_TASK = "browser.task";
@@ -35,25 +36,35 @@ interface Waited {
 
 export async function runBrowserTask(endpoint: CatalogEndpoint): Promise<void> {
   const tokens = endpointTokens(endpoint);
-  const call = parseEndpointCall(
-    endpoint,
-    tokens.filter((token) => token !== NO_WAIT),
-  );
-  if (tokens.includes(NO_WAIT)) return runEndpoint(endpoint, call);
-  const run = async () => {
-    const id = await startTask(endpoint, call.body);
-    return { id, ...(await waitForAnswer(id)) };
-  };
-  const { id, response, running } = await (isAgentMode()
-    ? run()
-    : withSpinner("Waiting for the browser task…", run));
-  writeAnswer(endpoint, call, response, (body) => withPagePointer(body, id));
-  if (!running) return;
-  process.stderr.write(
-    `Task ${id} is still running after 12 minutes. Read it with \`stophy browser task status ${id}\`, or stop it with \`stophy browser task cancel ${id}\`.\n`,
-  );
-  process.exitCode = 1;
+  const flags = withoutNoWait(tokens);
+  const call = parseEndpointCall(endpoint, flags);
+  if (flags.length < tokens.length) return runEndpoint(endpoint, call);
+  const id = await quietlyFor("Starting the browser task…", () => startTask(endpoint, call.body));
+  try {
+    const { response, running } = await quietlyFor("Waiting for the browser task…", () =>
+      waitForAnswer(id),
+    );
+    writeAnswer(endpoint, call, response, (body) => withPagePointer(body, id));
+    if (!running) return;
+    process.stderr.write(`Task ${id} is still running after 12 minutes. ${followUp(id)}\n`);
+    process.exitCode = 1;
+  } catch (error) {
+    process.stderr.write(`Task ${id} has started. ${followUp(id)}\n`);
+    throw error;
+  }
 }
+
+function withoutNoWait(tokens: readonly string[]): readonly string[] {
+  const separator = tokens.indexOf("--");
+  const end = separator < 0 ? tokens.length : separator;
+  return tokens.filter((token, index) => token !== NO_WAIT || index > end);
+}
+
+const followUp = (id: string) =>
+  `Read it with \`stophy browser task status ${id}\`, or stop it with \`stophy browser task cancel ${id}\`.`;
+
+const quietlyFor = <T>(message: string, task: () => Promise<T>) =>
+  isAgentMode() ? task() : withSpinner(message, task);
 
 export async function runBrowserTaskStatus(endpoint: CatalogEndpoint): Promise<void> {
   const call = parseEndpointCall(endpoint);
@@ -67,28 +78,31 @@ async function startTask(endpoint: CatalogEndpoint, body: JsonRecord): Promise<s
 }
 
 async function waitForAnswer(id: string): Promise<Waited> {
-  const interrupted = () => {
-    process.stderr.write(
-      `\nStopped waiting. Task ${id} keeps running: stop it with \`stophy browser task cancel ${id}\`, or read it with \`stophy browser task status ${id}\`.\n`,
+  const interrupted = () =>
+    exitAfter(
+      [written(process.stderr, `\nStopped waiting. Task ${id} keeps running. ${followUp(id)}\n`)],
+      INTERRUPTED_EXIT_CODE,
     );
-    process.exit(INTERRUPTED_EXIT_CODE);
-  };
   process.once("SIGINT", interrupted);
   try {
     const deadline = Date.now() + WAIT_LIMIT_MS;
-    let waited = await pollTask(id);
-    while (waited.running && Date.now() < deadline) waited = await pollTask(id);
+    let waited = await pollTask(id, WAIT_SECONDS);
+    let left = deadline - Date.now();
+    while (waited.running && left > 0) {
+      waited = await pollTask(id, Math.min(WAIT_SECONDS, Math.floor(left / 1000)));
+      left = deadline - Date.now();
+    }
     return waited;
   } finally {
     process.off("SIGINT", interrupted);
   }
 }
 
-async function pollTask(id: string): Promise<Waited> {
+async function pollTask(id: string, wait: number): Promise<Waited> {
   const { response, answer } = await ask(answered, {
     method: "POST",
     path: STATUS_PATH,
-    body: { id, wait: WAIT_SECONDS },
+    body: { id, wait },
   });
   return { response, running: answer.data.status === "running" };
 }
