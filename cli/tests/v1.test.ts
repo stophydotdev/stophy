@@ -235,10 +235,22 @@ test("the command list shows how to run code in a browser when the API has one",
   expect(await helpWith(["search"])).not.toContain("browser run");
 });
 
-test("the command list says which command uses a real browser", async () => {
-  expect(await helpWith(["scrape", "browser.task"])).toContain(
-    "A task that needs a real browser: stophy browser run --url <url>, with --code for Playwright. scrape reads a page without one.",
+test("the command list starts with which command uses a real browser", async () => {
+  const help = await helpWith(["scrape", "browser.task"]);
+  const hint = help.indexOf(
+    "A real browser: stophy browser run --url <url>, with --code for Playwright.\nstophy scrape reads a page without a browser.\n",
   );
+  expect(hint).toBeGreaterThan(0);
+  expect(hint).toBeLessThan(help.indexOf("Commands:"));
+});
+
+test("the command list names the account commands on one line", async () => {
+  const help = await helpWith(["scrape"]);
+  expect(help).toContain(
+    "Account and setup: init, login, logout, view-config, status, usage, logs, doctor, version, endpoints, describe.",
+  );
+  expect(help).not.toMatch(/^ {2}view-config +/mu);
+  expect(help).toMatch(/^ {2}parsers \[options\] \[term\] +/mu);
 });
 
 const firstCommand = () => {

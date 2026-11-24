@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Help } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
@@ -45,8 +45,24 @@ const NO_AUTH_COMMANDS = new Set([
   "help",
 ]);
 
-const BROWSER_HINT =
-  "A task that needs a real browser: stophy browser run --url <url>, with --code for Playwright. scrape reads a page without one.";
+const ACCOUNT_COMMANDS = [
+  "init",
+  "login",
+  "logout",
+  "view-config",
+  "status",
+  "usage",
+  "logs",
+  "doctor",
+  "version",
+  "endpoints",
+  "describe",
+];
+
+const BROWSER_HINT = [
+  "A real browser: stophy browser run --url <url>, with --code for Playwright.",
+  "stophy scrape reads a page without a browser.",
+].join("\n");
 
 function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
   return [
@@ -71,14 +87,17 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
   program
     .name("stophy")
     .version(packageJson.version)
-    .description("Search, read, and act on the web. The Stophy command line.")
+    .description(
+      `Search, read, and act on the web. The Stophy command line.${byId.has(BROWSER_RUN.id) ? `\n${BROWSER_HINT}` : ""}`,
+    )
     .showHelpAfterError()
     .addHelpText(
       "after",
       `
+Account and setup: ${ACCOUNT_COMMANDS.join(", ")}.
 Run stophy <command> --help to see its options.
 Some calls need no key. Calls and status print JSON when piped, or with --json.
-${byId.has(BROWSER_RUN.id) ? `${BROWSER_HINT}\n` : ""}
+
 Examples:
 ${examplesFor(byId).join("\n")}
 `,
@@ -107,6 +126,10 @@ ${examplesFor(byId).join("\n")}
   registerStatusCommand(program);
   registerDoctorCommand(program);
   registerVersionCommand(program);
+  program.configureHelp({
+    visibleCommands: (command) =>
+      new Help().visibleCommands(command).filter((sub) => !ACCOUNT_COMMANDS.includes(sub.name())),
+  });
 
   program.hook("preAction", async (_thisCommand, actionCommand) => {
     const id = commandPath(actionCommand);
