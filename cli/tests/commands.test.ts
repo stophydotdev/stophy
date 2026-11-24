@@ -976,7 +976,7 @@ test("browser run sits next to the catalog's browser commands, and only there", 
   const browser = (await browserProgram()).commands.find((command) => command.name() === "browser");
   expect(browser?.commands.map((command) => command.name())).toEqual(["run", "task"]);
   expect(browser?.helpInformation()).toMatch(
-    /run +Run Playwright code or a prompt in a cloud browser, in one call/u,
+    /run +Run Playwright code or a prompt in a real browser, in one call/u,
   );
   const help = browser?.commands.find((command) => command.name() === "run")?.helpInformation();
   expect(help).toContain("--language <language>");

@@ -216,6 +216,25 @@ test("a site command from before v1 points to search and parsers", async () => {
   expect(error).not.toContain("too many arguments");
 });
 
+const helpWith = async (ids: readonly string[]) => {
+  const home = `/tmp/stophy-cli-help-${ids.length}-${process.pid}`;
+  mkdirSync(`${home}/stophy`, { recursive: true });
+  const catalog = { fetchedAt: new Date().toISOString(), endpoints: ids.map(endpoint) };
+  writeFileSync(`${home}/stophy/catalog.json`, JSON.stringify(catalog));
+  const run = Bun.spawn(["bun", "src/index.ts", "--help"], {
+    env: { ...process.env, XDG_CONFIG_HOME: home, STOPHY_NO_UPDATE_CHECK: "1" },
+    stdout: "pipe",
+  });
+  return new Response(run.stdout).text();
+};
+
+test("the command list shows how to run code in a browser when the API has one", async () => {
+  expect(await helpWith(["search", "browser.task"])).toContain(
+    `$ stophy browser run --code "await page.goto('https://example.com'); return await page.title()"`,
+  );
+  expect(await helpWith(["search"])).not.toContain("browser run");
+});
+
 const firstCommand = () => {
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
   const line = readme.split("\n").find((text) => text.startsWith("npx -y @stophy/cli "));

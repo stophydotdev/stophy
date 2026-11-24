@@ -2,8 +2,14 @@ import { Command } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
-import { withBrowserRun } from "./browser.js";
-import { type Catalog, catalogFilePath, fetchCatalog, loadCatalog } from "./catalog.js";
+import { BROWSER_RUN, BROWSER_RUN_CODE, withBrowserRun } from "./browser.js";
+import {
+  type Catalog,
+  type CatalogEndpoint,
+  catalogFilePath,
+  fetchCatalog,
+  loadCatalog,
+} from "./catalog.js";
 import { registerAccountCommands } from "./commands/account.js";
 import { registerDescribeCommand } from "./commands/describe.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
@@ -39,6 +45,17 @@ const NO_AUTH_COMMANDS = new Set([
   "help",
 ]);
 
+function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
+  return [
+    `  $ stophy search "bun runtime" --limit 5`,
+    "  $ stophy scrape https://bun.com/docs",
+    ...(byId.has(BROWSER_RUN.id) ? [`  $ stophy browser run --code "${BROWSER_RUN_CODE}"`] : []),
+    "  $ stophy map https://bun.com --limit 20",
+    "  $ stophy parsers youtube",
+    "  $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript",
+  ];
+}
+
 function buildProgram({ endpoints, sources }: Catalog): Command {
   const program = new Command();
   const byId = new Map(endpoints.map((endpoint) => [endpoint.id, endpoint]));
@@ -55,11 +72,7 @@ Run stophy <command> --help to see its options.
 Some calls need no key. Calls and status print JSON when piped, or with --json.
 
 Examples:
-  $ stophy search "bun runtime" --limit 5
-  $ stophy scrape https://bun.com/docs
-  $ stophy map https://bun.com --limit 20
-  $ stophy parsers youtube
-  $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript
+${examplesFor(byId).join("\n")}
 `,
     )
     .allowExcessArguments(true)

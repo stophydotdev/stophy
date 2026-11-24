@@ -9,9 +9,11 @@ import { type JsonRecord, type JsonValue, jsonRecord, readNumber, readString } f
 import { handleOutput, writeOutput } from "./output.js";
 import { withSpinner } from "./spinner.js";
 
+export const BROWSER_RUN_CODE = "await page.goto('https://example.com'); return await page.title()";
+
 export const BROWSER_RUN: CatalogEndpoint = {
   id: "browser.run",
-  summary: "Run Playwright code or a prompt in a cloud browser, in one call",
+  summary: "Run Playwright code or a prompt in a real browser, in one call",
   method: "POST",
   path: "/v1/browser/{id}/execute",
   keyless: false,
@@ -39,7 +41,7 @@ export const BROWSER_RUN: CatalogEndpoint = {
     },
     sendOne: ["code", "prompt"],
   },
-  example: { code: "await page.goto('https://example.com'); return await page.title()" },
+  example: { code: BROWSER_RUN_CODE },
 };
 
 const TTL_MARGIN_SECONDS = 60;
