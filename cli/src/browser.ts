@@ -54,7 +54,7 @@ export const BROWSER_RUN: CatalogEndpoint = {
   example: { url: BROWSER_RUN_URL, code: BROWSER_RUN_CODE },
 };
 
-const FUNCTION_SHAPED = /^\s*(async\s+)?(function\b|\(|[\w$]+\s*=>)/u;
+const LONE_FUNCTION = /^\s*(async\s+)?(function\b|\(|[\w$]+\s*=>)/u;
 const TTL_MARGIN_SECONDS = 60;
 const WARM_UP_RETRY_MS = 1000;
 const CLOSE_ON_INTERRUPT_MS = 3000;
@@ -117,7 +117,7 @@ function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
     return [{ ...without(body, ["language"]), code: read }];
   }
   const code = readString(body.code);
-  if (code !== undefined && (body.language ?? "node") === "node" && !FUNCTION_SHAPED.test(code)) {
+  if (code !== undefined && (body.language ?? "node") === "node" && !LONE_FUNCTION.test(code)) {
     return [{ ...body, code: `${open};\n${code}` }];
   }
   return [{ code: open }, body];
