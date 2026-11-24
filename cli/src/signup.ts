@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { agentName } from "./agent.js";
-import { RequestError, request, unexpectedResponse } from "./client.js";
+import {
+  type Failure,
+  RequestError,
+  request,
+  unexpectedResponse,
+  withRequestId,
+} from "./client.js";
 import {
   type PendingSignup,
   assertConfigWritable,
@@ -27,17 +33,26 @@ const claimMessage = ({ claimUrl, expiresAt }: PendingSignup) =>
 const waitMessage = ({ claimUrl, expiresAt }: PendingSignup) =>
   `Open ${claimUrl} to approve this account. The link works until ${expiresAt}.\nWaiting for approval...\n`;
 
-function claimRequired(pending: PendingSignup): RequestError {
-  const message = claimMessage(pending);
-  const { claimUrl, expiresAt } = pending;
-  return new RequestError(message, {
-    code: "claimRequired",
-    message,
-    retryable: true,
-    claimUrl,
-    expiresAt,
-  });
+function withReason(refusal: RequestError | undefined, failure: Failure): RequestError {
+  const message = [refusal?.failure.message, failure.message].filter(Boolean).join(" ");
+  const requestId = refusal?.failure.requestId;
+  return new RequestError(
+    withRequestId(message, requestId ?? null),
+    { ...failure, message, requestId },
+    refusal?.details,
+  );
 }
+
+const claimRequired = (pending: PendingSignup, refusal?: RequestError) =>
+  withReason(refusal, {
+    code: "claimRequired",
+    message: claimMessage(pending),
+    retryable: true,
+    claimUrl: pending.claimUrl,
+    expiresAt: pending.expiresAt,
+  });
+
+const NO_KEY = "Set STOPHY_API_KEY. A signup needs a person to approve it.";
 
 async function startSignup(): Promise<PendingSignup> {
   assertConfigWritable();
@@ -101,17 +116,17 @@ const deadlineOf = (list: readonly PendingSignup[]) =>
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function ensureKey(): Promise<void> {
+export async function ensureKey(refusal?: RequestError): Promise<void> {
   let open = await pollAll((await loadConfig()).pendingSignups ?? []);
   if (open === "approved") return;
   if (process.env.CI) {
-    throw new CliError(
-      "No API key. Set STOPHY_API_KEY from your CI secrets. A signup needs a person to approve it.",
-    );
+    if (!refusal) throw new CliError(`No API key. ${NO_KEY}`);
+    throw withReason(refusal, { ...refusal.failure, message: NO_KEY });
   }
   const pending = open.at(-1) ?? (await startSignup());
-  if (!canPrompt()) throw claimRequired(pending);
+  if (!canPrompt()) throw claimRequired(pending, refusal);
 
+  if (refusal) process.stderr.write(`${refusal.failure.message}\n`);
   process.stderr.write(waitMessage(pending));
   open = [...open.filter((entry) => entry !== pending), pending];
   const deadline = deadlineOf(open);
@@ -133,7 +148,7 @@ export async function withSignup<Value>(send: () => Promise<Value>): Promise<Val
     if (!(error instanceof RequestError) || error.failure.code !== "apiKeyRequired") throw error;
     const { apiKey, sessionCookie } = await resolveRuntimeConfig();
     if (apiKey || sessionCookie) throw error;
-    await ensureKey();
+    await ensureKey(error);
     return send();
   }
 }
