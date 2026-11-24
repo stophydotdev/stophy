@@ -112,6 +112,10 @@ function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
     const read = `${open}; return await page.locator("body").innerText()`;
     return [{ ...without(body, ["language"]), code: read }];
   }
+  const code = readString(body.code);
+  if (code !== undefined && (body.language ?? "node") === "node") {
+    return [{ ...body, code: `${open};\n${code}` }];
+  }
   return [{ code: open }, body];
 }
 
