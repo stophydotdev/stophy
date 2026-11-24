@@ -1,7 +1,7 @@
 {
   "name": "stophy",
   "displayName": "Stophy",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Search, read, and act on the web. One API that gives AI agents web search, page reads, crawls, extraction, site data and a browser.",
   "author": {
     "name": "Stophy",
