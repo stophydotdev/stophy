@@ -104,6 +104,10 @@ test("sources show their summary, or their name when the server has none", async
   const help = without.helpInformation();
   expect(help).toMatch(/reddit +Reddit/u);
   expect(help).not.toContain("endpoints");
+
+  const bare = new Command();
+  registerDynamicCommands(bare, [endpoint], async () => {}, [{ id: "reddit", summary: "reddit" }]);
+  expect(bare.helpInformation()).toMatch(/reddit +Search Reddit posts/u);
 });
 
 const reply = (status: number, body: JsonValue) =>

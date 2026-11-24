@@ -33,8 +33,13 @@ export function registerDynamicCommands(
 ): void {
   const summaries = new Map(sources.map((source) => [source.id, source.summary]));
   for (const [name, node] of tree(endpoints)) {
-    registerNode(program, name, node, run, summaries.get(name) ?? sourceLabel(name));
+    registerNode(program, name, node, run, sourceSummary(name, summaries.get(name), node));
   }
+}
+
+function sourceSummary(name: string, summary: string | undefined, node: TreeNode): string {
+  const said = summary !== undefined && summary.toLowerCase() !== name.toLowerCase();
+  return (said ? summary : firstSummary(node)) ?? sourceLabel(name);
 }
 
 export function sourceLabel(name: string): string {
