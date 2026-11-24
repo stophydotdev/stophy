@@ -45,6 +45,9 @@ const NO_AUTH_COMMANDS = new Set([
   "help",
 ]);
 
+const BROWSER_HINT =
+  "A task that needs a real browser: stophy browser run --url <url>, with --code for Playwright. scrape reads a page without one.";
+
 function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
   return [
     `  $ stophy search "bun runtime" --limit 5`,
@@ -75,7 +78,7 @@ function buildProgram({ endpoints, sources }: Catalog): Command {
       `
 Run stophy <command> --help to see its options.
 Some calls need no key. Calls and status print JSON when piped, or with --json.
-
+${byId.has(BROWSER_RUN.id) ? `${BROWSER_HINT}\n` : ""}
 Examples:
 ${examplesFor(byId).join("\n")}
 `,

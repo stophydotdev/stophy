@@ -235,6 +235,12 @@ test("the command list shows how to run code in a browser when the API has one",
   expect(await helpWith(["search"])).not.toContain("browser run");
 });
 
+test("the command list says which command uses a real browser", async () => {
+  expect(await helpWith(["scrape", "browser.task"])).toContain(
+    "A task that needs a real browser: stophy browser run --url <url>, with --code for Playwright. scrape reads a page without one.",
+  );
+});
+
 const firstCommand = () => {
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
   const line = readme.split("\n").find((text) => text.startsWith("npx -y @stophy/cli "));
