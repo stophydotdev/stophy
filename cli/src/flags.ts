@@ -5,7 +5,6 @@ import {
   type JsonRecord,
   type JsonValue,
   isJsonRecord,
-  parseJson,
   readBoolean,
   readNumber,
   readNumberList,
@@ -612,7 +611,7 @@ function readJson(
   | { readonly ok: true; readonly value: JsonValue }
   | { readonly ok: false; readonly message: string } {
   try {
-    return { ok: true, value: parseJson(raw) };
+    return { ok: true, value: JSON.parse(raw) };
   } catch {
     return fail(`--${flag} must be JSON.`);
   }
