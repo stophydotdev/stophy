@@ -99,7 +99,7 @@ A tool's description names the inputs its schema leaves out, such as `profile` o
 | Tool | What it does |
 | - | - |
 | `stophy_browser_open` | Opens a cloud browser. Returns its `id`, `expiresAt` and a live view link you can watch or take over. With `url`, it also returns the page's elements with refs such as `e12`. Takes `url`, `profile`, `proxy`, `location`, `ttl` and `captureConsole`, and the other session options of [Browser sessions](/browser/overview), such as `solveCaptchas`. It opens `direct` unless you send `proxy` or `location`. |
-| `stophy_browser_run` | Does one thing. Send the `id` and exactly one of `steps`, `code` or `prompt`. |
+| `stophy_browser_run` | Does one thing. Send exactly one of `steps`, `code` or `prompt`. With the `id` from `stophy_browser_open`, it runs in that browser. Without an `id`, it runs in a new browser that closes and bills when the call ends, so a task that fits in one call needs no open or close. Start that call with an `open` step or `page.goto(url)`. A `read` step returns the page's main content as markdown; with `text`, only the parts that mention it. |
 | `stophy_browser_close` | Closes the browser, saves its profile, and bills the session. Returns the time, traffic and cost. |
 
 `stophy_browser_upload` puts a file in an open browser. `stophy_browser_task` gives a goal to an agent that clicks through a public site and answers, as in [Browser tasks](/browser/tasks), and `stophy_browser_task_cancel` stops it.
