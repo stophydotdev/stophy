@@ -80,6 +80,9 @@ function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
   ];
 }
 
+const shellWord = (arg: string) =>
+  /^[\w@%+=:,./-]+$/u.test(arg) ? arg : `'${arg.replaceAll("'", `'\\''`)}'`;
+
 function buildProgram({ endpoints, sources }: Catalog): Command {
   const program = new Command();
   const byId = new Map(endpoints.map((endpoint) => [endpoint.id, endpoint]));
@@ -103,14 +106,22 @@ ${examplesFor(byId).join("\n")}
 `,
     )
     .allowExcessArguments(true)
+    .allowUnknownOption(true)
     .action(() => {
-      const [word] = program.args;
+      const [word, next, ...rest] = program.args;
       if (word === undefined || word === "help") {
         program.outputHelp();
         return;
       }
+      if (word.startsWith("-")) throw new CliError(`Unknown option ${word}. Run stophy --help.`);
+      const parsers = `read a site with a parser: \`stophy parsers ${word}\` lists them, then run \`stophy scrape <url> --parser <name>\`.`;
+      if (next === undefined || !program.commands.some((command) => command.name() === next)) {
+        throw new CliError(
+          `\`stophy ${word}\` is not a command. Search the web with \`stophy search\`, or ${parsers}`,
+        );
+      }
       throw new CliError(
-        `\`stophy ${word}\` is not a command. Search the web with \`stophy search\`, or read a site with a parser: \`stophy parsers ${word}\` lists them, then run \`stophy scrape <url> --parser <name>\`.`,
+        `\`stophy ${word} ${next}\` is not a command. Run \`stophy ${[next, ...rest].map(shellWord).join(" ")}\`, or ${parsers} If a skill gave you \`stophy ${word} ${next}\`, it is out of date: \`npx skills add stophydotdev/stophy\` updates it.`,
       );
     });
 

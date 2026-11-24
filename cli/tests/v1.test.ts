@@ -216,6 +216,25 @@ test("a site command from before v1 points to search and parsers", async () => {
   expect(error).not.toContain("too many arguments");
 });
 
+test("an old skill's web search with flags names the command to run instead", async () => {
+  const home = `/tmp/stophy-cli-v1-web-${process.pid}`;
+  mkdirSync(`${home}/stophy`, { recursive: true });
+  const catalog = { fetchedAt: new Date().toISOString(), endpoints: [endpoint("search")] };
+  writeFileSync(`${home}/stophy/catalog.json`, JSON.stringify(catalog));
+  const run = Bun.spawn(["bun", "src/index.ts", "web", "search", "openai docs", "--limit", "5"], {
+    env: { ...process.env, XDG_CONFIG_HOME: home, STOPHY_NO_UPDATE_CHECK: "1" },
+    stderr: "pipe",
+    stdout: "pipe",
+  });
+  const error = await new Response(run.stderr).text();
+  expect(await run.exited).toBe(1);
+  expect(error).toStartWith(
+    "`stophy web search` is not a command. Run `stophy search 'openai docs' --limit 5`,",
+  );
+  expect(error).toContain("npx skills add stophydotdev/stophy");
+  expect(error).not.toContain("Usage:");
+});
+
 const helpWith = async (ids: readonly string[]) => {
   const home = `/tmp/stophy-cli-help-${ids.length}-${process.pid}`;
   mkdirSync(`${home}/stophy`, { recursive: true });

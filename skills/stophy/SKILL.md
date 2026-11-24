@@ -24,7 +24,7 @@ Search, read, and act on the web with the `stophy` CLI.
 
 Done when `stophy status` prints `"authenticated":true`. Never print or commit the key.
 
-Without a key, `search`, `scrape`, `map`, `parse` and the parsers marked "no key" work for 10 calls a minute and 50 a day, first page only.
+Without a key, `search`, `scrape`, `map`, `parse` and the parsers marked "no key" are free for 10 calls a minute and 50 a day, first page only. A keyless scrape reads the page without a browser, so a page that blocks it needs a key. So do `--scrapeOptions` on a search, paging and page actions, and the error says which. With a key, every call costs what [Prices](#prices) says, these too.
 
 ## Pick the command
 
@@ -63,7 +63,7 @@ A site's own data comes from a parser: `stophy scrape "<the page a person would 
 
 ## Prices
 
-A scrape, a parser call and a search of up to 10 results from one source cost $0.001 each. A map costs $0.0005. Each skill names the calls that cost more. A failed call costs nothing. `stophy status` shows your balance.
+With a key, a scrape, a parser call and a search of up to 10 results from one source cost $0.001 each. A map costs $0.0005. Each skill names the calls that cost more. A failed call costs nothing. `stophy status` shows your balance.
 
 ## Errors
 

@@ -793,6 +793,34 @@ test("a keyless apiKeyRequired answer starts a signup", () =>
     expect(seen).toEqual(["/v1/needs-key", "/v1/signup"]);
   }));
 
+test("a keyless call the server refuses says why, with or without CI", () =>
+  withApi(async (seen) => {
+    const { withSignup, ensureKey } = await import("../src/signup.ts");
+    const { clearStoredAuth } = await import("../src/config.ts");
+    await clearStoredAuth();
+    await expect(withSignup(() => callApi("/v1/needs-key"))).rejects.toMatchObject({
+      failure: { code: "claimRequired", requestId: REQUEST_ID },
+      message: expect.stringMatching(/^apiKeyRequired message .*stophy\.dev\/claim/su),
+    });
+    await clearStoredAuth();
+    seen.length = 0;
+    process.env.CI = "true";
+    try {
+      await expect(withSignup(() => callApi("/v1/needs-key"))).rejects.toMatchObject({
+        failure: {
+          code: "apiKeyRequired",
+          message: expect.stringMatching(/^apiKeyRequired message Set STOPHY_API_KEY\./u),
+          requestId: REQUEST_ID,
+        },
+      });
+      await expect(ensureKey()).rejects.toThrow(/^No API key\. Set STOPHY_API_KEY\./u);
+      await expect(ensureKey()).rejects.not.toThrow(/CI secrets/u);
+    } finally {
+      delete process.env.CI;
+    }
+    expect(seen).toEqual(["/v1/needs-key"]);
+  }));
+
 test("a keyless freeLimit answer keeps its retry window and starts no signup", () =>
   withApi(async (seen) => {
     const { withSignup } = await import("../src/signup.ts");

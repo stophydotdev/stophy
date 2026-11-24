@@ -24,7 +24,7 @@ Results come back by source: `web`, `news`, `images`, `research` and `videos`.
 - `--sources` takes `web`, `news` and `images`. `--categories` takes `research` for papers, `videos` for YouTube and `pdf` for PDF files.
 - `--tbs` keeps recent results: `qdr:d`, `qdr:w`, `qdr:m` or `qdr:y`. `sbd:1,qdr:w` sorts the past week newest first. Web also takes `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY`.
 - `--includeDomains` and `--excludeDomains` take up to 10 sites. `--country de` or `--location "Berlin,Germany"` searches from there.
-- `--scrapeOptions.formats '["markdown"]'` returns each web result's page text, so you skip a scrape.
+- `--scrapeOptions.formats '["markdown"]'` returns each web result's page text, so you skip a scrape. It needs a key.
 
 ## How to search
 
