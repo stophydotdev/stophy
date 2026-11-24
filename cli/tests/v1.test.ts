@@ -257,7 +257,12 @@ test("the command list shows how to run code in a browser when the API has one",
 test("the command list starts with which command uses a real browser", async () => {
   const help = await helpWith(["scrape", "browser.task"]);
   const hint = help.indexOf(
-    "A real browser: stophy browser run --url <url>, with --code for Playwright.\nstophy scrape reads a page without a browser.\n",
+    [
+      "A real browser: stophy browser run --url <url> prints the page's text.",
+      '--code "<js>" runs there with page as a Playwright Page; return what to print.',
+      "A run stops after 30 s; --timeout <seconds> allows up to 300.",
+      "stophy scrape reads a page without a browser.\n",
+    ].join("\n"),
   );
   expect(hint).toBeGreaterThan(0);
   expect(hint).toBeLessThan(help.indexOf("Commands:"));

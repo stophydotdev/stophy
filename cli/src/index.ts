@@ -2,7 +2,14 @@ import { Command, Help } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
-import { BROWSER_RUN, BROWSER_RUN_CODE, BROWSER_RUN_URL, withBrowserRun } from "./browser.js";
+import {
+  BROWSER_RUN,
+  BROWSER_RUN_CODE,
+  BROWSER_RUN_URL,
+  MAX_RUN_SECONDS,
+  RUN_SECONDS,
+  withBrowserRun,
+} from "./browser.js";
 import {
   type Catalog,
   type CatalogEndpoint,
@@ -60,7 +67,9 @@ const ACCOUNT_COMMANDS = [
 ];
 
 const BROWSER_HINT = [
-  "A real browser: stophy browser run --url <url>, with --code for Playwright.",
+  "A real browser: stophy browser run --url <url> prints the page's text.",
+  '--code "<js>" runs there with page as a Playwright Page; return what to print.',
+  `A run stops after ${RUN_SECONDS} s; --timeout <seconds> allows up to ${MAX_RUN_SECONDS}.`,
   "stophy scrape reads a page without a browser.",
 ].join("\n");
 
