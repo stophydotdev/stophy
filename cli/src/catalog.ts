@@ -4,7 +4,7 @@ import { z } from "zod";
 import { request } from "./client.js";
 import { getConfigPath } from "./config.js";
 import { CliError } from "./errors.js";
-import { type JsonValue, jsonRecord } from "./json.js";
+import { type JsonValue, jsonRecord, parseJson } from "./json.js";
 import { unreadableAdvice } from "./upgrade.js";
 
 const CATALOG_TTL_MS = 5 * 60 * 1000;
@@ -157,7 +157,7 @@ async function readStored(file: string): Promise<StoredCatalog | undefined> {
   }
   let json: JsonValue;
   try {
-    json = JSON.parse(text);
+    json = parseJson(text);
   } catch {
     return undefined;
   }

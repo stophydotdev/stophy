@@ -1,9 +1,17 @@
-import { accessSync, constants, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  accessSync,
+  constants,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { z } from "zod";
 import { CliError } from "./errors.js";
-import { type JsonRecord, isJsonRecord, readString } from "./json.js";
+import { type JsonRecord, isJsonRecord, parseJson, readString } from "./json.js";
 
 const pendingSignup = z.object({ code: z.string(), claimUrl: z.string(), expiresAt: z.string() });
 
@@ -55,7 +63,7 @@ function readStore(): JsonRecord {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return {};
     throw error;
   }
-  const stored: unknown = JSON.parse(text);
+  const stored = parseJson(text);
   return isJsonRecord(stored) ? stored : {};
 }
 

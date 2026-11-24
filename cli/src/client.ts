@@ -3,7 +3,7 @@ import packageJson from "../package.json" with { type: "json" };
 import { agentName, currentCommand } from "./agent.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, type ErrorDetails } from "./errors.js";
-import type { JsonRecord, JsonValue } from "./json.js";
+import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
 import { MIN_VERSION_HEADER, isBelowMinimum, minimumNote, unreadableAdvice } from "./upgrade.js";
 
 const errorObject = z.looseObject({
@@ -163,7 +163,7 @@ function parseJsonBody(text: string, contentType: string | null): JsonValue | un
     (contentType ?? "").includes("json") || trimmed.startsWith("{") || trimmed.startsWith("[");
   if (!looksJson) return undefined;
   try {
-    return JSON.parse(text);
+    return parseJson(text);
   } catch {
     return undefined;
   }

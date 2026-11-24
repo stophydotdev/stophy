@@ -1,28 +1,31 @@
 import { z } from "zod";
 
-export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-export type JsonRecord = { [key: string]: JsonValue };
+export const jsonValue = z.json();
+export type JsonValue = z.infer<typeof jsonValue>;
+export type JsonRecord = Record<string, JsonValue>;
 
-export function isJsonRecord(value: unknown): value is JsonRecord {
+const parsedJson = z.custom<JsonValue>();
+
+export const jsonRecord = z.record(z.string(), parsedJson);
+
+const text = z.string();
+const finiteNumber = z.number();
+const flag = z.boolean();
+const textList = z.array(text);
+const numberList = z.array(finiteNumber);
+const primitive = z.union([text, finiteNumber, flag]);
+
+export const readString = (value: JsonValue | undefined) => text.safeParse(value).data;
+export const readNumber = (value: JsonValue | undefined) => finiteNumber.safeParse(value).data;
+export const readBoolean = (value: JsonValue | undefined) => flag.safeParse(value).data;
+export const readPrimitive = (value: JsonValue | undefined) => primitive.safeParse(value).data;
+export const readStringList = (value: JsonValue | undefined) => textList.safeParse(value).data;
+export const readNumberList = (value: JsonValue | undefined) => numberList.safeParse(value).data;
+
+export function isJsonRecord(value: JsonValue | undefined): value is JsonRecord {
   return value instanceof Object && !Array.isArray(value);
 }
 
-export const jsonRecord = z.custom<JsonRecord>(isJsonRecord);
-
-const isFiniteNumber = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value);
-
-export const readString = (value: JsonValue | undefined) =>
-  typeof value === "string" ? value : undefined;
-export const readNumber = (value: JsonValue | undefined) =>
-  isFiniteNumber(value) ? value : undefined;
-export const readBoolean = (value: JsonValue | undefined) =>
-  typeof value === "boolean" ? value : undefined;
-export const readPrimitive = (value: JsonValue | undefined) =>
-  typeof value === "string" || typeof value === "boolean" || isFiniteNumber(value)
-    ? value
-    : undefined;
-export const readStringList = (value: JsonValue | undefined) =>
-  Array.isArray(value) && value.every((item) => typeof item === "string") ? value : undefined;
-export const readNumberList = (value: JsonValue | undefined) =>
-  Array.isArray(value) && value.every(isFiniteNumber) ? value : undefined;
+export function parseJson(source: string): JsonValue {
+  return parsedJson.parse(JSON.parse(source));
+}
