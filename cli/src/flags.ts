@@ -924,8 +924,6 @@ function optionText(slot: Slot): string {
 
 function mainText(slot: Slot): string {
   const last = slot.flag.split(".").at(-1) ?? slot.flag;
-  const known = KNOWN_TEXT.get(slot.flag);
-  if (known) return known;
   if (slot.kind === "array") {
     const values = enumOf(slot.item);
     if (values.length === 0) return "Comma-separated list";
@@ -936,6 +934,8 @@ function mainText(slot: Slot): string {
     const values = enumOf(slot);
     if (values.length > 0) return orList(values);
   }
+  const known = KNOWN_TEXT.get(slot.flag);
+  if (known) return known;
   const described = cleanDescription(slot.description);
   if (described) return described;
   if (last === "min" || last === "max") {
