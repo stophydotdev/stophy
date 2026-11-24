@@ -843,7 +843,13 @@ const ranInBrowser = {
   requestId: "req-run",
 };
 
-const browserServer = (execute: () => Response = () => reply(200, ranInBrowser)) => {
+const closedBrowser = () =>
+  reply(200, { success: true, sessionDurationMs: 3600, costUsd: 0.004, creditsUsed: 2 });
+
+const browserServer = (
+  execute: () => Response = () => reply(200, ranInBrowser),
+  close: () => Response = closedBrowser,
+) => {
   const seen: [string, string, JsonValue][] = [];
   const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const path = new URL(String(input)).pathname;
@@ -853,7 +859,7 @@ const browserServer = (execute: () => Response = () => reply(200, ranInBrowser))
       return reply(200, { success: true, id: "s1", status: "active", cdpUrl: CDP_URL });
     }
     if (path === "/v1/browser/s1/execute") return execute();
-    return reply(200, { success: true, sessionDurationMs: 3600, costUsd: 0.004, creditsUsed: 2 });
+    return close();
   });
   return { seen, fetched };
 };
@@ -890,13 +896,13 @@ test("browser run opens a browser, runs the code and closes it, also when the ru
   ]);
 
   const broken = browserServer(() =>
-    reply(503, {
+    reply(410, {
       success: false,
-      error: { code: "internalError", message: "Busy.", retryable: true },
+      error: { code: "notFound", message: "Gone.", retryable: false },
     }),
   );
   try {
-    await expect(browserRun(["--code", code])).rejects.toThrow("Busy.");
+    await expect(browserRun(["--code", code])).rejects.toThrow("Gone.");
   } finally {
     broken.fetched.mockRestore();
   }
@@ -1088,7 +1094,7 @@ const withPointer = {
   result: { ...taskDone.data.result, pageText: PAGE_POINTER },
 };
 
-const taskServer = (statuses: readonly JsonValue[], onStatus = () => {}) => {
+const taskServer = (statuses: readonly Response[], onStatus = () => {}) => {
   const seen: [string, JsonValue][] = [];
   const answers = [...statuses];
   const fetched = spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
@@ -1096,7 +1102,7 @@ const taskServer = (statuses: readonly JsonValue[], onStatus = () => {}) => {
     seen.push([path, JSON.parse(String(init?.body))]);
     if (path === "/v1/browser/task") return reply(200, taskStarted);
     onStatus();
-    return reply(200, answers.shift() ?? taskDone);
+    return answers.shift() ?? reply(200, taskDone);
   });
   return { seen, fetched };
 };
@@ -1113,7 +1119,7 @@ const browserTaskCommand = async (args: readonly string[]) => {
 const statusCall = ["/v1/browser/task/status", { id: TASK_ID, wait: 60 }];
 
 test("browser task waits for the answer and points to the page text instead of printing it", async () => {
-  const { seen, fetched } = taskServer([taskRunning]);
+  const { seen, fetched } = taskServer([reply(200, taskRunning)]);
   try {
     const out = await browserTaskCommand(["--goal", "Count the meanings"]);
     expect(seen).toEqual([
@@ -1172,7 +1178,7 @@ test("browser task --json and status --raw keep the page text", async () => {
 
 test("a task still running after 12 minutes prints its last status and id, and exits 1", async () => {
   const minutes = (count: number) => new Date(Date.now() + count * 60_000);
-  const { seen, fetched } = taskServer([taskRunning, taskRunning], () =>
+  const { seen, fetched } = taskServer([reply(200, taskRunning), reply(200, taskRunning)], () =>
     setSystemTime(minutes(13)),
   );
   const errors: string[] = [];
@@ -1233,4 +1239,273 @@ test("an interrupted wait names the task and how to cancel it, and exits 130", a
   } finally {
     server.stop(true);
   }
+});
+
+const captureStderr = () => {
+  const written: string[] = [];
+  const spy = spyOn(process.stderr, "write").mockImplementation((chunk) => {
+    written.push(String(chunk));
+    return true;
+  });
+  return { text: () => written.join(""), restore: () => spy.mockRestore() };
+};
+
+const recordSleeps = async () => {
+  const { clock } = await import("../src/clock.ts");
+  const waits: number[] = [];
+  const spy = spyOn(clock, "sleep").mockImplementation(async (ms) => {
+    waits.push(ms);
+  });
+  return { waits, restore: () => spy.mockRestore() };
+};
+
+const warmingUp = () =>
+  reply(503, {
+    success: false,
+    error: { code: "internalError", message: "Starting.", retryable: true },
+  });
+
+test("a browser this command just opened gets one more try when its first run answers 503 internalError", async () => {
+  const sleeps = await recordSleeps();
+  const answers = [warmingUp(), reply(200, ranInBrowser)];
+  const fresh = browserServer(() => answers.shift() ?? warmingUp());
+  try {
+    expect(await browserRun(["--code", "return await page.title()"])).toBe("Example Domain\n");
+    expect(fresh.seen.map(([method, path]) => `${method} ${path}`)).toEqual([
+      "POST /v1/browser",
+      "POST /v1/browser/s1/execute",
+      "POST /v1/browser/s1/execute",
+      "DELETE /v1/browser/s1",
+    ]);
+    expect(sleeps.waits).toEqual([1000]);
+  } finally {
+    fresh.fetched.mockRestore();
+  }
+  const open = browserServer(warmingUp);
+  try {
+    await expect(browserRun(["--id", "s1", "--code", "return 1"])).rejects.toThrow("Starting.");
+    expect(open.seen).toHaveLength(1);
+  } finally {
+    open.fetched.mockRestore();
+    sleeps.restore();
+  }
+});
+
+test("a browser that cannot be closed keeps the run's answer and says when it closes on its own", async () => {
+  const closeFails = () =>
+    reply(500, {
+      success: false,
+      error: { code: "internalError", message: "Close failed.", retryable: false },
+    });
+  const { fetched } = browserServer(undefined, closeFails);
+  const errors = captureStderr();
+  process.exitCode = 0;
+  try {
+    const out = await browserRun(["--code", "return await page.title()", "--timeout", "20"]);
+    expect(out).toBe("Example Domain\n");
+    expect(process.exitCode).toBe(0);
+    expect(errors.text()).toContain(
+      "Browser session s1 could not be closed; it closes on its own 80 s after it opened.",
+    );
+  } finally {
+    errors.restore();
+    fetched.mockRestore();
+  }
+  const both = browserServer(
+    () =>
+      reply(410, {
+        success: false,
+        error: { code: "notFound", message: "Gone.", retryable: false },
+      }),
+    closeFails,
+  );
+  const quiet = captureStderr();
+  try {
+    await expect(browserRun(["--code", "return 1"])).rejects.toThrow("Gone.");
+  } finally {
+    quiet.restore();
+    both.fetched.mockRestore();
+  }
+});
+
+test("browser run --raw drops the session links from the close answer too", async () => {
+  const { fetched } = browserServer(undefined, () =>
+    reply(200, {
+      success: true,
+      costUsd: 0.004,
+      cdpUrl: CDP_URL,
+      liveViewUrl: "https://live.test/s1",
+      interactiveLiveViewUrl: "https://live.test/s1?control=1",
+    }),
+  );
+  try {
+    const out = await browserRun(["--code", "return 1", "--raw"]);
+    expect(out).not.toContain("live.test");
+    expect(JSON.parse(out).close).toEqual({ success: true, costUsd: 0.004 });
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+const interruptBrowserRun = async (args: readonly string[]) => {
+  const runHome = `${home}/browser-interrupt-${args.length}`;
+  mkdirSync(`${runHome}/stophy`, { recursive: true });
+  writeFileSync(
+    `${runHome}/stophy/catalog.json`,
+    JSON.stringify({ fetchedAt: new Date().toISOString(), endpoints: [browserTask] }),
+  );
+  const seen: string[] = [];
+  const { promise: running, resolve: ran } = Promise.withResolvers<void>();
+  const server = Bun.serve({
+    port: 0,
+    fetch(req) {
+      const { pathname } = new URL(req.url);
+      seen.push(`${req.method} ${pathname}`);
+      if (pathname === "/v1/browser") return Response.json({ success: true, id: "s1" });
+      if (!pathname.endsWith("/execute")) return Response.json({ success: true, costUsd: 0.004 });
+      ran();
+      return new Promise<Response>(() => {});
+    },
+  });
+  const run = Bun.spawn(["bun", "src/index.ts", "browser", "run", ...args], {
+    env: {
+      ...process.env,
+      XDG_CONFIG_HOME: runHome,
+      STOPHY_API_KEY: KEY,
+      STOPHY_BASE_URL: `http://127.0.0.1:${server.port}`,
+      STOPHY_NO_UPDATE_CHECK: "1",
+    },
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  try {
+    await running;
+    run.kill("SIGINT");
+    const [exit, err] = await Promise.all([run.exited, new Response(run.stderr).text()]);
+    return { exit, err, seen };
+  } finally {
+    server.stop(true);
+  }
+};
+
+test("Ctrl-C during a run closes the browser this command opened, never an --id session", async () => {
+  const opened = await interruptBrowserRun(["--code", "return 1"]);
+  expect(opened.exit).toBe(130);
+  expect(opened.seen).toEqual([
+    "POST /v1/browser",
+    "POST /v1/browser/s1/execute",
+    "DELETE /v1/browser/s1",
+  ]);
+  const given = await interruptBrowserRun(["--id", "s1", "--code", "return 1"]);
+  expect(given.seen).toEqual(["POST /v1/browser/s1/execute"]);
+});
+
+test("the last wait for a task ends at the 12-minute limit", async () => {
+  const start = Date.now();
+  setSystemTime(new Date(start));
+  const { seen, fetched } = taskServer([reply(200, taskRunning)], () =>
+    setSystemTime(new Date(start + 11 * 60_000 + 29_500)),
+  );
+  try {
+    await browserTaskCommand(["--goal", "Count the meanings"]);
+    expect(seen.slice(1)).toEqual([
+      statusCall,
+      ["/v1/browser/task/status", { id: TASK_ID, wait: 30 }],
+    ]);
+  } finally {
+    setSystemTime();
+    fetched.mockRestore();
+  }
+});
+
+test("a task whose status check fails still names its id and how to read or stop it", async () => {
+  const down = reply(503, {
+    success: false,
+    error: { code: "internalError", message: "Status is down.", retryable: true },
+  });
+  const { seen, fetched } = taskServer([down]);
+  const errors = captureStderr();
+  try {
+    await expect(browserTaskCommand(["--goal", "Count the meanings"])).rejects.toThrow(
+      "Status is down.",
+    );
+    expect(errors.text()).toContain(`stophy browser task status ${TASK_ID}`);
+    expect(errors.text()).toContain(`stophy browser task cancel ${TASK_ID}`);
+    expect(seen).toHaveLength(2);
+  } finally {
+    errors.restore();
+    fetched.mockRestore();
+  }
+});
+
+test("--no-wait after the -- separator is not a flag", async () => {
+  const { seen, fetched } = taskServer([]);
+  try {
+    await expect(
+      browserTaskCommand(["--goal", "Count the meanings", "--", "--no-wait"]),
+    ).rejects.toThrow("Unexpected argument `--no-wait`.");
+    expect(seen).toEqual([]);
+  } finally {
+    fetched.mockRestore();
+  }
+});
+
+test("a busy answer is sent again after its wait, at most three more times", async () => {
+  const { request } = await import("../src/client.ts");
+  const sleeps = await recordSleeps();
+  const busy = () =>
+    flatError("busy", 503, {
+      error: "Every browser is busy right now. Try again in 30 seconds.",
+      retryable: true,
+      retryAfterSeconds: 30,
+    });
+  const answers = [busy(), Response.json({ success: true })];
+  const fetched = spyOn(globalThis, "fetch").mockImplementation(
+    async () => answers.shift() ?? busy(),
+  );
+  const errors = captureStderr();
+  const open = () => request({ method: "POST", path: "/v1/browser", accept: "application/json" });
+  try {
+    expect((await open()).status).toBe(200);
+    expect(fetched).toHaveBeenCalledTimes(2);
+    expect(sleeps.waits).toEqual([30_000]);
+    expect(errors.text()).toBe("Stophy is busy; trying again in 30s.\n");
+    fetched.mockClear();
+    await expect(open()).rejects.toThrow("Every browser is busy right now.");
+    expect(fetched).toHaveBeenCalledTimes(4);
+  } finally {
+    errors.restore();
+    fetched.mockRestore();
+    sleeps.restore();
+  }
+});
+
+test("an agent's first signup creates a config folder that does not exist yet", () =>
+  withApi(async (seen) => {
+    const run = Bun.spawn(["bun", "src/index.ts", "login"], {
+      env: { ...process.env, XDG_CONFIG_HOME: `${home}/fresh/config`, STOPHY_NO_UPDATE_CHECK: "1" },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const out = await new Response(run.stdout).text();
+    expect(JSON.parse(out).error.code).toBe("claimRequired");
+    expect(seen).toEqual(["/v1/signup"]);
+  }));
+
+test("a relative config folder is shown as a full path", async () => {
+  const cwd = `${home}/relative`;
+  mkdirSync(cwd, { recursive: true });
+  const run = Bun.spawn(["bun", `${import.meta.dir}/../src/index.ts`, "view-config"], {
+    cwd,
+    env: {
+      ...process.env,
+      XDG_CONFIG_HOME: "config-here",
+      STOPHY_API_KEY: KEY,
+      STOPHY_NO_UPDATE_CHECK: "1",
+    },
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const err = await new Response(run.stderr).text();
+  expect(err).toContain(`Config:        ${cwd}/config-here/stophy/config.json`);
 });

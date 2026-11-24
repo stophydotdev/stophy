@@ -37,13 +37,13 @@ async function run(answer: () => Response, args: string[]) {
     stdout: "pipe",
     stderr: "pipe",
   });
-  const exit = await child.exited;
+  const [exit, out, err] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ]);
   server.stop(true);
-  return {
-    exit,
-    out: await new Response(child.stdout).text(),
-    err: await new Response(child.stderr).text(),
-  };
+  return { exit, out, err };
 }
 
 test("--raw keeps the request id of a successful call", async () => {
@@ -104,6 +104,21 @@ test("a failed call writes its message and request id to stderr and the JSON to 
     error: { code: "sourceChanged", retryable: false, message: "The page changed" },
     requestId: "req-abc",
   });
+});
+
+test("a long failure reaches stderr and stdout whole before the CLI exits", async () => {
+  const message = "The page changed. ".repeat(20_000);
+  const { exit, out, err } = await run(
+    () =>
+      Response.json(
+        { success: false, error: message, code: "sourceChanged", retryable: false },
+        { status: 502, headers: ID },
+      ),
+    [],
+  );
+  expect(exit).toBe(1);
+  expect(err).toBe(`${message}\nRequest id: req-abc\n`);
+  expect(JSON.parse(out).error.message).toBe(message);
 });
 
 test("a failed call with -o still explains itself on stderr and writes no file", async () => {

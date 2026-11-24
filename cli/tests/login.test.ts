@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { expect, test } from "bun:test";
 import { deviceName, loginCode } from "../src/login-code.ts";
@@ -61,4 +61,23 @@ test("logout forgets the saved key even when the server cannot revoke it", async
     throw new CliError("Network request failed");
   });
   expect((await loadConfig()).apiKey).toBeUndefined();
+});
+
+test("a stale temp file cannot make the saved key readable, and a failed save leaves no copy of the key", async () => {
+  const { getConfigPath, saveConfig, setStoredApiKey } = await import("../src/config.ts");
+  const key = `st_${"c".repeat(40)}`;
+  const file = getConfigPath();
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(`${file}.${process.pid}.tmp`, "{}", { mode: 0o644 });
+  await setStoredApiKey(key);
+  expect(statSync(file).mode & 0o777).toBe(0o600);
+
+  rmSync(file);
+  mkdirSync(`${file}/in-the-way`, { recursive: true });
+  try {
+    await expect(saveConfig({ apiKey: key })).rejects.toThrow();
+    expect(readdirSync(dirname(file)).filter((name) => name.endsWith(".tmp"))).toEqual([]);
+  } finally {
+    rmSync(file, { recursive: true, force: true });
+  }
 });

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import packageJson from "../package.json" with { type: "json" };
 import { agentName, currentCommand } from "./agent.js";
+import { clock } from "./clock.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, type ErrorDetails } from "./errors.js";
 import { type JsonRecord, type JsonValue, parseJson } from "./json.js";
@@ -71,7 +72,34 @@ export interface HttpResponse {
   };
 }
 
-export async function request(options: RequestOptions): Promise<HttpResponse> {
+const BUSY_RETRIES = 3;
+const BUSY_WAIT_LIMIT_SECONDS = 60;
+
+export function request(options: RequestOptions): Promise<HttpResponse> {
+  return requestUnlessBusy(options, BUSY_RETRIES);
+}
+
+async function requestUnlessBusy(
+  options: RequestOptions,
+  retriesLeft: number,
+): Promise<HttpResponse> {
+  try {
+    return await requestOnce(options);
+  } catch (error) {
+    const seconds = error instanceof RequestError ? busyFor(error.failure) : undefined;
+    if (seconds === undefined || retriesLeft === 0) throw error;
+    process.stderr.write(`Stophy is busy; trying again in ${seconds}s.\n`);
+    await clock.sleep(seconds * 1000);
+    return requestUnlessBusy(options, retriesLeft - 1);
+  }
+}
+
+function busyFor({ code, retryAfterSeconds }: Failure): number | undefined {
+  if (code !== "busy" || retryAfterSeconds === undefined) return undefined;
+  return retryAfterSeconds <= BUSY_WAIT_LIMIT_SECONDS ? retryAfterSeconds : undefined;
+}
+
+async function requestOnce(options: RequestOptions): Promise<HttpResponse> {
   const runtime = await resolveRuntimeConfig();
   const { baseUrl, sessionCookie } = runtime;
   const apiKey = options.apiKey ?? runtime.apiKey;

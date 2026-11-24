@@ -424,3 +424,15 @@ test("a job priced per page shows its first clause, with the comma in 1,000 kept
   };
   expect(formatEndpointIndex([crawl])).toMatch(/^crawl +\$1 per 1,000 pages *$/mu);
 });
+
+test("a JSON flag refuses a number JSON cannot carry", () => {
+  const input = { type: "object", properties: { schema: { type: "object" } } };
+  expect(parseCall(["--schema", '{"maximum":1e309}'], input)).toMatchObject({
+    ok: false,
+    message: "--schema must be JSON.",
+  });
+  expect(parseCall(["--schema", '{"maximum":1}'], input)).toMatchObject({
+    ok: true,
+    call: { body: { schema: { maximum: 1 } } },
+  });
+});
