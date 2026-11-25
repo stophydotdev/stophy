@@ -1,5 +1,9 @@
 # stophy
 
+## 1.5.0
+
+- Read a crawl or batch as it finishes with `client.crawl_results(id)` and `client.batch_scrape_results(id)`, sync and async. Each reads one status page at a time from the job's checkpoint, waits at the live tail and stops when the job ends. `checkpoint`, `poll_interval`, `timeout` and `on_checkpoint` let you resume, pace or bound the wait.
+
 ## 1.4.2
 
 - A write is retried only when the API can replay it. If a write may have run and cannot be replayed safely, the call raises with `outcome_unknown` set. One `Idempotency-Key` is kept across the retries of a call.
