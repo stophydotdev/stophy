@@ -35,6 +35,13 @@ def _timeout(checkpoint: str) -> StophyError:
     )
 
 
+def _remaining(deadline: float, checkpoint: str) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise _timeout(checkpoint)
+    return remaining
+
+
 def checkpoint_results(
     read_page: Callable[[str], Any],
     *,
@@ -52,7 +59,9 @@ def checkpoint_results(
     deadline = time.monotonic() + timeout
     current = checkpoint or START
     while True:
+        _remaining(deadline, current)
         page = read_page(current)
+        _remaining(deadline, current)
         next_checkpoint = _checked(page)
         results = page.get("data") or []
         yield from results
@@ -63,7 +72,7 @@ def checkpoint_results(
             continue
         if page.get("status") in ENDED:
             return
-        if time.monotonic() + poll_interval > deadline:
+        if _remaining(deadline, current) <= poll_interval:
             raise _timeout(current)
         time.sleep(poll_interval)
 
@@ -80,7 +89,12 @@ async def async_checkpoint_results(
     deadline = time.monotonic() + timeout
     current = checkpoint or START
     while True:
-        page = await read_page(current)
+        remaining = _remaining(deadline, current)
+        try:
+            page = await asyncio.wait_for(read_page(current), remaining)
+        except asyncio.TimeoutError:
+            raise _timeout(current) from None
+        _remaining(deadline, current)
         next_checkpoint = _checked(page)
         results = page.get("data") or []
         for result in results:
@@ -92,6 +106,6 @@ async def async_checkpoint_results(
             continue
         if page.get("status") in ENDED:
             return
-        if time.monotonic() + poll_interval > deadline:
+        if _remaining(deadline, current) <= poll_interval:
             raise _timeout(current)
         await asyncio.sleep(poll_interval)

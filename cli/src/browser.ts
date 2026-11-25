@@ -9,6 +9,7 @@ import type { ParsedCall } from "./flags.js";
 import { parseEndpointCall, without } from "./invoke.js";
 import { type JsonRecord, type JsonValue, jsonRecord, readNumber, readString } from "./json.js";
 import { exitAfter, handleOutput, writeOutput, written } from "./output.js";
+import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
 export const BROWSER_RUN_URL = "https://example.com";
@@ -100,7 +101,7 @@ export async function runBrowser(endpoint: CatalogEndpoint): Promise<void> {
   const run = async (): Promise<Ran> =>
     session === undefined
       ? runInNewBrowser(steps, ttlFor(body))
-      : { executed: await runSteps(session, steps, false) };
+      : { executed: await runSteps(session, steps, executeWithSignup) };
   show(await (isAgentMode() ? run() : withSpinner("Running in a cloud browser…", run)), call);
 }
 
@@ -124,7 +125,9 @@ function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
 }
 
 async function runInNewBrowser(steps: readonly JsonRecord[], ttl: number): Promise<Ran> {
-  const { id } = await send(opened, { method: "POST", path: "/v1/browser", body: { ttl } });
+  const { id } = await withSignup(() =>
+    send(opened, { method: "POST", path: "/v1/browser", body: { ttl } }),
+  );
   const interrupted = () => void closeOnInterrupt(id, ttl);
   process.once("SIGINT", interrupted);
   try {
@@ -136,7 +139,7 @@ async function runInNewBrowser(steps: readonly JsonRecord[], ttl: number): Promi
 
 async function runThenClose(id: string, steps: readonly JsonRecord[], ttl: number): Promise<Ran> {
   try {
-    const executed = await runSteps(id, steps, true);
+    const executed = await runSteps(id, steps, executeWhenWarm);
     return { executed, closed: await closeSession(id, ttl) };
   } catch (error) {
     await closeSession(id, ttl);
@@ -147,11 +150,11 @@ async function runThenClose(id: string, steps: readonly JsonRecord[], ttl: numbe
 async function runSteps(
   id: string,
   steps: readonly JsonRecord[],
-  justOpened: boolean,
+  firstStep: typeof execute,
 ): Promise<JsonRecord> {
   let executed: JsonRecord = {};
   for (const [index, step] of steps.entries()) {
-    const run = justOpened && index === 0 ? executeWhenWarm : execute;
+    const run = index === 0 ? firstStep : execute;
     executed = await run(id, step);
     if (didFail(executed)) break;
   }
@@ -202,6 +205,8 @@ const sessionPath = (id: string) => `/v1/browser/${encodeURIComponent(id)}`;
 
 const execute = (id: string, body: JsonRecord) =>
   send(jsonRecord, { method: "POST", path: `${sessionPath(id)}/execute`, body });
+
+const executeWithSignup: typeof execute = (id, body) => withSignup(() => execute(id, body));
 
 async function send<Schema extends z.ZodType>(
   schema: Schema,
