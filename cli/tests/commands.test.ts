@@ -941,6 +941,18 @@ test("browser run opens a browser, runs the code and closes it, also when the ru
   ]);
 });
 
+test("browser run starts signup when the API requires a key", async () => {
+  await agentWithoutKey();
+  const { seen, fetched } = fakeServer("waiting");
+  try {
+    await expect(browserRun(["--code", "return 1"])).rejects.toMatchObject(claimRequired);
+    expect(seen).toEqual(["/v1/browser", "/v1/signup"]);
+  } finally {
+    fetched.mockRestore();
+    await agentWithoutKey();
+  }
+});
+
 test("browser run --id runs in that session and leaves it open", async () => {
   const { seen, fetched } = browserServer();
   try {
@@ -1176,6 +1188,20 @@ test("browser task waits for the answer and points to the page text instead of p
     });
   } finally {
     fetched.mockRestore();
+  }
+});
+
+test("browser task starts signup before waiting when the API requires a key", async () => {
+  await agentWithoutKey();
+  const { seen, fetched } = fakeServer("waiting");
+  try {
+    await expect(browserTaskCommand(["--goal", "Read the title"])).rejects.toMatchObject(
+      claimRequired,
+    );
+    expect(seen).toEqual(["/v1/browser/task", "/v1/signup"]);
+  } finally {
+    fetched.mockRestore();
+    await agentWithoutKey();
   }
 });
 

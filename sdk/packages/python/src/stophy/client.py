@@ -72,6 +72,7 @@ class Stophy(SyncSurface):
 
         Pass the checkpoint you kept to resume. It reads one status page per pull and
         raises StophyError with code resultsTimeout, and the checkpoint in details, at timeout.
+        An in-flight status request uses the client's HTTP timeout.
         """
         return checkpoint_results(
             lambda checkpoint: self.crawl.status(id=id, checkpoint=checkpoint),
@@ -94,6 +95,7 @@ class Stophy(SyncSurface):
 
         Pass the checkpoint you kept to resume. It reads one status page per pull and
         raises StophyError with code resultsTimeout, and the checkpoint in details, at timeout.
+        An in-flight status request uses the client's HTTP timeout.
         """
         return checkpoint_results(
             lambda checkpoint: self.batch.scrape.status(id=id, checkpoint=checkpoint),

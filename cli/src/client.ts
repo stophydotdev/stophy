@@ -149,13 +149,18 @@ async function requestOnce(options: RequestOptions): Promise<HttpResponse> {
   const text = await response.text();
   const json = parseJsonBody(text, response.headers.get("content-type"));
   const retryAfter = response.headers.get("Retry-After");
+  const safeId = (id: string | null): string | null =>
+    id !== null && ![apiKey, sessionCookie].some((secret) => secret && id.includes(secret))
+      ? id
+      : null;
+  const headerId = safeId(response.headers.get("X-Request-ID"));
   const minCliVersion = response.headers.get(MIN_VERSION_HEADER);
   if (!response.ok) {
     const failure = withUpgrade(
       withHint(failureOf(json, response.status, retryAfter), keySource),
       minCliVersion,
     );
-    const requestId = failure.requestId ?? response.headers.get("X-Request-ID");
+    const requestId = safeId(failure.requestId ?? null) ?? headerId;
     const message = failureMessage(failure, retryAfter);
     const details: ErrorDetails = retryAfter
       ? { status: response.status, retryAfter }
@@ -175,7 +180,7 @@ async function requestOnce(options: RequestOptions): Promise<HttpResponse> {
     json,
     retryAfter,
     minCliVersion,
-    requestId: response.headers.get("X-Request-ID"),
+    requestId: headerId,
     costUsd: response.headers.get("x-cost-usd"),
     rateLimit: {
       limit: response.headers.get("X-RateLimit-Limit"),

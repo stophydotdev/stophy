@@ -15,6 +15,7 @@ const scrape = {
 };
 
 const ID = { "x-request-id": "req-abc" };
+const KEY = "st_test";
 const priced = { ...ID, "x-cost-usd": "0.001" };
 const success = (headers: Record<string, string> = priced, extra = {}) =>
   Response.json({ success: true, data: { markdown: "hi" }, costUsd: 0.001, ...extra }, { headers });
@@ -30,7 +31,7 @@ async function run(answer: () => Response, args: string[]) {
     env: {
       ...process.env,
       XDG_CONFIG_HOME: home,
-      STOPHY_API_KEY: "st_test",
+      STOPHY_API_KEY: KEY,
       STOPHY_BASE_URL: `http://127.0.0.1:${server.port}`,
       STOPHY_NO_UPDATE_CHECK: "1",
     },
@@ -86,6 +87,18 @@ test("--json prints the request id after the cost, on stderr", async () => {
 test("a call with no request id header prints none", async () => {
   const { err } = await run(() => success({ "x-cost-usd": "0.001" }), ["--json"]);
   expect(err).toBe("cost: $0.001\n");
+});
+
+test("a request ID that contains the active API key is omitted on success and failure", async () => {
+  const headers = { "x-request-id": `req-${KEY}` };
+  const ok = await run(() => success(headers), ["--raw"]);
+  const failed = await run(
+    () => Response.json({ error: "Unauthorized" }, { status: 401, headers }),
+    [],
+  );
+  expect(ok.exit).toBe(0);
+  expect(failed.exit).toBe(1);
+  expect(ok.out + ok.err + failed.out + failed.err).not.toContain(KEY);
 });
 
 test("a failed call writes its message and request id to stderr and the JSON to stdout", async () => {

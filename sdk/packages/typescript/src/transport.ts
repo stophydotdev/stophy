@@ -248,18 +248,17 @@ async function send<Result>(
   }
 }
 
-function withDeadline(signal: AbortSignal | undefined, timeoutMs: number) {
+export function withDeadline(
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+  reason = (): Error =>
+    new DOMException(`Stophy request timed out after ${timeoutMs} ms`, "TimeoutError"),
+) {
   const controller = new AbortController();
   const abort = () => controller.abort(signal?.reason);
   if (signal?.aborted) abort();
   else signal?.addEventListener("abort", abort, { once: true });
-  const timer = setTimeout(
-    () =>
-      controller.abort(
-        new DOMException(`Stophy request timed out after ${timeoutMs} ms`, "TimeoutError"),
-      ),
-    timeoutMs,
-  );
+  const timer = setTimeout(() => controller.abort(reason()), timeoutMs);
   return {
     signal: controller.signal,
     clear: () => {

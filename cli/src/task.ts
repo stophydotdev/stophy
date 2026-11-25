@@ -6,6 +6,7 @@ import { endpointTokens, parseEndpointCall, runEndpoint, writeAnswer } from "./i
 import { requestFor } from "./jobs.js";
 import { type JsonRecord, jsonValue, readString } from "./json.js";
 import { exitAfter, written } from "./output.js";
+import { withSignup } from "./signup.js";
 import { withSpinner } from "./spinner.js";
 
 export const BROWSER_TASK = "browser.task";
@@ -39,7 +40,9 @@ export async function runBrowserTask(endpoint: CatalogEndpoint): Promise<void> {
   const flags = withoutNoWait(tokens);
   const call = parseEndpointCall(endpoint, flags);
   if (flags.length < tokens.length) return runEndpoint(endpoint, call);
-  const id = await quietlyFor("Starting the browser task…", () => startTask(endpoint, call.body));
+  const id = await withSignup(() =>
+    quietlyFor("Starting the browser task…", () => startTask(endpoint, call.body)),
+  );
   try {
     const { response, running } = await quietlyFor("Waiting for the browser task…", () =>
       waitForAnswer(id),

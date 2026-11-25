@@ -1,5 +1,5 @@
 import { StophyError } from "./errors";
-import type { CallOptions } from "./transport";
+import { type CallOptions, withDeadline } from "./transport";
 
 const START = "ck_start";
 const ENDED = new Set(["completed", "failed", "cancelled"]);
@@ -33,12 +33,15 @@ export async function* checkpointResults<Item>(
 ): AsyncGenerator<Item, ResultsEnd> {
   const { signal, onCheckpoint } = options;
   const pollMs = options.pollIntervalMs ?? DEFAULT_POLL_MS;
-  const deadline = Date.now() + (options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const deadline = performance.now() + (options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
   let checkpoint = options.checkpoint ?? START;
 
   for (;;) {
     signal?.throwIfAborted();
-    const page = await readPage(checkpoint, { signal });
+    const remaining = deadline - performance.now();
+    if (remaining <= 0) throw resultsTimeout(checkpoint);
+    const page = await readWithinBudget(readPage, checkpoint, remaining, signal);
+    if (performance.now() >= deadline) throw resultsTimeout(checkpoint);
     if (page.checkpoint === undefined) {
       throw new StophyError("The job's answer carried no checkpoint to resume from.", {
         status: 0,
@@ -52,15 +55,34 @@ export async function* checkpointResults<Item>(
     onCheckpoint?.(checkpoint);
     if (results.length > 0) continue;
     if (ENDED.has(page.status)) return { status: page.status, checkpoint };
-    if (Date.now() + pollMs > deadline) {
-      throw new StophyError("Gave up waiting for more results. Resume with the checkpoint.", {
-        status: 0,
-        code: "resultsTimeout",
-        retryable: true,
-        details: { checkpoint },
-      });
-    }
+    if (performance.now() + pollMs >= deadline) throw resultsTimeout(checkpoint);
     await sleep(pollMs, signal);
+  }
+}
+
+function resultsTimeout(checkpoint: string): StophyError {
+  return new StophyError("Gave up waiting for more results. Resume with the checkpoint.", {
+    status: 0,
+    code: "resultsTimeout",
+    retryable: true,
+    details: { checkpoint },
+  });
+}
+
+async function readWithinBudget<Item>(
+  readPage: ReadPage<Item>,
+  checkpoint: string,
+  remaining: number,
+  signal: AbortSignal | undefined,
+): Promise<StatusPage<Item>> {
+  if (remaining > 2_147_483_647) return readPage(checkpoint, { signal });
+  const call = withDeadline(signal, remaining, () => resultsTimeout(checkpoint));
+  try {
+    const page = await readPage(checkpoint, { signal: call.signal });
+    call.signal.throwIfAborted();
+    return page;
+  } finally {
+    call.clear();
   }
 }
 
