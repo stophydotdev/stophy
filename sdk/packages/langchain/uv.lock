@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -1300,7 +1300,7 @@ wheels = [
 
 [[package]]
 name = "stophy"
-version = "1.4.2"
+version = "1.5.0"
 source = { editable = "../python" }
 dependencies = [
     { name = "httpx" },
