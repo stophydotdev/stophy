@@ -1,5 +1,30 @@
 # @stophy/cli
 
+## 2.2.0
+
+### Minor Changes
+
+- 9c64b05: `stophy browser run` works a real cloud browser in one command. `--url` alone opens the page and prints its text. Add `--code` for Playwright code, or `--prompt` for plain words. The browser always closes, and the cost is printed on stderr.
+
+### Patch Changes
+
+- 0aa83c1: Keep API requests on the configured origin and accept only API route paths in the endpoint catalog.
+- cc69ee7: `stophy browser run --url <url> --code <code>` opens the page and runs the code in one call to the browser instead of two, about 1.6 s faster per run.
+- cb61ae1: `stophy browser task` now waits for the answer and prints it in one command, with the final page's text left out of the agent line and the terminal view (`--raw` shows it), and `--no-wait` prints the task id at once as before.
+- 66a308a: The CLI starts faster: `stophy -V` reads no endpoint catalog, the config file is read directly, parsed JSON is not checked twice, and the spinner, prompts, browser opener and update check load only when a person needs them.
+- dceefbc: Hitting the free daily limit without a key no longer starts a signup. The CLI shows the limit and how long to wait, and says to run `stophy login` for a key. In CI the wait time is no longer replaced by "No API key". A call that needs a key still starts a signup.
+- 9c64b05: `stophy --help` says what `browser` and `webhook` do, instead of repeating their names.
+- cc69ee7: `stophy --help` says how `browser run --code` works and how long a run may take, so an agent can run it without reading `stophy browser run --help` first.
+- a35f990: A `STOPHY_API_KEY` or saved key that an HTTP header cannot carry, such as one with a line break, is refused with a fixed message instead of printing the key. `stophy status` treats a bare HTTP 401 as a rejected key, and a person at a terminal sees the rejection on stderr. A minimum-version header that is not a version no longer triggers an upgrade warning.
+- cf1abba: A keyless call the API refuses, such as a page that needs a key to read, now says why, in CI and out of it. The no-key message no longer tells people on their own machine to use CI secrets.
+- cf1abba: A command from an older skill, such as `stophy web search "<query>" --limit 5`, now names the command to run, `stophy search '<query>' --limit 5`, and how to update the skills, instead of failing on `--limit` and printing the whole help.
+- ccee7ea: A key the API rejects is no longer called authenticated. `stophy status` reports `authenticated: false` with the reason and the next step, exits 1, and prints the error on stderr as well as in its JSON. Any call that the API answers with "not valid or has expired" now ends with the fix: `Run stophy logout, then stophy login.` for a stored key, or a note to replace `STOPHY_API_KEY`. `stophy version` prints `credentials: stored | env | session | none` and says nothing about whether the key works; its JSON keeps `authenticated` and `source` for scripts, and `authenticated` only means a key is present.
+- 517817d: A successful call keeps its request ID: `--raw` and the one-line agent output carry `requestId`, and `--json` prints `request id: <id>` after the cost on stderr. A failed call now always explains itself on stderr, with its request ID, even when an agent also gets the error as JSON on stdout. The cost line prints only after the output was written, and a file that cannot be written fails with its path.
+- a7b4c0c: Ctrl-C during `stophy browser run` now closes the browser it opened, a busy Stophy is tried again after the wait it names, and browser tasks, error output and the saved config no longer lose an id, a message or the key's privacy along the way.
+- cc69ee7: Help examples quote values with single quotes, so code such as `page.$$eval(...)` copied from them reaches the browser as written instead of having `$$` replaced by the shell.
+- e3b98c3: When the CLI cannot read a reply, it now says it may be out of date and gives the upgrade command: `npm install -g @stophy/cli@latest`, or run the installer again. If the API sends `X-Stophy-Min-Cli-Version` and this CLI is older, every failing call says so, and a working call warns on stderr. A signup status the CLI does not know counts as still waiting instead of failing.
+- a569deb: Offer signup when a browser run or task needs a key. Omit request IDs that contain the active credential.
+
 ## 2.1.2
 
 ### Patch Changes
