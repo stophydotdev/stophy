@@ -1017,8 +1017,8 @@ function exampleLine(
   return pieces.join(" ");
 }
 
-function quoteArg(value: string): string {
-  return /^[A-Za-z0-9._:/@,+-]+$/u.test(value) ? value : JSON.stringify(value);
+export function quoteArg(value: string): string {
+  return /^[\w@%+=:,./-]+$/u.test(value) ? value : `'${value.replaceAll("'", `'\\''`)}'`;
 }
 
 export function formatEndpointIndex(

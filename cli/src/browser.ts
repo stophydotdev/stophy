@@ -13,6 +13,9 @@ import { withSpinner } from "./spinner.js";
 
 export const BROWSER_RUN_URL = "https://example.com";
 export const BROWSER_RUN_CODE = "return await page.title()";
+export const RUN_SECONDS = 30;
+export const MAX_RUN_SECONDS = 300;
+const PROMPT_SECONDS = 120;
 
 export const BROWSER_RUN: CatalogEndpoint = {
   id: "browser.run",
@@ -38,8 +41,8 @@ export const BROWSER_RUN: CatalogEndpoint = {
       timeout: {
         type: "integer",
         minimum: 1,
-        maximum: 300,
-        description: "Seconds the run may take, 30 by default or 120 for a prompt",
+        maximum: MAX_RUN_SECONDS,
+        description: `Seconds the run may take, ${RUN_SECONDS} by default or ${PROMPT_SECONDS} for a prompt`,
       },
       id: {
         type: "string",
@@ -51,6 +54,7 @@ export const BROWSER_RUN: CatalogEndpoint = {
   example: { url: BROWSER_RUN_URL, code: BROWSER_RUN_CODE },
 };
 
+const LONE_FUNCTION = /^\s*(async\s+)?(function\b|\(|[\w$]+\s*=>)/u;
 const TTL_MARGIN_SECONDS = 60;
 const WARM_UP_RETRY_MS = 1000;
 const CLOSE_ON_INTERRUPT_MS = 3000;
@@ -111,6 +115,10 @@ function stepsFor(url: string | undefined, body: JsonRecord): JsonRecord[] {
   if (wanted.length === 0) {
     const read = `${open}; return await page.locator("body").innerText()`;
     return [{ ...without(body, ["language"]), code: read }];
+  }
+  const code = readString(body.code);
+  if (code !== undefined && (body.language ?? "node") === "node" && !LONE_FUNCTION.test(code)) {
+    return [{ ...body, code: `${open};\n${code}` }];
   }
   return [{ code: open }, body];
 }
@@ -184,7 +192,10 @@ async function closeOnInterrupt(id: string, ttl: number): Promise<void> {
 }
 
 function ttlFor({ timeout, prompt }: JsonRecord): number {
-  return (readNumber(timeout) ?? (prompt === undefined ? 30 : 120)) + TTL_MARGIN_SECONDS;
+  return (
+    (readNumber(timeout) ?? (prompt === undefined ? RUN_SECONDS : PROMPT_SECONDS)) +
+    TTL_MARGIN_SECONDS
+  );
 }
 
 const sessionPath = (id: string) => `/v1/browser/${encodeURIComponent(id)}`;

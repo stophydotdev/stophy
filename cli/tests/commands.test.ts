@@ -973,17 +973,30 @@ test("browser run --url alone opens the page in a browser and prints its text", 
   ]);
 });
 
-test("browser run --url with code opens the page, then runs the code there", async () => {
+test("browser run --url with code opens the page and runs the code there in one run, unless the code is a function", async () => {
   const { seen, fetched } = browserServer();
   try {
     await browserRun(["--url", "https://example.com", "--code", "return await page.title()"]);
+    await browserRun(["--url", "https://example.com", "--prompt", "Read the title"]);
+    await browserRun(["--url", "https://example.com", "--code", "async (page) => page.title()"]);
   } finally {
     fetched.mockRestore();
   }
   expect(seen.map(([method, path, body]) => [method, path, body])).toEqual([
     ["POST", "/v1/browser", { ttl: 90 }],
+    [
+      "POST",
+      "/v1/browser/s1/execute",
+      { code: 'await page.goto("https://example.com");\nreturn await page.title()' },
+    ],
+    ["DELETE", "/v1/browser/s1", null],
+    ["POST", "/v1/browser", { ttl: 180 }],
     ["POST", "/v1/browser/s1/execute", { code: 'await page.goto("https://example.com")' }],
-    ["POST", "/v1/browser/s1/execute", { code: "return await page.title()" }],
+    ["POST", "/v1/browser/s1/execute", { prompt: "Read the title" }],
+    ["DELETE", "/v1/browser/s1", null],
+    ["POST", "/v1/browser", { ttl: 90 }],
+    ["POST", "/v1/browser/s1/execute", { code: 'await page.goto("https://example.com")' }],
+    ["POST", "/v1/browser/s1/execute", { code: "async (page) => page.title()" }],
     ["DELETE", "/v1/browser/s1", null],
   ]);
 });
@@ -1058,7 +1071,7 @@ test("browser run sits next to the catalog's browser commands, and only there", 
   expect(help).toContain("--language <language>");
   expect(help).toContain("node, python or bash (default: node)");
   expect(help).toContain(
-    `stophy browser run --url https://example.com --code "return await page.title()"`,
+    `stophy browser run --url https://example.com --code 'return await page.title()'`,
   );
 
   const search = { ...browserTask, id: "search", path: "/v1/search" };

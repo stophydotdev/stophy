@@ -2,7 +2,14 @@ import { Command, Help } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { isAgentMode, setCommand } from "./agent.js";
 import { catalogNeeded, catalogOptional, setCurrentArgs, stripGlobalRefresh } from "./argv.js";
-import { BROWSER_RUN, BROWSER_RUN_CODE, BROWSER_RUN_URL, withBrowserRun } from "./browser.js";
+import {
+  BROWSER_RUN,
+  BROWSER_RUN_CODE,
+  BROWSER_RUN_URL,
+  MAX_RUN_SECONDS,
+  RUN_SECONDS,
+  withBrowserRun,
+} from "./browser.js";
 import {
   type Catalog,
   type CatalogEndpoint,
@@ -24,6 +31,7 @@ import { registerUsageCommand } from "./commands/usage.js";
 import { registerVersionCommand } from "./commands/version.js";
 import { resolveRuntimeConfig } from "./config.js";
 import { CliError, toCliError } from "./errors.js";
+import { quoteArg } from "./flags.js";
 import { parseEndpointCall } from "./invoke.js";
 import { isAgentCommand, withJobEndpoints } from "./jobs.js";
 import { exitAfter, writeFailure, writeFailureMessage } from "./output.js";
@@ -60,7 +68,9 @@ const ACCOUNT_COMMANDS = [
 ];
 
 const BROWSER_HINT = [
-  "A real browser: stophy browser run --url <url>, with --code for Playwright.",
+  "A real browser: stophy browser run --url <url> prints the page's text.",
+  "--code '<js>' runs there with page as a Playwright Page; return what to print.",
+  `A run stops after ${RUN_SECONDS} s; --timeout <seconds> allows up to ${MAX_RUN_SECONDS}.`,
   "stophy scrape reads a page without a browser.",
 ].join("\n");
 
@@ -71,7 +81,7 @@ function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
     ...(byId.has(BROWSER_RUN.id)
       ? [
           `  $ stophy browser run --url ${BROWSER_RUN_URL}`,
-          `  $ stophy browser run --url ${BROWSER_RUN_URL} --code "${BROWSER_RUN_CODE}"`,
+          `  $ stophy browser run --url ${BROWSER_RUN_URL} --code ${quoteArg(BROWSER_RUN_CODE)}`,
         ]
       : []),
     "  $ stophy map https://bun.com --limit 20",
@@ -79,9 +89,6 @@ function examplesFor(byId: ReadonlyMap<string, CatalogEndpoint>): string[] {
     "  $ stophy scrape https://youtu.be/M4TufsFlv_o --parser youtube-transcript",
   ];
 }
-
-const shellWord = (arg: string) =>
-  /^[\w@%+=:,./-]+$/u.test(arg) ? arg : `'${arg.replaceAll("'", `'\\''`)}'`;
 
 function buildProgram({ endpoints, sources }: Catalog): Command {
   const program = new Command();
@@ -121,7 +128,7 @@ ${examplesFor(byId).join("\n")}
         );
       }
       throw new CliError(
-        `\`stophy ${word} ${next}\` is not a command. Run \`stophy ${[next, ...rest].map(shellWord).join(" ")}\`, or ${parsers} If a skill gave you \`stophy ${word} ${next}\`, it is out of date: \`npx skills add stophydotdev/stophy\` updates it.`,
+        `\`stophy ${word} ${next}\` is not a command. Run \`stophy ${[next, ...rest].map(quoteArg).join(" ")}\`, or ${parsers} If a skill gave you \`stophy ${word} ${next}\`, it is out of date: \`npx skills add stophydotdev/stophy\` updates it.`,
       );
     });
 

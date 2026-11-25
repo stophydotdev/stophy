@@ -346,7 +346,7 @@ test("help reads like a person wrote it: summary, positional input, options, exa
   );
   expect(help).toMatch(/--features <list> +Comma-separated: live, hd, 4k/u);
   expect(help).toMatch(/--page <number> +Page number, starting at 1 \(default: 1, max: 100\)/u);
-  expect(help).toContain('stophy youtube search "bun runtime" --page 2');
+  expect(help).toContain("stophy youtube search 'bun runtime' --page 2");
   expect(help).toContain("--json");
   expect(help).toMatch(/--raw +Output the full response with its request id/u);
   for (const internal of ["youtube.search", "credit", "cached", "3600", "characters", "endpoint"]) {
