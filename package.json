@@ -6,8 +6,8 @@
     "sdk/packages/typescript",
     "sdk/packages/ai-sdk",
     "cli",
-    "docs",
-    "mcp"
+    "cli/platforms/*",
+    "docs"
   ],
   "type": "module",
   "scripts": {

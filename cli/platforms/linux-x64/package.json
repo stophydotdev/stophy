@@ -1,0 +1,20 @@
+{
+  "name": "@stophy/native-linux-x64",
+  "version": "2.3.0",
+  "description": "Stophy for linux x64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stophydotdev/stophy.git"
+  },
+  "files": [
+    "bin"
+  ],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "./bin/stophy"
+}
