@@ -163,7 +163,7 @@ jobs:
           url="https://github.com/axodotdev/cargo-dist/releases/download/v0.34.0/cargo-dist-$dist_target"
           if [[ "$RUNNER_OS" == Windows ]]; then
             curl --fail --silent --show-error --location "$url.zip" -o "$RUNNER_TEMP/dist.zip"
-            unzip -j "$RUNNER_TEMP/dist.zip" '*/dist.exe' -d "$RUNNER_TEMP"
+            unzip -j "$RUNNER_TEMP/dist.zip" dist.exe -d "$RUNNER_TEMP"
           else
             curl --fail --silent --show-error --location "$url.tar.xz" | tar -xJ -C "$RUNNER_TEMP" --strip-components=1 "cargo-dist-$dist_target/dist"
           fi

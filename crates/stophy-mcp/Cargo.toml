@@ -11,7 +11,12 @@ publish = false
 anyhow = "1"
 reqwest.workspace = true
 serde_json.workspace = true
-rmcp = { version = "3.11", default-features = false, features = ["client", "server", "transport-io", "transport-streamable-http-client-reqwest"] }
+rmcp = { version = "3.11", default-features = false, features = [
+  "client",
+  "server",
+  "transport-io",
+  "transport-streamable-http-client-reqwest",
+] }
 tokio = { workspace = true, features = ["sync"] }
 stophy = { path = "../stophy" }
 

@@ -8,7 +8,12 @@ license = "MIT"
 repository = "https://github.com/stophydotdev/stophy"
 
 [workspace.dependencies]
-reqwest = { version = "0.13.2", default-features = false, features = ["rustls", "json", "query", "http2"] }
+reqwest = { version = "0.13.2", default-features = false, features = [
+  "rustls",
+  "json",
+  "query",
+  "http2",
+] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -31,9 +36,9 @@ cargo-dist-version = "0.34.0"
 ci = []
 installers = []
 targets = [
-    "aarch64-apple-darwin",
-    "x86_64-apple-darwin",
-    "aarch64-unknown-linux-musl",
-    "x86_64-unknown-linux-musl",
-    "x86_64-pc-windows-msvc",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "aarch64-unknown-linux-musl",
+  "x86_64-unknown-linux-musl",
+  "x86_64-pc-windows-msvc",
 ]

@@ -36,6 +36,14 @@
       "specifier": "./tools/oxlint/stophy/index.ts"
     }
   ],
+  "overrides": [
+    {
+      "files": ["cli/bin.cjs"],
+      "rules": {
+        "comments/no-comments": "off"
+      }
+    }
+  ],
   "rules": {
     "typescript/consistent-type-assertions": [
       "error",
