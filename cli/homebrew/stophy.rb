@@ -1,27 +1,27 @@
 class Stophy < Formula
   desc "Search, read, and act on the web. The Stophy command line"
   homepage "https://stophy.dev"
-  version "1.0.8"
+  version "2.3.0"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-darwin-arm64.tar.gz"
-      sha256 "PLACEHOLDER"
+      sha256 "PLACEHOLDER-stophy-darwin-arm64.tar.gz"
     end
     on_intel do
       url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-darwin-x64.tar.gz"
-      sha256 "PLACEHOLDER"
+      sha256 "PLACEHOLDER-stophy-darwin-x64.tar.gz"
     end
   end
   on_linux do
     on_arm do
       url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-linux-arm64.tar.gz"
-      sha256 "PLACEHOLDER"
+      sha256 "PLACEHOLDER-stophy-linux-arm64.tar.gz"
     end
     on_intel do
       url "https://github.com/stophydotdev/stophy/releases/download/v#{version}/stophy-linux-x64.tar.gz"
-      sha256 "PLACEHOLDER"
+      sha256 "PLACEHOLDER-stophy-linux-x64.tar.gz"
     end
   end
 

@@ -105,73 +105,131 @@ jobs:
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pytest
 
-  cli:
-    name: CLI
+  rust:
+    name: Rust SDK, CLI and MCP
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cli
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-      - run: bun install --frozen-lockfile
-        working-directory: .
-      - run: bun run check-types
-      - run: bun run build
-      - run: bun run test
-      - run: bash tests/install.sh
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
+      - run: cargo +stable fmt --all --check
+      - run: python3 crates/stophy/generate.py --check
+      - run: cargo +stable clippy --locked --workspace --all-targets -- -D warnings
+      - run: cargo +stable test --locked --workspace
 
   cli-binary:
-    name: CLI binary (${{ matrix.os }})
+    name: CLI binary (${{ matrix.platform }})
     if: github.event_name == 'pull_request'
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            target: bun-linux-x64
-            binary: stophy-linux-x64
+            target: x86_64-unknown-linux-musl
+            platform: linux-x64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            platform: linux-arm64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            platform: darwin-x64
           - os: macos-latest
-            target: bun-darwin-arm64
-            binary: stophy-darwin-arm64
+            target: aarch64-apple-darwin
+            platform: darwin-arm64
           - os: windows-latest
-            target: bun-windows-x64
-            binary: stophy-windows-x64.exe
+            target: x86_64-pc-windows-msvc
+            platform: win32-x64
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: cli
+    env:
+      NATIVE_TARGET: ${{ matrix.target }}
+      NATIVE_PLATFORM: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-      - run: bun install --frozen-lockfile
-        working-directory: .
-      - run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.binary }}
-      - name: Windows installer platform checks
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Install Rust target and cargo-dist
+        shell: bash
+        run: |
+          rustup default stable
+          rustup target add "$NATIVE_TARGET"
+          case "$RUNNER_OS/$RUNNER_ARCH" in
+            Linux/X64) dist_target=x86_64-unknown-linux-gnu ;;
+            Linux/ARM64) dist_target=aarch64-unknown-linux-gnu ;;
+            macOS/X64) dist_target=x86_64-apple-darwin ;;
+            macOS/ARM64) dist_target=aarch64-apple-darwin ;;
+            Windows/X64) dist_target=x86_64-pc-windows-msvc ;;
+          esac
+          url="https://github.com/axodotdev/cargo-dist/releases/download/v0.34.0/cargo-dist-$dist_target"
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            curl --fail --silent --show-error --location "$url.zip" -o "$RUNNER_TEMP/dist.zip"
+            unzip -j "$RUNNER_TEMP/dist.zip" '*/dist.exe' -d "$RUNNER_TEMP"
+          else
+            curl --fail --silent --show-error --location "$url.tar.xz" | tar -xJ -C "$RUNNER_TEMP" --strip-components=1 "cargo-dist-$dist_target/dist"
+          fi
+          if [[ "$RUNNER_OS" == Linux ]]; then sudo apt-get update -qq && sudo apt-get install -y musl-tools; fi
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Build Stophy
+        shell: bash
+        run: dist build --artifacts=local --target "$NATIVE_TARGET"
+      - name: Test native executable and npm entry points
+        shell: bash
+        run: |
+          exe="target/$NATIVE_TARGET/dist/stophy"
+          if [[ "$RUNNER_OS" == Windows ]]; then exe+=.exe; fi
+          "$exe" --version
+          python cli/scripts/stage-native.py "$NATIVE_PLATFORM" "$exe"
+          out="$PWD/target/native/$NATIVE_PLATFORM"
+          npm pack ./cli --pack-destination "$out"
+          npm install --prefix "$RUNNER_TEMP/stophy-npm" --offline --no-audit --no-fund "$out"/*.tgz
+          bin="$RUNNER_TEMP/stophy-npm/node_modules/.bin"
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            "$bin/stophy.cmd" --version
+            "$bin/stophy.cmd" mcp --help
+          else
+            "$bin/stophy" --version
+            "$bin/stophy" mcp --help
+          fi
+      - name: Test macOS and Linux installer
+        if: matrix.platform == 'linux-x64'
+        run: bash cli/tests/install.sh
+      - name: Test Windows installer
         if: runner.os == 'Windows'
         shell: pwsh
-        working-directory: .
         run: ./sdk/test/typescript/windows-installer.ps1
-      - if: runner.os != 'Windows'
-        run: |
-          chmod +x ${{ matrix.binary }}
-          ./${{ matrix.binary }} --version
-          ./${{ matrix.binary }} --help
-      - if: runner.os == 'Windows'
-        run: |
-          .\${{ matrix.binary }} --version
-          .\${{ matrix.binary }} --help
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: native-${{ matrix.platform }}
+          path: target/native/${{ matrix.platform }}/
+          if-no-files-found: error
 
-  mcp:
-    name: MCP server
+  cli-packages:
+    name: CLI archives and packages
+    needs: cli-binary
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mcp
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-      - run: bun install --frozen-lockfile
-        working-directory: .
-      - run: bun run check-types
-      - run: bun run build
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          pattern: native-*
+          path: target/native
+      - name: Build Linux packages and fill formula checksums
+        run: |
+          for platform in linux-x64 linux-arm64 darwin-x64 darwin-arm64 win32-x64; do
+            mv "target/native/native-$platform" "target/native/$platform"
+            if [[ "$platform" != win32-* ]]; then chmod +x "target/native/$platform/stophy-$platform"; fi
+          done
+          curl --fail --silent --show-error --location https://github.com/goreleaser/nfpm/releases/download/v2.45.1/nfpm_2.45.1_Linux_x86_64.tar.gz | tar -xz -C "$RUNNER_TEMP" nfpm
+          PATH="$RUNNER_TEMP:$PATH" bash cli/scripts/package-linux.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: cli-packages
+          path: |
+            target/native/*.deb
+            target/native/*.rpm
+            target/native/*.apk
+            target/native/*.pkg.tar.zst
+            target/native/checksums.txt
+            target/native/stophy.rb
+          if-no-files-found: error

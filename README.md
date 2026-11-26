@@ -38,8 +38,9 @@ Each one calls the same API.
 | ------------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
 | TypeScript                      | `npm install stophy`                            | [sdk/packages/typescript](./sdk/packages/typescript) |
 | Python                          | `pip install stophy`                            | [sdk/packages/python](./sdk/packages/python)         |
+| Rust                            | Use the `stophy` crate                          | [crates/stophy](./crates/stophy)                     |
 | A terminal or a script          | `curl -fsSL https://stophy.dev/install \| bash` | [cli](./cli)                                         |
-| An agent over MCP               | `npx -y @stophy/mcp`                            | [mcp](./mcp)                                         |
+| An agent over MCP               | `stophy mcp`                                    | [mcp](./mcp)                                         |
 | Claude Code, Cursor, Gemini CLI | `npx skills add stophydotdev/stophy`            | [skills](./skills)                                   |
 | Vercel AI SDK                   | `npm install @stophy/ai-sdk`                    | [sdk/packages/ai-sdk](./sdk/packages/ai-sdk)         |
 | LangChain                       | `pip install langchain-stophy`                  | [sdk/packages/langchain](./sdk/packages/langchain)   |

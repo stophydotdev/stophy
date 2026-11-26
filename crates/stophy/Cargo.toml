@@ -1,0 +1,21 @@
+[package]
+name = "stophy"
+version = "0.1.0"
+description = "Async Rust client for the Stophy API"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+httpdate = "1"
+
+[lints]
+workspace = true
+
+[package.metadata.dist]
+dist = false

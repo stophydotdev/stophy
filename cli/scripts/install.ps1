@@ -1,9 +1,6 @@
 # Stophy CLI installer for Windows
 # Usage: irm https://stophy.dev/install.ps1 | iex
 #
-# When it finds an agent folder in your home directory, it also adds the
-# Stophy skills for your agents.
-#
 # Environment variables:
 #   STOPHY_INSTALL_DIR  - Override install directory
 #   STOPHY_VERSION      - Install a specific version (default: latest)
@@ -12,9 +9,6 @@ $ErrorActionPreference = "Stop"
 
 $Repo = "stophydotdev/stophy"
 $BinaryName = "stophy"
-$AgentDirs = @(".claude", ".codex", ".cursor", ".gemini", ".config\opencode")
-$InitArgs = @("init", "--all", "--skip-auth", "--skip-mcp")
-
 function Write-Info($msg) { Write-Host "info   " -ForegroundColor Blue -NoNewline; Write-Host $msg }
 function Write-Warn($msg) { Write-Host "warn   " -ForegroundColor Yellow -NoNewline; Write-Host $msg }
 function Write-Err($msg)  { Write-Host "error  " -ForegroundColor Red -NoNewline; Write-Host $msg }
@@ -30,24 +24,8 @@ function Get-Platform {
     $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
     switch ($arch) {
         "X64"   { return "x64" }
-        "Arm64" { throw "The standalone installer does not support Windows ARM64. Install Node.js and run: npm install -g @stophy/cli" }
+        "Arm64" { throw "The standalone installer does not support Windows ARM64. With x64 Node.js, run npm install -g @stophy/cli" }
         default { throw "Unsupported architecture: $arch" }
-    }
-}
-
-function Add-AgentSkills($installDir) {
-    $hasAgent = $AgentDirs | Where-Object { Test-Path (Join-Path $env:USERPROFILE $_) }
-    if (-not $hasAgent) {
-        Write-Host "  Skills  not added, no agent folder found. Run 'stophy $($InitArgs -join ' ')' once you use an agent."
-        return
-    }
-    $ErrorActionPreference = "Continue"
-    $log = & "$installDir\stophy.exe" @InitArgs 2>&1 | Out-String
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  Skills  added for your agents"
-    } else {
-        Write-Host $log
-        Write-Host "  Skills  not added. Run 'stophy $($InitArgs -join ' ')' to retry."
     }
 }
 
@@ -118,10 +96,9 @@ function Install-Stophy {
         Write-Ok "Stophy CLI v$version installed."
         Write-Host ""
         Write-Host "  Binary  $installDir\stophy.exe"
-        Add-AgentSkills $installDir
         Write-Host ""
         Write-Host "Next, run this. It needs no key."
-        Write-Host '  stophy google search "latest bun release"'
+        Write-Host '  stophy search "latest bun release"'
         Write-Host ""
         Write-Host "  stophy --help           list every command"
         Write-Host "  stophy login --browser  get a key for the rest"

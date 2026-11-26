@@ -1,0 +1,19 @@
+[package]
+name = "stophy-mcp"
+version = "1.4.0"
+description = "Stdio MCP mode for the Stophy command line"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+anyhow = "1"
+reqwest.workspace = true
+serde_json.workspace = true
+rmcp = { version = "3.11", default-features = false, features = ["client", "server", "transport-io", "transport-streamable-http-client-reqwest"] }
+tokio = { workspace = true, features = ["sync"] }
+stophy = { path = "../stophy" }
+
+[lints]
+workspace = true
