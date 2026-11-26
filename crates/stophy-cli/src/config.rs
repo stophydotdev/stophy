@@ -224,3 +224,11 @@ pub fn agent() -> Option<String> {
         })
         .or_else(|| label("AI_AGENT"))
 }
+
+#[test]
+fn saved_key_stays_on_its_origin() -> Result<()> {
+    let config: Config = serde_json::from_str(r#"{"apiKey":"fixture"}"#)?;
+    assert_eq!(config.stored_key_for(stophy::API_ORIGIN), Some("fixture"));
+    assert_eq!(config.stored_key_for("https://other.example"), None);
+    Ok(())
+}
