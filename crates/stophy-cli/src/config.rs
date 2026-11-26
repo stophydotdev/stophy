@@ -15,6 +15,7 @@ pub const FRONTEND: &str = "https://stophy.dev";
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Pending {
+    pub origin: Option<String>,
     pub claim_url: String,
     pub code: String,
     pub expires_at: String,
@@ -66,6 +67,7 @@ impl Config {
         let mut config: Self =
             serde_json::from_slice(&bytes).map_err(|_| anyhow::anyhow!(issue()))?;
         config.api_key = clean(config.api_key.as_deref());
+        config.base_url = clean(config.base_url.as_deref());
         Ok(config)
     }
 
@@ -92,8 +94,9 @@ impl Config {
         write_json(&path, &config).with_context(issue)
     }
 
-    pub fn save_key(key: String) -> Result<()> {
+    pub fn save_key(key: String, origin: String) -> Result<()> {
         Self::edit(|stored| {
+            stored.base_url = Some(origin);
             stored.api_key = Some(key);
             stored.pending_signups.clear();
         })
@@ -115,26 +118,33 @@ impl Config {
         )
     }
 
+    pub fn stored_origin(&self) -> &str {
+        self.base_url.as_deref().unwrap_or(stophy::API_ORIGIN)
+    }
+
     pub fn source(&self) -> &'static str {
         if env_key().is_some() {
             "env"
-        } else if self.api_key.is_some() {
+        } else if self.stored_key_for(&self.origin()).is_some() {
             "stored"
         } else {
             "none"
         }
     }
 
-    pub fn key(&self) -> Option<String> {
-        env_key().or_else(|| self.api_key.clone())
+    fn stored_key_for(&self, target: &str) -> Option<&str> {
+        self.api_key
+            .as_deref()
+            .filter(|_| same_origin(self.stored_origin(), target))
+    }
+
+    pub fn key_for(&self, target: &str) -> Option<String> {
+        env_key().or_else(|| self.stored_key_for(target).map(str::to_owned))
     }
 
     pub fn client(&self, command: &str) -> Result<stophy::Client> {
-        self.client_with_key(command, self.key().as_deref())
-    }
-
-    pub fn client_with_key(&self, command: &str, key: Option<&str>) -> Result<stophy::Client> {
-        let mut client = stophy::Client::with_origin(&self.origin(), key)?;
+        let origin = self.origin();
+        let mut client = stophy::Client::with_origin(&origin, self.key_for(&origin).as_deref())?;
         client.set_header(
             USER_AGENT,
             concat!("stophy-cli/", env!("CARGO_PKG_VERSION")),
@@ -145,6 +155,13 @@ impl Config {
         }
         Ok(client)
     }
+}
+
+pub fn same_origin(left: &str, right: &str) -> bool {
+    stophy::http_url(left)
+        .ok()
+        .zip(stophy::http_url(right).ok())
+        .is_some_and(|(left, right)| left.origin() == right.origin())
 }
 
 pub fn write_json(path: &Path, value: &impl Serialize) -> Result<()> {

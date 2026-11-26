@@ -206,7 +206,13 @@ pub fn parse(tokens: &[String], schema: &Value) -> Result<Map<String, Value>> {
             }
             Value::Bool(false)
         } else {
-            let raw = direct.or_else(|| input.next_if(|token| !option_token(token)));
+            let raw = direct.or_else(|| {
+                if shape == Kind::Boolean {
+                    input.next_if(|token| matches!(*token, "true" | "false"))
+                } else {
+                    input.next_if(|token| !option_token(token))
+                }
+            });
             match raw {
                 Some(raw) => read_value(name, flag.schema, raw)?,
                 None if shape == Kind::Boolean => Value::Bool(true),

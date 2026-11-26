@@ -82,7 +82,7 @@ fn api_answers_and_parser_discovery() -> TestResult {
                     json!({"endpoints":[
                         {"id":"search","method":"POST","path":"/v1/search","input":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}},
                         {"id":"scrape","method":"POST","path":"/v1/scrape","input":{"type":"object","properties":{
-                            "url":{"type":"string"},"formats":{"type":"array","items":{"type":"object"}}
+                            "url":{"type":"string"},"formats":{"type":"array","items":{"type":"object"}},"onlyMainContent":{"type":"boolean"}
                         },"required":["url"]}}
                     ]}),
                 ),
@@ -102,12 +102,15 @@ fn api_answers_and_parser_discovery() -> TestResult {
                         json!({"success":true,"data":{"web":[{"url":"https://stophy.dev","title":"Stophy"}]},"requestId":"recorded-request","costUsd":0.01}),
                     )
                 }
-                "/v1/scrape" if body.get("formats").is_none() => (
-                    "200 OK",
-                    json!({
-                        "success":true,"data":{"markdown":"# Example Domain","isTruncated":false,"metadata":{"sourceURL":"https://example.com","title":"Example Domain","ogDescription":"Unneeded"}}
-                    }),
-                ),
+                "/v1/scrape" if body.get("formats").is_none() => {
+                    assert_eq!(body["onlyMainContent"], true);
+                    (
+                        "200 OK",
+                        json!({
+                            "success":true,"data":{"markdown":"# Example Domain","isTruncated":false,"metadata":{"sourceURL":"https://example.com","title":"Example Domain","ogDescription":"Unneeded"}}
+                        }),
+                    )
+                }
                 "/v1/scrape" => {
                     assert_eq!(
                         body["formats"],
@@ -132,7 +135,11 @@ fn api_answers_and_parser_discovery() -> TestResult {
         search.stdout,
         b"{\"web\":[{\"url\":\"https://stophy.dev\",\"title\":\"Stophy\"}]}\n"
     );
-    let page = cli(config.path(), &origin, &["scrape", "https://example.com"])?;
+    let page = cli(
+        config.path(),
+        &origin,
+        &["scrape", "--onlyMainContent", "https://example.com"],
+    )?;
     assert!(page.status.success());
     assert!(page.stderr.is_empty());
     assert_eq!(
@@ -205,6 +212,10 @@ fn browser_login_saves_key_without_opening_a_browser() -> TestResult {
     };
     let saved: Value = serde_json::from_slice(&std::fs::read(&file)?)?;
     assert_eq!(saved["apiKey"], "st_fixture_key_for_login");
+    let other = cli(config.path(), "http://127.0.0.1:0", &["status"])?;
+    assert!(other.status.success());
+    let status: Value = serde_json::from_slice(&other.stdout)?;
+    assert_eq!(status["credentials"], "none");
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

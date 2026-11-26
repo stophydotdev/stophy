@@ -13,7 +13,7 @@ use stophy::RequestOptions;
 use tokio::time::{Instant, sleep};
 use uuid::Uuid;
 
-use crate::config::{Config, Pending};
+use crate::config::{Config, Pending, same_origin};
 
 pub async fn login(args: &[String]) -> Result<()> {
     match args {
@@ -42,7 +42,9 @@ fn store_key(key: &str) -> Result<()> {
     if key.len() < 10 {
         bail!("API key is too short.");
     }
-    Config::save_key(key.to_owned())
+    let origin = Config::load()?.origin();
+    stophy::http_url(&origin)?;
+    Config::save_key(key.to_owned(), origin)
 }
 
 fn display_code(challenge: &str) -> String {
@@ -174,8 +176,18 @@ pub async fn browser_login() -> Result<()> {
 async fn signup() -> Result<()> {
     let config = Config::load()?;
     let client = config.client("login")?;
-    let mut pending = config.pending_signups;
-    if collect(&client, &mut pending).await? {
+    let origin = config.origin();
+    let mut pending = config
+        .pending_signups
+        .into_iter()
+        .filter(|entry| {
+            entry
+                .origin
+                .as_deref()
+                .is_some_and(|saved| same_origin(saved, &origin))
+        })
+        .collect::<Vec<_>>();
+    if collect(&client, &origin, &mut pending).await? {
         return Ok(());
     }
     if env::var_os("CI").is_some() {
@@ -184,6 +196,7 @@ async fn signup() -> Result<()> {
     if pending.is_empty() {
         let entry = client.sign_up(&RequestOptions::default()).await?.body.data;
         let signup = Pending {
+            origin: Some(origin),
             claim_url: entry.claim_url,
             code: entry.code,
             expires_at: entry.expires_at,
@@ -201,7 +214,11 @@ async fn signup() -> Result<()> {
     );
 }
 
-async fn collect(client: &stophy::Client, pending: &mut Vec<Pending>) -> Result<bool> {
+async fn collect(
+    client: &stophy::Client,
+    origin: &str,
+    pending: &mut Vec<Pending>,
+) -> Result<bool> {
     let mut expired = Vec::new();
     for signup in pending.iter() {
         let body = json!({"code": signup.code});
@@ -218,12 +235,12 @@ async fn collect(client: &stophy::Client, pending: &mut Vec<Pending>) -> Result<
         {
             Ok(answer) => {
                 if let Some(key) = answer.body["data"]["apiKey"].as_str() {
-                    Config::save_key(key.to_owned())?;
+                    Config::save_key(key.to_owned(), origin.to_owned())?;
                     return Ok(true);
                 }
             }
             Err(stophy::Error::Api(error)) if error.status == 404 => {
-                if Config::load()?.key().is_some() {
+                if Config::load()?.source() != "none" {
                     return Ok(true);
                 }
                 expired.push(signup.code.clone());
@@ -235,9 +252,13 @@ async fn collect(client: &stophy::Client, pending: &mut Vec<Pending>) -> Result<
     if !expired.is_empty() {
         pending.retain(|entry| !expired.contains(&entry.code));
         Config::edit(|stored| {
-            stored
-                .pending_signups
-                .retain(|entry| !expired.contains(&entry.code))
+            stored.pending_signups.retain(|entry| {
+                !expired.contains(&entry.code)
+                    || entry
+                        .origin
+                        .as_deref()
+                        .is_none_or(|saved| !same_origin(saved, origin))
+            })
         })?;
     }
     Ok(false)

@@ -3,7 +3,7 @@ use std::io::{self, IsTerminal, Write};
 use anyhow::Result;
 use serde_json::Value;
 
-use crate::config::{Config, agent};
+use crate::config::{Config, agent, env_key};
 
 pub fn machine() -> bool {
     !io::stdout().is_terminal() || agent().is_some()
@@ -74,7 +74,7 @@ pub fn failure(error: &anyhow::Error, parser_input: bool) {
         }
     }
     if let Ok(config) = Config::load() {
-        for secret in [config.key(), config.api_key].into_iter().flatten() {
+        for secret in [env_key(), config.api_key].into_iter().flatten() {
             message = message.replace(&secret, "[redacted]");
             if request_id.as_ref().is_some_and(|id| id.contains(&secret)) {
                 request_id = None;

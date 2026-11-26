@@ -101,9 +101,11 @@ async fn run(args: &[String]) -> Result<u8> {
         }
         "mcp" if options.is_empty() => {
             let config = Config::load()?;
-            let url = env::var("STOPHY_MCP_URL")
-                .unwrap_or_else(|_| "https://api.stophy.dev/mcp".to_owned());
-            stophy_mcp::run(&url, config.key().as_deref()).await?;
+            let url = match env::var("STOPHY_MCP_URL") {
+                Ok(url) => url,
+                Err(_) => stophy::http_url(&config.origin())?.join("/mcp")?.into(),
+            };
+            stophy_mcp::run(&url, config.key_for(&url).as_deref()).await?;
         }
         "login" => {
             auth::login(options).await?;
@@ -112,8 +114,7 @@ async fn run(args: &[String]) -> Result<u8> {
         "logout" if options.is_empty() => {
             let config = Config::load()?;
             if let Some(key) = &config.api_key {
-                let result = config
-                    .client_with_key("logout", Some(key))?
+                let result = stophy::Client::with_origin(config.stored_origin(), Some(key))?
                     .revoke_key(&RequestOptions::default())
                     .await;
                 match result {
@@ -124,7 +125,9 @@ async fn run(args: &[String]) -> Result<u8> {
                     }
                 }
                 Config::edit(|stored| {
-                    if stored.api_key == config.api_key {
+                    if stored.api_key == config.api_key
+                        && stored.stored_origin() == config.stored_origin()
+                    {
                         stored.api_key = None;
                     }
                 })?;
@@ -134,7 +137,7 @@ async fn run(args: &[String]) -> Result<u8> {
         "status" if options.is_empty() => {
             let config = Config::load()?;
             let mut status = json!({"version":VERSION,"credentials":config.source(),"config":config::directory().join("config.json")});
-            if config.key().is_some() {
+            if config.source() != "none" {
                 let limits = config
                     .client("status")?
                     .get_limits(&RequestOptions::default())
