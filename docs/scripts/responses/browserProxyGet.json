@@ -8,9 +8,6 @@
     "success": true,
     "mode": "managed",
     "country": "us",
-    "exitIp": "203.0.113.7",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "68bdc8e8-79b5-4502-a38a-0552b84817f0"
+    "exitIp": "203.0.113.7"
   }
 }

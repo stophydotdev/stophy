@@ -46,7 +46,6 @@ A page that answers `404` or `410` counts as `completed`, with `metadata.error` 
 | `DELETE /v1/batch/scrape/{id}/results` | Remove stored pages early, once the batch is `completed`, `failed` or `cancelled`. `data.deletedPages` counts them, and reads then return an empty `results` with `message`. A running batch returns `400 invalidRequest`. |
 | `GET /v1/batch/scrape` | Your batches, newest first, as `data.batches`. Send `status`, `limit` (1 to 100, default 20) and `cursor` until it is missing. |
 
-The older `creditsUsed` field is a legacy field. Use `costUsd`.
 
 ## Retry failed pages
 

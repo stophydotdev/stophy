@@ -34,7 +34,7 @@ curl "https://api.stophy.dev/v1/monitor/$MONITOR_ID/checks?limit=5" \
 
 | Field | Holds |
 | --- | --- |
-| `status` | `queued`, `running`, `completed`, `partial` (some pages failed), `failed` (every page failed), `skipped_overlap` or `skipped_no_credits`. A check `running` for 30 minutes shows as `failed`. |
+| `status` | `queued`, `running`, `completed`, `partial` (some pages failed), `failed` (every page failed), `skipped_overlap` or `skipped_insufficient_funds`. A check `running` for 30 minutes shows as `failed`. |
 | `trigger` | `scheduled`, or `manual` for [a run now](/monitors/overview#run-pause-and-resume). |
 | `scheduledFor`, `startedAt`, `finishedAt` | When it was due, started and ended. A manual check has no `scheduledFor`. |
 | `estimatedCostUsd`, `actualCostUsd` | The estimate before extras, and the charge once it ended (`null` before). |
@@ -92,7 +92,7 @@ Add `webhook` on create, or set it later with `PATCH`. `PATCH` replaces it as a 
 
 With `targets` and `schedule` and no `events`, you get `monitor.page` and `monitor.check.completed`. A monitor made with the older `url`, `urls` and `interval` fields gets `monitor.changed` and `monitor.failed`. The first check of page targets sends no `monitor.page`, but it does send `monitor.check.completed`.
 
-`changeStatus` is `changed`, `new` or `removed`. A `removed` page has only `url`, `changeStatus` and `at`. A search result also has `title`. With `json` comparison the event holds `json`. A `judgment` with `meaningful: false` is still sent. `actualCredits` on `monitor.check.completed` is an older field for `costUsd`.
+`changeStatus` is `changed`, `new` or `removed`. A `removed` page has only `url`, `changeStatus` and `at`. A search result also has `title`. With `json` comparison the event holds `json`. A `judgment` with `meaningful: false` is still sent.
 
 ### Rotate the secret
 

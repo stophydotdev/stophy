@@ -18,9 +18,6 @@
     "truncated": false,
     "cdpUrl": "<cdpUrl>",
     "liveViewUrl": "<liveViewUrl>",
-    "interactiveLiveViewUrl": "<interactiveLiveViewUrl>",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "3f3aceae-4b2c-4ae2-bb61-339063f09b60"
+    "interactiveLiveViewUrl": "<interactiveLiveViewUrl>"
   }
 }

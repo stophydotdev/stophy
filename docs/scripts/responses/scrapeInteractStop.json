@@ -7,10 +7,6 @@
   "response": {
     "success": true,
     "sessionDurationMs": 4071,
-    "proxyBytes": 381770,
-    "creditsBilled": 2,
-    "costUsd": 0.004,
-    "creditsUsed": 2,
-    "requestId": "b691bccd-dd0e-441c-af03-6d955d5c401d"
+    "proxyBytes": 381770
   }
 }

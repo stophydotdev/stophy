@@ -45,7 +45,7 @@ curl -X POST https://api.stophy.dev/v1/browser/task/status \
 * `result.done` says whether the goal was met. When it is `false`, `reason` says why.
 * `answer` is the result in words. `steps` lists what the task clicked. `url` and `title` are the page it ended on.
 * With a `schema`, `fields` holds one value per property and `confidence` rates each from 0 to 1. A field no page stated is `null`.
-* `costUsd` is what the task cost. `creditsUsed` is the older field for the same amount.
+* `data.costUsd` is what the task cost.
 
 A task is kept for 24 hours after it starts.
 
@@ -67,4 +67,4 @@ A task stops before anything that pays, books, sends, submits or deletes, and ne
 * Too many tasks open: `429 rateLimited`. See [Rate limits](/production/rate-limits).
 * A `maxCost` below one browser minute, or a `schema` that is not an object with `properties`: `400 invalidRequest`.
 * An unknown id, or one older than 24 hours: `404 notFound`.
-* A balance too low to cover `maxCost`: `402 insufficientCredits`, and the task does not start.
+* A balance too low to cover `maxCost`: `402 insufficientFunds`, and the task does not start.

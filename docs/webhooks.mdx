@@ -35,7 +35,6 @@ A job sends `started` (a crawl gives `total`), then `page` as each page finishes
 - `failed` and `cancelled` have the same fields, and `failed` adds `message`.
 - A `page` call holds `result` for a page that was read, or `error` for one that failed. When your address falls far behind, it holds only `url` and `resultOmitted: true`. Read that page with the job's status call.
 - `eventId` stays the same when a call is sent again. Skip an ID you already handled.
-- `creditsUsed` is an older field for the same cost as `costUsd`.
 
 ## Set a webhook
 

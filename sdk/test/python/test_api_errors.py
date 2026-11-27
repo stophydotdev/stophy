@@ -91,7 +91,7 @@ def test_a_retryable_profile_refusal_prefers_body_fields(async_client, nested):
 
 def test_billing_fields_of_an_error_stay_on_details(serve):
     api = serve(
-        lambda key, count: (402, flat("insufficientCredits", False, requiredUsd=0.5))
+        lambda key, count: (402, flat("insufficientFunds", False, requiredUsd=0.5))
     )
     with Stophy("k", base_url=api.base_url) as client:
         with pytest.raises(StophyError) as info:

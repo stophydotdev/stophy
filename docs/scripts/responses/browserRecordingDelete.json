@@ -7,9 +7,6 @@
   "response": {
     "success": true,
     "recordingStatus": "none",
-    "recordingAvailable": false,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "8f17756b-ab9e-4bf7-a52a-1a4d7379cb73"
+    "recordingAvailable": false
   }
 }

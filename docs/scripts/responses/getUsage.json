@@ -7,7 +7,6 @@
   "response": {
     "balanceMicros": 10000000,
     "balanceUsd": 10,
-    "creditsUsed": 120,
     "costUsd": 0.24,
     "requestCount": 85
   }

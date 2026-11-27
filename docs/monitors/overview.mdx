@@ -71,7 +71,7 @@ The monitor is in `data`. The first check starts at once: page targets record a 
 
 | Field | Holds |
 | --- | --- |
-| `status`, `pausedReason` | `active` or `paused`. A paused monitor reads nothing and costs nothing. `pausedReason` says why Stophy paused it, such as `insufficientCredits`. |
+| `status`, `pausedReason` | `active` or `paused`. A paused monitor reads nothing and costs nothing. `pausedReason` says why Stophy paused it, such as `insufficientFunds`. |
 | `nextRunAt`, `lastRunAt`, `currentCheckId` | The next due check (`null` while paused), the last one, and the one queued or running now. |
 | `targets`, `goal`, `judgeEnabled` | See [Targets](/monitors/targets). |
 | `retentionDays` | Days checks, diffs and snapshots are kept, 1 to 365. |
@@ -120,9 +120,9 @@ Checks of one monitor never overlap: a check that falls due while the last one r
 
 `PATCH` with `"status": "paused"` stops checks and keeps history. `"status": "active"` resumes with a check at once. Changing the schedule of a paused monitor keeps it paused.
 
-- When your balance runs out, the monitor pauses with `pausedReason: "insufficientCredits"` and sends `monitor.failed` if you subscribed. Add funds, then resume.
+- When your balance runs out, the monitor pauses with `pausedReason: "insufficientFunds"` and sends `monitor.failed` if you subscribed. Add funds, then resume.
 - A page that cannot be read is `error` and free, and the monitor keeps running. After 5 failed checks in a row on the same page, `monitor.failed` is sent once.
-- A check where every page failed for lack of balance is `skipped_no_credits`.
+- A check where every page failed for lack of balance is `skipped_insufficient_funds`.
 
 ## Limits
 

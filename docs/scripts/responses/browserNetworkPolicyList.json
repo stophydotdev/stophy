@@ -26,9 +26,6 @@
     ],
     "totalItems": 1,
     "pageNumber": 1,
-    "pageSize": 10,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "fbf63ce8-c991-49a4-85f0-ff0b7d3059a4"
+    "pageSize": 10
   }
 }

@@ -163,14 +163,6 @@ pub struct GetLimitsResponseDataPerMinute {
 }
 
 #[derive(Clone, Deserialize, Serialize, Default)]
-pub struct GetLimitsResponseDataConcurrency {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i64>,
-    #[serde(rename = "inUse", default, skip_serializing_if = "Option::is_none")]
-    pub in_use: Option<i64>,
-}
-
-#[derive(Clone, Deserialize, Serialize, Default)]
 pub struct GetLimitsResponseDataPaidLimitsPerMinute {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub calls: Option<i64>,
@@ -186,8 +178,6 @@ pub struct GetLimitsResponseDataPaidLimitsPerMinute {
 pub struct GetLimitsResponseDataPaidLimits {
     #[serde(rename = "perMinute", default, skip_serializing_if = "Option::is_none")]
     pub per_minute: Option<GetLimitsResponseDataPaidLimitsPerMinute>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub concurrency: Option<i64>,
     #[serde(
         rename = "jobsAtOnce",
         default,
@@ -223,8 +213,6 @@ pub struct GetLimitsResponseData {
     pub rate_limit: Option<GetLimitsResponseDataRateLimit>,
     #[serde(rename = "perMinute")]
     pub per_minute: GetLimitsResponseDataPerMinute,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub concurrency: Option<GetLimitsResponseDataConcurrency>,
     #[serde(rename = "jobsAtOnce")]
     pub jobs_at_once: i64,
     #[serde(rename = "queuedJobs")]
@@ -289,8 +277,6 @@ pub struct GetLogsResponseLogsItem {
     pub status: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub response: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub credits: Option<f64>,
     #[serde(rename = "costUsd", default, skip_serializing_if = "Option::is_none")]
     pub cost_usd: Option<f64>,
     #[serde(
@@ -341,8 +327,6 @@ pub struct ListParsersResponseDataParsersItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub price: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub credits: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keyless: Option<bool>,
 }
 
@@ -391,7 +375,6 @@ pub struct ListEndpointsResponseEndpointsItem {
     pub best_when: Option<String>,
     pub method: ListEndpointsResponseEndpointsItemMethod,
     pub path: String,
-    pub credits: i64,
     #[serde(rename = "costUsd", default, skip_serializing_if = "Option::is_none")]
     pub cost_usd: Option<f64>,
     #[serde(
@@ -1251,6 +1234,14 @@ pub struct SearchRequestScrapeOptions {
         skip_serializing_if = "Option::is_none"
     )]
     pub remove_base_64_images: Option<bool>,
+    #[serde(rename = "imageUrls", default, skip_serializing_if = "Option::is_none")]
+    pub image_urls: Option<bool>,
+    #[serde(
+        rename = "allMetaTags",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub all_meta_tags: Option<bool>,
     #[serde(rename = "blockAds", default, skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(rename = "fastMode", default, skip_serializing_if = "Option::is_none")]
@@ -1279,6 +1270,8 @@ pub struct SearchRequestScrapeOptions {
         skip_serializing_if = "Option::is_none"
     )]
     pub zero_data_retention: Option<bool>,
+    #[serde(rename = "maxChars", default, skip_serializing_if = "Option::is_none")]
+    pub max_chars: Option<i64>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -1331,6 +1324,12 @@ pub struct SearchRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub highlights: Option<bool>,
     #[serde(
+        rename = "zeroDataRetention",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub zero_data_retention: Option<bool>,
+    #[serde(
         rename = "scrapeOptions",
         default,
         skip_serializing_if = "Option::is_none"
@@ -1356,6 +1355,7 @@ impl SearchRequest {
             timeout: None,
             ignore_invalid_ur_ls: None,
             highlights: None,
+            zero_data_retention: None,
             scrape_options: None,
         }
     }
@@ -1705,6 +1705,21 @@ pub enum SearchResponseDataWebItemCategory {
 }
 
 #[derive(Clone, Deserialize, Serialize)]
+pub enum SearchResponseDataWebItemRiskLevel {
+    #[serde(rename = "high")]
+    High,
+    #[serde(rename = "medium")]
+    Medium,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+pub struct SearchResponseDataWebItemRisk {
+    pub level: SearchResponseDataWebItemRiskLevel,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasons: Option<Vec<String>>,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
 pub struct SearchResponseDataWebItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pages: Option<Vec<SearchResponseDataWebItemPagesItem>>,
@@ -1766,12 +1781,6 @@ pub struct SearchResponseDataWebItem {
     pub actions: Option<SearchResponseDataWebItemActions>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub warning: Option<String>,
-    #[serde(
-        rename = "nextOffset",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub next_offset: Option<i64>,
     pub url: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
@@ -1780,12 +1789,20 @@ pub struct SearchResponseDataWebItem {
     pub position: i64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
+    #[serde(
+        rename = "isTruncated",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub is_truncated: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub metadata: Option<BTreeMap<String, SearchResponseDataWebItemMetadataValue>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category: Option<SearchResponseDataWebItemCategory>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub risk: Option<SearchResponseDataWebItemRisk>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -2183,12 +2200,6 @@ pub struct SearchResponseDataNewsItem {
     pub actions: Option<SearchResponseDataNewsItemActions>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub warning: Option<String>,
-    #[serde(
-        rename = "nextOffset",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub next_offset: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     pub url: String,
@@ -2201,6 +2212,12 @@ pub struct SearchResponseDataNewsItem {
     pub position: i64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
+    #[serde(
+        rename = "isTruncated",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub is_truncated: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub metadata: Option<BTreeMap<String, SearchResponseDataNewsItemMetadataValue>>,
 }
@@ -2974,6 +2991,14 @@ pub struct ScrapeRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub remove_base_64_images: Option<bool>,
+    #[serde(rename = "imageUrls", default, skip_serializing_if = "Option::is_none")]
+    pub image_urls: Option<bool>,
+    #[serde(
+        rename = "allMetaTags",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub all_meta_tags: Option<bool>,
     #[serde(rename = "blockAds", default, skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(rename = "fastMode", default, skip_serializing_if = "Option::is_none")]
@@ -3031,6 +3056,8 @@ impl ScrapeRequest {
             actions: None,
             location: None,
             remove_base_64_images: None,
+            image_urls: None,
+            all_meta_tags: None,
             block_ads: None,
             fast_mode: None,
             store_in_cache: None,
@@ -3686,6 +3713,14 @@ pub struct ExtractRequestScrapeOptions {
         skip_serializing_if = "Option::is_none"
     )]
     pub remove_base_64_images: Option<bool>,
+    #[serde(rename = "imageUrls", default, skip_serializing_if = "Option::is_none")]
+    pub image_urls: Option<bool>,
+    #[serde(
+        rename = "allMetaTags",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub all_meta_tags: Option<bool>,
     #[serde(rename = "blockAds", default, skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(rename = "fastMode", default, skip_serializing_if = "Option::is_none")]
@@ -3827,6 +3862,12 @@ pub struct BrowserTaskRequest {
     pub values: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub schema: Option<BTreeMap<String, BrowserTaskInputSchema0Schema>>,
+    #[serde(
+        rename = "zeroDataRetention",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub zero_data_retention: Option<bool>,
     #[serde(rename = "maxSteps", default, skip_serializing_if = "Option::is_none")]
     pub max_steps: Option<i64>,
     #[serde(rename = "maxCost", default, skip_serializing_if = "Option::is_none")]
@@ -3839,6 +3880,7 @@ impl BrowserTaskRequest {
             goal,
             values: None,
             schema: None,
+            zero_data_retention: None,
             max_steps: None,
             max_cost: None,
         }
@@ -3869,10 +3911,12 @@ pub struct BrowserTaskResponse {
 #[derive(Clone, Deserialize, Serialize)]
 pub struct BrowserTaskStatusRequest {
     pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wait: Option<i64>,
 }
 impl BrowserTaskStatusRequest {
     pub fn new(id: String) -> Self {
-        Self { id }
+        Self { id, wait: None }
     }
 }
 
@@ -3901,6 +3945,8 @@ pub struct BrowserTaskStatusResponseDataResult {
     pub page_text: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub seconds: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub turns: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fields: Option<BTreeMap<String, BrowserTaskStatusSchema0Schema>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4390,6 +4436,12 @@ pub struct MapRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub ignore_cache: Option<bool>,
+    #[serde(
+        rename = "zeroDataRetention",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub zero_data_retention: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limit: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4407,6 +4459,7 @@ impl MapRequest {
             ignore_query_parameters: None,
             deduplicate_similar_ur_ls: None,
             ignore_cache: None,
+            zero_data_retention: None,
             limit: None,
             timeout: None,
             location: None,
@@ -5095,6 +5148,14 @@ pub struct CrawlRequestScrapeOptions {
         skip_serializing_if = "Option::is_none"
     )]
     pub remove_base_64_images: Option<bool>,
+    #[serde(rename = "imageUrls", default, skip_serializing_if = "Option::is_none")]
+    pub image_urls: Option<bool>,
+    #[serde(
+        rename = "allMetaTags",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub all_meta_tags: Option<bool>,
     #[serde(rename = "blockAds", default, skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(rename = "fastMode", default, skip_serializing_if = "Option::is_none")]
@@ -5236,6 +5297,8 @@ pub struct CrawlRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub scrape_options: Option<CrawlRequestScrapeOptions>,
+    #[serde(rename = "maxCost", default, skip_serializing_if = "Option::is_none")]
+    pub max_cost: Option<f64>,
     #[serde(
         rename = "zeroDataRetention",
         default,
@@ -5264,6 +5327,7 @@ impl CrawlRequest {
             delay: None,
             max_concurrency: None,
             scrape_options: None,
+            max_cost: None,
             zero_data_retention: None,
             webhook: None,
         }
@@ -6212,6 +6276,8 @@ pub struct BatchScrapeRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub append_to_id: Option<String>,
+    #[serde(rename = "maxCost", default, skip_serializing_if = "Option::is_none")]
+    pub max_cost: Option<f64>,
     #[serde(
         rename = "ignoreInvalidURLs",
         default,
@@ -6274,6 +6340,14 @@ pub struct BatchScrapeRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub remove_base_64_images: Option<bool>,
+    #[serde(rename = "imageUrls", default, skip_serializing_if = "Option::is_none")]
+    pub image_urls: Option<bool>,
+    #[serde(
+        rename = "allMetaTags",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub all_meta_tags: Option<bool>,
     #[serde(rename = "blockAds", default, skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(rename = "fastMode", default, skip_serializing_if = "Option::is_none")]
@@ -6316,6 +6390,7 @@ impl BatchScrapeRequest {
             webhook: None,
             max_concurrency: None,
             append_to_id: None,
+            max_cost: None,
             ignore_invalid_ur_ls: None,
             formats: None,
             only_main_content: None,
@@ -6333,6 +6408,8 @@ impl BatchScrapeRequest {
             actions: None,
             location: None,
             remove_base_64_images: None,
+            image_urls: None,
+            all_meta_tags: None,
             block_ads: None,
             fast_mode: None,
             store_in_cache: None,

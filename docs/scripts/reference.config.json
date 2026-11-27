@@ -176,8 +176,8 @@
       "operations": [
         "getUsage",
         "usageHistory",
-        "teamCreditUsage",
-        "teamCreditUsageHistorical",
+        "teamBalance",
+        "teamUsageHistorical",
         "teamTokenUsage",
         "teamTokenUsageHistorical",
         "teamQueueStatus",
@@ -304,8 +304,8 @@
     "teamActivity": "Team activity",
     "getUsage": "Usage",
     "usageHistory": "Usage history",
-    "teamCreditUsage": "Balance",
-    "teamCreditUsageHistorical": "Monthly spend",
+    "teamBalance": "Balance",
+    "teamUsageHistorical": "Monthly spend",
     "teamTokenUsage": "Model use",
     "teamTokenUsageHistorical": "Monthly model use",
     "teamQueueStatus": "Queue status",
@@ -827,26 +827,21 @@
   },
   "masks": {
     "getLimits": {
-      "data.balanceCredits": 5000,
       "data.balanceUsd": 10
     },
     "getUsage": {
       "balanceMicros": 10000000,
       "balanceUsd": 10,
-      "creditsUsed": 120,
       "costUsd": 0.24,
       "requestCount": 85
     },
     "usageHistory": {
-      "data.totals.credits": 120,
       "data.totals.costUsd": 0.24,
       "data.totals.requests": 85,
-      "data.buckets.*.credits": 6,
       "data.buckets.*.costUsd": 0.012,
       "data.buckets.*.requests": 6
     },
-    "teamCreditUsage": {
-      "data.remainingCredits": 5000,
+    "teamBalance": {
       "data.balanceUsd": 10
     },
     "teamTokenUsage": {

@@ -15,7 +15,7 @@
           }
         }
       },
-      "maxCredits": 10
+      "maxCost": 0.02
     }
   },
   "status": 200,

@@ -23,9 +23,7 @@
         "networkPolicyVersion": null,
         "extensions": [],
         "proxyUsedMb": null,
-        "browserCredits": null,
         "browserCostUsd": null,
-        "proxyCredits": null,
         "proxyCostUsd": null,
         "cdpUrl": "<cdpUrl>",
         "liveViewUrl": "<liveViewUrl>",
@@ -34,9 +32,6 @@
       }
     ],
     "nextCursor": null,
-    "hasMore": false,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "30c200ad-1f60-49a1-bbd7-19182239a4da"
+    "hasMore": false
   }
 }

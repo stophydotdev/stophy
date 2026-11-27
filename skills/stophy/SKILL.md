@@ -69,7 +69,7 @@ With a key, a scrape, a parser call and a search of up to 10 results from one so
 
 - `apiKeyRequired`: run `stophy login`.
 - `freeLimit`: the calls without a key are used up. Run `stophy login`, or wait `retryAfterSeconds`.
-- `insufficientCredits`: nothing was charged. Your person tops up at https://stophy.dev/billing.
+- `insufficientFunds`: nothing was charged. Your person tops up at https://stophy.dev/billing.
 - Any other error with `"retryable":true`, like `sourceRefused` or `sourceTimeout`: wait `retryAfterSeconds`, then retry once.
 - `invalidRequest`: the message names the field or the page a parser reads. Fix it before you retry.
 

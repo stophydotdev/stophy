@@ -21,9 +21,7 @@
     "networkPolicyVersion": null,
     "extensions": [],
     "proxyUsedMb": null,
-    "browserCredits": null,
     "browserCostUsd": null,
-    "proxyCredits": null,
     "proxyCostUsd": null,
     "cdpUrl": "<cdpUrl>",
     "liveViewUrl": "<liveViewUrl>",
@@ -32,9 +30,6 @@
     "recordingAvailable": true,
     "downloads": [],
     "uploads": [],
-    "streamWebView": true,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "900e8193-ef38-4809-b88b-ab0541142c6d"
+    "streamWebView": true
   }
 }

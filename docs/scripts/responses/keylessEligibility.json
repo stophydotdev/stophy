@@ -8,9 +8,6 @@
     "success": true,
     "eligible": true,
     "remainingToday": 50,
-    "remainingThisMinute": 10,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "17fc072d-14b2-4ae5-aa9f-06d38433cbb5"
+    "remainingThisMinute": 10
   }
 }

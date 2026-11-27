@@ -157,6 +157,11 @@ SearchResponseDataWebItemCategory = Literal[
     "pdf",
 ]
 
+SearchResponseDataWebItemRiskLevel = Literal[
+    "high",
+    "medium",
+]
+
 ScrapeLinkStyle = Literal[
     "inline",
     "numbered",
@@ -332,7 +337,6 @@ class ExtractResultResponse(TypedDict):
     error: NotRequired[str]
     urls: list[str]
     sources: NotRequired[dict[str, list[str]]]
-    creditsUsed: int
     costUsd: float
     expiresAt: str
     tokensUsed: NotRequired[int]
@@ -347,9 +351,6 @@ class SignUpResponseData(TypedDict):
 class SignUpResponse(TypedDict):
     success: Literal[True]
     data: SignUpResponseData
-    creditsUsed: Literal[0]
-    costUsd: float
-    requestId: str
 
 
 class PollSignUpResponseData(TypedDict):
@@ -361,9 +362,6 @@ class PollSignUpResponseData(TypedDict):
 class PollSignUpResponse(TypedDict):
     success: Literal[True]
     data: PollSignUpResponseData
-    creditsUsed: Literal[0]
-    costUsd: float
-    requestId: str
 
 
 class GetLimitsResponseDataRateLimit(TypedDict):
@@ -379,14 +377,8 @@ class GetLimitsResponseDataPerMinute(TypedDict):
     reads: NotRequired[int]
 
 
-class GetLimitsResponseDataConcurrency(TypedDict):
-    limit: NotRequired[int]
-    inUse: NotRequired[int | None]
-
-
 class GetLimitsResponseDataPaidLimits(TypedDict):
     perMinute: NotRequired[GetLimitsResponseDataPerMinute]
-    concurrency: NotRequired[int]
     jobsAtOnce: NotRequired[int]
     queuedJobs: NotRequired[int]
     sessionsAtOnce: NotRequired[int]
@@ -394,11 +386,9 @@ class GetLimitsResponseDataPaidLimits(TypedDict):
 
 class GetLimitsResponseData(TypedDict):
     tier: GetLimitsResponseDataTier
-    balanceCredits: float
     balanceUsd: float
     rateLimit: GetLimitsResponseDataRateLimit | None
     perMinute: GetLimitsResponseDataPerMinute
-    concurrency: GetLimitsResponseDataConcurrency
     jobsAtOnce: int
     queuedJobs: int
     sessionsAtOnce: int
@@ -410,15 +400,11 @@ class GetLimitsResponseData(TypedDict):
 class GetLimitsResponse(TypedDict):
     success: Literal[True]
     data: GetLimitsResponseData
-    creditsUsed: Literal[0]
-    costUsd: float
-    requestId: str
 
 
 class GetUsageResponse(TypedDict):
     balanceMicros: int
     balanceUsd: float
-    creditsUsed: float
     costUsd: float
     requestCount: int
 
@@ -431,7 +417,6 @@ class GetLogsResponseLogsItem(TypedDict):
     method: NotRequired[str]
     status: NotRequired[int]
     response: NotRequired[str]
-    credits: NotRequired[float]
     costUsd: NotRequired[float]
     durationMs: NotRequired[int | None]
     apiKeyId: NotRequired[str | None]
@@ -458,7 +443,6 @@ class ListParsersResponseDataParsersItem(TypedDict):
     options: NotRequired[list[dict[str, Any]]]
     returns: NotRequired[list[str]]
     price: NotRequired[str]
-    credits: NotRequired[int]
     keyless: NotRequired[bool]
 
 
@@ -485,8 +469,6 @@ class ListEndpointsResponseEndpointsItem(TypedDict):
     bestWhen: str | None
     method: Literal["POST"]
     path: str
-    credits: int
-    maxCredits: int
     costUsd: NotRequired[float]
     maxCostUsd: NotRequired[float]
     pricing: str | None
@@ -519,9 +501,6 @@ class SearchDeveloperResponse(TypedDict):
     partial: NotRequired[bool]
     results: NotRequired[list[SearchDeveloperResponseResultsItem]]
     repos: NotRequired[list[dict[str, Any]]]
-    creditsUsed: int
-    costUsd: float
-    requestId: str
 
 
 class SearchSourcesItemOption1(TypedDict):
@@ -739,6 +718,8 @@ class SearchScrapeOptions(TypedDict):
     ]
     location: NotRequired[SearchScrapeOptionsLocation]
     removeBase64Images: NotRequired[bool]
+    imageUrls: NotRequired[bool]
+    allMetaTags: NotRequired[bool]
     blockAds: NotRequired[bool]
     fastMode: NotRequired[bool]
     proxy: NotRequired[SearchScrapeOptionsProxy]
@@ -748,6 +729,7 @@ class SearchScrapeOptions(TypedDict):
     redactPII: NotRequired[bool | SearchScrapeOptionsRedactPIIOption1]
     profile: NotRequired[SearchScrapeOptionsProfile]
     zeroDataRetention: NotRequired[bool]
+    maxChars: NotRequired[int]
 
 
 class SearchResponseDataWebItemPagesItem(TypedDict):
@@ -899,6 +881,11 @@ class SearchResponseDataWebItemActions(TypedDict):
     pdfs: NotRequired[list[str]]
 
 
+class SearchResponseDataWebItemRisk(TypedDict):
+    level: SearchResponseDataWebItemRiskLevel
+    reasons: NotRequired[list[str]]
+
+
 class SearchResponseDataWebItem(TypedDict):
     pages: NotRequired[list[SearchResponseDataWebItemPagesItem]]
     blocks: NotRequired[list[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]]
@@ -924,15 +911,16 @@ class SearchResponseDataWebItem(TypedDict):
     attributes: NotRequired[list[SearchResponseDataWebItemAttributesItem]]
     actions: NotRequired[SearchResponseDataWebItemActions]
     warning: NotRequired[str]
-    nextOffset: NotRequired[int]
     url: str
     title: NotRequired[str]
     description: NotRequired[str]
     position: int
     markdown: NotRequired[str]
+    isTruncated: NotRequired[Literal[True]]
     metadata: NotRequired[dict[str, str | float | list[str]]]
     category: NotRequired[SearchResponseDataWebItemCategory]
     date: NotRequired[str]
+    risk: NotRequired[SearchResponseDataWebItemRisk]
 
 
 class SearchResponseDataNewsItem(TypedDict):
@@ -960,7 +948,6 @@ class SearchResponseDataNewsItem(TypedDict):
     attributes: NotRequired[list[SearchResponseDataWebItemAttributesItem]]
     actions: NotRequired[SearchResponseDataWebItemActions]
     warning: NotRequired[str]
-    nextOffset: NotRequired[int]
     title: NotRequired[str]
     url: str
     snippet: NotRequired[str]
@@ -968,6 +955,7 @@ class SearchResponseDataNewsItem(TypedDict):
     imageUrl: NotRequired[str]
     position: int
     markdown: NotRequired[str]
+    isTruncated: NotRequired[Literal[True]]
     metadata: NotRequired[dict[str, str | float | list[str]]]
 
 
@@ -1141,6 +1129,8 @@ class ExtractScrapeOptions(TypedDict):
     ]
     location: NotRequired[SearchScrapeOptionsLocation]
     removeBase64Images: NotRequired[bool]
+    imageUrls: NotRequired[bool]
+    allMetaTags: NotRequired[bool]
     blockAds: NotRequired[bool]
     fastMode: NotRequired[bool]
     proxy: NotRequired[SearchScrapeOptionsProxy]
@@ -1166,9 +1156,6 @@ class BrowserTaskResponseData(TypedDict):
 class BrowserTaskResponse(TypedDict):
     success: Literal[True]
     data: BrowserTaskResponseData
-    creditsUsed: int
-    costUsd: float
-    requestId: str
 
 
 class BrowserTaskStatusResponseDataResult(TypedDict):
@@ -1180,6 +1167,7 @@ class BrowserTaskStatusResponseDataResult(TypedDict):
     title: NotRequired[str]
     pageText: NotRequired[str]
     seconds: NotRequired[float]
+    turns: NotRequired[int]
     fields: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     confidence: NotRequired[dict[str, float]]
 
@@ -1187,16 +1175,12 @@ class BrowserTaskStatusResponseDataResult(TypedDict):
 class BrowserTaskStatusResponseData(TypedDict):
     status: BrowserTaskResponseDataStatus
     result: NotRequired[BrowserTaskStatusResponseDataResult]
-    creditsUsed: int
     costUsd: float
 
 
 class BrowserTaskStatusResponse(TypedDict):
     success: Literal[True]
     data: BrowserTaskStatusResponseData
-    creditsUsed: int
-    costUsd: float
-    requestId: str
 
 
 class ParseFormatsItemOption0(TypedDict):
@@ -1345,6 +1329,8 @@ class CrawlScrapeOptions(TypedDict):
     ]
     location: NotRequired[SearchScrapeOptionsLocation]
     removeBase64Images: NotRequired[bool]
+    imageUrls: NotRequired[bool]
+    allMetaTags: NotRequired[bool]
     blockAds: NotRequired[bool]
     fastMode: NotRequired[bool]
     proxy: NotRequired[SearchScrapeOptionsProxy]
@@ -1394,24 +1380,6 @@ class CrawlStatusResponseDataItemActions(TypedDict):
     pdfs: NotRequired[list[str]]
 
 
-class CrawlStatusResponseDataItemMetadata(TypedDict):
-    title: NotRequired[str]
-    description: NotRequired[str]
-    language: NotRequired[str]
-    ogImage: NotRequired[str]
-    sourceURL: NotRequired[str]
-    url: NotRequired[str]
-    statusCode: int
-    contentType: NotRequired[str]
-    numPages: NotRequired[int]
-    totalPages: NotRequired[int]
-    cacheState: NotRequired[ScrapeResponseDataMetadataCacheState]
-    cachedAt: NotRequired[str]
-    scrapeId: NotRequired[str]
-    creditsUsed: NotRequired[int]
-    costUsd: NotRequired[float]
-
-
 class CrawlStatusResponseDataItem(TypedDict):
     markdown: NotRequired[str]
     summary: NotRequired[str]
@@ -1429,7 +1397,7 @@ class CrawlStatusResponseDataItem(TypedDict):
     branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     actions: NotRequired[CrawlStatusResponseDataItemActions]
     warning: NotRequired[str]
-    metadata: CrawlStatusResponseDataItemMetadata
+    metadata: ScrapeResponseDataMetadata
 
 
 class CrawlStatusResponse(TypedDict):
@@ -1441,7 +1409,6 @@ class CrawlStatusResponse(TypedDict):
     failed: int
     error: NotRequired[str]
     errors: list[CrawlStatusResponseErrorsItem]
-    creditsUsed: int
     costUsd: float
     createdAt: NotRequired[str]
     completedAt: NotRequired[str]
@@ -1523,7 +1490,7 @@ class BatchScrapeStatusResponseDataItem(TypedDict):
     branding: NotRequired[dict[str, str | float | bool | None | list[Any] | dict[str, Any]]]
     actions: NotRequired[BatchScrapeStatusResponseDataItemActions]
     warning: NotRequired[str]
-    metadata: CrawlStatusResponseDataItemMetadata
+    metadata: ScrapeResponseDataMetadata
 
 
 class BatchScrapeStatusResponse(TypedDict):
@@ -1535,7 +1502,6 @@ class BatchScrapeStatusResponse(TypedDict):
     failed: int
     error: NotRequired[str]
     errors: list[CrawlStatusResponseErrorsItem]
-    creditsUsed: int
     costUsd: float
     createdAt: NotRequired[str]
     completedAt: NotRequired[str]

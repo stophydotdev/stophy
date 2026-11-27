@@ -16,9 +16,6 @@
         "runtime/.*"
       ],
       "limit": 10
-    },
-    "costUsd": 0.003,
-    "creditsUsed": 2,
-    "requestId": "317a53e1-d485-4e83-8b7f-329f805fdd2c"
+    }
   }
 }

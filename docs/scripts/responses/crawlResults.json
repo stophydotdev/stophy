@@ -12,7 +12,6 @@
       "total": 2,
       "completed": 2,
       "failed": 0,
-      "creditsUsed": 1,
       "costUsd": 0.002,
       "errors": [],
       "results": [
@@ -33,13 +32,9 @@
             "cacheState": "miss",
             "proxyUsed": "basic"
           },
-          "creditsUsed": 1,
           "costUsd": 0.001
         }
       ]
-    },
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "d25a99de-e954-4a4a-9642-8a514fadbde1"
+    }
   }
 }

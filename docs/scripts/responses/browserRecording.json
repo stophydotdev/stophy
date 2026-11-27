@@ -8,9 +8,6 @@
     "success": true,
     "recordingStatus": "ready",
     "recordingAvailable": true,
-    "recordingUrl": "<recordingUrl>",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "238cb04a-bf6d-4668-9ff5-5b6008de3590"
+    "recordingUrl": "<recordingUrl>"
   }
 }

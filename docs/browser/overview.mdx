@@ -105,7 +105,7 @@ Open the session with `"recording": true`. `recordingStatus` is `recording` whil
 | Code | Cause | Fix |
 | - | - | - |
 | `400 invalidRequest` | `allowedDomains` with `networkPolicyId`, or `profile` or `recording` with `zeroDataRetention` | Send one of the two named fields. |
-| `402 insufficientCredits` | The balance cannot cover `ttl`. No session opens. | Add funds or lower `ttl`. |
+| `402 insufficientFunds` | The balance cannot cover `ttl`. No session opens. | Add funds or lower `ttl`. |
 | `404 notFound` | An unknown session or replay page, or no video to delete | Check the ID. |
 | `409 invalidRequest` | A call that needs a running session, or deleting a video still being made | Open a new session, or wait for `ready` or `failed`. |
 | `410 notFound` | `This browser session has ended.` | Open a new session. |
