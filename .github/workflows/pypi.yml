@@ -10,18 +10,18 @@ permissions:
   contents: read
 
 jobs:
-  langchain-stophy:
-    name: langchain-stophy on PyPI
+  build-langchain-stophy:
+    name: Build langchain-stophy for PyPI
     runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      contents: read
-      id-token: write
+    outputs:
+      sha256: ${{ steps.pack.outputs.sha256 }}
     defaults:
       run:
         working-directory: sdk/packages/langchain
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
       - if: github.ref_type == 'tag'
         run: |
@@ -31,6 +31,39 @@ jobs:
             exit 1
           fi
       - run: uv build
+      - id: pack
+        working-directory: sdk/packages/langchain/dist
+        run: |
+          sha256sum ./* | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "sha256=$(sha256sum ./* | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - run: |
+          for dist in dist/*.whl dist/*.tar.gz; do
+            uv run --isolated --no-project --with "$dist" python -c "import langchain_stophy"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: langchain-stophy
+          path: sdk/packages/langchain/dist/
+          if-no-files-found: error
+
+  publish-langchain-stophy:
+    name: Publish langchain-stophy to PyPI
+    needs: build-langchain-stophy
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: langchain-stophy
+          path: dist
+      - env:
+          SHA: ${{ needs.build-langchain-stophy.outputs.sha256 }}
+        run: |
+          cd dist
+          [ "$(sha256sum ./* | sha256sum | cut -d' ' -f1)" = "$SHA" ]
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         with:
-          packages-dir: sdk/packages/langchain/dist/
+          packages-dir: dist/
