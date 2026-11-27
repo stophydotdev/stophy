@@ -791,37 +791,6 @@
             }
           }
         ]
-      },
-      "listEndpoints.26.schema0": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "number"
-          },
-          {
-            "type": "boolean"
-          },
-          {
-            "type": "null"
-          },
-          {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/listEndpoints.26.schema0"
-            }
-          },
-          {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/listEndpoints.26.schema0"
-            }
-          }
-        ]
       }
     },
     "headers": {
@@ -1673,230 +1642,6 @@
         }
       }
     },
-    "/v1/parsers": {
-      "get": {
-        "operationId": "listParsers",
-        "summary": "List the parsers: the sites scrape can return as JSON, the page each one reads, what it returns and what it costs.",
-        "security": [
-          {}
-        ],
-        "responses": {
-          "200": {
-            "description": "The parsers.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "parsers": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string"
-                              },
-                              "takes": {
-                                "type": "string"
-                              },
-                              "example": {
-                                "type": "string"
-                              },
-                              "options": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object"
-                                }
-                              },
-                              "returns": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "price": {
-                                "type": "string"
-                              },
-                              "keyless": {
-                                "type": "boolean"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/endpoints": {
-      "get": {
-        "operationId": "listEndpoints",
-        "summary": "List the endpoints with their prices, input schemas and examples.",
-        "description": "Free, and needs no key.",
-        "security": [
-          {}
-        ],
-        "responses": {
-          "200": {
-            "description": "The endpoints and the sources they read.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "sources": {
-                      "readOnly": true,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "summary": {
-                            "type": "string"
-                          },
-                          "kind": {
-                            "type": "string",
-                            "enum": [
-                              "site",
-                              "aiAnswers"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "summary",
-                          "kind"
-                        ]
-                      }
-                    },
-                    "endpoints": {
-                      "readOnly": true,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "pattern": "^[a-z0-9]+(?:\\.[a-zA-Z0-9-]+)*$"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "summary": {
-                            "type": "string"
-                          },
-                          "bestWhen": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "method": {
-                            "type": "string",
-                            "const": "POST"
-                          },
-                          "path": {
-                            "type": "string",
-                            "pattern": "^\\/v1\\/"
-                          },
-                          "costUsd": {
-                            "type": "number",
-                            "minimum": 0
-                          },
-                          "maxCostUsd": {
-                            "type": "number",
-                            "minimum": 0
-                          },
-                          "pricing": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "keyless": {
-                            "type": "boolean"
-                          },
-                          "cacheTtlSeconds": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          "input": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "$ref": "#/components/schemas/listEndpoints.26.schema0"
-                            }
-                          },
-                          "example": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "propertyNames": {
-                                  "type": "string"
-                                },
-                                "additionalProperties": {
-                                  "$ref": "#/components/schemas/listEndpoints.26.schema0"
-                                }
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "title",
-                          "summary",
-                          "bestWhen",
-                          "method",
-                          "path",
-                          "pricing",
-                          "keyless",
-                          "cacheTtlSeconds",
-                          "input",
-                          "example"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "sources",
-                    "endpoints"
-                  ]
-                }
-              }
-            }
-          },
-          "4XX": {
-            "$ref": "#/components/responses/Error"
-          },
-          "5XX": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
     "/v1/search/developer": {
       "post": {
         "summary": "Search code docs, READMEs, issues, pull requests and releases.",
@@ -2300,7 +2045,7 @@
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; the parser catalog in /openapi.json lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "minItems": 1,
                         "maxItems": 20,
                         "type": "array",
@@ -2521,11 +2266,11 @@
                                   "const": "json"
                                 },
                                 "parser": {
-                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
+                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. the parser catalog in /openapi.json lists them.",
                                   "type": "string"
                                 },
                                 "options": {
-                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
+                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. the parser catalog in /openapi.json lists what each parser accepts.",
                                   "type": "object",
                                   "propertyNames": {
                                     "type": "string"
@@ -4836,7 +4581,7 @@
                     "type": "string"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; the parser catalog in /openapi.json lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -5060,11 +4805,11 @@
                               "const": "json"
                             },
                             "parser": {
-                              "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
+                              "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. the parser catalog in /openapi.json lists them.",
                               "type": "string"
                             },
                             "options": {
-                              "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
+                              "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. the parser catalog in /openapi.json lists what each parser accepts.",
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -8091,7 +7836,7 @@
                     "type": "object",
                     "properties": {
                       "formats": {
-                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                        "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; the parser catalog in /openapi.json lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                         "default": [
                           "markdown"
                         ],
@@ -8315,11 +8060,11 @@
                                   "const": "json"
                                 },
                                 "parser": {
-                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
+                                  "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. the parser catalog in /openapi.json lists them.",
                                   "type": "string"
                                 },
                                 "options": {
-                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
+                                  "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. the parser catalog in /openapi.json lists what each parser accepts.",
                                   "type": "object",
                                   "propertyNames": {
                                     "type": "string"
@@ -9718,7 +9463,7 @@
                     "type": "boolean"
                   },
                   "formats": {
-                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; GET /v1/parsers lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
+                    "description": "What to return: markdown (clean page text), summary (a short summary of the page), html (the cleaned page), rawHtml (the page as sent), audio and video (for a YouTube link: the audio track as an M4A file, or the video as an MP4 file, as a link that works for 1 hour), rawBase64 (the bytes the site sent, Base64 encoded, from a live read; metadata.contentType says what they are; the address of a picture such as a PNG or JPEG is read only with rawBase64 as the only format), links (every link on the page), images (every image address), screenshot (a link to a JPEG of the visible page, kept for 7 days), changeTracking (what changed in the markdown since your key last read this page with the same options, kept 30 days; add modes [\"git-diff\",\"json\"] with a schema or prompt to compare fields too), question (send { \"type\": \"question\", \"question\": \"...\" } to get answer, left out with a warning when the page does not state one), product (title, brand, category, url, description and variants with price, sale, availability and images, left out with a warning when there is none) and menu (merchant, currency and sections of items with prices, left out with a warning when there is none) network (the JSON the page loaded while it rendered, up to 30 responses) and branding (the page's colors, fonts, typography, spacing, button and input styles, logo and brand images, read from how the page looks, with a field left out when the page does not show it). Send { \"type\": \"screenshot\", \"fullPage\": true } for the whole page. Send { \"type\": \"highlights\", \"query\": \"refund policy\" } for the passages that best match a query. Send { \"type\": \"json\", \"schema\": { \"type\": \"object\", \"properties\": { \"price\": { \"type\": \"number\" } } } } or { \"type\": \"json\", \"prompt\": \"the price and the stock\" } for fields filled from the page, each checked against it. Send { \"type\": \"json\", \"parser\": \"amazon-product\" } to get a site's own data as json instead of reading the page; the parser catalog in /openapi.json lists the parsers. Send { \"type\": \"json\", \"rules\": { \"title\": \"h1\", \"links\": { \"selector\": \"a\", \"type\": \"list\", \"output\": \"@href\" } } } to read the page with CSS rules and no model, at the page's own price. Send { \"type\": \"attributes\", \"selectors\": [{ \"selector\": \"a\", \"attribute\": \"href\" }] } for attribute values, returned in attributes. Without a parser or rules, json needs a schema or a prompt and is filled from the page. json with a schema or a prompt, summary, highlights, question, product, menu and changeTracking in json mode add $3 per 1,000 pages each when they return something. JSON with CSS rules and attributes add nothing. A named parser uses its own price. Any page read or other paid format you ask for is charged separately. A screenshot, network or branding read costs $1 per 1,000 pages, the same as any page. A PDF comes back as markdown only, and adds $0.50 per 1,000 pages of text from its text layer and $2.50 per 1,000 pages of text read from its picture that comes back. A CSV or an Excel .xlsx file comes back as markdown tables.",
                     "default": [
                       "markdown"
                     ],
@@ -9942,11 +9687,11 @@
                               "const": "json"
                             },
                             "parser": {
-                              "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. GET /v1/parsers lists them.",
+                              "description": "Read the page with a named parser, which gives the site's own data as json. The url must be the kind of page the parser reads. Parsers are the only way to read some sites. the parser catalog in /openapi.json lists them.",
                               "type": "string"
                             },
                             "options": {
-                              "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. GET /v1/parsers lists what each parser accepts.",
+                              "description": "Only with parser: extra inputs for it, such as { \"page\": 2 } for the next page of results or { \"minRating\": 4.5 } for a filter. the parser catalog in /openapi.json lists what each parser accepts.",
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"

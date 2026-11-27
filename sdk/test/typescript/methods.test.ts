@@ -78,11 +78,20 @@ describe("v1 operations", () => {
     });
   });
 
+  test("reads both catalogs from OpenAPI", async () => {
+    const catalog = { sources: [], endpoints: [], parsers: [], kinds: {} };
+    const { client, calls } = makeClient({ json: { "x-stophy-catalog": catalog } });
+    expect(await client.endpoints()).toEqual({ sources: [], endpoints: [] });
+    expect(await client.parsers()).toEqual({ success: true, data: { parsers: [], kinds: {} } });
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      "/openapi.json",
+      "/openapi.json",
+    ]);
+  });
+
   test("exposes every operation in the spec", async () => {
     const { client, calls } = makeClient({ json: ok });
     const id = "x";
-    await client.endpoints();
-    await client.parsers();
     await client.limits();
     await client.usage();
     await client.logs();

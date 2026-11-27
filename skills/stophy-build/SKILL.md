@@ -67,13 +67,13 @@ curl https://api.stophy.dev/v1/search \
 | The app needs | Call |
 |---|---|
 | a page's text or fields | `scrape`, with a json format for fields |
-| a site's own data | `parsed(parser, pageUrl)`. `GET /v1/parsers` lists the parsers |
+| a site's own data | `parsed(parser, pageUrl)`. The parser catalog in `/openapi.json` lists the parsers |
 | results for a query | `search`, with `sources`, `tbs`, `categories` and `scrapeOptions` for page text |
 | a site's pages | `map`, then `crawl` and `crawl.status`, or `batch.scrape` |
 | fields from up to 25 pages | `extract` |
 | a document's text | `parse` |
 
-`GET https://api.stophy.dev/v1/endpoints` lists every endpoint with its input and price.
+`GET https://api.stophy.dev/openapi.json` lists every endpoint with its input and price.
 
 ## Paging and errors
 

@@ -3,7 +3,7 @@ title: "Pricing"
 description: "Every price, what is free, how your prepaid balance and auto top-up work, and where to read what a call cost. A failed call costs nothing."
 ---
 
-You prepay a dollar balance. Each call takes its price out when it finishes. `GET /v1/endpoints` lists the same prices: `costUsd` is the least a call can cost and `maxCostUsd` the most.
+You prepay a dollar balance. Each call takes its price out when it finishes. The catalog in `/openapi.json` lists the same prices: `costUsd` is the least a call can cost and `maxCostUsd` the most.
 
 ## Prices
 
@@ -42,7 +42,7 @@ An answer from a stored copy within `maxAge` costs a full read. A page you canno
 
 ### Parsers
 
-A [parser](/scrape/prebuilt-parsers) costs $1 per 1,000 calls unless listed. `GET /v1/parsers` returns each `price`.
+A [parser](/scrape/prebuilt-parsers) costs $1 per 1,000 calls unless listed. The parser catalog in `/openapi.json` returns each `price`.
 
 | Parser | Price |
 | - | - |
@@ -70,7 +70,7 @@ A call your balance cannot cover returns `402` with `insufficientCredits` and ch
 
 * A call that fails, a page that returns 404 or 410, a page you cannot read, and an extract that finds no field.
 * Status, results, cancel and list calls for jobs and monitors, and webhook delivery reads.
-* Account calls: [limits, usage, history and logs](/account/usage), `GET /v1/endpoints`, `GET /v1/parsers`, `GET /v1/status`, sign-up and sign-in.
+* Account calls: [limits, usage, history and logs](/account/usage), `GET /openapi.json`, `GET /health`, sign-up and sign-in.
 * Creating, listing and reading browser profiles, extensions, network policies, recordings and replays. Only session time and traffic cost.
 * [Feedback](/production/agent-feedback). A bad rating refunds that call, up to $0.10 a day.
 

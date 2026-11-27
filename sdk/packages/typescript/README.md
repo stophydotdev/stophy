@@ -18,7 +18,7 @@ const page = await stophy.scrape({ url: "https://example.com", formats: ["markdo
 console.log(page.data.markdown);
 ```
 
-That call needs no key. Every method and result is typed, and each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as is. `scrape` returns `{ success, data }`, and `map` returns `{ success, links }`.
+That call needs no key. Every method and result is typed, and each method sends one call to the [Stophy API](https://api.stophy.dev/openapi.json) and returns its JSON as is. `scrape` returns `{ success, data }`, and `map` returns `{ success, links }`.
 
 ## Pick a method
 

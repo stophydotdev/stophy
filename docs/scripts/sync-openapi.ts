@@ -11,9 +11,13 @@ const keyedOnly = (security: Json | undefined): Json | undefined =>
     ? security.filter((entry) => !(isObject(entry) && Object.keys(entry).length === 0))
     : security;
 
-const response = await fetch(source);
-if (!response.ok) throw new Error(`GET ${source} returned ${response.status}`);
-const spec = jsonObject.parse(await response.json());
+const document = source.startsWith("file:")
+  ? await Bun.file(new URL(source)).json()
+  : await fetch(source).then(async (response) => {
+      if (!response.ok) throw new Error(`GET ${source} returned ${response.status}`);
+      return response.json();
+    });
+const spec = jsonObject.parse(document);
 
 const info = spec.info;
 if (isObject(info) && isString(info.description)) {

@@ -26,8 +26,6 @@ import type {
 	GetLogsData,
 	GetLogsResponse,
 	GetUsageResponse,
-	ListEndpointsResponse,
-	ListParsersResponse,
 	MapData,
 	MapResponse,
 	ParseData,
@@ -60,8 +58,6 @@ function bindSurface(call: Caller) {
 		key: {
 			revoke: sendEmpty<RevokeKeyResponse>("DELETE", "/v1/key", call),
 		},
-		parsers: sendEmpty<ListParsersResponse>("GET", "/v1/parsers", call),
-		endpoints: sendEmpty<ListEndpointsResponse>("GET", "/v1/endpoints", call),
 		search: Object.assign(post<SearchData["body"], SearchResponse>("/v1/search", call), {
 				developer: post<SearchDeveloperData["body"], SearchDeveloperResponse>("/v1/search/developer", call),
 			}),
@@ -95,8 +91,6 @@ export class Surface {
 	readonly usage: BoundSurface["usage"];
 	readonly logs: BoundSurface["logs"];
 	readonly key: BoundSurface["key"];
-	readonly parsers: BoundSurface["parsers"];
-	readonly endpoints: BoundSurface["endpoints"];
 	readonly search: BoundSurface["search"];
 	readonly scrape: BoundSurface["scrape"];
 	readonly browser: BoundSurface["browser"];
@@ -113,8 +107,6 @@ export class Surface {
 		this.usage = bound.usage;
 		this.logs = bound.logs;
 		this.key = bound.key;
-		this.parsers = bound.parsers;
-		this.endpoints = bound.endpoints;
 		this.search = bound.search;
 		this.scrape = bound.scrape;
 		this.browser = bound.browser;

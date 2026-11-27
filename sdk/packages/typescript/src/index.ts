@@ -12,3 +12,5 @@ export type { ResultsEnd, ResultsOptions } from "./results";
 export type { ParserName } from "./generated/parsers.gen";
 export type { Surface } from "./generated/surface.gen";
 export type * from "./generated/types.gen";
+
+export type { ListEndpointsResponse, ListParsersResponse } from "./catalog";

@@ -25,8 +25,6 @@ from .models import (
     GetLimitsResponse,
     GetLogsResponse,
     GetUsageResponse,
-    ListEndpointsResponse,
-    ListParsersResponse,
     MapResponse,
     MapSitemap,
     ParseFormatsItemOption0,
@@ -258,26 +256,6 @@ class SyncKey:
     def __init__(self, call: SyncCall) -> None:
         self._call = call
         self.revoke = SyncKeyRevoke(call)
-
-
-class SyncParsers:
-    def __init__(self, call: SyncCall) -> None:
-        self._call = call
-
-    def __call__(
-        self,
-    ) -> ListParsersResponse:
-        return self._call("GET", "/v1/parsers", {})
-
-
-class SyncEndpoints:
-    def __init__(self, call: SyncCall) -> None:
-        self._call = call
-
-    def __call__(
-        self,
-    ) -> ListEndpointsResponse:
-        return self._call("GET", "/v1/endpoints", {})
 
 
 class SyncSearchDeveloper:
@@ -924,8 +902,6 @@ class SyncSurface:
     usage: SyncUsage
     logs: SyncLogs
     key: SyncKey
-    parsers: SyncParsers
-    endpoints: SyncEndpoints
     search: SyncSearch
     scrape: SyncScrape
     browser: SyncBrowser
@@ -941,8 +917,6 @@ class SyncSurface:
         self.usage = SyncUsage(call)
         self.logs = SyncLogs(call)
         self.key = SyncKey(call)
-        self.parsers = SyncParsers(call)
-        self.endpoints = SyncEndpoints(call)
         self.search = SyncSearch(call)
         self.scrape = SyncScrape(call)
         self.browser = SyncBrowser(call)
@@ -1110,26 +1084,6 @@ class AsyncKey:
     def __init__(self, call: AsyncCall) -> None:
         self._call = call
         self.revoke = AsyncKeyRevoke(call)
-
-
-class AsyncParsers:
-    def __init__(self, call: AsyncCall) -> None:
-        self._call = call
-
-    async def __call__(
-        self,
-    ) -> ListParsersResponse:
-        return await self._call("GET", "/v1/parsers", {})
-
-
-class AsyncEndpoints:
-    def __init__(self, call: AsyncCall) -> None:
-        self._call = call
-
-    async def __call__(
-        self,
-    ) -> ListEndpointsResponse:
-        return await self._call("GET", "/v1/endpoints", {})
 
 
 class AsyncSearchDeveloper:
@@ -1776,8 +1730,6 @@ class AsyncSurface:
     usage: AsyncUsage
     logs: AsyncLogs
     key: AsyncKey
-    parsers: AsyncParsers
-    endpoints: AsyncEndpoints
     search: AsyncSearch
     scrape: AsyncScrape
     browser: AsyncBrowser
@@ -1793,8 +1745,6 @@ class AsyncSurface:
         self.usage = AsyncUsage(call)
         self.logs = AsyncLogs(call)
         self.key = AsyncKey(call)
-        self.parsers = AsyncParsers(call)
-        self.endpoints = AsyncEndpoints(call)
         self.search = AsyncSearch(call)
         self.scrape = AsyncScrape(call)
         self.browser = AsyncBrowser(call)

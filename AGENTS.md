@@ -19,6 +19,6 @@ The SDKs, CLI, MCP server, docs and agent skills for the Stophy API.
 ## Rules
 
 - Never hand-edit `crates/stophy/src/generated.rs` or other generated files: `sdk/packages/typescript/src/generated`, `sdk/packages/python/src/stophy/generated`, and the generated docs pages listed in `docs/AGENTS.md`.
-- Every fact must match the live API at `https://api.stophy.dev/v1/endpoints`.
+- Every fact must match the live API at `https://api.stophy.dev/openapi.json`.
 - No comments in code. Names and small functions say what the code does.
 - A change to a package that users install gets a changeset: `bun run changeset`.

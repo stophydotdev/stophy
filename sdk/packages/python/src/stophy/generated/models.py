@@ -16,11 +16,6 @@ GetLimitsResponseDataTier = Literal[
     "paid",
 ]
 
-ListEndpointsResponseSourcesItemKind = Literal[
-    "site",
-    "aiAnswers",
-]
-
 SearchDeveloperPassagesOption1 = Literal[
     "true",
     "false",
@@ -214,6 +209,7 @@ ParserName = Literal[
     "airbnb-listing",
     "airbnb-reviews",
     "airbnb-search",
+    "airport-security-waits",
     "amazon-bestsellers",
     "amazon-product",
     "amazon-reviews",
@@ -236,11 +232,15 @@ ParserName = Literal[
     "ebay-search",
     "emails",
     "expedia-hotels",
+    "faa-airport-status",
     "facebook-comments",
     "facebook-group",
     "facebook-marketplace",
     "facebook-page",
     "facebook-post",
+    "flightstats-airport",
+    "flightstats-airport-delays",
+    "flightstats-flight",
     "g2-reviews",
     "glassdoor-company",
     "glassdoor-reviews",
@@ -434,53 +434,6 @@ class GetLogsResponse(TypedDict):
 
 class RevokeKeyResponse(TypedDict):
     success: Literal[True]
-
-
-class ListParsersResponseDataParsersItem(TypedDict):
-    name: NotRequired[str]
-    takes: NotRequired[str]
-    example: NotRequired[str]
-    options: NotRequired[list[dict[str, Any]]]
-    returns: NotRequired[list[str]]
-    price: NotRequired[str]
-    keyless: NotRequired[bool]
-
-
-class ListParsersResponseData(TypedDict):
-    parsers: NotRequired[list[ListParsersResponseDataParsersItem]]
-
-
-class ListParsersResponse(TypedDict):
-    success: NotRequired[bool]
-    data: NotRequired[ListParsersResponseData]
-
-
-class ListEndpointsResponseSourcesItem(TypedDict):
-    id: str
-    name: str
-    summary: str
-    kind: ListEndpointsResponseSourcesItemKind
-
-
-class ListEndpointsResponseEndpointsItem(TypedDict):
-    id: str
-    title: str
-    summary: str
-    bestWhen: str | None
-    method: Literal["POST"]
-    path: str
-    costUsd: NotRequired[float]
-    maxCostUsd: NotRequired[float]
-    pricing: str | None
-    keyless: bool
-    cacheTtlSeconds: int
-    input: dict[str, str | float | bool | None | list[Any] | dict[str, Any]]
-    example: dict[str, str | float | bool | None | list[Any] | dict[str, Any]] | None
-
-
-class ListEndpointsResponse(TypedDict):
-    sources: list[ListEndpointsResponseSourcesItem]
-    endpoints: list[ListEndpointsResponseEndpointsItem]
 
 
 class SearchDeveloperResponseResultsItem(TypedDict):

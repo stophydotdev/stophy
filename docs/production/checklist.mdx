@@ -43,27 +43,13 @@ Use [zero data retention](/production/zero-data-retention) for calls that must l
 
 ## Service status and changes
 
-`GET /v1/status` is free and needs no key. It lists each source with:
-
-| Field | Meaning |
-| - | - |
-| `state` | `up` when every check passed, `partial` when some failed, `down` when none passed |
-| `passed`, `total` | Checks that passed in the last run, and checks that ran |
-| `failing` | Failed checks as endpoint IDs, such as `ebay.search` |
-| `medianMs` | Median time of the last checks |
-| `lastCheckAt` | When the source was last checked. `updatedAt` at the top is when the list refreshed. |
-
-```bash
-curl https://api.stophy.dev/v1/status
-```
-
-A `partial` or `down` source can make calls fail with `sourceUnavailable`, `sourceRefused`, `sourceTimeout` or `sourceChanged`. See [Errors](/api-reference/errors).
+`GET /health` is free and needs no key. A healthy API returns `ok`.
 
 How the API stays stable:
 
 * One version, `/v1`. An unknown path answers `404` `notFound` and links to the [OpenAPI document](https://api.stophy.dev/openapi.json).
 * Many endpoints reject unknown fields with `400 invalidRequest` and list the fields you can send.
 * Responses can omit `null` and empty values. Handle both missing and empty.
-* The OpenAPI document and `GET /v1/endpoints` are generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](https://stophy.dev/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
+* The OpenAPI document is generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](https://stophy.dev/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
 
 Send `X-Request-ID` with [feedback](/production/agent-feedback) or to support@stophy.dev when an answer is wrong.
