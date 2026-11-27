@@ -11,7 +11,7 @@ bun run sync
 bun run generate
 ```
 
-`sync` downloads the live OpenAPI document and the parser names from `/v1/parsers`, into `openapi.json` and `parsers.json`. To read them from another server, set `STOPHY_OPENAPI_URL`. It keeps only the operations the clients expose, listed in `scripts/sync-openapi.ts`: add an operation there to expose it. `generate` rebuilds the TypeScript methods and the Python models and methods. Do not edit `packages/typescript/src/generated/` or `packages/python/src/stophy/generated/` by hand.
+`sync` downloads the live OpenAPI document and its parser names, into `openapi.json` and `parsers.json`. To read them from another server, set `STOPHY_OPENAPI_URL`. It keeps only the operations the clients expose, listed in `scripts/sync-openapi.ts`: add an operation there to expose it. `generate` rebuilds the TypeScript methods and the Python models and methods. Do not edit `packages/typescript/src/generated/` or `packages/python/src/stophy/generated/` by hand.
 
 ## Check your change
 

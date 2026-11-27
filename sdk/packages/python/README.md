@@ -18,7 +18,7 @@ page = stophy.scrape(url="https://example.com", formats=["markdown"])
 print(page["data"].get("markdown"))
 ```
 
-That call needs no key. Every method and result is typed, and each method sends one call to the [Stophy API](https://api.stophy.dev/v1/endpoints) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`. Arguments are keyword-only and snake_case. For async code, use `AsyncStophy`: it has the same methods, and you `await` each call.
+That call needs no key. Every method and result is typed, and each method sends one call to the [Stophy API](https://api.stophy.dev/openapi.json) and returns its JSON as a dict. `scrape` returns `success` and `data`, and `map` returns `success` and `links`. Arguments are keyword-only and snake_case. For async code, use `AsyncStophy`: it has the same methods, and you `await` each call.
 
 ## Pick a method
 

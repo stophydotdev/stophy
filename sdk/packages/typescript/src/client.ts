@@ -1,4 +1,5 @@
 import type { RequestOptions } from "./bind";
+import { endpointsFromOpenApi, parsersFromOpenApi } from "./catalog";
 import type { ParserName } from "./generated/parsers.gen";
 import { Surface } from "./generated/surface.gen";
 import type {
@@ -33,6 +34,8 @@ function env(name: string): string | undefined {
 }
 
 export class Stophy extends Surface {
+  readonly endpoints: (options?: RequestOptions) => ReturnType<typeof endpointsFromOpenApi>;
+  readonly parsers: (options?: RequestOptions) => ReturnType<typeof parsersFromOpenApi>;
   constructor(input: StophyClientInput = {}) {
     const options = input instanceof Object ? input : { apiKey: input };
     const apiKey = options.apiKey?.trim() || env("STOPHY_API_KEY")?.trim();
@@ -42,6 +45,8 @@ export class Stophy extends Surface {
       baseUrl: options.baseUrl ?? env("STOPHY_BASE_URL"),
     });
     super(call);
+    this.endpoints = (options) => endpointsFromOpenApi(call, options);
+    this.parsers = (options) => parsersFromOpenApi(call, options);
   }
 
   crawlResults(

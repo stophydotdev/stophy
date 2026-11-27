@@ -225,3 +225,39 @@ Options:
 A Luma event page, like luma.com/nighthack. Example: `https://luma.com/nighthack`
 
 Returns `id`, `url`, `title`, `description`, `startsAt`, `endsAt`, `timezone`, `isOnline`, `address`, `location`, `price`, `hosts`, `images`.
+
+### `airport-security-waits`
+
+An airport's own website, or CATSA's page for a Canadian airport, for its live security checkpoint wait times. United States: dfwairport.com, fly2houston.com/iah, fly2houston.com/hou, flymco.com, cltairport.com, cvgairport.com, miami-airport.com, skyharbor.com. Canada: catsa-acsta.gc.ca/en/airport/`<airport>` for YVR, YYC, YYZ, YUL, YEG, YOW, YHZ, YWG, YLW, YQB, YYJ, YXX, YTZ, YHM, YQR, YXE and YYT. Ireland: dublinairport.com. Denmark: cph.dk. Sweden: swedavia.com/arlanda, swedavia.com/landvetter. Germany: hamburg-airport.de, dus.com. Colombia: eldorado.aero. Japan: narita-airport.jp. Example: `https://www.dfwairport.com/security/`
+
+Returns `checkpoint`, `lane`, `note`, `isPreCheck`, `isOpen`, `waitMinutes`.
+
+### `faa-airport-status`
+
+The FAA's NAS Status site, for every US airport with an active ground stop, ground delay program, closure, deicing or delay; add airport=JFK to the link for one airport, like nasstatus.faa.gov/list?airport=JFK. Example: `https://nasstatus.faa.gov/list?airport=DAL`
+
+Returns `airport`, `name`, `groundStop`, `groundDelay`, `arrivalDelay`, `departureDelay`.
+
+### `flightstats-airport`
+
+A FlightStats airport conditions page, for that airport's live delay index, like flightstats.com/v2/airport-conditions/LHR. Example: `https://www.flightstats.com/v2/airport-conditions/LHR`
+
+Returns `source`, `airport`, `name`, `city`, `country`, `timeZone`.
+
+### `flightstats-airport-delays`
+
+FlightStats' world airport delay map, for every airport whose delay index is at least minScore (default 2), like flightstats.com/v2/airport-delays. Example: `https://www.flightstats.com/v2/airport-delays`
+
+Returns `airport`, `name`, `region`, `score`, `latitude`, `longitude`.
+
+Options:
+- `minScore`: Lowest delay index to list, 0 to 5. 0 lists every airport FlightStats tracks. Defaults to 2.
+
+### `flightstats-flight`
+
+A FlightStats flight tracker page for one flight, with the date in year, month and date, like flightstats.com/v2/flight-tracker/BA/117?year=2026&month=11&date=24. Example: `https://www.flightstats.com/v2/flight-tracker/BA/117?year=2026&month=11&date=24`
+
+Returns `url`, `status`, `statusDescription`, `delayMinutes`, `isCancelled`, `isDiverted`.
+
+Options:
+- `flightId`: FlightStats' id for one leg, the flightId in a FlightStats page link. The answer still lists every leg of that day.

@@ -98,10 +98,10 @@ pub async fn load(force: bool) -> Result<Vec<Endpoint>> {
         };
         let answer = config
             .client("endpoints")?
-            .call(Method::GET, "/v1/endpoints", &[], None, &[], &options)
+            .call(Method::GET, "/openapi.json", &[], None, &[], &options)
             .await?;
-        let catalog: Catalog =
-            serde_json::from_value(answer.body).context("The API returned an invalid catalog.")?;
+        let catalog: Catalog = serde_json::from_value(answer.body["x-stophy-catalog"].clone())
+            .context("The API returned an invalid catalog.")?;
         catalog.check()?;
         Ok::<_, anyhow::Error>(catalog)
     }
@@ -385,7 +385,7 @@ pub async fn parsers(term: &str) -> Result<Vec<Value>> {
         .client("parsers")?
         .call(
             Method::GET,
-            "/v1/parsers",
+            "/openapi.json",
             &[],
             None,
             &[],
@@ -393,7 +393,7 @@ pub async fn parsers(term: &str) -> Result<Vec<Value>> {
         )
         .await?;
     let term = term.trim().to_ascii_lowercase();
-    let parsers = answer.body["data"]["parsers"]
+    let parsers = answer.body["x-stophy-catalog"]["parsers"]
         .as_array()
         .context("The API returned an invalid parser list.")?;
     let matched = |parser: &Value| {

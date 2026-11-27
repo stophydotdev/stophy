@@ -7,7 +7,9 @@ use reqwest::{
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 
+mod catalog;
 mod generated;
+pub use catalog::*;
 pub use generated::*;
 
 pub const API_ORIGIN: &str = "https://api.stophy.dev";

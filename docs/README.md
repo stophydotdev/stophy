@@ -17,7 +17,7 @@ The API reference and the parser pages are generated from the live API, so don't
 - `sync-openapi` downloads `https://api.stophy.dev/openapi.json` into `api-reference/openapi.json`.
 - `record-responses` calls every endpoint live and saves `scripts/responses/<operationId>.json`. Each file holds the request that was sent and the trimmed response, and the endpoint page shows both. It needs `STOPHY_API_KEY` and spends a few cents. Pass operation ids to record only those, like `bun scripts/record-responses.ts crawl crawlStatus`.
 - `gen-reference` writes `api-reference/endpoint/*.mdx` and the API Reference navigation in `docs.json`.
-- `gen-parsers` writes `sources/*.mdx` from `GET /v1/parsers`.
+- `gen-parsers` writes `sources/*.mdx` from the parser catalog in `/openapi.json`.
 
 To change the generated pages, edit `scripts/reference.config.json`: the reference groups and titles, the calls to make, the fields to mask, and which parsers go on which page. Then run the scripts again.
 

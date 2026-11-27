@@ -412,14 +412,6 @@
             ]
           },
           {
-            "group": "Catalog",
-            "pages": [
-              "api-reference/endpoint/list-parsers",
-              "api-reference/endpoint/list-endpoints",
-              "api-reference/endpoint/site-status"
-            ]
-          },
-          {
             "group": "Feedback",
             "pages": [
               "api-reference/endpoint/feedback"
@@ -1934,6 +1926,26 @@
       "destination": "/account/usage"
     },
     {
+      "source": "/account/api-keys",
+      "destination": "/get-credentials"
+    },
+    {
+      "source": "/changelog",
+      "destination": "https://stophy.dev/changelog"
+    },
+    {
+      "source": "/api-reference/endpoint/list-endpoints",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/list-parsers",
+      "destination": "/scrape/prebuilt-parsers"
+    },
+    {
+      "source": "/api-reference/endpoint/site-status",
+      "destination": "/production/checklist"
+    },
+    {
       "source": "/scrape/prebuilt-parsers/places-and-travel/google-maps",
       "destination": "/scrape/prebuilt-parsers/places-and-travel#google-maps"
     },
@@ -2390,12 +2402,24 @@
       "destination": "/scrape/prebuilt-parsers/video#twitch-clips"
     },
     {
-      "source": "/account/api-keys",
-      "destination": "/get-credentials"
+      "source": "/scrape/prebuilt-parsers/places-and-travel/faa-airport-status",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#faa-airport-status"
     },
     {
-      "source": "/changelog",
-      "destination": "https://stophy.dev/changelog"
+      "source": "/scrape/prebuilt-parsers/places-and-travel/airport-security-waits",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#airport-security-waits"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/flightstats-flight",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#flightstats-flight"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/flightstats-airport",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#flightstats-airport"
+    },
+    {
+      "source": "/scrape/prebuilt-parsers/places-and-travel/flightstats-airport-delays",
+      "destination": "/scrape/prebuilt-parsers/places-and-travel#flightstats-airport-delays"
     }
   ],
   "integrations": {

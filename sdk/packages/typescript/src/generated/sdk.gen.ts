@@ -27,11 +27,6 @@ import type {
   RevokeKeyData,
   RevokeKeyResponse,
   RevokeKeyError,
-  ListParsersData,
-  ListParsersResponse,
-  ListEndpointsData,
-  ListEndpointsResponse,
-  ListEndpointsError,
   SearchDeveloperData,
   SearchDeveloperResponse,
   SearchDeveloperError,
@@ -246,39 +241,6 @@ export const revokeKey = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/v1/key",
-    ...options,
-  });
-};
-
-/**
- * List the parsers: the sites scrape can return as JSON, the page each one reads, what it returns and what it costs.
- */
-export const listParsers = <ThrowOnError extends boolean = false>(
-  options?: Options<ListParsersData, ThrowOnError>
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListParsersResponse,
-    unknown,
-    ThrowOnError
-  >({
-    url: "/v1/parsers",
-    ...options,
-  });
-};
-
-/**
- * List the endpoints with their prices, input schemas and examples.
- * Free, and needs no key.
- */
-export const listEndpoints = <ThrowOnError extends boolean = false>(
-  options?: Options<ListEndpointsData, ThrowOnError>
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListEndpointsResponse,
-    ListEndpointsError,
-    ThrowOnError
-  >({
-    url: "/v1/endpoints",
     ...options,
   });
 };

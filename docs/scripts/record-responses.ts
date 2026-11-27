@@ -56,7 +56,7 @@ for (const [path, item] of Object.entries(isObject(spec.paths) ? spec.paths : {}
   }
 }
 
-const parsersList = z.object({ data: z.object({ parsers: z.array(z.object({ name: z.string(), example: z.string() })) }) });
+const parsersList = z.object({ "x-stophy-catalog": z.object({ parsers: z.array(z.object({ name: z.string(), example: z.string() })) }) });
 
 const found: JsonObject = process.env.STOPHY_FOUND === undefined ? {} : jsonObject.parse(JSON.parse(process.env.STOPHY_FOUND));
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
@@ -113,9 +113,9 @@ async function record(id: string) {
 }
 
 async function recordParser(name: string) {
-  const listed = parsersList.parse(await (await fetch(`${API}/v1/parsers`)).json());
-  const entry = listed.data.parsers.find((parser) => parser.name === name);
-  if (entry === undefined) throw new Error(`${name} is not in GET /v1/parsers`);
+  const listed = parsersList.parse(await (await fetch(`${API}/openapi.json`)).json());
+  const entry = listed["x-stophy-catalog"].parsers.find((parser) => parser.name === name);
+  if (entry === undefined) throw new Error(`${name} is not in the parser catalog in /openapi.json`);
   const call: Call = { method: "POST", path: "/v1/scrape", body: { url: entry.example, formats: [{ type: "json", parser: name }] } };
   const answer = await send(call);
   const recorded: Recorded = { request: call, status: answer.status, response: anonymize(jsonObject.parse(shorten(answer.body))) };

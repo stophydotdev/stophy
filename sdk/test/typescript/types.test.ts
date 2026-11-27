@@ -42,7 +42,7 @@ export async function typedCalls(): Promise<void> {
 
   // @ts-expect-error url is required
   await client.scrape({});
-  // @ts-expect-error parsers are named by GET /v1/parsers
+  // @ts-expect-error parsers are named by the parser catalog in /openapi.json
   await client.parsed("not-a-parser", "https://example.com");
   // @ts-expect-error cancel needs the job id
   await client.crawl.cancel({});

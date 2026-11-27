@@ -195,14 +195,6 @@
       ]
     },
     {
-      "group": "Catalog",
-      "operations": [
-        "listParsers",
-        "listEndpoints",
-        "siteStatus"
-      ]
-    },
-    {
       "group": "Feedback",
       "operations": [
         "feedback"
@@ -315,9 +307,6 @@
     "getLimits": "Limits",
     "keylessEligibility": "Keyless eligibility",
     "revokeKey": "Revoke your key",
-    "listParsers": "List parsers",
-    "listEndpoints": "List endpoints",
-    "siteStatus": "Site status",
     "feedback": "Send feedback",
     "browserTaskCancel": "Stop a browser task"
   },
@@ -972,7 +961,12 @@
         "airbnb-listing",
         "airbnb-reviews",
         "luma-events",
-        "luma-event"
+        "luma-event",
+        "airport-security-waits",
+        "faa-airport-status",
+        "flightstats-airport",
+        "flightstats-airport-delays",
+        "flightstats-flight"
       ]
     },
     {

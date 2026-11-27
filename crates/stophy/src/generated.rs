@@ -48,8 +48,6 @@ pub type BatchScrapeStatusSchema0Schema = Value;
 
 pub type ExtractResultSchema0Schema = Value;
 
-pub type ListEndpoints26Schema0Schema = Value;
-
 #[derive(Clone, Deserialize, Serialize)]
 pub enum ExtractResultResponseStatus {
     #[serde(rename = "completed")]
@@ -310,91 +308,6 @@ pub struct GetLogsResponse {
 #[derive(Clone, Deserialize, Serialize)]
 pub struct RevokeKeyResponse {
     pub success: bool,
-}
-
-#[derive(Clone, Deserialize, Serialize, Default)]
-pub struct ListParsersResponseDataParsersItem {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub takes: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub example: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub options: Option<Vec<BTreeMap<String, Value>>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub returns: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub price: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub keyless: Option<bool>,
-}
-
-#[derive(Clone, Deserialize, Serialize, Default)]
-pub struct ListParsersResponseData {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub parsers: Option<Vec<ListParsersResponseDataParsersItem>>,
-}
-
-#[derive(Clone, Deserialize, Serialize, Default)]
-pub struct ListParsersResponse {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub success: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<ListParsersResponseData>,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub enum ListEndpointsResponseSourcesItemKind {
-    #[serde(rename = "site")]
-    Site,
-    #[serde(rename = "aiAnswers")]
-    AiAnswers,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct ListEndpointsResponseSourcesItem {
-    pub id: String,
-    pub name: String,
-    pub summary: String,
-    pub kind: ListEndpointsResponseSourcesItemKind,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub enum ListEndpointsResponseEndpointsItemMethod {
-    #[serde(rename = "POST")]
-    Post,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct ListEndpointsResponseEndpointsItem {
-    pub id: String,
-    pub title: String,
-    pub summary: String,
-    #[serde(rename = "bestWhen")]
-    pub best_when: Option<String>,
-    pub method: ListEndpointsResponseEndpointsItemMethod,
-    pub path: String,
-    #[serde(rename = "costUsd", default, skip_serializing_if = "Option::is_none")]
-    pub cost_usd: Option<f64>,
-    #[serde(
-        rename = "maxCostUsd",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub max_cost_usd: Option<f64>,
-    pub pricing: Option<String>,
-    pub keyless: bool,
-    #[serde(rename = "cacheTtlSeconds")]
-    pub cache_ttl_seconds: i64,
-    pub input: BTreeMap<String, ListEndpoints26Schema0Schema>,
-    pub example: Option<BTreeMap<String, ListEndpoints26Schema0Schema>>,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct ListEndpointsResponse {
-    pub sources: Vec<ListEndpointsResponseSourcesItem>,
-    pub endpoints: Vec<ListEndpointsResponseEndpointsItem>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -6805,34 +6718,6 @@ impl Client {
         self.request(
             Method::DELETE,
             self.path("/v1/key", &[])?,
-            None::<&Value>,
-            &[] as &[(&str, &str)],
-            options,
-        )
-        .await
-    }
-
-    pub async fn list_parsers(
-        &self,
-        options: &RequestOptions,
-    ) -> Result<Response<ListParsersResponse>, Error> {
-        self.request(
-            Method::GET,
-            self.path("/v1/parsers", &[])?,
-            None::<&Value>,
-            &[] as &[(&str, &str)],
-            options,
-        )
-        .await
-    }
-
-    pub async fn list_endpoints(
-        &self,
-        options: &RequestOptions,
-    ) -> Result<Response<ListEndpointsResponse>, Error> {
-        self.request(
-            Method::GET,
-            self.path("/v1/endpoints", &[])?,
             None::<&Value>,
             &[] as &[(&str, &str)],
             options,

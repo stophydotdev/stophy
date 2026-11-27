@@ -6,8 +6,6 @@ import {
 } from "../packages/typescript/src/json";
 
 const sdkOperations = new Set([
-  "listEndpoints",
-  "listParsers",
   "extractResult",
   "signUp",
   "pollSignUp",
@@ -34,13 +32,15 @@ const sdkOperations = new Set([
 if (import.meta.main) {
   const url = process.env.STOPHY_OPENAPI_URL ?? "https://api.stophy.dev/openapi.json";
   const target = new URL("../openapi.json", import.meta.url);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download OpenAPI spec from ${url}: ${response.status}`);
-  }
-
-  const document = sdkDocument(await response.json());
-  const parsers = await parserNames(new URL("/v1/parsers", url));
+  const input: JsonValue = url.startsWith("file:")
+    ? await Bun.file(new URL(url)).json()
+    : await fetch(url).then(async (response) => {
+        if (!response.ok)
+          throw new Error(`Failed to download OpenAPI spec from ${url}: ${response.status}`);
+        return response.json();
+      });
+  const document = sdkDocument(input);
+  const parsers = parserNames(input);
   const text = `${JSON.stringify(document, null, 2)}\n`;
   await Bun.write(target, text);
   console.log(`Wrote ${target.pathname} from ${url} (${text.length} bytes).`);
@@ -54,15 +54,16 @@ export function sdkDocument(document: JsonValue): JsonValue {
   if (!isRecord(document) || !isString(document.openapi) || !isRecord(document.paths)) {
     throw new Error("Not an OpenAPI document.");
   }
-  return withoutUnsendableFields(onlySdkOperations(document));
+  const spec = onlySdkOperations(document);
+  return withoutUnsendableFields(
+    Object.fromEntries(Object.entries(spec).filter(([key]) => key !== "x-stophy-catalog")),
+  );
 }
 
-async function parserNames(from: URL): Promise<string[]> {
-  const reply = await fetch(from);
-  if (!reply.ok) throw new Error(`Failed to download parsers from ${from}: ${reply.status}`);
-  const body: JsonValue = await reply.json();
-  const list = isRecord(body) && isRecord(body.data) ? body.data.parsers : undefined;
-  if (!Array.isArray(list)) throw new Error(`Response from ${from} has no parsers.`);
+function parserNames(document: JsonValue): string[] {
+  const catalog = isRecord(document) ? document["x-stophy-catalog"] : undefined;
+  const list = isRecord(catalog) ? catalog.parsers : undefined;
+  if (!Array.isArray(list)) throw new Error("OpenAPI has no parser catalog.");
   return list
     .flatMap((parser) => (isRecord(parser) && isString(parser.name) ? [parser.name] : []))
     .sort();

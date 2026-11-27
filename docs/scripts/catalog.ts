@@ -42,7 +42,10 @@ const catalog = z.object({
   endpoints: z.array(catalogEndpoint),
 });
 
+const openApiCatalog = z.object({ "x-stophy-catalog": catalog }).transform((document) => document["x-stophy-catalog"]);
+
 const savedCatalog = z.union([
+  openApiCatalog,
   catalog,
   z.array(catalogEndpoint).transform((endpoints): Catalog => ({ sources: [], endpoints })),
 ]);
@@ -50,11 +53,11 @@ const savedCatalog = z.union([
 export type CatalogEndpoint = z.infer<typeof catalogEndpoint>;
 export type Catalog = z.infer<typeof catalog>;
 
-export const CATALOG_URL = process.env.STOPHY_CATALOG_URL ?? "https://api.stophy.dev/v1/endpoints";
+export const CATALOG_URL = process.env.STOPHY_CATALOG_URL ?? "https://api.stophy.dev/openapi.json";
 
 export async function fetchCatalog(): Promise<Catalog> {
   if (!/^https?:/.test(CATALOG_URL)) return savedCatalog.parse(await Bun.file(CATALOG_URL).json());
   const response = await fetch(CATALOG_URL);
   if (!response.ok) throw new Error(`GET ${CATALOG_URL} returned ${response.status}`);
-  return catalog.parse(await response.json());
+  return openApiCatalog.parse(await response.json());
 }
