@@ -158,7 +158,7 @@ async function overviewPage(): Promise<string> {
     "",
     "## Read the list from code",
     "",
-    "the parser catalog in `/openapi.json` is free and needs no API key. Each entry has `takes`, `example`, `options`, `returns`, `price`, `keyless` and a sample `response`. It is the only place that lists each parser's price. See [Pricing](/account/pricing) for the rest.",
+    "The parser catalog in `/openapi.json` is free and needs no API key. Each entry has `takes`, `example`, `options`, `returns`, `price`, `keyless` and a sample `response`. It is the only place that lists each parser's price. See [Pricing](/account/pricing) for the rest.",
     "",
     "```bash",
     "curl -s https://api.stophy.dev/openapi.json \\",
