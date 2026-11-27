@@ -17,8 +17,8 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      nonrust: ${{ steps.filter.outputs.nonrust == 'true' || steps.filter.outputs.dependencies == 'true' }}
-      rust: ${{ steps.filter.outputs.rust }}
+      nonrust: ${{ steps.filter.outputs.nonrust == 'true' || steps.filter.outputs.dependencies == 'true' || steps.filter.outputs.cli_inputs == 'true' }}
+      rust: ${{ steps.filter.outputs.rust == 'true' || steps.filter.outputs.cli_inputs == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
@@ -38,6 +38,11 @@ jobs:
               - '!LICENSE'
             dependencies:
               - '**/requirements*.txt'
+              - 'sdk/packages/python/README.md'
+              - 'sdk/packages/langchain/README.md'
+            cli_inputs:
+              - 'cli/README.md'
+              - 'cli/LICENSE'
             rust:
               - '**'
               - '!**/*.md'
