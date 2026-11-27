@@ -1,5 +1,11 @@
 # @stophy/cli
 
+## 2.3.0
+
+### Minor Changes
+
+- 6a9b826: Run the Stophy CLI and local MCP from one native binary. Discover site parsers with `stophy endpoints` and `stophy describe`.
+
 ## 2.2.0
 
 ### Minor Changes

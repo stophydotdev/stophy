@@ -1,5 +1,11 @@
 # stophy
 
+## 2.0.0
+
+### Major Changes
+
+- a1bed5c: Use dollar amounts in API responses. Read what a call cost from `x-cost-usd` and handle `insufficientFunds` for a balance too low to cover the call.
+
 ## 1.5.0
 
 ### Minor Changes
