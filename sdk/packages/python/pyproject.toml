@@ -1,6 +1,6 @@
 [project]
 name = "stophy"
-version = "1.5.0"
+version = "1.5.1"
 description = "Search, read, and act on the web. The Stophy client for Python."
 readme = "README.md"
 requires-python = ">=3.9"

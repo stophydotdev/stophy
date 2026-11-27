@@ -55,7 +55,7 @@ class AsyncStophy(AsyncSurface):
     async def parsed(
         self, parser: ParserName, url: str, *, idempotency_key: str | None = None, **options: Any
     ) -> ScrapeResponse:
-        """Reads url with a parser from the parser catalog in /openapi.json. The data is in data.json.
+        """Reads url with a parser listed in /openapi.json. The data is in data.json.
 
         Options can be snake_case or camelCase: min_rating=4.5 or minRating=4.5.
         """

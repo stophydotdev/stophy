@@ -116,3 +116,11 @@ def test_retired_endpoints_are_gone():
     with pytest.raises(AttributeError):
         client.youtube.search(query="bun")  # type: ignore[attr-defined]
     assert calls == []
+
+
+def test_catalog_methods_read_openapi():
+    catalog = {"sources": [], "endpoints": [], "parsers": [], "kinds": {}}
+    client, calls = make_client({"json": {"x-stophy-catalog": catalog}})
+    assert client.endpoints() == {"sources": [], "endpoints": []}
+    assert client.parsers() == {"success": True, "data": {"parsers": [], "kinds": {}}}
+    assert [call.url.path for call in calls] == ["/openapi.json", "/openapi.json"]
