@@ -1,6 +1,6 @@
 {
   "name": "@stophy/cli",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Search, read, and act on the web. The Stophy command line.",
   "keywords": [
     "ads",
