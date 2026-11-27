@@ -35,7 +35,7 @@ A quickstart is numbered steps: get a key, install, make a request, next. A feat
 - Say the trap and the fix: "A body with `urls` returns `400 invalidRequest`. Read many pages with Batches."
 - No marketing words (fast, powerful, seamless, robust, easy, simply, various, many) and no "about", "around" or "up to" without the number. Replace them with the fact or cut them.
 - No "we", history, roadmap, or how Stophy gets its data.
-- The word credits appears only in field names such as `creditsUsed`.
+- Use dollars for prices, charges, and balances.
 - No em dashes, en dashes or dash-like hyphens. Straight quotes.
 - Headings in sentence case, named for the task: "Read a page again", not "Retrieval". One h1 (the title), no skipped levels.
 

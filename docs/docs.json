@@ -393,8 +393,8 @@
             "pages": [
               "api-reference/endpoint/usage",
               "api-reference/endpoint/usage-history",
-              "api-reference/endpoint/team-credit-usage",
-              "api-reference/endpoint/team-credit-usage-historical",
+              "api-reference/endpoint/team-balance",
+              "api-reference/endpoint/team-usage-historical",
               "api-reference/endpoint/team-token-usage",
               "api-reference/endpoint/team-token-usage-historical",
               "api-reference/endpoint/team-queue-status",

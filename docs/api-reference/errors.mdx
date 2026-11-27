@@ -22,7 +22,7 @@ Every failed call returns one flat JSON body and costs nothing. Read `code` to d
 | `retryable` | `true` when the same call can work later |
 | `retryAfterSeconds` | Seconds to wait, also the `Retry-After` header. When absent, back off as in [Troubleshooting](/production/troubleshooting#retry). |
 | `requestId` | Also the `X-Request-ID` header. Send it to support. |
-| `requiredUsd`, `availableUsd`, `billingUrl` | On `insufficientCredits`: the most the call can cost, your balance, and where to add money. `requiredCredits` and `availableCredits` are older fields for the same numbers. |
+| `requiredUsd`, `availableUsd`, `billingUrl` | On `insufficientFunds`: the most the call can cost, your balance, and where to add money. |
 | `signupUrl`, `signup` | On `apiKeyRequired`, `freeLimit` and an invalid key: where a person gets a key, and the `POST https://api.stophy.dev/v1/signup` call for an agent. See [Get credentials](/get-credentials). |
 
 ## Request, key and account
@@ -33,7 +33,7 @@ Every failed call returns one flat JSON body and costs nothing. Read `code` to d
 | `prohibitedPermission` | 400 | No | The extension's `manifest.json` has a `key` field or asks for a permission that is not allowed. |
 | `apiKeyRequired` | 401 | No | The operation, paging or a field you sent needs a key. Get one at `signupUrl` or call `signup`. |
 | `unauthorized` | 401 | No | The key is wrong, revoked or expired. |
-| `insufficientCredits` | 402 | No | The balance cannot cover the most the call can cost. Nothing was charged. Add money at `billingUrl`. See [Pricing](/account/pricing#balance). |
+| `insufficientFunds` | 402 | No | The balance cannot cover the most the call can cost. Nothing was charged. Add money at `billingUrl`. See [Pricing](/account/pricing#balance). |
 | `forbidden` | 403 | No | This needs the dashboard. Sign in at stophy.dev. |
 | `notFound` | 404, 410 | No | The path, page, ID or job does not exist, or a job result is older than 24 hours. A 410 means the browser session ended. |
 | `methodNotAllowed` | 405 | No | The `Allow` header names the method. |
@@ -72,5 +72,3 @@ Only the CLI login and invite links return these, never a data endpoint.
 | `cliSessionExists`, `cliSessionCompleted` | 409 | No | The CLI sign-in session already exists or is no longer pending. |
 | `inviteClaimed` | 409 | No | You already claimed this invite. Its balance is in your account. |
 | `inviteDisabled`, `inviteExpired`, `inviteUsedUp` | 410 | No | The invite link was turned off, has expired or is used up. Ask the sender for a new one. |
-
-`insufficientCredits` keeps its name, and its message and fields are in dollars.

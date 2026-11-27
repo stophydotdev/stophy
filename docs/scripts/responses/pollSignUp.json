@@ -12,9 +12,6 @@
     "data": {
       "status": "waiting",
       "claimUrl": "<claimUrl>"
-    },
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "6c027275-0648-4f22-b16c-d8535842b72d"
+    }
   }
 }

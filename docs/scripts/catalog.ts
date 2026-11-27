@@ -25,7 +25,6 @@ const catalogEndpoint = z.object({
   bestWhen: z.string().nullish(),
   method: z.enum(["GET", "POST"]),
   path: z.string(),
-  credits: z.number().optional(),
   pricing: z.string().nullish(),
   keyless: z.boolean().optional(),
   input: jsonObject.optional(),

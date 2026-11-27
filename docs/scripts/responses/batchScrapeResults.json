@@ -12,7 +12,6 @@
       "total": 2,
       "completed": 2,
       "failed": 0,
-      "creditsUsed": 1,
       "costUsd": 0.002,
       "errors": [],
       "results": [
@@ -30,13 +29,9 @@
             "proxyUsed": "basic"
           },
           "url": "https://bun.com/docs/runtime/bunfig",
-          "creditsUsed": 1,
           "costUsd": 0.001
         }
       ]
-    },
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "b5799a70-26f1-4200-81e2-6e574dd8a780"
+    }
   }
 }

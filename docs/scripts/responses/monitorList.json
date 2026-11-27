@@ -31,7 +31,6 @@
         "goal": null,
         "judgeEnabled": false,
         "retentionDays": 30,
-        "estimatedCreditsPerMonth": 15,
         "estimatedCostUsdPerMonth": 0.03,
         "notification": {
           "email": {
@@ -67,13 +66,9 @@
         "nextCheckAt": "2026-11-18T00:00:00.000Z",
         "lastCheckAt": "2026-11-17T17:53:54.066Z",
         "checks": 1,
-        "creditsUsed": 1,
         "costUsd": 0.001
       }
     ],
-    "next": null,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "6fdc0db3-14ae-48ea-8fa3-3c68c1866017"
+    "next": null
   }
 }

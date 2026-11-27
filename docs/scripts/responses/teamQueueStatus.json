@@ -10,9 +10,6 @@
     "waitingJobsInQueue": 0,
     "jobsInQueue": 0,
     "maxConcurrency": 10,
-    "mostRecentSuccess": "2026-11-17T17:48:15.571Z",
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "aa7bed79-adf9-4016-ae99-f65fa397a174"
+    "mostRecentSuccess": "2026-11-17T17:48:15.571Z"
   }
 }

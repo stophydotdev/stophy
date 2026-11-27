@@ -26,9 +26,6 @@
     "runningSessions": 0,
     "appliedSessions": 0,
     "pendingSessionIds": [],
-    "closedConnections": 0,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "b79921f7-7a8b-4d84-95b3-bee0b8a2184a"
+    "closedConnections": 0
   }
 }

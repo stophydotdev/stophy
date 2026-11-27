@@ -5,9 +5,6 @@
   },
   "status": 200,
   "response": {
-    "success": true,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "8fd6fcbf-46c6-4c25-9921-f6bbd234ae7d"
+    "success": true
   }
 }

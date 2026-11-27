@@ -85,7 +85,7 @@ test.each([
 test("billing and signup fields of an error stay on details", async () => {
   const fake = await api(() => ({
     status: 402,
-    body: flat("insufficientCredits", false, {
+    body: flat("insufficientFunds", false, {
       requiredUsd: 0.5,
       availableUsd: 0.1,
       billingUrl: "https://stophy.dev/billing",

@@ -28,7 +28,6 @@ description: "Read data.metadata for the page status, title, dates, cache state 
 | `cacheState`, `cachedAt` | `hit`, `miss` or `stale`, and when the stored copy was made (only on `hit` and `stale`). See [Freshness and caching](/scrape/freshness-and-caching). |
 | `scrapeId` | The id of this read, for `GET /v1/scrape/{id}`. |
 | `costUsd` | What the call cost, in dollars. |
-| `creditsUsed` | Crawl and batch pages only. Read `costUsd` instead. |
 | `numPages`, `totalPages`, `ocrPages` | For a PDF: pages read, pages in the file, pages read from their picture. See [PDFs and documents](/scrape/pdfs-and-documents). |
 | `error` | Set when the page answered with a status of 400 or more, such as `The page answered with status 403.` |
 | `keywords`, `ogLocaleAlternate`, `publishedTime`, `modifiedTime` | From the page's `keywords`, `og:locale:alternate` and `article:*` time tags. |

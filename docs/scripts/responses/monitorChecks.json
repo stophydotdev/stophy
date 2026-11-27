@@ -15,10 +15,7 @@
         "scheduledFor": "2026-11-17T17:53:53.974Z",
         "startedAt": "2026-11-17T17:53:53.984Z",
         "finishedAt": "2026-11-17T17:53:54.919Z",
-        "estimatedCredits": 1,
         "estimatedCostUsd": 0.001,
-        "reservedCredits": null,
-        "actualCredits": 1,
         "actualCostUsd": 0.001,
         "billingStatus": "confirmed",
         "summary": {
@@ -35,9 +32,6 @@
         "createdAt": "2026-11-17T17:53:53.984Z",
         "updatedAt": "2026-11-17T17:53:54.919Z"
       }
-    ],
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "fb5df400-68a5-4541-b6e9-4dcf21d6474a"
+    ]
   }
 }

@@ -10,14 +10,10 @@
       "requestId": "0664204e-ff95-4cc1-92f6-b346f6fbbd30",
       "createdAt": "2026-11-17T17:48:33.329Z",
       "endpoint": "search",
-      "credits": 1,
       "costUsd": 0.001,
       "charges": 1,
       "apiKeyId": "<apiKeyId>",
       "apiKeyName": "My key"
-    },
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "ddf19cfc-61c1-411c-87ad-2d848b276fe4"
+    }
   }
 }

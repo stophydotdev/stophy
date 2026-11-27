@@ -27,7 +27,7 @@ sidebarTitle: "Checklist"
 
 ## Spend
 
-* Check `GET /v1/limits` before a large job. A call your balance cannot cover fails with `insufficientCredits` and charges nothing.
+* Check `GET /v1/limits` before a large job. A call your balance cannot cover fails with `insufficientFunds` and charges nothing.
 * Turn on auto top-up for a job that must not stop. See [Pricing](/account/pricing#balance).
 * Read spend with `GET /v1/usage/history` and calls with `GET /v1/logs`. See [Usage and logs](/account/usage).
 
@@ -64,7 +64,6 @@ How the API stays stable:
 * One version, `/v1`. An unknown path answers `404` `notFound` and links to the [OpenAPI document](https://api.stophy.dev/openapi.json).
 * Many endpoints reject unknown fields with `400 invalidRequest` and list the fields you can send.
 * Responses can omit `null` and empty values. Handle both missing and empty.
-* When a field is replaced, the older one stays next to the new one, marked as older in the OpenAPI document. `costUsd` replaced `creditsUsed`.
 * The OpenAPI document and `GET /v1/endpoints` are generated from the running API, and so are the [SDKs](/sdks). Pin your SDK version and read the [changelog](https://stophy.dev/changelog) before you update. For a material change to the service, the [Terms of Service](https://stophy.dev/tos) say Stophy writes to you by email or on the dashboard.
 
 Send `X-Request-ID` with [feedback](/production/agent-feedback) or to support@stophy.dev when an answer is wrong.

@@ -24,10 +24,7 @@
         "min": 300,
         "max": 2592000
       },
-      "estimatedCreditsPerMonth": 30
-    },
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "fde4f015-aabe-413c-98b4-34c2e39890cb"
+      "estimatedCostUsdPerMonth": 0.06
+    }
   }
 }

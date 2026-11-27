@@ -36,11 +36,11 @@ Setup, keys and errors: [stophy](../stophy/SKILL.md).
 `stophy agent` searches, reads and fills fields itself, with a quote and URL for each field:
 
 ```bash
-stophy agent "What is the name of the configuration file this page describes?" --urls "https://bun.com/docs/runtime/bunfig" --maxCredits 10
+stophy agent "What is the name of the configuration file this page describes?" --urls "https://bun.com/docs/runtime/bunfig" --maxCost 0.02
 stophy agent status <id>
 ```
 
-`--maxCredits` caps the spend in steps of $0.002. The default, 2500, is $5.
+`--maxCost` caps the spend in dollars. It defaults to $5.
 
 ## Patents and trends
 

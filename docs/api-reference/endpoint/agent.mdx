@@ -13,7 +13,7 @@ Best for a question that needs several pages, like the pricing tiers of a few pr
 curl -X POST https://api.stophy.dev/v1/agent \
   -H "Authorization: Bearer $STOPHY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"prompt":"What is the name of the configuration file this page describes?","urls":["https://bun.com/docs/runtime/bunfig"],"schema":{"type":"object","properties":{"file":{"type":"string"}}},"maxCredits":10}'
+  -d '{"prompt":"What is the name of the configuration file this page describes?","urls":["https://bun.com/docs/runtime/bunfig"],"schema":{"type":"object","properties":{"file":{"type":"string"}}},"maxCost":0.02}'
 ```
 </RequestExample>
 

@@ -30,12 +30,10 @@
         "n": 1,
         "action": "open",
         "detail": "read the page",
-        "credits": 1,
         "costUsd": 0.001
       }
     ],
     "skipped": [],
-    "creditsUsed": 2,
     "costUsd": 0.004,
     "createdAt": "2026-11-17T17:50:23.347Z",
     "completedAt": "2026-11-17T17:50:28.183Z",

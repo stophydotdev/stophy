@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/team/usage/historical"
+  },
+  "status": 200,
+  "response": {
+    "success": true,
+    "data": {
+      "periods": [
+        {
+          "startDate": "2025-12-01T00:00:00.000Z",
+          "endDate": "2026-01-01T00:00:00.000Z",
+          "spentUsd": 0
+        }
+      ]
+    }
+  }
+}

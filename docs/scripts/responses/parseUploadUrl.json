@@ -15,9 +15,6 @@
     "uploadUrl": "<uploadUrl>",
     "expiresAt": "2026-11-17T18:03:14.325Z",
     "uploadRef": "upl_eb2b98551c724a6fa7c7c6c7bb61b227",
-    "maxBytes": 37748736,
-    "costUsd": 0,
-    "creditsUsed": 0,
-    "requestId": "28ed8ed2-ec50-440a-a427-9e4d68e1ccc4"
+    "maxBytes": 37748736
   }
 }

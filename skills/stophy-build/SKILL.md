@@ -78,6 +78,6 @@ curl https://api.stophy.dev/v1/search \
 ## Paging and errors
 
 - A parser list returns `cursor` when there is more. Send it back: `parsed(parser, url, { cursor })` in TypeScript, `parsed(parser, url, cursor=cursor)` in Python. Paging needs a key.
-- A failed call throws `StophyError` with the API's `code` and `retryable`. When `retryable` is true, retry once after `retryAfterSeconds`. On `invalidRequest`, fix the field the message names. On `insufficientCredits`, top up at https://stophy.dev/billing. A failed call costs nothing.
+- A failed call throws `StophyError` with the API's `code` and `retryable`. When `retryable` is true, retry once after `retryAfterSeconds`. On `invalidRequest`, fix the field the message names. On `insufficientFunds`, top up at https://stophy.dev/billing. A failed call costs nothing.
 
 **Done when:** the user's code ran against the API, printed real data, and reads the key from the environment.

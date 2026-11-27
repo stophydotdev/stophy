@@ -43,7 +43,7 @@ The call counts toward the per-minute limit. See [Rate limits](/production/rate-
 
 The window spans at most 31 days for `hour` and 366 for `day` and `month`, and `from` must be before `to`, or the call answers `invalidRequest`. `start` is the UTC start of the bucket. Buckets with no paid calls are left out.
 
-`GET /v1/team/credit-usage` returns `balanceUsd`. Its plan and period fields are `null`. `/historical` returns `periods`, one per month, with `startDate`, `endDate`, `totalCostUsd` and `costUsd`. Add `byApiKey=true` to split each month by key, named in `apiKey`.
+`GET /v1/team/balance` returns `balanceUsd`. `GET /v1/team/usage/historical` returns `data.periods`, one per month, with `startDate`, `endDate`, and `spentUsd`. Add `byApiKey=true` to split each month by key, named in `apiKey`.
 
 ## List calls
 

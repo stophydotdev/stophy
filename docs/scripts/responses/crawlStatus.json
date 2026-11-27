@@ -17,7 +17,6 @@
           "statusCode": 200,
           "contentType": "text/markdown",
           "cacheState": "miss",
-          "creditsUsed": 1,
           "costUsd": 0.001
         }
       }
@@ -26,7 +25,6 @@
     "total": 2,
     "completed": 2,
     "failed": 0,
-    "creditsUsed": 1,
     "costUsd": 0.002,
     "createdAt": "2026-11-17T17:49:57.354Z",
     "completedAt": "2026-11-17T17:50:00.027Z",
