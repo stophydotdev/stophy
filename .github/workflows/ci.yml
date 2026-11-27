@@ -9,17 +9,64 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      nonrust: ${{ steps.filter.outputs.nonrust == 'true' || steps.filter.outputs.dependencies == 'true' }}
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
+        id: filter
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            nonrust:
+              - '**'
+              - '!crates/**'
+              - '!Cargo.toml'
+              - '!Cargo.lock'
+              - '!**/*.md'
+              - '!**/*.mdx'
+              - '!**/*.txt'
+              - '!**/LICENSE'
+              - '!LICENSE'
+            dependencies:
+              - '**/requirements*.txt'
+            rust:
+              - '**'
+              - '!**/*.md'
+              - '!**/*.mdx'
+              - '!**/*.txt'
+              - '!**/LICENSE'
+              - '!LICENSE'
+              - '!**/*.ts'
+              - '!**/*.tsx'
+
   lint:
     name: Lint and format
+    needs: changes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       - run: bun install --frozen-lockfile
-      - run: bun run check
+      - if: needs.changes.outputs.nonrust == 'true'
+        run: bun run check
+      - if: needs.changes.outputs.nonrust != 'true'
+        run: |
+          bun scripts/check-text.ts
+          bun scripts/check-version-bump.ts
+          git ls-files -z -- '*.md' '*.mdx' | xargs -0 -r bun x oxfmt --check
 
   sdk-typescript:
+    needs: changes
+    if: needs.changes.outputs.nonrust == 'true'
     name: SDK TypeScript
     runs-on: ubuntu-latest
     defaults:
@@ -36,6 +83,8 @@ jobs:
       - run: bun run test:ts
 
   ai-sdk:
+    needs: changes
+    if: needs.changes.outputs.nonrust == 'true'
     name: AI SDK tools
     runs-on: ubuntu-latest
     defaults:
@@ -53,6 +102,8 @@ jobs:
       - run: bun run build
 
   sdk-python:
+    needs: changes
+    if: needs.changes.outputs.nonrust == 'true'
     name: SDK Python
     runs-on: ubuntu-latest
     defaults:
@@ -74,6 +125,8 @@ jobs:
       - run: uv --project packages/python run pytest
 
   langchain:
+    needs: changes
+    if: needs.changes.outputs.nonrust == 'true'
     name: LangChain tools
     runs-on: ubuntu-latest
     defaults:
@@ -91,6 +144,8 @@ jobs:
       - run: uv build
 
   dify:
+    needs: changes
+    if: needs.changes.outputs.nonrust == 'true'
     name: Dify plugin
     runs-on: ubuntu-latest
     defaults:
@@ -106,6 +161,8 @@ jobs:
       - run: uv run pytest
 
   rust:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     name: Rust SDK, CLI and MCP
     runs-on: ubuntu-latest
     steps:
@@ -118,7 +175,8 @@ jobs:
 
   cli-binary:
     name: CLI binary (${{ matrix.platform }})
-    if: github.event_name == 'pull_request'
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.rust == 'true'
     strategy:
       fail-fast: false
       matrix:
