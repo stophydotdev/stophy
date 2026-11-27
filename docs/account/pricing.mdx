@@ -3,33 +3,41 @@ title: "Pricing"
 description: "Every price, what is free, how your prepaid balance and auto top-up work, and where to read what a call cost. A failed call costs nothing."
 ---
 
-You prepay a dollar balance. Each call takes its price out when it finishes. `GET /v1/endpoints` lists the same prices: `costUsd` is the least a call can cost and `maxCostUsd` the most.
+You prepay a dollar balance. Each call takes its price out when it finishes. A failed call costs nothing.
 
-## Prices
+`GET /v1/endpoints` lists the same prices: `costUsd` is the least a call can cost and `maxCostUsd` the most.
 
-Most used first.
+## Prices at a glance
 
-| Endpoint | Price |
-| - | - |
-| [Scrape](/scrape/overview) | $1 per 1,000 pages. Options add to it, see [Scrape add-ons](#scrape-add-ons). At most $0.1165 a page. |
-| [Search](/search/overview) | $0.001 per block of up to 10 results, counted for each source and each research or videos list. Page reads with `scrapeOptions.formats` use scrape prices. |
-| [Map](/map/overview) | $0.50 per 1,000 calls |
-| [Crawl](/crawl/overview) | $1 per 1,000 pages, charged as each page finishes. Starting is free. |
-| [Batches](/batches/overview) | Scrape price for each page. Starting is free. |
-| [Extract](/extract/overview) | $5 per 1,000 pages: the page price plus $4 per 1,000. Each page after the first adds $1 per 1,000. A long answer adds $1 per 1,000 for every 64 values after the first 64, for each 40,000 characters read. No field found is free. |
-| [Parse](/parse/overview) | $0.50 per 1,000 pages or files read from a text layer, $2.50 per 1,000 read from a picture, up to `maxPages`. `summary` and `json` with a schema or a prompt add $3 per 1,000 each. |
-| [Agent](/agent/overview) | Each search and page at its own price, plus $3 per 1,000 for each planning or answering step that returns something. Never more than `maxCredits`. Starting is free. |
-| [Browser sessions](/browser/overview) | $0.06 an hour open, or $0.84 an hour for the whole session once a prompt has run. Billed when the session closes. Code-only time rounds up to 2 minutes. Prompted time has a one-minute minimum and rounds up in $0.002 steps. Traffic adds $5 per GB on the default network (400 kB blocks) or $0.20 per GB direct or on your own proxy (10 MB blocks). |
-| [Interact on a scrape](/scrape/interact) | Browser session prices |
-| [Browser tasks](/browser/tasks) | $0.84 an hour of task time, billed by the minute, one minute at least, up to `maxCost`. A task that ends before its first step is free. |
-| [Monitors](/monitors/overview) | Scrape price for each page on each check. A search target costs the search price. Watched `json` adds $3 per 1,000 when it comes back. A judgement adds $0.001. |
-| [Developer search](/search/developer) | $0.001 per block of up to 10 results |
-| [Research papers](/search/papers) | $0.001 per block of up to 10 results, and $0.001 to read one paper |
-| [Crawl preview](/crawl/describe) | $0.003 per call |
+| You want to | Call | Price |
+| - | - | - |
+| Read a page | [Scrape](/scrape/overview) | $1 per 1,000 pages |
+| Search the web | [Search](/search/overview) | $0.001 per block of up to 10 results |
+| List a site's URLs | [Map](/map/overview) | $0.50 per 1,000 calls |
+| Read a whole site | [Crawl](/crawl/overview) | $1 per 1,000 pages |
+| Pull fields out of a page | [Extract](/extract/overview) | $5 per 1,000 pages |
+| Read a PDF or a file | [Parse](/parse/overview) | $0.50 per 1,000 pages from a text layer, $2.50 per 1,000 from a picture |
+| Get a site's own data | [Parsers](#parsers) | $1 per 1,000 calls for most |
+| Answer a question across pages | [Agent](/agent/overview) | Search and page prices, plus $3 per 1,000 steps |
+| Open a cloud browser | [Browser sessions](/browser/overview) | $0.06 per hour open |
+| Give a browser a prompt | [Browser tasks](/browser/tasks) | $0.84 per hour |
+| Watch pages for changes | [Monitors](/monitors/overview) | Scrape price for each page on each check |
+
+Starting a crawl, a batch or an agent run is free. You pay as pages and steps finish. Details for each call follow.
+
+## Read pages
+
+### Scrape
+
+$1 per 1,000 pages, at most $0.1165 a page.
+
+- Options add to the price when they return something. See [Scrape add-ons](#scrape-add-ons).
+- [Browser actions](/scrape/browser-actions) and CSS rules add nothing.
+- An answer from a stored copy within `maxAge` costs a full read.
+- A page you cannot read costs nothing. The page price is waived for a readable 404 or 410.
+- [Interact on a scrape](/scrape/interact) costs the [browser session](#browser) price.
 
 ### Scrape add-ons
-
-They add to the $1 per 1,000 pages when they return something. [Browser actions](/scrape/browser-actions) and CSS rules add nothing.
 
 | Option | Adds per 1,000 pages |
 | - | - |
@@ -38,9 +46,80 @@ They add to the $1 per 1,000 pages when they return something. [Browser actions]
 | PDF | $0.50 of text from its text layer, $2.50 of text read from its picture. With `maxChars`, `offset` or `query` you pay for the share of pages returned, one page at least. |
 | `zeroDataRetention` | $2 per 1,000 scraped URLs, not per PDF page. Not charged on an error status. See [Zero data retention](/production/zero-data-retention). |
 
-An answer from a stored copy within `maxAge` costs a full read. A page you cannot read costs nothing. The page price is waived for a readable 404 or 410.
+### Crawl, batches and monitors
 
-### Parsers
+| Call | Price |
+| - | - |
+| [Crawl](/crawl/overview) | $1 per 1,000 pages, charged as each page finishes |
+| [Crawl preview](/crawl/describe) | $0.003 per call |
+| [Batches](/batches/overview) | Scrape price for each page |
+| [Monitors](/monitors/overview) | Scrape price for each page on each check. A search target costs the search price. Watched `json` adds $3 per 1,000 when it comes back. A judgement adds $0.001. |
+
+## Search
+
+| Call | Price |
+| - | - |
+| [Search](/search/overview) | $0.001 per block of up to 10 results, counted for each source and each research or videos list |
+| [Developer search](/search/developer) | $0.001 per block of up to 10 results |
+| [Research papers](/search/papers) | $0.001 per block of up to 10 results, and $0.001 to read one paper |
+
+Page reads with `scrapeOptions.formats` use scrape prices.
+
+## Extract and parse
+
+### Extract
+
+$5 per 1,000 pages: the page price plus $4 per 1,000.
+
+- Each page after the first adds $1 per 1,000.
+- A long answer adds $1 per 1,000 for every 64 values after the first 64, for each 40,000 characters read.
+- An extract that finds no field is free.
+
+### Parse
+
+Up to `maxPages`:
+
+| Source | Price per 1,000 |
+| - | - |
+| Pages or files read from a text layer | $0.50 |
+| Pages or files read from a picture | $2.50 |
+| `summary`, and `json` with a schema or a prompt | $3 each, added |
+
+## Agent
+
+You pay for each step as it finishes:
+
+- Each search and page at its own price.
+- $3 per 1,000 for each planning or answering step that returns something.
+
+An [agent run](/agent/overview) never costs more than the spending limit you set on it. Starting is free.
+
+## Browser
+
+### Sessions
+
+| Time | Price |
+| - | - |
+| Session open | $0.06 an hour |
+| Whole session, once a prompt has run | $0.84 an hour |
+
+Billed when the session closes.
+
+- Code-only time rounds up to 2 minutes.
+- Prompted time has a one-minute minimum and rounds up in $0.002 steps.
+
+Traffic adds to the time:
+
+| Network | Price | Billed in |
+| - | - | - |
+| Default | $5 per GB | 400 kB blocks |
+| Direct or your own proxy | $0.20 per GB | 10 MB blocks |
+
+### Tasks
+
+$0.84 an hour of task time, billed by the minute, one minute at least, up to `maxCost`. A task that ends before its first step is free.
+
+## Parsers
 
 A [parser](/scrape/prebuilt-parsers) costs $1 per 1,000 calls unless listed. `GET /v1/parsers` returns each `price`.
 
@@ -58,25 +137,37 @@ A [parser](/scrape/prebuilt-parsers) costs $1 per 1,000 calls unless listed. `GE
 
 ## Balance
 
-A new account gets $2 once, with no card. Top up at [stophy.dev/billing](https://stophy.dev/billing) from $10 to $10,000. The balance does not expire. All purchases are final.
+A new account gets $2 once, with no card. The balance does not expire. All purchases are final.
+
+### Top up
+
+Top up at [stophy.dev/billing](https://stophy.dev/billing) from $10 to $10,000.
 
 The first top-up saves your card and moves the account from `free` to `paid`. [Rate limits](/production/rate-limits) step up at $10, $100 and $500 topped up in all.
 
-After a top-up you can turn on auto top-up at the same page. Pick an amount from $10 to $10,000 and a monthly limit of at least that amount. When a call needs more than your balance, Stophy charges the card and runs the call. At the monthly limit, or if the card declines, the call fails with `insufficientCredits` and the message says which.
+### Auto top-up
 
-A call your balance cannot cover returns `402` with `insufficientCredits` and charges nothing. Stophy checks the balance against the most the call can cost, so a call can fail while the balance covers the usual price. `availableUsd` is your balance, `requiredUsd` the most the call can cost, `billingUrl` where to top up. A browser task you cannot cover tells you to add funds or lower `maxCost`.
+Turn it on at the same page after a top-up. Pick an amount from $10 to $10,000 and a monthly limit of at least that amount.
+
+When a call needs more than your balance, Stophy charges the card and runs the call. At the monthly limit, or if the card declines, the call fails and the message says which.
+
+### When the balance is too low
+
+A call your balance cannot cover returns `402` and charges nothing. Stophy checks the balance against the most the call can cost, so a call can fail while the balance covers the usual price.
+
+The error body has `availableUsd` (your balance), `requiredUsd` (the most the call can cost) and `billingUrl` (where to top up). A browser task you cannot cover tells you to add funds or lower `maxCost`.
 
 ## Free
 
-* A call that fails, a page that returns 404 or 410, a page you cannot read, and an extract that finds no field.
-* Status, results, cancel and list calls for jobs and monitors, and webhook delivery reads.
-* Account calls: [limits, usage, history and logs](/account/usage), `GET /v1/endpoints`, `GET /v1/parsers`, `GET /v1/status`, sign-up and sign-in.
-* Creating, listing and reading browser profiles, extensions, network policies, recordings and replays. Only session time and traffic cost.
-* [Feedback](/production/agent-feedback). A bad rating refunds that call, up to $0.10 a day.
+- A call that fails, a page that returns 404 or 410, a page you cannot read, and an extract that finds no field.
+- Status, results, cancel and list calls for jobs and monitors, and webhook delivery reads.
+- Account calls: [limits, usage, history and logs](/account/usage), `GET /v1/endpoints`, `GET /v1/parsers`, `GET /v1/status`, sign-up and sign-in.
+- Creating, listing and reading browser profiles, extensions, network policies, recordings and replays. Only session time and traffic cost.
+- [Feedback](/production/agent-feedback). A bad rating refunds that call, up to $0.10 a day.
 
 ## Read what a call cost
 
-* `x-cost-usd` header on every response.
-* `data.metadata.costUsd` on scrape and parse. Job status, account, browser and monitor calls put `costUsd` at the top level of the body.
-* `creditsUsed` and `x-credits-used` are older fields for the same cost in steps of $0.002. Use `costUsd`.
-* `GET /v1/limits` shows your balance. `GET /v1/logs` shows what each recent call cost. See [Usage and logs](/account/usage).
+- The `x-cost-usd` header on every response.
+- `data.metadata.costUsd` on scrape and parse. Job status, account, browser and monitor calls put `costUsd` at the top level of the body.
+- `GET /v1/limits` shows your balance.
+- `GET /v1/logs` shows what each recent call cost. See [Usage and logs](/account/usage).
