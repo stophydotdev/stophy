@@ -9,7 +9,7 @@ mod update;
 use std::{env, process::ExitCode};
 
 use anyhow::{Context, Result, bail};
-use serde_json::json;
+use serde_json::{Value, json};
 use stophy::RequestOptions;
 
 use crate::config::Config;
@@ -82,7 +82,7 @@ async fn run(args: &[String]) -> Result<u8> {
             }
             "endpoints" => "stophy endpoints [term] [--refresh]",
             "describe" => "stophy describe <endpoint or parser>",
-            "parsers" => "stophy parsers [term]",
+            "parsers" => "stophy parsers [term] [--json] [--example]",
             "status" => "stophy status",
             "logout" => "stophy logout",
             "mcp" => "stophy mcp",
@@ -151,15 +151,26 @@ async fn run(args: &[String]) -> Result<u8> {
             output::print(&status)?;
         }
         "parsers" => {
-            let term = term(options, "parsers")?.unwrap_or_default();
-            let rows = catalog::parsers(term)
-                .await?
+            let examples = options.iter().any(|option| option == "--example");
+            let json = options.iter().any(|option| option == "--json");
+            let terms: Vec<_> = options
                 .iter()
-                .map(catalog::parser_line)
-                .collect::<Vec<_>>();
-            if rows.is_empty() {
+                .filter(|option| !matches!(option.as_str(), "--example" | "--json"))
+                .cloned()
+                .collect();
+            let term = term(&terms, "parsers")?.unwrap_or_default();
+            let mut parsers = catalog::parsers(term).await?;
+            if output::machine() || json || examples {
+                if !examples {
+                    for parser in &mut parsers {
+                        catalog::remove_parser_examples(parser);
+                    }
+                }
+                output::print(&Value::Array(parsers))?;
+            } else if parsers.is_empty() {
                 output::text(&format!("No parsers match `{term}`."))?;
             } else {
+                let rows = parsers.iter().map(catalog::parser_line).collect::<Vec<_>>();
                 output::text(&rows.join("\n"))?;
             }
         }

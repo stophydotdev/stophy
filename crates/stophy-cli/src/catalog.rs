@@ -289,10 +289,13 @@ impl Endpoint {
             let parser = body.shift_remove("parser");
             let parser_options = body.shift_remove("parserOptions");
             if let Some(parser) = parser {
-                let mut format = json!({"type":"json","parser":parser});
-                if let Some(options) = parser_options {
-                    format["options"] = options;
-                }
+                let mut options = parser_options.unwrap_or_else(|| json!({}));
+                options
+                    .as_object_mut()
+                    .context("--parserOptions must be a JSON object.")?
+                    .entry("lean")
+                    .or_insert(Value::Bool(true));
+                let format = json!({"type":"json","parser":parser,"options":options});
                 body.entry("formats")
                     .or_insert_with(|| json!([]))
                     .as_array_mut()
@@ -397,17 +400,20 @@ pub async fn parsers(term: &str) -> Result<Vec<Value>> {
         .as_array()
         .context("The API returned an invalid parser list.")?;
     let matched = |parser: &Value| {
-        ["name", "takes"].into_iter().any(|field| {
-            parser[field]
-                .as_str()
-                .is_some_and(|part| part.to_ascii_lowercase().contains(&term))
-        }) || parser["returns"].as_array().is_some_and(|fields| {
-            fields.iter().any(|field| {
-                field
+        ["name", "takes", "returnsSummary"]
+            .into_iter()
+            .any(|field| {
+                parser[field]
                     .as_str()
-                    .is_some_and(|field| field.to_ascii_lowercase().contains(&term))
+                    .is_some_and(|part| part.to_ascii_lowercase().contains(&term))
             })
-        })
+            || parser["returns"].as_array().is_some_and(|fields| {
+                fields.iter().any(|field| {
+                    field
+                        .as_str()
+                        .is_some_and(|field| field.to_ascii_lowercase().contains(&term))
+                })
+            })
     };
     let related = |parser: &Value| {
         parser["takes"]
@@ -430,11 +436,26 @@ pub async fn parsers(term: &str) -> Result<Vec<Value>> {
 }
 
 pub fn parser_line(parser: &Value) -> String {
-    format!(
-        "{}  {}",
-        parser["name"].as_str().unwrap_or_default(),
-        takes(parser)
-    )
+    let name = parser["name"].as_str().unwrap_or_default();
+    let summary = parser["returnsSummary"].as_str().unwrap_or_default();
+    let price = parser["price"].as_str().unwrap_or_default();
+    let access = if parser["keyless"] == true {
+        "keyless"
+    } else {
+        "keyed"
+    };
+    format!("{name}  {summary}  {price}  {access}")
+}
+
+pub fn remove_parser_examples(parser: &mut Value) {
+    if let Some(entry) = parser.as_object_mut() {
+        entry.remove("response");
+        if let Some(views) = entry.get_mut("views").and_then(Value::as_array_mut) {
+            for view in views.iter_mut().filter_map(Value::as_object_mut) {
+                view.remove("response");
+            }
+        }
+    }
 }
 
 pub fn takes(parser: &Value) -> String {
