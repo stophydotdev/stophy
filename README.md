@@ -16,7 +16,14 @@
   <a href="https://x.com/stophydotdev">X</a>
 </p>
 
-Stophy is one API for agents that need the web. Search it, read any page as Markdown or JSON, crawl a site, extract fields, watch pages for changes, and drive a cloud browser.
+An agent that needs the live web usually needs a search API, a scraper and a headless browser, each with its own key, bill and failure modes. Stophy is one API, one key and one prepaid balance for all three.
+
+- **Search** the web, news, images, papers and YouTube in one call.
+- **Read any page** as Markdown, HTML, links, a screenshot or JSON.
+- **Crawl and map** a whole site, or watch pages and get told when they change.
+- **Extract and parse** the fields you name from a page, or get structured data from Amazon, Reddit, LinkedIn, Google Maps and more with a site parser.
+- **Cloud browser and tasks** run sessions that you drive with code or a prompt.
+- **MCP and CLI** put all of it in your agent: run `stophy mcp`, or connect to the [MCP server](./mcp).
 
 This repo holds what you install to use it: the SDKs, the `stophy` command, the MCP server, the agent skills and the docs.
 
